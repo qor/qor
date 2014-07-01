@@ -40,8 +40,7 @@ Admin: (TBD)
     admin.UseResource(order)
     admin.Menu().New().UseResource(order)
     admin.Menu().Edit().UseResource(order)
-
-    admin.Mux()
+    admin.AddToMux("/admin", mux)
 
 Api: (TBD)
 
