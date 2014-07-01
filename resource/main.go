@@ -1,12 +1,8 @@
 package resource
 
 type Resource struct {
-	attrs      *attrs
-	meta       *meta
-	IndexAttrs []string
-	ShowAttrs  []string
-	NewAttrs   []string
-	EditAttrs  []string
+	attrs *attrs
+	meta  *meta
 }
 
 func New() *Resource {
@@ -14,22 +10,10 @@ func New() *Resource {
 	return &resource
 }
 
-func (s *Resource) Attrs() *attrs {
-	return s.attrs
+func (r *Resource) Attrs() *attrs {
+	return r.attrs
 }
 
-func (s *Resource) Meta() *meta {
-	return s.meta
-}
-
-func (s *Resource) Search() {
-}
-
-func (s *Resource) Filter() {
-}
-
-func (s *Resource) Action() {
-}
-
-func (s *Resource) Download() {
+func (r *Resource) Meta() *meta {
+	return r.meta
 }

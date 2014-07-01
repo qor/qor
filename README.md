@@ -7,8 +7,8 @@ Resource:
     order.Attrs().Edit("order_id", "status", "amount")
     order.Attrs().Show("order_id", "status", "amount")
 
-    order.Meta().Role("admin").Register("username", qor.Meta{Type: "select", Label: "hello", Value: "", Collection: "", Resource: creditcard})
-    order.Meta().Register("credit_card", qor.Meta{Resource: creditcard})
+    order.Meta().Role("admin").Register(qor.Meta{Name: "username", Type: "select", Label: "hello", Value: "", Collection: ""})
+    order.Meta().Register(qor.Meta{Name: "credit_card", Resource: creditcard})
 
     order.Search().Name("Name").Register(function() {} (Collection)).Suggestion(function() {})
     order.Filter().Group("Name").Register("Cool", function() {})
