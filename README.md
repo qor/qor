@@ -10,10 +10,10 @@ Resource:
     order.Meta().Role("admin").Register(qor.Meta{Name: "username", Type: "select", Label: "hello", Value: "", Collection: ""})
     order.Meta().Register(qor.Meta{Name: "credit_card", Resource: creditcard})
 
-    order.Search().Name("Name").Register(function() {} (Collection)).Suggestion(function() {})
-    order.Filter().Group("Name").Register("Cool", function() {})
-    order.Role("admin").DefaultScope(function() {})
-    order.Action().Register("name", function() {}).If(function() {})
+    order.Search().Name("Name").Register(func() {} (Collection)).Suggestion(func() {})
+    order.Filter().Group("Name").Register("Cool", func() {})
+    order.Role("admin").DefaultScope(func() {})
+    order.Action().Register("name", func() {}).If(func() {})
     order.Download().Register("name", Downloader())
 
 Publish:
@@ -22,11 +22,11 @@ Publish:
 
 Rule:
 
-    Rule.New("admin").Allow(function() {}).Deny(function() {})
+    Rule.New("admin").Allow(func() {}).Deny(func() {})
 
 Worker:
 
-    Worker.New("name", resource).Handle(function() {})
+    Worker.New("name", resource).Handle(func() {})
 
 Exchanger:
 
@@ -35,11 +35,7 @@ Exchanger:
 Admin: (TBD)
 
     admin = Admin.New()
-    admin.Route().Get("/", function(r, w) {})
-    admin.Route().Post("/", function(r, w) {})
     admin.UseResource(order)
-    admin.Menu().New().UseResource(order)
-    admin.Menu().Edit().UseResource(order)
     admin.AddToMux("/admin", mux)
 
 Api: (TBD)
