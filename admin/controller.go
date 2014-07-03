@@ -3,16 +3,20 @@ package admin
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 )
 
 func (admin *Admin) Dashboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (admin *Admin) Index(w http.ResponseWriter, r *http.Request, p Params) {
-	fmt.Println("index")
-	admin.DB.Debug().First(p.Resource.Model)
-	fmt.Println(p.Resource.Name)
-	fmt.Println(p.Resource.Model)
+	sliceType := reflect.SliceOf(reflect.Indirect(reflect.ValueOf(p.Resource.Model)).Type())
+	slice := reflect.MakeSlice(sliceType, 0, 0)
+	slicePtr := reflect.New(sliceType)
+	slicePtr.Elem().Set(slice)
+
+	admin.DB.Find(slicePtr.Interface())
+	fmt.Println(slicePtr.Interface())
 }
 
 func (admin *Admin) Show(w http.ResponseWriter, r *http.Request, p Params) {

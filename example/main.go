@@ -22,8 +22,8 @@ func init() {
 	db, _ = gorm.Open("sqlite3", "/tmp/qor.db")
 	db.AutoMigrate(&User{})
 
-	var user User
-	db.FirstOrCreate(&user, User{Name: "jinzhu", Role: "admin"})
+	db.FirstOrCreate(&User{}, User{Name: "jinzhu", Role: "admin"})
+	db.FirstOrCreate(&User{}, User{Name: "juice", Role: "dev"})
 }
 
 func main() {
