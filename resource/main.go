@@ -1,6 +1,9 @@
 package resource
 
-import "reflect"
+import (
+	"reflect"
+	"strings"
+)
 
 type Resource struct {
 	Name  string
@@ -24,5 +27,5 @@ func (r *Resource) Meta() *meta {
 }
 
 func (r *Resource) RelativePath() string {
-	return r.Name
+	return strings.ToLower(r.Name)
 }
