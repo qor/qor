@@ -4,6 +4,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
 
 	"net/http"
 )
@@ -27,7 +28,10 @@ func init() {
 func main() {
 	mux := http.NewServeMux()
 
+	user := resource.New(User{})
+
 	admin := admin.New()
+	admin.AddResource(user)
 	admin.AddToMux("/admin", mux)
 
 	http.ListenAndServe(":8080", mux)

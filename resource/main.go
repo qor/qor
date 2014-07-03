@@ -5,7 +5,7 @@ type Resource struct {
 	meta  *meta
 }
 
-func New() *Resource {
+func New(value interface{}) *Resource {
 	resource := Resource{}
 	return &resource
 }
