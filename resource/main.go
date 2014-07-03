@@ -6,6 +6,7 @@ import (
 )
 
 type Resource struct {
+	Model interface{}
 	Name  string
 	attrs *attrs
 	meta  *meta
@@ -14,7 +15,7 @@ type Resource struct {
 func New(value interface{}) *Resource {
 	data := reflect.Indirect(reflect.ValueOf(value))
 	resourceName := data.Type().Name()
-	resource := Resource{Name: resourceName}
+	resource := Resource{Name: resourceName, Model: value}
 	return &resource
 }
 

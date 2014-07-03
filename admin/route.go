@@ -1,23 +1,55 @@
 package admin
 
 import (
-	"github.com/julienschmidt/httprouter"
-	"regexp"
+	"github.com/qor/qor/resource"
 
 	"net/http"
 	"path"
+	"regexp"
+	"strings"
 )
 
-func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
-	router := httprouter.New()
-	router.HandlerFunc("GET", prefix, admin.Dashboard)
-	router.HandlerFunc("GET", path.Join(prefix, ":resource"), admin.Index)
-	router.HandlerFunc("POST", path.Join(prefix, ":resource"), admin.Create)
-	router.HandlerFunc("PUT", path.Join(prefix, ":resource", ":id"), admin.Update)
-	router.HandlerFunc("GET", path.Join(prefix, ":resource", ":id"), admin.Show)
+type Params struct {
+	Resource *resource.Resource
+	Id       string
+}
 
+func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 	// format "/admin" to "/admin/"
 	// the trail "/" will match under domain, refer function pathMatch in net/http/server.go
 	prefix = regexp.MustCompile("//(//)*").ReplaceAllString("/"+prefix+"/", "/")
-	mux.Handle(prefix, router)
+	mux.HandleFunc(strings.TrimRight(prefix, "/"), admin.Dashboard)
+
+	pathMatch := regexp.MustCompile(path.Join(prefix, `(\w+)(?:/(\w+))?[^/]*/?$`))
+	mux.HandleFunc(prefix, func(w http.ResponseWriter, r *http.Request) {
+		var isIndexURL, isShowURL bool
+		var params Params
+
+		matches := pathMatch.FindStringSubmatch(r.URL.Path)
+		if resource := admin.resources[matches[1]]; matches[1] != "" && resource != nil {
+			isIndexURL = true
+			params = Params{Resource: resource}
+
+			if matches[2] != "" { // "/admin/user/1234"
+				isIndexURL = false
+				isShowURL = true
+				params.Id = matches[2]
+			}
+		}
+
+		switch {
+		case r.Method == "GET" && isIndexURL:
+			admin.Index(w, r, params)
+		case r.Method == "GET" && isShowURL:
+			admin.Show(w, r, params)
+		case r.Method == "PUT" && isShowURL:
+			admin.Update(w, r, params)
+		case r.Method == "POST" && isIndexURL:
+			admin.Create(w, r, params)
+		case r.Method == "DELETE" && isShowURL:
+			admin.Delete(w, r, params)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
