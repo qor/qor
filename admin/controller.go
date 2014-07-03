@@ -20,8 +20,9 @@ func (admin *Admin) Index(w http.ResponseWriter, r *http.Request, p Params) {
 }
 
 func (admin *Admin) Show(w http.ResponseWriter, r *http.Request, p Params) {
-	fmt.Println("show")
-	fmt.Println(p)
+	res := reflect.New(reflect.Indirect(reflect.ValueOf(p.Resource.Model)).Type())
+	admin.DB.First(res.Interface(), p.Id)
+	fmt.Println(res.Interface())
 }
 
 func (admin *Admin) Create(w http.ResponseWriter, r *http.Request, p Params) {
