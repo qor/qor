@@ -1,10 +1,6 @@
 package admin
 
-import (
-	"github.com/qor/qor/resource"
-
-	"net/http"
-)
+import "github.com/qor/qor/resource"
 
 type Admin struct {
 }
@@ -14,10 +10,5 @@ func New() *Admin {
 	return &admin
 }
 
-func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
-
-}
-
 func (admin *Admin) AddResource(resource *resource.Resource) {
-
 }
