@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor/admin"
@@ -33,5 +34,6 @@ func main() {
 	admin.AddResource(user)
 	admin.AddToMux("/admin", mux)
 
+	fmt.Println("listening on :8080")
 	http.ListenAndServe(":8080", mux)
 }
