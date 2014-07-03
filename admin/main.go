@@ -1,13 +1,17 @@
 package admin
 
-import "github.com/qor/qor/resource"
+import (
+	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/resource"
+)
 
 type Admin struct {
 	resources map[string]*resource.Resource
+	DB        *gorm.DB
 }
 
-func New() *Admin {
-	admin := Admin{resources: make(map[string]*resource.Resource)}
+func New(db *gorm.DB) *Admin {
+	admin := Admin{resources: make(map[string]*resource.Resource), DB: db}
 	return &admin
 }
 

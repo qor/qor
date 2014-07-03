@@ -30,7 +30,7 @@ func main() {
 	mux := http.NewServeMux()
 	user := resource.New(User{})
 
-	admin := admin.New()
+	admin := admin.New(&db)
 	admin.AddResource(user)
 	admin.AddToMux("/admin", mux)
 
