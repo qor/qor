@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
-)
+	"github.com/qor/qor/admin"
 
-var db gorm.DB
+	"net/http"
+)
 
 type User struct {
 	Id   int64
@@ -15,14 +14,21 @@ type User struct {
 	Role string
 }
 
+var db gorm.DB
+
 func init() {
 	db, _ = gorm.Open("sqlite3", "/tmp/qor.db")
-}
-
-func main() {
 	db.AutoMigrate(&User{})
 
 	var user User
 	db.FirstOrCreate(&user, User{Name: "jinzhu", Role: "admin"})
-	fmt.Println(user)
+}
+
+func main() {
+	mux := http.NewServeMux()
+
+	admin := admin.New()
+	admin.AddToMux("/admin", mux)
+
+	http.ListenAndServe(":8080", mux)
 }
