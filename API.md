@@ -7,12 +7,19 @@ Resource:
     order.Attrs().Edit("order_id", "status", "amount")
     order.Attrs().Show("order_id", "status", "amount")
 
-    order.Meta().Role("admin").Register(qor.Meta{Name: "username", Type: "select", Label: "hello", Value: "", Collection: ""})
+    order.Meta().Register(qor.Meta{Name: "username", Type: "select", Label: "hello", Value: "", Collection: ""})
     order.Meta().Register(qor.Meta{Name: "credit_card", Resource: creditcard})
+    qor.Meta{Name: "credit_card", Resource: creditcard, Permission: rule.Permission}
 
     order.Search().Name("Name").Register(func() {} (Collection)).Suggestion(func() {})
-    order.Filter().Group("Name").Register("Cool", func() {})
-    order.Role("admin").DefaultScope(func() {})
+
+    order.DefaultScope(func (d *gorm.DB, App) *gorm.DB {
+      return d.Where("pay_mode_sign = ?", "C")
+    })
+
+    order.Filter().Group("Name").Scope("Cool", func (d *gorm.DB, App) *gorm.DB {
+      return d.Where("pay_mode_sign = ?", "C")
+    })
     order.Action().Register("name", func() {}).If(func() {})
     order.Download().Register("name", Downloader())
 
@@ -22,7 +29,12 @@ Publish:
 
 Rule:
 
-    Rule.New("admin").Allow(func() {}).Deny(func() {})
+    READ, WRITE, RDWR, CREATE, DELETE, ALL
+    Allow(ALL, "admin", "dev").Deny(CREATE, "admin")
+    type Permission struct {}
+    HasPermission(CREATE, App)
+
+    rule.Define("admin", function (App) bool {})
 
 Worker:
 
