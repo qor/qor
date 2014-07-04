@@ -11,21 +11,24 @@ Resource:
     order.Meta().Register(qor.Meta{Name: "credit_card", Resource: creditcard})
     qor.Meta{Name: "credit_card", Resource: creditcard, Permission: rule.Permission}
 
-    order.Search().Name("Name").Register(func() {} (Collection)).Suggestion(func() {})
+    order.Search().Name("Name").Register(func (d *gorm.DB, App) *gorm.DB {
+      return d.Where("pay_mode_sign = ?", "C")
+    }) //.Suggestion(func() {})
 
     order.DefaultScope(func (d *gorm.DB, App) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")
     })
-
-    order.Filter().Group("Name").Scope("Cool", func (d *gorm.DB, App) *gorm.DB {
+    order.Filter().Group("Name").Register("Cool", func (d *gorm.DB, App) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")
     })
-    order.Action().Register("name", func() {}).If(func() {})
+
+    order.BulkEdit().UpdateAttrs("name", "md_week", "gender", "categories")
+    order.BulkEdit().Register("name", func(gorm.DB, App) {
+      "xxx"
+    })
+
+    order.Action().Register("name", func() {db, App} {}).If(func(interface{}, App) {} bool)
     order.Download().Register("name", Downloader())
-
-Publish:
-
-    Find RelationShip, Publish
 
 Rule:
 
@@ -34,15 +37,20 @@ Rule:
     type Permission struct {}
     HasPermission(CREATE, App)
 
-    rule.Define("admin", function (App) bool {})
-
-Worker:
-
-    Worker.New("name", resource).Handle(func() {})
+    rule.Register("admin", function (App) bool {})
 
 Exchanger:
 
     Exchange.New("products", resource)
+
+Publish:
+
+    create data in production -> save in draft db first. (always use the id from draft db)
+    Review before publish, diff in popup
+
+Worker:
+
+    Worker.New("name", resource).Handle(func() {})
 
 Admin: (TBD)
 
