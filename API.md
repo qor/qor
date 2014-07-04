@@ -7,18 +7,19 @@ Resource:
     order.Attrs().Edit("order_id", "status", "amount")
     order.Attrs().Show("order_id", "status", "amount")
 
-    order.Meta().Register(qor.Meta{Name: "username", Type: "select", Label: "hello", Value: "", Collection: ""})
+    order.Meta().Register(qor.Meta{Name: "username", Type: "select", Label: "hello", Value: "", Collection: "", Setter: ""})
     order.Meta().Register(qor.Meta{Name: "credit_card", Resource: creditcard})
     qor.Meta{Name: "credit_card", Resource: creditcard, Permission: rule.Permission}
 
     order.Search().Name("Name").Register(func (d *gorm.DB, App) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")
     }) //.Suggestion(func() {})
+    order.Filter()
 
     order.DefaultScope(func (d *gorm.DB, App) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")
     })
-    order.Filter().Group("Name").Register("Cool", func (d *gorm.DB, App) *gorm.DB {
+    order.Scope().Group("Name").Register("Cool", func (d *gorm.DB, App) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")
     })
 

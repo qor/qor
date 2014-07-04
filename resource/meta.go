@@ -1,5 +1,7 @@
 package resource
 
+import "github.com/qor/qor/rule"
+
 type Meta struct {
 	Name       string
 	Type       string
@@ -7,6 +9,7 @@ type Meta struct {
 	Value      interface{}
 	Collection interface{}
 	Resource   interface{}
+	Permission rule.Permission
 }
 
 type meta struct {

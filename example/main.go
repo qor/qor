@@ -28,8 +28,8 @@ func init() {
 
 func main() {
 	mux := http.NewServeMux()
-	user := resource.New(&User{})
 
+	user := resource.New(&User{})
 	admin := admin.New(&db)
 	admin.AddResource(user)
 	admin.AddToMux("/admin", mux)
