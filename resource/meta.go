@@ -7,7 +7,7 @@ type Meta struct {
 	Type       string
 	Label      string
 	Value      interface{}
-	Collection interface{}
+	Collection []Meta
 	Resource   interface{}
 	Permission rule.Permission
 }

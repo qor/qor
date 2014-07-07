@@ -65,3 +65,37 @@ Api: (TBD)
     api.UseResources(order)
 
 Mail: (TBD)
+
+Form:
+    qor.Meta{Name: "username", Type: "text", Label: "hello",
+             Value: " ",
+             Default: string/func() string,
+             Collection: []string / map[string]string / func() []string / func() map[string]string / []Meta / func() []Meta
+             Setter: func (value interface{}) error,
+             InputHtml: map[string]string{"alt": "hello"}}
+
+    qor.DefineMeta("name", template)
+
+    <li>
+      <label>{{.Label}}</label>
+      <input type="{{.Type}}" name="{{.Name}}" value="{{.Value}}"/>
+    </li>
+
+    <label for="post_tag_ids">{{.Label}}</label>
+    <select id="post_tag_ids" name="post[tag_ids]" multiple="true">
+      <option value="1">Ruby</option>
+      <option value="6">Rails</option>
+      <option value="3">Forms</option>
+      <option value="4">Awesome</option>
+    </select>
+
+    <li>
+      <label for="post_author_id_1">
+        <input type="radio" id="post_author_id_1" value="1"> Justin
+      </label>
+    </li>
+    <li>
+      <label for="post_author_id_3">
+        <input type="radio" id="post_author_id_3" value="3"> Kate
+      </label>
+    </li>
