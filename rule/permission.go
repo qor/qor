@@ -12,7 +12,8 @@ const (
 type Permission struct {
 }
 
-func (p *Permission) HasPermission(mode int, i int) {
+func (p *Permission) HasPermission(mode int, role string) bool {
+	return false
 }
 
 func Allow(mode int, roles ...string) *Permission {

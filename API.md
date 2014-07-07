@@ -106,4 +106,6 @@ L10n
   locale.Scope("scope").T("key")
   locale.Params(map[string]string).T("missing", "default value", "another default")
 
+Authentication:
+
 Layout:
