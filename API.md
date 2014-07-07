@@ -99,3 +99,11 @@ Form:
         <input type="radio" id="post_author_id_3" value="3"> Kate
       </label>
     </li>
+
+L10n
+
+  locale = l18n.Locale("zh-CN")
+  locale.Scope("scope").T("key")
+  locale.Params(map[string]string).T("missing", "default value", "another default")
+
+Layout:
