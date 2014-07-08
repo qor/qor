@@ -1,15 +1,18 @@
 package rule
 
+type PermissionMode uint32
+
 const (
-	READ   = 0
-	WRITE  = 1
-	RDWR   = 2
-	CREATE = 3
-	DELETE = 4
-	ALL    = 5
+	Read PermissionMode = 1 << (32 - 1 - iota)
+	Update
+	Create
+	Delete
+	All
 )
 
 type Permission struct {
+	allowRoles map[int]string
+	denyRoles  map[int]string
 }
 
 func (p *Permission) HasPermission(mode int, role string) bool {
