@@ -9,7 +9,7 @@ const (
 	Update
 	Create
 	Delete
-	All
+	CURD
 )
 
 type Permission struct {
@@ -18,14 +18,56 @@ type Permission struct {
 	denyRoles  map[PermissionMode][]string
 }
 
-func (p *Permission) HasPermission(mode PermissionMode, context *qor.Context) bool {
+func (permission *Permission) HasPermission(mode PermissionMode, context *qor.Context) bool {
+	if len(permission.denyRoles) != 0 {
+		if roles := permission.denyRoles[mode]; roles != nil {
+			if definitions := permission.rule.definitions; definitions != nil {
+				for _, r := range roles {
+					if definitions[r](context) {
+						return false
+					}
+				}
+			}
+		}
+	}
+
+	if len(permission.allowRoles) != 0 {
+		if roles := permission.allowRoles[mode]; roles != nil {
+			if definitions := permission.rule.definitions; definitions != nil {
+				for _, r := range roles {
+					if definitions[r](context) {
+						return true
+					}
+				}
+			}
+		}
+	} else if len(permission.denyRoles) != 0 {
+		return true
+	}
+
 	return false
 }
 
-func (p *Permission) Allow(mode PermissionMode, roles ...string) *Permission {
-	return p
+func (permission *Permission) Allow(mode PermissionMode, roles ...string) *Permission {
+	if mode == CURD {
+		return permission.Allow(Create, roles...).Allow(Update, roles...).Allow(Read, roles...).Allow(Delete, roles...)
+	}
+
+	if permission.allowRoles[mode] == nil {
+		permission.allowRoles[mode] = []string{}
+	}
+	permission.allowRoles[mode] = append(permission.allowRoles[mode], roles...)
+	return permission
 }
 
-func (p *Permission) Deny(mode PermissionMode, roles ...string) *Permission {
-	return p
+func (permission *Permission) Deny(mode PermissionMode, roles ...string) *Permission {
+	if mode == CURD {
+		return permission.Deny(Create, roles...).Deny(Update, roles...).Deny(Read, roles...).Deny(Delete, roles...)
+	}
+
+	if permission.denyRoles[mode] == nil {
+		permission.denyRoles[mode] = []string{}
+	}
+	permission.denyRoles[mode] = append(permission.denyRoles[mode], roles...)
+	return permission
 }

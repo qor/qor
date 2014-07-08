@@ -26,14 +26,19 @@ func (rule *Rule) Register(role string, fc func(*qor.Context) bool) {
 	rule.definitions[role] = fc
 }
 
+func (rule *Rule) newPermission() *Permission {
+	return &Permission{
+		rule:       rule,
+		allowRoles: map[PermissionMode][]string{},
+		denyRoles:  map[PermissionMode][]string{},
+	}
+}
+
 func (rule *Rule) Allow(mode PermissionMode, roles ...string) *Permission {
-	permission := &Permission{rule: rule}
-	permission.Allow(mode, roles...)
-	return permission
+	return rule.newPermission().Allow(mode, roles...)
 }
 
 func (rule *Rule) Deny(mode PermissionMode, roles ...string) *Permission {
-	permission := &Permission{rule: rule}
-	permission.Deny(mode, roles...)
-	return permission
+	return rule.newPermission().Deny(mode, roles...)
+
 }
