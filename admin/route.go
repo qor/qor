@@ -2,7 +2,6 @@ package admin
 
 import (
 	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
 
 	"net/http"
 	"path"
@@ -10,15 +9,10 @@ import (
 	"strings"
 )
 
-type Params struct {
-	Resource *resource.Resource
-	Id       string
-}
-
-func (admin *Admin) generateApp(w http.ResponseWriter, r *http.Request) *qor.App {
-	app := qor.App{ResponseWriter: w, Request: r}
-	app.CurrentUser = admin.auth.GetCurrentUser(&app)
-	return &app
+func (admin *Admin) generateContext(w http.ResponseWriter, r *http.Request) *qor.Context {
+	context := qor.Context{Writer: w, Request: r}
+	context.CurrentUser = admin.auth.GetCurrentUser(&context)
+	return &context
 }
 
 func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
@@ -26,37 +20,37 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 	// the trail "/" will match under domain, refer function pathMatch in net/http/server.go
 	prefix = regexp.MustCompile("//(//)*").ReplaceAllString("/"+prefix+"/", "/")
 	mux.HandleFunc(strings.TrimRight(prefix, "/"), func(w http.ResponseWriter, r *http.Request) {
-		admin.Dashboard(admin.generateApp(w, r))
+		admin.Dashboard(admin.generateContext(w, r))
 	})
 
 	pathMatch := regexp.MustCompile(path.Join(prefix, `(\w+)(?:/(\w+))?[^/]*/?$`))
 	mux.HandleFunc(prefix, func(w http.ResponseWriter, r *http.Request) {
 		var isIndexURL, isShowURL bool
-		var params Params
+		context := admin.generateContext(w, r)
 
 		matches := pathMatch.FindStringSubmatch(r.URL.Path)
 		if resource := admin.resources[matches[1]]; matches[1] != "" && resource != nil {
 			isIndexURL = true
-			params = Params{Resource: resource}
+			context.ResourceName = matches[1]
 
 			if matches[2] != "" { // "/admin/user/1234"
+				context.ResourceID = matches[2]
 				isIndexURL = false
 				isShowURL = true
-				params.Id = matches[2]
 			}
 		}
 
 		switch {
 		case r.Method == "GET" && isIndexURL:
-			admin.Index(w, r, params)
+			admin.Index(context)
 		case r.Method == "GET" && isShowURL:
-			admin.Show(w, r, params)
+			admin.Show(context)
 		case r.Method == "PUT" && isShowURL:
-			admin.Update(w, r, params)
+			admin.Update(context)
 		case r.Method == "POST" && isIndexURL:
-			admin.Create(w, r, params)
+			admin.Create(context)
 		case r.Method == "DELETE" && isShowURL:
-			admin.Delete(w, r, params)
+			admin.Delete(context)
 		default:
 			http.NotFound(w, r)
 		}
