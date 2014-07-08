@@ -69,7 +69,7 @@ Mail: (TBD)
 Form:
     qor.Meta{Name: "username", Type: "text", Label: "hello",
              Value: " ",
-             Default: string/func() string,
+             DefaultValue: string/func() string,
              Collection: []string / map[string]string / func() []string / func() map[string]string / []Meta / func() []Meta
              Setter: func (value interface{}) error,
              InputHtml: map[string]string{"alt": "hello"}}
@@ -109,3 +109,16 @@ L10n
 Authentication:
 
 Layout:
+
+Localization:
+
+  type Product struct {
+    Id int64
+    Name string
+  }
+
+  type LocalizedProduct struct {
+    Product
+    ProductId int64
+    LanguageCode string
+  }
