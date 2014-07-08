@@ -11,7 +11,8 @@ func (admin *Admin) Dashboard(app *qor.Context) {
 }
 
 func (admin *Admin) Index(context *qor.Context) {
-	sliceType := reflect.SliceOf(reflect.Indirect(reflect.ValueOf(p.Resource.Model)).Type())
+	resource := admin.resources[context.ResourceName]
+	sliceType := reflect.SliceOf(reflect.Indirect(reflect.ValueOf(resource.Model)).Type())
 	slice := reflect.MakeSlice(sliceType, 0, 0)
 	slicePtr := reflect.New(sliceType)
 	slicePtr.Elem().Set(slice)
@@ -21,8 +22,9 @@ func (admin *Admin) Index(context *qor.Context) {
 }
 
 func (admin *Admin) Show(context *qor.Context) {
-	res := reflect.New(reflect.Indirect(reflect.ValueOf(p.Resource.Model)).Type())
-	admin.DB.First(res.Interface(), p.Id)
+	resource := admin.resources[context.ResourceName]
+	res := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type())
+	admin.DB.First(res.Interface(), context.ResourceID)
 	fmt.Println(res.Interface())
 }
 
