@@ -1,0 +1,1 @@
+cd example; gin -a 8080 -t '..'
