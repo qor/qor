@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 
 	"net/http"
@@ -14,11 +15,19 @@ type Params struct {
 	Id       string
 }
 
+func (admin *Admin) generateApp(w http.ResponseWriter, r *http.Request) *qor.App {
+	app := qor.App{ResponseWriter: w, Request: r}
+	app.CurrentUser = admin.auth.GetCurrentUser(&app)
+	return &app
+}
+
 func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 	// format "/admin" to "/admin/"
 	// the trail "/" will match under domain, refer function pathMatch in net/http/server.go
 	prefix = regexp.MustCompile("//(//)*").ReplaceAllString("/"+prefix+"/", "/")
-	mux.HandleFunc(strings.TrimRight(prefix, "/"), admin.Dashboard)
+	mux.HandleFunc(strings.TrimRight(prefix, "/"), func(w http.ResponseWriter, r *http.Request) {
+		admin.Dashboard(admin.generateApp(w, r))
+	})
 
 	pathMatch := regexp.MustCompile(path.Join(prefix, `(\w+)(?:/(\w+))?[^/]*/?$`))
 	mux.HandleFunc(prefix, func(w http.ResponseWriter, r *http.Request) {

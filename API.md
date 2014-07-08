@@ -102,23 +102,24 @@ Form:
 
 L10n
 
-  locale = l18n.Locale("zh-CN")
-  locale.Scope("scope").T("key")
-  locale.Params(map[string]string).T("missing", "default value", "another default")
+    locale = l18n.Locale("zh-CN")
+    locale.Scope("scope").T("key")
+    locale.Params(map[string]string).T("missing", "default value", "another default")
 
 Authentication:
+   Auth := auth.New()
 
 Layout:
 
 Localization:
 
-  type Product struct {
-    Id int64
-    Name string
-  }
+    type Product struct {
+      Id int64
+      Name string
+    }
 
-  type LocalizedProduct struct {
-    Product
-    ProductId int64
-    LanguageCode string
-  }
+    type LocalizedProduct struct {
+      Product
+      ProductId int64
+      LanguageCode string
+    }

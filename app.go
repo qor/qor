@@ -2,15 +2,8 @@ package qor
 
 import "net/http"
 
-type CurrentUser struct {
-	Name  string
-	Roles []string
-}
-
-func (user *CurrentUser) Logout(App) {
-}
-
-func (user *CurrentUser) Login(App) {
+type CurrentUser interface {
+	DisplayName() string
 }
 
 type App struct {

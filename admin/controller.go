@@ -2,11 +2,14 @@ package admin
 
 import (
 	"fmt"
+
+	"github.com/qor/qor"
+
 	"net/http"
 	"reflect"
 )
 
-func (admin *Admin) Dashboard(w http.ResponseWriter, r *http.Request) {
+func (admin *Admin) Dashboard(app *qor.App) {
 }
 
 func (admin *Admin) Index(w http.ResponseWriter, r *http.Request, p Params) {
