@@ -7,13 +7,13 @@ import (
 )
 
 type Admin struct {
+	DB        *gorm.DB
 	resources map[string]*resource.Resource
 	auth      auth.Auth
-	DB        *gorm.DB
 }
 
 func New(db *gorm.DB) *Admin {
-	admin := Admin{resources: make(map[string]*resource.Resource), DB: db}
+	admin := Admin{resources: map[string]*resource.Resource{}, DB: db}
 	return &admin
 }
 
@@ -22,4 +22,5 @@ func (admin *Admin) AddResource(resource *resource.Resource) {
 }
 
 func (admin *Admin) SetAuth(auth auth.Auth) {
+	admin.auth = auth
 }
