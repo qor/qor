@@ -1,11 +1,30 @@
 <!DOCTYPE html>
 <html>
+<!--
+ ,-----.    ,-----.  ,------.
+'  .-.  '  '  .-.  ' |  .--. '
+|  | |  |  |  | |  | |  '--'.'
+'  '-'  '-.'  '-'  ' |  |\  \
+ `-----'--' `-----'  `--' '--'
+  ENTERPRISE CONTENT MANAGEMENT SYSTEM
+-->
 
 <head>
   <title>Qor Admin</title>
 </head>
 
 <body>
+  <header>
+    {{template "header" .}}
+  </header>
+
+  <div id="content">
+    {{template "content" .}}
+  </div>
+
+  <footer>
+    QOR CMS <small><sup>TM</sup></small> ENTERPRISE CONTENT MANAGEMENT SYSTEM {{template "footer" .}}
+  </footer>
 
 </body>
 
