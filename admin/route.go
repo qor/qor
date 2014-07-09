@@ -31,7 +31,12 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 		context := admin.generateContext(w, r)
 
 		matches := pathMatch.FindStringSubmatch(r.URL.Path)
-		if resource := admin.resources[matches[1]]; matches[1] != "" && resource != nil {
+		if len(matches) == 0 {
+			admin.Dashboard(admin.generateContext(w, r))
+			return
+		}
+
+		if _, ok := admin.resources[matches[1]]; matches[1] != "" && ok {
 			isIndexURL = true
 			context.ResourceName = matches[1]
 

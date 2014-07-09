@@ -35,7 +35,7 @@ func (admin *Admin) Render(str string, context *qor.Context) {
 
 	for _, value := range paths {
 		_, err := os.Stat(value)
-		if os.IsExist(err) {
+		if !os.IsNotExist(err) {
 			t, _ := template.ParseFiles(value)
 			templates[value] = t
 			tmpl = t
