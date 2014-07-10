@@ -42,29 +42,47 @@ func init() {
 func (admin *Admin) Render(str string, context *qor.Context) {
 	var tmpl *template.Template
 
-	str = tmplSuffix.ReplaceAllString(str, ".tmpl")
-	pathWithResourceName := path.Join(context.ResourceName, str)
+	cacheKey := path.Join(context.ResourceName, str)
+	if t, ok := templates[cacheKey]; !ok {
+		str = tmplSuffix.ReplaceAllString(str, ".tmpl")
 
-	var paths []string
-	for _, value := range []string{pathWithResourceName, str} {
-		if root != "" {
-			paths = append(paths, filepath.Join(root, value))
+		tmpl = template.New("template")
+
+		// parse layout
+		paths := []string{}
+		for _, p := range []string{path.Join("resources", context.ResourceName), path.Join("themes", "default")} {
+			for _, d := range viewDirs {
+				if isExistingDir(path.Join(d, p)) {
+					paths = append(paths, path.Join(d, p))
+				}
+			}
 		}
-		if p, e := filepath.Abs(value); e == nil {
-			paths = append(paths, p)
+
+		for _, f := range []string{"layout.tmpl", str} {
+			for _, p := range paths {
+				if _, err := os.Stat(path.Join(p, f)); !os.IsNotExist(err) {
+					tmpl, err = tmpl.ParseFiles(path.Join(p, f))
+					break
+				}
+			}
 		}
-		paths = append(paths, filepath.Join(goroot, "site/src/github.com/qor/qor/admin", value))
+
+		for _, name := range []string{"header", "footer"} {
+			if tmpl.Lookup(name) == nil {
+				for _, p := range paths {
+					if _, err := os.Stat(path.Join(p, name+".tmpl")); !os.IsNotExist(err) {
+						tmpl, err = tmpl.ParseFiles(path.Join(p, name+".tmpl"))
+						break
+					}
+				}
+			}
+		}
+
+		templates[cacheKey] = tmpl
+	} else {
+		tmpl = t
 	}
 
-	for _, value := range paths {
-		_, err := os.Stat(value)
-		if !os.IsNotExist(err) {
-			t, _ := template.ParseFiles(value)
-			templates[value] = t
-			tmpl = t
-			break
-		}
-	}
 	if tmpl != nil {
 		tmpl.Execute(context.Writer, context)
 	}
