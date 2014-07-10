@@ -56,12 +56,10 @@ func (admin *Admin) Render(str string, context *qor.Context) {
 				}
 			}
 		}
-		fmt.Println(paths)
 
 		for _, f := range []string{"layout.tmpl", str} {
 			for _, p := range paths {
 				if _, err := os.Stat(path.Join(p, f)); !os.IsNotExist(err) {
-					fmt.Println(path.Join(p, f))
 					if tmpl, err = tmpl.ParseFiles(path.Join(p, f)); err != nil {
 						fmt.Println(err)
 					}
