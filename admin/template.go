@@ -87,6 +87,8 @@ func (admin *Admin) Render(str string, context *qor.Context) {
 	}
 
 	if tmpl != nil {
-		tmpl.Execute(context.Writer, context)
+		if err := tmpl.Execute(context.Writer, context); err != nil {
+			fmt.Println(err)
+		}
 	}
 }
