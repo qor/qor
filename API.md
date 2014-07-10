@@ -59,6 +59,21 @@ Admin: (TBD)
     admin.UseResource(order)
     admin.AddToMux("/admin", mux)
 
+    Layout:
+
+        views/themes/tis/resources/user/edit.tmpl
+        views/themes/tis/edit.tmpl
+        views/resources/user/edit.tmpl
+        views/themes/default/edit.tmpl
+
+        views/qor/themes/default/layout.tmpl
+        views/qor/themes/default/header.tmpl
+        views/qor/themes/default/footer.tmpl
+        views/qor/dashboard.tmpl {{define content}}
+        views/qor/index.tmpl
+        views/qor/new.tmpl
+        views/qor/edit.tmpl
+
 Api: (TBD)
 
     api = Api.New()
@@ -108,8 +123,6 @@ L10n
 
 Authentication:
    Auth := auth.New()
-
-Layout:
 
 Localization:
 
