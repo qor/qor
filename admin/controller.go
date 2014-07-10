@@ -18,7 +18,7 @@ func (admin *Admin) Index(context *qor.Context) {
 	slicePtr.Elem().Set(slice)
 	admin.DB.Find(slicePtr.Interface())
 
-	admin.Render("resources/index", context)
+	admin.Render("index", context)
 }
 
 func (admin *Admin) Show(context *qor.Context) {
@@ -26,11 +26,11 @@ func (admin *Admin) Show(context *qor.Context) {
 	res := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type())
 	admin.DB.First(res.Interface(), context.ResourceID)
 
-	admin.Render("resources/show", context)
+	admin.Render("show", context)
 }
 
 func (admin *Admin) New(context *qor.Context) {
-	admin.Render("resources/new", context)
+	admin.Render("new", context)
 }
 
 func (admin *Admin) Create(context *qor.Context) {

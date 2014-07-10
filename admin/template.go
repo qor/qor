@@ -12,14 +12,37 @@ import (
 
 var layouts = map[string]*template.Template{}
 var templates = map[string]*template.Template{}
-var root = os.Getenv("WEB_ROOT")
-var goroot = os.Getenv("GOROOT")
-var htmlSuffix = regexp.MustCompile(`(\.html)?$`)
+var tmplSuffix = regexp.MustCompile(`(\.tmpl)?$`)
+var viewDirs = []string{}
+
+func isExistingDir(pth string) bool {
+	fi, err := os.Stat(pth)
+	if err != nil {
+		return false
+	}
+	return fi.Mode().IsDir()
+}
+
+func init() {
+	if root := os.Getenv("WEB_ROOT"); root != "" {
+		if dir := path.Join(root, "templates/qor"); isExistingDir(dir) {
+			viewDirs = append(viewDirs, dir)
+		}
+	}
+
+	if dir, err := filepath.Abs("templates/qor"); err == nil && isExistingDir(dir) {
+		viewDirs = append(viewDirs, dir)
+	}
+
+	if dir := path.Join(os.Getenv("GOROOT"), "site/src/github.com/qor/qor/admin/templates"); isExistingDir(dir) {
+		viewDirs = append(viewDirs, dir)
+	}
+}
 
 func (admin *Admin) Render(str string, context *qor.Context) {
 	var tmpl *template.Template
 
-	str = path.Join("templates", htmlSuffix.ReplaceAllString(str, ".html"))
+	str = tmplSuffix.ReplaceAllString(str, ".tmpl")
 	pathWithResourceName := path.Join(context.ResourceName, str)
 
 	var paths []string
