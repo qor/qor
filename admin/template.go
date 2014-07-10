@@ -43,7 +43,7 @@ func (admin *Admin) Render(str string, context *qor.Context) {
 	var tmpl *template.Template
 
 	cacheKey := path.Join(context.ResourceName, str)
-	if t, ok := templates[cacheKey]; !ok {
+	if t, ok := templates[cacheKey]; !ok && false {
 		str = tmplSuffix.ReplaceAllString(str, ".tmpl")
 
 		tmpl = template.New("template")
