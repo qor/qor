@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"github.com/qor/qor"
 	"os"
 	"path"
@@ -43,25 +44,27 @@ func (admin *Admin) Render(str string, context *qor.Context) {
 	var tmpl *template.Template
 
 	cacheKey := path.Join(context.ResourceName, str)
-	if t, ok := templates[cacheKey]; !ok && false {
+	if t, ok := templates[cacheKey]; !ok || true {
 		str = tmplSuffix.ReplaceAllString(str, ".tmpl")
-
-		tmpl = template.New("template")
 
 		// parse layout
 		paths := []string{}
-		for _, p := range []string{path.Join("resources", context.ResourceName), path.Join("themes", "default")} {
+		for _, p := range []string{path.Join("resources", context.ResourceName), path.Join("themes", "default"), "."} {
 			for _, d := range viewDirs {
 				if isExistingDir(path.Join(d, p)) {
 					paths = append(paths, path.Join(d, p))
 				}
 			}
 		}
+		fmt.Println(paths)
 
 		for _, f := range []string{"layout.tmpl", str} {
 			for _, p := range paths {
 				if _, err := os.Stat(path.Join(p, f)); !os.IsNotExist(err) {
-					tmpl, err = tmpl.ParseFiles(path.Join(p, f))
+					fmt.Println(path.Join(p, f))
+					if tmpl, err = tmpl.ParseFiles(path.Join(p, f)); err != nil {
+						fmt.Println(err)
+					}
 					break
 				}
 			}
@@ -71,7 +74,9 @@ func (admin *Admin) Render(str string, context *qor.Context) {
 			if tmpl.Lookup(name) == nil {
 				for _, p := range paths {
 					if _, err := os.Stat(path.Join(p, name+".tmpl")); !os.IsNotExist(err) {
-						tmpl, err = tmpl.ParseFiles(path.Join(p, name+".tmpl"))
+						if tmpl, err = tmpl.ParseFiles(path.Join(p, name+".tmpl")); err != nil {
+							fmt.Println(err)
+						}
 						break
 					}
 				}
