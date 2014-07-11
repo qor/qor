@@ -9,7 +9,9 @@ Resource:
 
     order.Meta().Register(qor.Meta{Name: "username", Type: "select", Label: "hello", Value: "", Collection: "", Setter: ""})
     order.Meta().Register(qor.Meta{Name: "credit_card", Resource: creditcard})
-    qor.Meta{Name: "credit_card", Resource: creditcard, Permission: rule.Permission}
+
+    qor.Meta{Name: "credit_card", Resource: creditcard, Permission: rule.Allow("admin")}
+
 
     order.Search().Name("Name").Register(func (d *gorm.DB, App) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")
@@ -38,7 +40,11 @@ Rule:
     type Permission struct {}
     HasPermission(CREATE, App)
 
-    rule.Register("admin", function (App) bool {})
+    rule.Register("admin", function (context *qor.Context) bool {
+        if user, ok := context.GetCurrentUser().(User) {
+            return user.IsAdmin()
+        }
+    })
 
 Exchanger:
 

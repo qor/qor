@@ -1,31 +1,23 @@
 <!DOCTYPE html>
 <html>
-<!--
- ,-----.    ,-----.  ,------.
-'  .-.  '  '  .-.  ' |  .--. '
-|  | |  |  |  | |  | |  '--'.'
-'  '-'  '-.'  '-'  ' |  |\  \
- `-----'--' `-----'  `--' '--'
+  <!--
+  ,-----.    ,-----.  ,------.
+  '  .-.  '  '  .-.  ' |  .--. '
+  |  | |  |  |  | |  | |  '--'.'
+  '  '-'  '-.'  '-'  ' |  |\  \
+  `-----'--' `-----'  `--' '--'
   ENTERPRISE CONTENT MANAGEMENT SYSTEM
--->
+  -->
 
-<head>
-  <title>Qor Admin</title>
-</head>
+  <head>
+    <title>Qor Admin</title>
+  </head>
 
-<body>
-  <header>
+  <body>
     {{template "header" .}}
-  </header>
 
-  <div id="content">
     {{template "content" .}}
-  </div>
 
-  <footer>
-    QOR CMS <small><sup>TM</sup></small> ENTERPRISE CONTENT MANAGEMENT SYSTEM {{template "footer" .}}
-  </footer>
-
-</body>
-
+    {{template "footer" .}}
+  </body>
 </html>
