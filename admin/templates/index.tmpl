@@ -1,1 +1,5 @@
-{{define "content"}} Content {{end}}
+{{define "content"}}
+{{range $resource := .Result}}
+{{$resource.Name}}
+{{end}}
+{{end}}

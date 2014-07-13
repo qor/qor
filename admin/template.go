@@ -40,7 +40,7 @@ func init() {
 	}
 }
 
-func (admin *Admin) Render(str string, context *qor.Context) {
+func (admin *Admin) Render(str string, context *qor.Context) *template.Template {
 	var tmpl *template.Template
 
 	cacheKey := path.Join(context.ResourceName, str)
@@ -86,9 +86,5 @@ func (admin *Admin) Render(str string, context *qor.Context) {
 		tmpl = t
 	}
 
-	if tmpl != nil {
-		if err := tmpl.Execute(context.Writer, context); err != nil {
-			fmt.Println(err)
-		}
-	}
+	return tmpl
 }

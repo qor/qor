@@ -36,7 +36,7 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 			return
 		}
 
-		if _, ok := admin.resources[matches[1]]; matches[1] != "" && ok {
+		if _, ok := admin.Resources[matches[1]]; matches[1] != "" && ok {
 			isIndexURL = true
 			context.ResourceName = matches[1]
 

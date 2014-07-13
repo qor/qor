@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"github.com/qor/qor"
 
 	"reflect"
@@ -11,18 +12,22 @@ func (admin *Admin) Dashboard(app *qor.Context) {
 }
 
 func (admin *Admin) Index(context *qor.Context) {
-	resource := admin.resources[context.ResourceName]
+	resource := admin.Resources[context.ResourceName]
 	sliceType := reflect.SliceOf(reflect.Indirect(reflect.ValueOf(resource.Model)).Type())
 	slice := reflect.MakeSlice(sliceType, 0, 0)
 	slicePtr := reflect.New(sliceType)
 	slicePtr.Elem().Set(slice)
-	admin.DB.Find(slicePtr.Interface())
+	admin.DB.Debug().Find(slicePtr.Interface())
 
-	admin.Render("index", context)
+	fmt.Println(slicePtr.Interface())
+	data := map[string]interface{}{"Admin": admin, "Context": context, "Resource": resource, "Result": slicePtr.Interface()}
+	if err := admin.Render("index", context).Execute(context.Writer, data); err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (admin *Admin) Show(context *qor.Context) {
-	resource := admin.resources[context.ResourceName]
+	resource := admin.Resources[context.ResourceName]
 	res := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type())
 	admin.DB.First(res.Interface(), context.ResourceID)
 
