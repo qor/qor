@@ -35,7 +35,7 @@ func init() {
 		viewDirs = append(viewDirs, dir)
 	}
 
-	if dir := path.Join(os.Getenv("GOROOT"), "site/src/github.com/qor/qor/admin/templates"); isExistingDir(dir) {
+	if dir := path.Join(os.Getenv("GOPATH"), "src/github.com/qor/qor/admin/templates"); isExistingDir(dir) {
 		viewDirs = append(viewDirs, dir)
 	}
 }
