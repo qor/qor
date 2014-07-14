@@ -1,12 +1,16 @@
 package resource
 
-import "github.com/qor/qor/rules"
+import (
+	"github.com/qor/qor"
+	"github.com/qor/qor/rules"
+)
 
 type Meta struct {
 	Name       string
 	Type       string
 	Label      string
 	Value      interface{}
+	GetValue   func(interface{}, *qor.Context) string
 	Collection []Meta
 	Resource   interface{}
 	Permission rules.Permission

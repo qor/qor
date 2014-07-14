@@ -22,3 +22,29 @@ func (a *attrs) Edit(columns ...string) {
 func (a *attrs) Show(columns ...string) {
 	a.showAttrs = columns
 }
+
+func (resource *Resource) IndexAttrs() (metas []Meta) {
+	for _, attr := range resource.attrs.indexAttrs {
+		metaDefined := false
+		for _, meta := range resource.meta.metas {
+			if meta.Name == attr {
+				metas = append(metas, meta)
+				metaDefined = true
+				break
+			}
+		}
+		if !metaDefined {
+			metas = append(metas, Meta{Name: attr})
+		}
+	}
+	return
+}
+
+func (resource *Resource) NewAttrs() {
+}
+
+func (resource *Resource) EditAttrs() {
+}
+
+func (resource *Resource) ShowAttrs() {
+}
