@@ -40,11 +40,14 @@ func (resource *Resource) IndexAttrs() (metas []Meta) {
 	return
 }
 
-func (resource *Resource) NewAttrs() {
+func (resource *Resource) NewAttrs() []Meta {
+	return resource.IndexAttrs()
 }
 
-func (resource *Resource) EditAttrs() {
+func (resource *Resource) EditAttrs() []Meta {
+	return resource.IndexAttrs()
 }
 
-func (resource *Resource) ShowAttrs() {
+func (resource *Resource) ShowAttrs() []Meta {
+	return resource.IndexAttrs()
 }

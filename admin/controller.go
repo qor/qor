@@ -17,7 +17,7 @@ func (admin *Admin) Index(context *qor.Context) {
 	slice := reflect.MakeSlice(sliceType, 0, 0)
 	slicePtr := reflect.New(sliceType)
 	slicePtr.Elem().Set(slice)
-	admin.DB.Debug().Find(slicePtr.Interface())
+	admin.DB.Find(slicePtr.Interface())
 
 	fmt.Println(slicePtr.Interface())
 	data := map[string]interface{}{"Admin": admin, "Context": context, "Resource": resource, "Result": slicePtr.Interface()}
