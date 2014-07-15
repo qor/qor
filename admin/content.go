@@ -14,26 +14,31 @@ type Content struct {
 	Action   string
 }
 
-func (content *Content) AllowedMetas(mode rules.PermissionMode) []resource.Meta {
-	var attrs []resource.Meta
-	switch content.Action {
-	case "index":
-		attrs = content.Resource.IndexAttrs()
-	case "show":
-		attrs = content.Resource.ShowAttrs()
-	case "edit":
-		attrs = content.Resource.EditAttrs()
-	case "new":
-		attrs = content.Resource.NewAttrs()
-	}
-
-	var metas = []resource.Meta{}
-	for _, meta := range attrs {
-		if meta.HasPermission(mode, content.Context) {
-			metas = append(metas, meta)
+func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func() []resource.Meta {
+	return func() []resource.Meta {
+		var attrs []resource.Meta
+		switch content.Action {
+		case "index":
+			attrs = content.Resource.IndexAttrs()
+		case "show":
+			attrs = content.Resource.ShowAttrs()
+		case "edit":
+			attrs = content.Resource.EditAttrs()
+		case "new":
+			attrs = content.Resource.NewAttrs()
 		}
+
+		var metas = []resource.Meta{}
+		for _, meta := range attrs {
+			for _, mode := range modes {
+				if meta.HasPermission(mode, content.Context) {
+					metas = append(metas, meta)
+					break
+				}
+			}
+		}
+		return metas
 	}
-	return metas
 }
 
 func (content *Content) ValueOf(value interface{}, meta resource.Meta) interface{} {
