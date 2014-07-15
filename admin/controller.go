@@ -3,12 +3,14 @@ package admin
 import (
 	"fmt"
 	"github.com/qor/qor"
+	"github.com/qor/qor/rules"
 
 	"reflect"
 )
 
-func (admin *Admin) Dashboard(app *qor.Context) {
-	admin.Render("dashboard", app)
+func (admin *Admin) Dashboard(context *qor.Context) {
+	content := Content{Admin: admin, Context: context, Action: "dashboard"}
+	admin.Render("dashboard", content, rules.Read)
 }
 
 func (admin *Admin) Index(context *qor.Context) {
@@ -20,10 +22,9 @@ func (admin *Admin) Index(context *qor.Context) {
 	admin.DB.Find(slicePtr.Interface())
 
 	fmt.Println(slicePtr.Interface())
-	data := map[string]interface{}{"Admin": admin, "Context": context, "Resource": resource, "Result": slicePtr.Interface()}
-	if err := admin.Render("index", context).Execute(context.Writer, data); err != nil {
-		fmt.Println(err)
-	}
+
+	content := Content{Admin: admin, Context: context, Resource: resource, Result: slicePtr.Interface(), Action: "index"}
+	admin.Render("index", content, rules.Read)
 }
 
 func (admin *Admin) Show(context *qor.Context) {
@@ -31,11 +32,14 @@ func (admin *Admin) Show(context *qor.Context) {
 	res := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type())
 	admin.DB.First(res.Interface(), context.ResourceID)
 
-	admin.Render("show", context)
+	content := Content{Admin: admin, Context: context, Resource: resource, Result: res.Interface(), Action: "show"}
+	admin.Render("show", content, rules.Read, rules.Update)
 }
 
 func (admin *Admin) New(context *qor.Context) {
-	admin.Render("new", context)
+	resource := admin.Resources[context.ResourceName]
+	content := Content{Admin: admin, Context: context, Resource: resource, Action: "new"}
+	admin.Render("new", content, rules.Create)
 }
 
 func (admin *Admin) Create(context *qor.Context) {

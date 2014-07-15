@@ -4,6 +4,8 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
+
+	"text/template"
 )
 
 type Content struct {
@@ -43,4 +45,11 @@ func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func() []res
 
 func (content *Content) ValueOf(value interface{}, meta resource.Meta) interface{} {
 	return meta.GetValue(value, content.Context)
+}
+
+func (content *Content) funcMap(modes ...rules.PermissionMode) template.FuncMap {
+	return template.FuncMap{
+		"allowed_metas": content.AllowedMetas(modes...),
+		"value_of":      content.ValueOf,
+	}
 }

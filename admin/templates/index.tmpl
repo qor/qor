@@ -1,4 +1,7 @@
 {{define "content"}}
+{{range $meta := allowed_metas}}
+{{$meta.Name}}
+{{end}}
 {{range $resource := .Result}}
 {{$resource.Name}}
 {{end}}

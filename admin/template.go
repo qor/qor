@@ -2,7 +2,7 @@ package admin
 
 import (
 	"fmt"
-	"github.com/qor/qor"
+	"github.com/qor/qor/rules"
 	"os"
 	"path"
 	"path/filepath"
@@ -40,16 +40,29 @@ func init() {
 	}
 }
 
-func (admin *Admin) Render(str string, context *qor.Context) *template.Template {
+func parseLayout(tmpl *template.Template, layout string, paths []string) *template.Template {
+	for _, p := range paths {
+		if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
+			if tmpl, err = tmpl.ParseFiles(path.Join(p, layout)); err != nil {
+				fmt.Println(err)
+			} else {
+				return tmpl
+			}
+		}
+	}
+	return tmpl
+}
+
+func (admin *Admin) Render(str string, content Content, modes ...rules.PermissionMode) {
 	var tmpl *template.Template
 
-	cacheKey := path.Join(context.ResourceName, str)
+	cacheKey := path.Join(content.Context.ResourceName, str)
 	if t, ok := templates[cacheKey]; !ok || true {
 		str = tmplSuffix.ReplaceAllString(str, ".tmpl")
 
 		// parse layout
 		paths := []string{}
-		for _, p := range []string{path.Join("resources", context.ResourceName), path.Join("themes", "default"), "."} {
+		for _, p := range []string{path.Join("resources", content.Context.ResourceName), path.Join("themes", "default"), "."} {
 			for _, d := range viewDirs {
 				if isExistingDir(path.Join(d, p)) {
 					paths = append(paths, path.Join(d, p))
@@ -57,27 +70,12 @@ func (admin *Admin) Render(str string, context *qor.Context) *template.Template 
 			}
 		}
 
-		for _, f := range []string{"layout.tmpl", str} {
-			for _, p := range paths {
-				if _, err := os.Stat(path.Join(p, f)); !os.IsNotExist(err) {
-					if tmpl, err = tmpl.ParseFiles(path.Join(p, f)); err != nil {
-						fmt.Println(err)
-					}
-					break
-				}
-			}
-		}
+		tmpl = parseLayout(tmpl, "layout.tmpl", paths)
+		tmpl = parseLayout(tmpl.Funcs(content.funcMap(modes...)), str, paths)
 
 		for _, name := range []string{"header", "footer"} {
 			if tmpl.Lookup(name) == nil {
-				for _, p := range paths {
-					if _, err := os.Stat(path.Join(p, name+".tmpl")); !os.IsNotExist(err) {
-						if tmpl, err = tmpl.ParseFiles(path.Join(p, name+".tmpl")); err != nil {
-							fmt.Println(err)
-						}
-						break
-					}
-				}
+				tmpl = parseLayout(tmpl, str+".tmpl", paths)
 			}
 		}
 
@@ -86,5 +84,5 @@ func (admin *Admin) Render(str string, context *qor.Context) *template.Template 
 		tmpl = t
 	}
 
-	return tmpl
+	tmpl.Execute(content.Context.Writer, content)
 }
