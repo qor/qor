@@ -28,8 +28,14 @@ func (a *attrs) Show(columns ...string) {
 	a.showAttrs = columns
 }
 
-func (resource *Resource) getMetas(attrs []string) []Meta {
-	metas := []Meta{}
+func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
+	var attrs []string
+	for _, value := range attrsSlice {
+		if value != nil {
+			attrs = value
+			break
+		}
+	}
 
 	if attrs == nil {
 		attrs = []string{}
@@ -44,6 +50,7 @@ func (resource *Resource) getMetas(attrs []string) []Meta {
 		}
 	}
 
+	metas := []Meta{}
 	for _, attr := range attrs {
 		metaFound := false
 		for _, meta := range resource.meta.metas {
@@ -61,21 +68,17 @@ func (resource *Resource) getMetas(attrs []string) []Meta {
 }
 
 func (resource *Resource) IndexAttrs() []Meta {
-	attrs := resource.attrs.indexAttrs
-	if attrs == nil {
-		attrs = resource.attrs.showAttrs
-	}
-	return resource.getMetas(attrs)
+	return resource.getMetas(resource.attrs.indexAttrs, resource.attrs.showAttrs)
 }
 
 func (resource *Resource) NewAttrs() []Meta {
-	return resource.IndexAttrs()
+	return resource.getMetas(resource.attrs.newAttrs, resource.attrs.editAttrs)
 }
 
 func (resource *Resource) EditAttrs() []Meta {
-	return resource.IndexAttrs()
+	return resource.getMetas(resource.attrs.editAttrs)
 }
 
 func (resource *Resource) ShowAttrs() []Meta {
-	return resource.IndexAttrs()
+	return resource.getMetas(resource.attrs.showAttrs)
 }
