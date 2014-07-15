@@ -7,6 +7,7 @@ import (
 )
 
 type Admin struct {
+	Prefix    string
 	DB        *gorm.DB
 	Resources map[string]*resource.Resource
 	auth      auth.Auth

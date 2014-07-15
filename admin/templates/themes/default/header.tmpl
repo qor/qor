@@ -1,8 +1,10 @@
 {{define "header"}}
 <header style="margin-bottom:20px">
-  Header
+  {{link_to "DashBoard" .Admin}}<br/>
+
+	Models:
   {{range $name, $resource := .Admin.Resources}}
-    {{$name}}
+    {{link_to $name $resource}}
   {{end}}
 </header>
 {{end}}

@@ -1,9 +1,11 @@
 package admin
 
 import (
+	"fmt"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
+	"path"
 
 	"text/template"
 )
@@ -47,9 +49,23 @@ func (content *Content) ValueOf(value interface{}, meta resource.Meta) interface
 	return meta.GetValue(value, content.Context)
 }
 
+func (content *Content) LinkTo(text interface{}, value interface{}) string {
+	var url string
+	if admin, ok := value.(*Admin); ok {
+		url = admin.Prefix
+	} else if res, ok := value.(*resource.Resource); ok {
+		url = path.Join(content.Admin.Prefix, res.RelativePath())
+	} else {
+		primaryKey := content.Admin.DB.NewScope(value).PrimaryKeyValue()
+		url = path.Join(content.Admin.Prefix, content.Resource.RelativePath(), fmt.Sprintf("%v", primaryKey))
+	}
+	return fmt.Sprintf(`<a href="%v">%v</a>`, url, text)
+}
+
 func (content *Content) funcMap(modes ...rules.PermissionMode) template.FuncMap {
 	return template.FuncMap{
 		"allowed_metas": content.AllowedMetas(modes...),
 		"value_of":      content.ValueOf,
+		"link_to":       content.LinkTo,
 	}
 }

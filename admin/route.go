@@ -21,6 +21,8 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 	// format "/admin" to "/admin/"
 	// the trail "/" will match under domain, refer function pathMatch in net/http/server.go
 	prefix = regexp.MustCompile("//(//)*").ReplaceAllString("/"+prefix+"/", "/")
+	admin.Prefix = prefix
+
 	mux.HandleFunc(strings.TrimRight(prefix, "/"), func(w http.ResponseWriter, r *http.Request) {
 		admin.Dashboard(admin.generateContext(w, r))
 	})
