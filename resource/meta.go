@@ -33,13 +33,13 @@ func (meta *Meta) HasPermission(mode rules.PermissionMode, context *qor.Context)
 func (meta *Meta) updateMeta() {
 	if meta.GetValue == nil {
 		if meta.Value != nil {
-			if f, ok := meta.Value.(func() interface{}); ok {
+			if f, ok := meta.Value.(func() string); ok {
 				meta.GetValue = func(interface{}, *qor.Context) interface{} { return f() }
-			} else if f, ok := meta.Value.(func(*qor.Context) interface{}); ok {
+			} else if f, ok := meta.Value.(func(*qor.Context) string); ok {
 				meta.GetValue = func(value interface{}, context *qor.Context) interface{} { return f(context) }
-			} else if f, ok := meta.Value.(func(interface{}) interface{}); ok {
+			} else if f, ok := meta.Value.(func(interface{}) string); ok {
 				meta.GetValue = func(value interface{}, context *qor.Context) interface{} { return f(value) }
-			} else if f, ok := meta.Value.(func(interface{}, *qor.Context) interface{}); ok {
+			} else if f, ok := meta.Value.(func(interface{}, *qor.Context) string); ok {
 				meta.GetValue = func(value interface{}, context *qor.Context) interface{} { return f(value, context) }
 			} else if str, ok := meta.Value.(string); ok {
 				meta.GetValue = func(interface{}, *qor.Context) interface{} { return str }

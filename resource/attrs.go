@@ -1,5 +1,10 @@
 package resource
 
+import (
+	"go/ast"
+	"reflect"
+)
+
 type attrs struct {
 	indexAttrs []string
 	newAttrs   []string
@@ -23,21 +28,44 @@ func (a *attrs) Show(columns ...string) {
 	a.showAttrs = columns
 }
 
-func (resource *Resource) IndexAttrs() (metas []Meta) {
-	for _, attr := range resource.attrs.indexAttrs {
-		metaDefined := false
+func (resource *Resource) getMetas(attrs []string) []Meta {
+	metas := []Meta{}
+
+	if attrs == nil {
+		attrs = []string{}
+		indirectValue := reflect.Indirect(reflect.ValueOf(resource.Model))
+		scopeTyp := indirectValue.Type()
+		for i := 0; i < scopeTyp.NumField(); i++ {
+			fieldStruct := scopeTyp.Field(i)
+			if !ast.IsExported(fieldStruct.Name) {
+				continue
+			}
+			attrs = append(attrs, fieldStruct.Name)
+		}
+	}
+
+	for _, attr := range attrs {
+		metaFound := false
 		for _, meta := range resource.meta.metas {
 			if meta.Name == attr {
 				metas = append(metas, meta)
-				metaDefined = true
+				metaFound = true
 				break
 			}
 		}
-		if !metaDefined {
+		if !metaFound {
 			metas = append(metas, Meta{Name: attr})
 		}
 	}
-	return
+	return metas
+}
+
+func (resource *Resource) IndexAttrs() []Meta {
+	attrs := resource.attrs.indexAttrs
+	if attrs == nil {
+		attrs = resource.attrs.showAttrs
+	}
+	return resource.getMetas(attrs)
 }
 
 func (resource *Resource) NewAttrs() []Meta {
