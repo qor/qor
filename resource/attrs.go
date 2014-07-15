@@ -61,7 +61,7 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 			}
 		}
 		if !metaFound {
-			_meta := Meta{Name: attr}
+			_meta := Meta{Name: attr, base: resource}
 			_meta.updateMeta()
 			metas = append(metas, _meta)
 		}

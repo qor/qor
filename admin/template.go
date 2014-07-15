@@ -75,7 +75,7 @@ func (admin *Admin) Render(str string, content Content, modes ...rules.Permissio
 
 		for _, name := range []string{"header", "footer"} {
 			if tmpl.Lookup(name) == nil {
-				tmpl = parseLayout(tmpl, str+".tmpl", paths)
+				tmpl = parseLayout(tmpl, name+".tmpl", paths)
 			}
 		}
 
@@ -84,5 +84,7 @@ func (admin *Admin) Render(str string, content Content, modes ...rules.Permissio
 		tmpl = t
 	}
 
-	tmpl.Execute(content.Context.Writer, content)
+	if err := tmpl.Execute(content.Context.Writer, content); err != nil {
+		fmt.Println(err)
+	}
 }
