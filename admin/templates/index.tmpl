@@ -1,8 +1,10 @@
 {{define "content"}}
 {{range $meta := allowed_metas}}
 {{$meta.Name}}
-{{end}}
+{{end}}<br/>
 {{range $resource := .Result}}
-{{$resource.Name}}
+{{range $meta := allowed_metas}}
+{{value_of $resource $meta}}
+{{end}}<br/>
 {{end}}
 {{end}}
