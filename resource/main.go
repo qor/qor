@@ -22,7 +22,8 @@ func New(value interface{}) *Resource {
 
 	data := reflect.Indirect(reflect.ValueOf(value))
 	resourceName := data.Type().Name()
-	resource := Resource{Name: resourceName, Model: value}
+	resource := Resource{Name: resourceName, Model: value, attrs: &attrs{}}
+	resource.meta = &meta{resource: &resource}
 	return &resource
 }
 

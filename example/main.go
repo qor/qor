@@ -30,6 +30,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	user := resource.New(&User{})
+	user.Meta().Register(resource.Meta{Name: "name_with_role", Value: func() string { return "hello" }})
 	admin := admin.New(&db)
 	admin.AddResource(user)
 	admin.AddToMux("/admin", mux)
