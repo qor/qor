@@ -62,10 +62,25 @@ func (content *Content) LinkTo(text interface{}, value interface{}) string {
 	return fmt.Sprintf(`<a href="%v">%v</a>`, url, text)
 }
 
+func (content *Content) RenderForm(value interface{}, metas []resource.Meta) string {
+	var result string
+	for _, meta := range metas {
+		result += content.RenderMeta(meta, value)
+	}
+	return result
+}
+
+func (content *Content) RenderMeta(meta resource.Meta, value interface{}) string {
+	if meta.Type == "string" {
+	}
+	return ""
+}
+
 func (content *Content) funcMap(modes ...rules.PermissionMode) template.FuncMap {
 	return template.FuncMap{
 		"allowed_metas": content.AllowedMetas(modes...),
 		"value_of":      content.ValueOf,
 		"link_to":       content.LinkTo,
+		"render_form":   content.RenderForm,
 	}
 }

@@ -1,7 +1,12 @@
 {{define "content"}}
+
+<form>
+{{render_form .Result allowed_metas}}
 {{$result := .Result}}
 {{range $meta := allowed_metas}}
-    {{$meta.Label}}
-    {{value_of $result $meta}}<br/>
+{{$meta.Label}}
+{{value_of $result $meta}}<br/>
 {{end}}
+</form>
+
 {{end}}
