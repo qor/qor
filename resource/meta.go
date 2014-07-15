@@ -31,6 +31,11 @@ func (meta *Meta) HasPermission(mode rules.PermissionMode, context *qor.Context)
 }
 
 func (meta *Meta) updateMeta() {
+	if meta.Name == "" {
+		fmt.Printf("Meta should have name: %v\n", reflect.ValueOf(meta).Type())
+		os.Exit(1)
+	}
+
 	if meta.GetValue == nil {
 		if meta.Value != nil {
 			if f, ok := meta.Value.(func() string); ok {
@@ -62,6 +67,10 @@ func (meta *Meta) updateMeta() {
 				os.Exit(1)
 			}
 		}
+	}
+
+	if meta.Label == "" {
+		meta.Label = meta.Name
 	}
 }
 

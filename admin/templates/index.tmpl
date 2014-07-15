@@ -1,6 +1,6 @@
 {{define "content"}}
 {{range $meta := allowed_metas}}
-{{$meta.Name}}
+{{$meta.Label}}
 {{end}}
 <br/>
 {{range $resource := .Result}}

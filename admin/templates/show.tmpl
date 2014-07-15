@@ -1,7 +1,7 @@
 {{define "content"}}
 {{$result := .Result}}
 {{range $meta := allowed_metas}}
-    {{$meta.Name}}
+    {{$meta.Label}}
     {{value_of $result $meta}}<br/>
 {{end}}
 {{end}}
