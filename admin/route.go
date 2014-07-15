@@ -50,6 +50,8 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 		switch {
 		case r.Method == "GET" && isIndexURL:
 			admin.Index(context)
+		case r.Method == "GET" && isShowURL && context.ResourceID == "new":
+			admin.New(context)
 		case r.Method == "GET" && isShowURL:
 			admin.Show(context)
 		case r.Method == "PUT" && isShowURL:

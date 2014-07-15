@@ -1,0 +1,6 @@
+{{define "content"}}
+{{$result := .Result}}
+{{range $meta := allowed_metas}}
+    {{$meta.Name}}
+{{end}}
+{{end}}

@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"fmt"
 	"github.com/qor/qor"
 	"github.com/qor/qor/rules"
 
@@ -20,8 +19,6 @@ func (admin *Admin) Index(context *qor.Context) {
 	slicePtr := reflect.New(sliceType)
 	slicePtr.Elem().Set(slice)
 	admin.DB.Find(slicePtr.Interface())
-
-	fmt.Println(slicePtr.Interface())
 
 	content := Content{Admin: admin, Context: context, Resource: resource, Result: slicePtr.Interface(), Action: "index"}
 	admin.Render("index", content, rules.Read)
