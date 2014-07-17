@@ -71,10 +71,14 @@ func (content *Content) LinkTo(text interface{}, value interface{}) string {
 
 func (content *Content) RenderForm(value interface{}, metas []resource.Meta) string {
 	var result = bytes.NewBufferString("")
+	content.renderForm(result, value, metas)
+	return result.String()
+}
+
+func (content *Content) renderForm(result *bytes.Buffer, value interface{}, metas []resource.Meta) {
 	for _, meta := range metas {
 		content.RenderMeta(result, meta, value)
 	}
-	return result.String()
 }
 
 func (content *Content) RenderMeta(writer io.Writer, meta resource.Meta, value interface{}) {
@@ -84,8 +88,16 @@ func (content *Content) RenderMeta(writer io.Writer, meta resource.Meta, value i
 	data := map[string]string{}
 	data["InputId"] = strings.Join([]string{"QorResource", meta.Name}, "")
 	data["Label"] = meta.Label
-	data["InputName"] = fmt.Sprintf("QorResource[%v]", meta.Name)
+	data["InputName"] = fmt.Sprintf("QorResource[%v][]", meta.Name)
 	data["Value"] = fmt.Sprintf("%v", meta.GetValue(value, content.Context))
+	// QorResource.Name => // jinzhu
+	// QorResource.Role => // admin
+	// QorResource.Address[0].Id -> if slice
+	// QorResource.Address[0].Address1
+	// QorResource.Address[0].Address2
+	// QorResource.Address[1].Address1
+	// QorResource.CreditCard.Number // if struct
+	// AllowedMetas
 
 	if err := tmpl.Execute(writer, data); err != nil {
 		fmt.Println(err)

@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"github.com/qor/qor"
 	"github.com/qor/qor/rules"
 
@@ -43,6 +44,12 @@ func (admin *Admin) Create(context *qor.Context) {
 }
 
 func (admin *Admin) Update(context *qor.Context) {
+	context.Request.ParseMultipartForm(32 << 22)
+	for key, value := range context.Request.Form {
+		fmt.Println(key)
+		fmt.Println(value)
+		fmt.Println(reflect.TypeOf(value))
+	}
 }
 
 func (admin *Admin) Delete(context *qor.Context) {

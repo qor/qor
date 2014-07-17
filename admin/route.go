@@ -56,7 +56,7 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 			admin.New(context)
 		case r.Method == "GET" && isShowURL:
 			admin.Show(context)
-		case r.Method == "PUT" && isShowURL:
+		case r.Method == "POST" && isShowURL:
 			admin.Update(context)
 		case r.Method == "POST" && isIndexURL:
 			admin.Create(context)

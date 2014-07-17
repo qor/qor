@@ -1,12 +1,9 @@
 {{define "content"}}
 
-<form>
-{{render_form .Result allowed_metas}}
 {{$result := .Result}}
-{{range $meta := allowed_metas}}
-{{$meta.Label}}
-{{value_of $result $meta}}<br/>
-{{end}}
+<form action="{{url_for $result}}" method="POST">
+  {{render_form .Result allowed_metas}}
+  <input value="Save" type="submit"/>
 </form>
 
 {{end}}
