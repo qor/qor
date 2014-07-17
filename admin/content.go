@@ -8,6 +8,7 @@ import (
 	"github.com/qor/qor/rules"
 	"io"
 	"path"
+	"strings"
 
 	"text/template"
 )
@@ -51,7 +52,7 @@ func (content *Content) ValueOf(value interface{}, meta resource.Meta) interface
 	return meta.GetValue(value, content.Context)
 }
 
-func (content *Content) LinkTo(text interface{}, value interface{}) string {
+func (content *Content) UrlFor(value interface{}) string {
 	var url string
 	if admin, ok := value.(*Admin); ok {
 		url = admin.Prefix
@@ -61,8 +62,11 @@ func (content *Content) LinkTo(text interface{}, value interface{}) string {
 		primaryKey := content.Admin.DB.NewScope(value).PrimaryKeyValue()
 		url = path.Join(content.Admin.Prefix, content.Resource.RelativePath(), fmt.Sprintf("%v", primaryKey))
 	}
+	return url
+}
 
-	return fmt.Sprintf(`<a href="%v">%v</a>`, url, text)
+func (content *Content) LinkTo(text interface{}, value interface{}) string {
+	return fmt.Sprintf(`<a href="%v">%v</a>`, content.UrlFor(value), text)
 }
 
 func (content *Content) RenderForm(value interface{}, metas []resource.Meta) string {
@@ -76,7 +80,14 @@ func (content *Content) RenderForm(value interface{}, metas []resource.Meta) str
 func (content *Content) RenderMeta(writer io.Writer, meta resource.Meta, value interface{}) {
 	var tmpl *template.Template
 	tmpl = content.getTemplate(tmpl, "forms/string.tmpl")
-	if err := tmpl.Execute(writer, meta); err != nil {
+
+	data := map[string]string{}
+	data["InputId"] = strings.Join([]string{"QorResource", meta.Name}, "")
+	data["Label"] = meta.Label
+	data["InputName"] = fmt.Sprintf("QorResource[%v]", meta.Name)
+	data["Value"] = fmt.Sprintf("%v", meta.GetValue(value, content.Context))
+
+	if err := tmpl.Execute(writer, data); err != nil {
 		fmt.Println(err)
 	}
 }
@@ -85,6 +96,7 @@ func (content *Content) funcMap(modes ...rules.PermissionMode) template.FuncMap 
 	return template.FuncMap{
 		"allowed_metas": content.AllowedMetas(modes...),
 		"value_of":      content.ValueOf,
+		"url_for":       content.UrlFor,
 		"link_to":       content.LinkTo,
 		"render_form":   content.RenderForm,
 	}
