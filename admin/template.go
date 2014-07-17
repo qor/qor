@@ -40,7 +40,16 @@ func init() {
 	}
 }
 
-func parseLayout(tmpl *template.Template, layout string, paths []string) *template.Template {
+func (content Content) getTemplate(tmpl *template.Template, layout string) *template.Template {
+	paths := []string{}
+	for _, p := range []string{path.Join("resources", content.Context.ResourceName), path.Join("themes", "default"), "."} {
+		for _, d := range viewDirs {
+			if isExistingDir(path.Join(d, p)) {
+				paths = append(paths, path.Join(d, p))
+			}
+		}
+	}
+
 	for _, p := range paths {
 		if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
 			if tmpl, err = tmpl.ParseFiles(path.Join(p, layout)); err != nil {
@@ -60,22 +69,12 @@ func (admin *Admin) Render(str string, content Content, modes ...rules.Permissio
 	if t, ok := templates[cacheKey]; !ok || true {
 		str = tmplSuffix.ReplaceAllString(str, ".tmpl")
 
-		// parse layout
-		paths := []string{}
-		for _, p := range []string{path.Join("resources", content.Context.ResourceName), path.Join("themes", "default"), "."} {
-			for _, d := range viewDirs {
-				if isExistingDir(path.Join(d, p)) {
-					paths = append(paths, path.Join(d, p))
-				}
-			}
-		}
-
-		tmpl = parseLayout(tmpl, "layout.tmpl", paths)
-		tmpl = parseLayout(tmpl.Funcs(content.funcMap(modes...)), str, paths)
+		tmpl = content.getTemplate(tmpl, "layout.tmpl")
+		tmpl = content.getTemplate(tmpl.Funcs(content.funcMap(modes...)), str)
 
 		for _, name := range []string{"header", "footer"} {
 			if tmpl.Lookup(name) == nil {
-				tmpl = parseLayout(tmpl, name+".tmpl", paths)
+				tmpl = content.getTemplate(tmpl, name+".tmpl")
 			}
 		}
 

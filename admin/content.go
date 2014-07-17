@@ -1,10 +1,12 @@
 package admin
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
+	"io"
 	"path"
 
 	"text/template"
@@ -59,21 +61,24 @@ func (content *Content) LinkTo(text interface{}, value interface{}) string {
 		primaryKey := content.Admin.DB.NewScope(value).PrimaryKeyValue()
 		url = path.Join(content.Admin.Prefix, content.Resource.RelativePath(), fmt.Sprintf("%v", primaryKey))
 	}
+
 	return fmt.Sprintf(`<a href="%v">%v</a>`, url, text)
 }
 
 func (content *Content) RenderForm(value interface{}, metas []resource.Meta) string {
-	var result string
+	var result = bytes.NewBufferString("")
 	for _, meta := range metas {
-		result += content.RenderMeta(meta, value)
+		content.RenderMeta(result, meta, value)
 	}
-	return result
+	return result.String()
 }
 
-func (content *Content) RenderMeta(meta resource.Meta, value interface{}) string {
-	if meta.Type == "string" {
+func (content *Content) RenderMeta(writer io.Writer, meta resource.Meta, value interface{}) {
+	var tmpl *template.Template
+	tmpl = content.getTemplate(tmpl, "forms/string.tmpl")
+	if err := tmpl.Execute(writer, meta); err != nil {
+		fmt.Println(err)
 	}
-	return ""
 }
 
 func (content *Content) funcMap(modes ...rules.PermissionMode) template.FuncMap {
