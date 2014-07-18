@@ -71,25 +71,27 @@ func (content *Content) LinkTo(text interface{}, value interface{}) string {
 
 func (content *Content) RenderForm(value interface{}, metas []resource.Meta) string {
 	var result = bytes.NewBufferString("")
-	content.renderForm(result, value, metas)
+	content.renderForm(result, value, metas, []string{"QorResource"})
 	return result.String()
 }
 
-func (content *Content) renderForm(result *bytes.Buffer, value interface{}, metas []resource.Meta) {
+func (content *Content) renderForm(result *bytes.Buffer, value interface{}, metas []resource.Meta, prefix []string) {
 	for _, meta := range metas {
-		content.RenderMeta(result, meta, value)
+		content.RenderMeta(result, meta, value, prefix)
 	}
 }
 
-func (content *Content) RenderMeta(writer io.Writer, meta resource.Meta, value interface{}) {
+func (content *Content) RenderMeta(writer io.Writer, meta resource.Meta, value interface{}, prefix []string) {
 	var tmpl *template.Template
 	tmpl = content.getTemplate(tmpl, "forms/string.tmpl")
+	prefix = append(prefix, meta.Name)
 
 	data := map[string]string{}
-	data["InputId"] = strings.Join([]string{"QorResource", meta.Name}, "")
+	data["InputId"] = strings.Join(prefix, "")
 	data["Label"] = meta.Label
-	data["InputName"] = fmt.Sprintf("QorResource[%v][]", meta.Name)
+	data["InputName"] = strings.Join(prefix, ".")
 	data["Value"] = fmt.Sprintf("%v", meta.GetValue(value, content.Context))
+
 	// QorResource.Name => // jinzhu
 	// QorResource.Role => // admin
 	// QorResource.Address[0].Id -> if slice
