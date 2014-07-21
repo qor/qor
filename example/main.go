@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor/admin"
@@ -30,6 +31,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	user := resource.New(&User{})
+	user.Attrs().Edit("name", "role")
 	user.Meta().Register(resource.Meta{Name: "name_with_role", Value: func() string { return "hello" }})
 	admin := admin.New(&db)
 	admin.AddResource(user)
