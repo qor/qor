@@ -6,7 +6,6 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
-	"io"
 	"path"
 	"strings"
 
@@ -21,18 +20,23 @@ type Content struct {
 	Action   string
 }
 
-func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func() []resource.Meta {
-	return func() []resource.Meta {
+func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses ...*resource.Resource) []resource.Meta {
+	return func(reses ...*resource.Resource) []resource.Meta {
+		var res = content.Resource
+		if len(reses) > 0 {
+			res = reses[0]
+		}
+
 		var attrs []resource.Meta
 		switch content.Action {
 		case "index":
-			attrs = content.Resource.IndexAttrs()
+			attrs = res.IndexAttrs()
 		case "show":
-			attrs = content.Resource.ShowAttrs()
+			attrs = res.ShowAttrs()
 		case "edit":
-			attrs = content.Resource.EditAttrs()
+			attrs = res.EditAttrs()
 		case "new":
-			attrs = content.Resource.NewAttrs()
+			attrs = res.NewAttrs()
 		}
 
 		var metas = []resource.Meta{}
@@ -81,17 +85,17 @@ func (content *Content) renderForm(result *bytes.Buffer, value interface{}, meta
 	}
 }
 
-func (content *Content) RenderMeta(writer io.Writer, meta resource.Meta, value interface{}, prefix []string) {
-	var tmpl *template.Template
+func (content *Content) RenderMeta(writer *bytes.Buffer, meta resource.Meta, value interface{}, prefix []string) {
+	var tmpl = template.New(meta.Type + ".tmpl").Funcs(content.funcMap(rules.Read, rules.Update))
+	prefix = append(prefix, meta.Name)
 
-	if tmpl = content.getTemplate(tmpl, fmt.Sprintf("forms/%v.tmpl", meta.Type)); tmpl != nil {
-		prefix = append(prefix, meta.Name)
-
-		data := map[string]string{}
+	if tmpl, err := content.getTemplate(tmpl, fmt.Sprintf("forms/%v.tmpl", meta.Type)); err == nil {
+		data := map[string]interface{}{}
 		data["InputId"] = strings.Join(prefix, "")
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
-		data["Value"] = fmt.Sprintf("%v", meta.GetValue(value, content.Context))
+		data["Value"] = meta.GetValue(value, content.Context)
+		data["Meta"] = meta
 
 		// QorResource.Name => // jinzhu
 		// QorResource.Role => // admin

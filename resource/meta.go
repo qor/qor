@@ -20,7 +20,7 @@ type Meta struct {
 	Value      interface{}
 	GetValue   func(interface{}, *qor.Context) interface{}
 	Collection []Meta
-	Resource   interface{}
+	Resource   *Resource
 	Permission *rules.Permission
 }
 
@@ -84,6 +84,12 @@ func (meta *Meta) updateMeta() {
 			meta.Type = "checkbox"
 		} else if typ == "struct" {
 			meta.Type = "single_edit"
+			if meta.Resource == nil {
+				if field, ok := gorm.FieldByName(gorm.SnakeToUpperCamel(meta.Name), meta.base.Model); ok {
+					result := reflect.New(reflect.Indirect(reflect.ValueOf(field)).Type()).Interface()
+					meta.Resource = New(result)
+				}
+			}
 		} else if typ == "slice" {
 			meta.Type = "collection_edit"
 		}

@@ -1,5 +1,5 @@
 {{define "content"}}
-{{range $meta := allowed_metas}}
+{{range $meta := allowed_metas .Resource}}
 {{$meta.Name}}
 {{end}}
 <br/>

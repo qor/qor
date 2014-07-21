@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"errors"
 	"fmt"
 	"github.com/qor/qor/rules"
 	"os"
@@ -40,7 +41,7 @@ func init() {
 	}
 }
 
-func (content Content) getTemplate(tmpl *template.Template, layout string) *template.Template {
+func (content Content) getTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
 	paths := []string{}
 	for _, p := range []string{path.Join("resources", content.Context.ResourceName), path.Join("themes", "default"), "."} {
 		for _, d := range viewDirs {
@@ -55,11 +56,11 @@ func (content Content) getTemplate(tmpl *template.Template, layout string) *temp
 			if tmpl, err = tmpl.ParseFiles(path.Join(p, layout)); err != nil {
 				fmt.Println(err)
 			} else {
-				return tmpl
+				return tmpl, nil
 			}
 		}
 	}
-	return tmpl
+	return tmpl, errors.New("template not found")
 }
 
 func (admin *Admin) Render(str string, content Content, modes ...rules.PermissionMode) {
@@ -69,12 +70,12 @@ func (admin *Admin) Render(str string, content Content, modes ...rules.Permissio
 	if t, ok := templates[cacheKey]; !ok || true {
 		str = tmplSuffix.ReplaceAllString(str, ".tmpl")
 
-		tmpl = content.getTemplate(tmpl, "layout.tmpl")
-		tmpl = content.getTemplate(tmpl.Funcs(content.funcMap(modes...)), str)
+		tmpl, _ = content.getTemplate(tmpl, "layout.tmpl")
+		tmpl, _ = content.getTemplate(tmpl.Funcs(content.funcMap(modes...)), str)
 
 		for _, name := range []string{"header", "footer"} {
 			if tmpl.Lookup(name) == nil {
-				tmpl = content.getTemplate(tmpl, name+".tmpl")
+				tmpl, _ = content.getTemplate(tmpl, name+".tmpl")
 			}
 		}
 
