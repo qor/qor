@@ -9,6 +9,7 @@ import (
 
 	"os"
 	"reflect"
+	"regexp"
 )
 
 type Meta struct {
@@ -31,6 +32,7 @@ func (meta *Meta) HasPermission(mode rules.PermissionMode, context *qor.Context)
 }
 
 func (meta *Meta) updateMeta() {
+	var typ = "string"
 	if meta.Name == "" {
 		fmt.Printf("Meta should have name: %v\n", reflect.ValueOf(meta).Type())
 		os.Exit(1)
@@ -50,12 +52,15 @@ func (meta *Meta) updateMeta() {
 				meta.GetValue = func(interface{}, *qor.Context) interface{} { return str }
 			} else if v, ok := meta.Value.(bool); ok {
 				meta.GetValue = func(interface{}, *qor.Context) interface{} { return v }
+				typ = "bool"
 			} else {
 				fmt.Printf("Unsupported value type %v for meta: %v\n", reflect.ValueOf(meta.Value).Type(), meta.Name)
 				os.Exit(1)
 			}
 		} else {
-			if _, ok := gorm.FieldByName(meta.Name, meta.base.Model); ok {
+			if field, ok := gorm.FieldByName(gorm.SnakeToUpperCamel(meta.Name), meta.base.Model); ok {
+				typ = reflect.TypeOf(field).Kind().String()
+				meta.Name = gorm.SnakeToUpperCamel(meta.Name)
 				meta.GetValue = func(value interface{}, context *qor.Context) interface{} {
 					if v, ok := gorm.FieldByName(meta.Name, value); ok {
 						return v
@@ -66,6 +71,21 @@ func (meta *Meta) updateMeta() {
 				fmt.Printf("Unsupported meta name %v for resource: %v\n", meta.Name, reflect.TypeOf(meta.base.Model))
 				os.Exit(1)
 			}
+		}
+	}
+
+	// "single_edit", "collection_edit", "select_one", "select_many", "image_with_crop", "table_edit", "table_view"
+	if meta.Type == "" {
+		if regexp.MustCompile(`^(u)?int(\d+)?`).MatchString(typ) {
+			meta.Type = "number"
+		} else if typ == "string" {
+			meta.Type = "string"
+		} else if typ == "bool" {
+			meta.Type = "checkbox"
+		} else if typ == "struct" {
+			meta.Type = "single_edit"
+		} else if typ == "slice" {
+			meta.Type = "collection_edit"
 		}
 	}
 

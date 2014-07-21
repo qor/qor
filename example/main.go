@@ -11,10 +11,19 @@ import (
 	"net/http"
 )
 
+type CreditCard struct {
+	Id     int64
+	Number string
+	Issuer string
+}
+
 type User struct {
-	Id   int64
-	Name string
-	Role string
+	Id           int64
+	Name         string
+	Role         string
+	CreditCard   CreditCard
+	CreditCards  []CreditCard
+	CreditCardId int64
 }
 
 var db gorm.DB
@@ -22,6 +31,7 @@ var db gorm.DB
 func init() {
 	db, _ = gorm.Open("sqlite3", "/tmp/qor.db")
 	db.AutoMigrate(&User{})
+	db.AutoMigrate(&CreditCard{})
 
 	db.FirstOrCreate(&User{}, User{Name: "jinzhu", Role: "admin"})
 	db.FirstOrCreate(&User{}, User{Name: "juice", Role: "dev"})
@@ -31,8 +41,9 @@ func main() {
 	mux := http.NewServeMux()
 
 	user := resource.New(&User{})
-	user.Attrs().Edit("name", "role")
-	user.Meta().Register(resource.Meta{Name: "name_with_role", Value: func() string { return "hello" }})
+	user.Attrs().Index("name", "role")
+	// user.Attrs().Edit("name", "role", "credit_card")
+
 	admin := admin.New(&db)
 	admin.AddResource(user)
 	admin.AddToMux("/admin", mux)

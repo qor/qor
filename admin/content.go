@@ -83,26 +83,30 @@ func (content *Content) renderForm(result *bytes.Buffer, value interface{}, meta
 
 func (content *Content) RenderMeta(writer io.Writer, meta resource.Meta, value interface{}, prefix []string) {
 	var tmpl *template.Template
-	tmpl = content.getTemplate(tmpl, "forms/string.tmpl")
-	prefix = append(prefix, meta.Name)
 
-	data := map[string]string{}
-	data["InputId"] = strings.Join(prefix, "")
-	data["Label"] = meta.Label
-	data["InputName"] = strings.Join(prefix, ".")
-	data["Value"] = fmt.Sprintf("%v", meta.GetValue(value, content.Context))
+	if tmpl = content.getTemplate(tmpl, fmt.Sprintf("forms/%v.tmpl", meta.Type)); tmpl != nil {
+		prefix = append(prefix, meta.Name)
 
-	// QorResource.Name => // jinzhu
-	// QorResource.Role => // admin
-	// QorResource.Address[0].Id -> if slice
-	// QorResource.Address[0].Address1
-	// QorResource.Address[0].Address2
-	// QorResource.Address[1].Address1
-	// QorResource.CreditCard.Number // if struct
-	// AllowedMetas
+		data := map[string]string{}
+		data["InputId"] = strings.Join(prefix, "")
+		data["Label"] = meta.Label
+		data["InputName"] = strings.Join(prefix, ".")
+		data["Value"] = fmt.Sprintf("%v", meta.GetValue(value, content.Context))
 
-	if err := tmpl.Execute(writer, data); err != nil {
-		fmt.Println(err)
+		// QorResource.Name => // jinzhu
+		// QorResource.Role => // admin
+		// QorResource.Address[0].Id -> if slice
+		// QorResource.Address[0].Address1
+		// QorResource.Address[0].Address2
+		// QorResource.Address[1].Address1
+		// QorResource.CreditCard.Number // if struct
+		// AllowedMetas
+
+		if err := tmpl.Execute(writer, data); err != nil {
+			fmt.Println(err)
+		}
+	} else {
+		fmt.Printf("Form type %v not supported\n", meta.Type)
 	}
 }
 
