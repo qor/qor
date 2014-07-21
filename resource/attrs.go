@@ -1,6 +1,9 @@
 package resource
 
 import (
+	"fmt"
+	"github.com/jinzhu/gorm"
+
 	"go/ast"
 	"reflect"
 )
@@ -61,9 +64,14 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 			}
 		}
 		if !metaFound {
-			_meta := Meta{Name: attr, base: resource}
-			_meta.updateMeta()
-			metas = append(metas, _meta)
+			var _meta Meta
+			if _, ok := gorm.FieldByName(gorm.SnakeToUpperCamel(attr), resource.Model); ok {
+				_meta = Meta{Name: gorm.SnakeToUpperCamel(attr), base: resource}
+				_meta.updateMeta()
+				metas = append(metas, _meta)
+			} else {
+				fmt.Printf("%v is not existing for %v\n", attr, resource.Model)
+			}
 		}
 	}
 	return metas
@@ -82,5 +90,5 @@ func (resource *Resource) EditAttrs() []Meta {
 }
 
 func (resource *Resource) ShowAttrs() []Meta {
-	return resource.getMetas(resource.attrs.showAttrs)
+	return resource.getMetas(resource.attrs.showAttrs, resource.attrs.editAttrs)
 }

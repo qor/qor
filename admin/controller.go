@@ -35,7 +35,7 @@ func (admin *Admin) Show(context *qor.Context) {
 	result := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type()).Interface()
 	admin.DB.First(result, context.ResourceID)
 
-	content := Content{Admin: admin, Context: context, Resource: resource, Result: result, Action: "show"}
+	content := Content{Admin: admin, Context: context, Resource: resource, Result: result, Action: "edit"}
 	admin.Render("show", content, rules.Read, rules.Update)
 }
 
