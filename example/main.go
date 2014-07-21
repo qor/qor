@@ -22,7 +22,6 @@ type User struct {
 	Name         string
 	Role         string
 	CreditCard   CreditCard
-	CreditCards  []CreditCard
 	CreditCardId int64
 }
 

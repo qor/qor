@@ -86,8 +86,16 @@ func (content *Content) renderForm(result *bytes.Buffer, value interface{}, meta
 }
 
 func (content *Content) RenderMeta(writer *bytes.Buffer, meta resource.Meta, value interface{}, prefix []string) {
-	var tmpl = template.New(meta.Type + ".tmpl").Funcs(content.funcMap(rules.Read, rules.Update))
 	prefix = append(prefix, meta.Name)
+
+	funcsMap := content.funcMap(rules.Read, rules.Update)
+	// funcsMap["render_form"] = func(value interface{}, metas []resource.Meta) string {
+	// 	var result = bytes.NewBufferString("")
+	// 	content.renderForm(result, value, metas, prefix)
+	// 	return result.String()
+	// }
+
+	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
 
 	if tmpl, err := content.getTemplate(tmpl, fmt.Sprintf("forms/%v.tmpl", meta.Type)); err == nil {
 		data := map[string]interface{}{}
@@ -96,15 +104,6 @@ func (content *Content) RenderMeta(writer *bytes.Buffer, meta resource.Meta, val
 		data["InputName"] = strings.Join(prefix, ".")
 		data["Value"] = meta.GetValue(value, content.Context)
 		data["Meta"] = meta
-
-		// QorResource.Name => // jinzhu
-		// QorResource.Role => // admin
-		// QorResource.Address[0].Id -> if slice
-		// QorResource.Address[0].Address1
-		// QorResource.Address[0].Address2
-		// QorResource.Address[1].Address1
-		// QorResource.CreditCard.Number // if struct
-		// AllowedMetas
 
 		if err := tmpl.Execute(writer, data); err != nil {
 			fmt.Println(err)

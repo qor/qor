@@ -81,6 +81,7 @@ func (admin *Admin) Update(context *qor.Context) {
 								if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
 									scanner.Scan(value)
 								} else {
+									// FIXME
 									field.Set(reflect.ValueOf(value))
 								}
 							}
