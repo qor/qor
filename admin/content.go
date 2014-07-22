@@ -27,28 +27,18 @@ func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses .
 			res = reses[0]
 		}
 
-		var attrs []resource.Meta
 		switch content.Action {
 		case "index":
-			attrs = res.IndexAttrs()
+			return res.AllowedMetas(res.IndexAttrs(), content.Context, modes...)
 		case "show":
-			attrs = res.ShowAttrs()
+			return res.AllowedMetas(res.ShowAttrs(), content.Context, modes...)
 		case "edit":
-			attrs = res.EditAttrs()
+			return res.AllowedMetas(res.EditAttrs(), content.Context, modes...)
 		case "new":
-			attrs = res.NewAttrs()
+			return res.AllowedMetas(res.NewAttrs(), content.Context, modes...)
+		default:
+			return []resource.Meta{}
 		}
-
-		var metas = []resource.Meta{}
-		for _, meta := range attrs {
-			for _, mode := range modes {
-				if meta.HasPermission(mode, content.Context) {
-					metas = append(metas, meta)
-					break
-				}
-			}
-		}
-		return metas
 	}
 }
 
@@ -89,11 +79,11 @@ func (content *Content) RenderMeta(writer *bytes.Buffer, meta resource.Meta, val
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := content.funcMap(rules.Read, rules.Update)
-	// funcsMap["render_form"] = func(value interface{}, metas []resource.Meta) string {
-	// 	var result = bytes.NewBufferString("")
-	// 	content.renderForm(result, value, metas, prefix)
-	// 	return result.String()
-	// }
+	funcsMap["render_form"] = func(value interface{}, metas []resource.Meta) string {
+		var result = bytes.NewBufferString("")
+		content.renderForm(result, value, metas, prefix)
+		return result.String()
+	}
 
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
 

@@ -1,6 +1,9 @@
 package resource
 
 import (
+	"github.com/qor/qor"
+	"github.com/qor/qor/rules"
+
 	"go/ast"
 	"reflect"
 )
@@ -84,4 +87,17 @@ func (resource *Resource) EditAttrs() []Meta {
 
 func (resource *Resource) ShowAttrs() []Meta {
 	return resource.getMetas(resource.attrs.showAttrs, resource.attrs.editAttrs)
+}
+
+func (resource *Resource) AllowedMetas(attrs []Meta, context *qor.Context, rules ...rules.PermissionMode) []Meta {
+	var metas = []Meta{}
+	for _, meta := range attrs {
+		for _, rule := range rules {
+			if meta.HasPermission(rule, context) {
+				metas = append(metas, meta)
+				break
+			}
+		}
+	}
+	return metas
 }

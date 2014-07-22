@@ -3,7 +3,6 @@ package admin
 import (
 	"database/sql"
 	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
 	"net/http"
 	"strconv"
@@ -51,16 +50,10 @@ func (admin *Admin) Create(context *qor.Context) {
 func (admin *Admin) Update(context *qor.Context) {
 	context.Request.ParseMultipartForm(32 << 22)
 
-	var metas = []resource.Meta{}
-	Resource := admin.Resources[context.ResourceName]
-	attrs := Resource.EditAttrs()
-	for _, meta := range attrs {
-		if meta.HasPermission(rules.Update, context) {
-			metas = append(metas, meta)
-		}
-	}
+	resource := admin.Resources[context.ResourceName]
+	metas := resource.AllowedMetas(resource.EditAttrs(), context, rules.Update)
 
-	result := reflect.New(reflect.Indirect(reflect.ValueOf(Resource.Model)).Type()).Interface()
+	result := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type()).Interface()
 
 	if !admin.DB.First(result, context.ResourceID).RecordNotFound() {
 		for key, values := range context.Request.Form {
