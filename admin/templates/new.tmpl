@@ -1,6 +1,7 @@
 {{define "content"}}
 {{$result := .Result}}
-{{range $meta := allowed_metas}}
-    {{$meta.Label}}
-{{end}}
+<form action="{{url_for .Resource}}" method="POST">
+  {{render_form .Result (allowed_metas .Resource)}}
+  <input value="Save" type="submit"/>
+</form>
 {{end}}

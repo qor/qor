@@ -29,11 +29,9 @@ var db gorm.DB
 
 func init() {
 	db, _ = gorm.Open("sqlite3", "/tmp/qor.db")
+	db.LogMode(true)
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&CreditCard{})
-
-	db.FirstOrCreate(&User{}, User{Name: "jinzhu", Role: "admin"})
-	db.FirstOrCreate(&User{}, User{Name: "juice", Role: "dev"})
 }
 
 func main() {

@@ -1,17 +1,19 @@
 {{define "content"}}
-{{range $meta := allowed_metas .Resource}}
-{{$meta.Name}}
-{{end}}
-<br/>
-{{range $resource := .Result}}
-{{range $index, $meta := allowed_metas}}
-{{$text := value_of $resource $meta}}
-{{if $index}}
-{{$text}}
-{{else}}
-{{link_to $text $resource}}
-{{end}}
-{{end}}
-<br/>
-{{end}}
+    {{link_to "New" (new_resource_path .Resource)}}
+    <br/>
+    <br/>
+    {{range $meta := allowed_metas .Resource}}
+        {{$meta.Name}}
+    {{end}}<br/>
+    {{range $resource := .Result}}
+        {{range $index, $meta := allowed_metas}}
+        {{$text := value_of $resource $meta}}
+        {{if $index}}
+            {{$text}}
+        {{else}}
+            {{link_to $text $resource}}
+        {{end}}
+        {{end}}
+        <br/>
+    {{end}}
 {{end}}

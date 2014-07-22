@@ -46,6 +46,14 @@ func (content *Content) ValueOf(value interface{}, meta resource.Meta) interface
 	return meta.GetValue(value, content.Context)
 }
 
+func (content *Content) NewResourcePath(value interface{}) string {
+	if res, ok := value.(*resource.Resource); ok {
+		return path.Join(content.Admin.Prefix, res.RelativePath(), "new")
+	} else {
+		return path.Join(content.Admin.Prefix, content.Resource.RelativePath(), "new")
+	}
+}
+
 func (content *Content) UrlFor(value interface{}) string {
 	var url string
 	if admin, ok := value.(*Admin); ok {
@@ -59,8 +67,11 @@ func (content *Content) UrlFor(value interface{}) string {
 	return url
 }
 
-func (content *Content) LinkTo(text interface{}, value interface{}) string {
-	return fmt.Sprintf(`<a href="%v">%v</a>`, content.UrlFor(value), text)
+func (content *Content) LinkTo(text interface{}, link interface{}) string {
+	if linkStr, ok := link.(string); ok {
+		return fmt.Sprintf(`<a href="%v">%v</a>`, linkStr, text)
+	}
+	return fmt.Sprintf(`<a href="%v">%v</a>`, content.UrlFor(link), text)
 }
 
 func (content *Content) RenderForm(value interface{}, metas []resource.Meta) string {
@@ -105,10 +116,11 @@ func (content *Content) RenderMeta(writer *bytes.Buffer, meta resource.Meta, val
 
 func (content *Content) funcMap(modes ...rules.PermissionMode) template.FuncMap {
 	return template.FuncMap{
-		"allowed_metas": content.AllowedMetas(modes...),
-		"value_of":      content.ValueOf,
-		"url_for":       content.UrlFor,
-		"link_to":       content.LinkTo,
-		"render_form":   content.RenderForm,
+		"allowed_metas":     content.AllowedMetas(modes...),
+		"value_of":          content.ValueOf,
+		"url_for":           content.UrlFor,
+		"new_resource_path": content.NewResourcePath,
+		"link_to":           content.LinkTo,
+		"render_form":       content.RenderForm,
 	}
 }

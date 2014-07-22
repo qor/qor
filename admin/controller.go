@@ -42,6 +42,12 @@ func (admin *Admin) New(context *qor.Context) {
 }
 
 func (admin *Admin) Create(context *qor.Context) {
+	resource := admin.Resources[context.ResourceName]
+	result := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type()).Interface()
+	metas := resource.AllowedMetas(resource.EditAttrs(), context, rules.Update)
+	Decode(result, metas, context, "QorResource.")
+	admin.DB.Save(result)
+	http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 }
 
 func (admin *Admin) Update(context *qor.Context) {
@@ -51,7 +57,7 @@ func (admin *Admin) Update(context *qor.Context) {
 	if !admin.DB.First(result, context.ResourceID).RecordNotFound() {
 		metas := resource.AllowedMetas(resource.EditAttrs(), context, rules.Update)
 		Decode(result, metas, context, "QorResource.")
-		admin.DB.Debug().Save(result)
+		admin.DB.Save(result)
 		http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 	}
 }
