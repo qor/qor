@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/jinzhu/gorm"
@@ -19,6 +20,7 @@ type Meta struct {
 	Label      string
 	Value      interface{}
 	GetValue   func(interface{}, *qor.Context) interface{}
+	Setter     func(resource interface{}, value interface{}, context *qor.Context)
 	Collection []Meta
 	Resource   *Resource
 	Permission *rules.Permission
@@ -62,7 +64,10 @@ func (meta *Meta) updateMeta() {
 				typ = reflect.TypeOf(field).Kind().String()
 				meta.Name = gorm.SnakeToUpperCamel(meta.Name)
 				meta.GetValue = func(value interface{}, context *qor.Context) interface{} {
-					if v, ok := gorm.FieldByName(meta.Name, value); ok {
+					if v, ok := gorm.FieldByName(meta.Name, value, true); ok {
+						if typ == "struct" {
+							context.DB.Model(value).Related(v)
+						}
 						return v
 					}
 					return ""
@@ -92,6 +97,25 @@ func (meta *Meta) updateMeta() {
 			}
 		} else if typ == "slice" {
 			meta.Type = "collection_edit"
+		}
+	}
+
+	if meta.Setter == nil {
+		if typ == "slice" {
+		} else if typ == "struct" {
+		} else {
+			meta.Setter = func(resource interface{}, value interface{}, context *qor.Context) {
+				field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Name)
+				if field.IsValid() && field.CanAddr() {
+					if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
+						scanner.Scan(value)
+					} else if reflect.TypeOf(value).ConvertibleTo(field.Type()) {
+						field.Set(reflect.ValueOf(value).Convert(field.Type()))
+					}
+				} else {
+					fmt.Println("Can't set value")
+				}
+			}
 		}
 	}
 

@@ -1,6 +1,10 @@
 package qor
 
-import "net/http"
+import (
+	"github.com/jinzhu/gorm"
+
+	"net/http"
+)
 
 type CurrentUser interface {
 	DisplayName() string
@@ -12,4 +16,5 @@ type Context struct {
 	CurrentUser  CurrentUser
 	ResourceName string
 	ResourceID   string
+	DB           *gorm.DB
 }

@@ -1,12 +1,9 @@
 package admin
 
 import (
-	"database/sql"
 	"github.com/qor/qor"
 	"github.com/qor/qor/rules"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"reflect"
 )
@@ -48,43 +45,13 @@ func (admin *Admin) Create(context *qor.Context) {
 }
 
 func (admin *Admin) Update(context *qor.Context) {
-	context.Request.ParseMultipartForm(32 << 22)
-
 	resource := admin.Resources[context.ResourceName]
-	metas := resource.AllowedMetas(resource.EditAttrs(), context, rules.Update)
-
 	result := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type()).Interface()
 
 	if !admin.DB.First(result, context.ResourceID).RecordNotFound() {
-		for key, values := range context.Request.Form {
-			value := values[0]
-
-			if keys := strings.Split(key, "."); len(keys) >= 2 && keys[0] == "QorResource" {
-				for _, meta := range metas {
-					if meta.Name == keys[1] {
-						// FIXME set value
-						field := reflect.Indirect(reflect.ValueOf(result)).FieldByName(meta.Name)
-						if field.IsValid() && field.CanAddr() {
-							switch field.Kind() {
-							case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-								if int, err := strconv.Atoi(value); err != nil {
-									field.SetInt(reflect.ValueOf(int).Int())
-								}
-							default:
-								if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
-									scanner.Scan(value)
-								} else {
-									// FIXME
-									field.Set(reflect.ValueOf(value))
-								}
-							}
-						}
-						break
-					}
-				}
-			}
-		}
-		admin.DB.Save(result)
+		metas := resource.AllowedMetas(resource.EditAttrs(), context, rules.Update)
+		Decode(result, metas, context, "QorResource.")
+		admin.DB.Debug().Save(result)
 		http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 	}
 }

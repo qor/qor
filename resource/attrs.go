@@ -89,6 +89,10 @@ func (resource *Resource) ShowAttrs() []Meta {
 	return resource.getMetas(resource.attrs.showAttrs, resource.attrs.editAttrs)
 }
 
+func (resource *Resource) AllAttrs() []Meta {
+	return resource.getMetas()
+}
+
 func (resource *Resource) AllowedMetas(attrs []Meta, context *qor.Context, rules ...rules.PermissionMode) []Meta {
 	var metas = []Meta{}
 	for _, meta := range attrs {
