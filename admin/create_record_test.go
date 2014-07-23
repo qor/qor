@@ -42,8 +42,10 @@ func init() {
 	db.LogMode(true)
 	db.DropTable(&User{})
 	db.DropTable(&CreditCard{})
+	db.DropTable(&Address{})
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&CreditCard{})
+	db.AutoMigrate(&Address{})
 
 	user := resource.New(&User{})
 	admin := admin.New(&db)
@@ -114,6 +116,11 @@ func TestCreateRecordAndHasMany(t *testing.T) {
 		var user User
 		if db.First(&user, "name = ?", name).RecordNotFound() {
 			t.Errorf("User should be created successfully")
+		}
+
+		var address Address
+		if db.First(&address, "user_id = ? and address1 = ?", user.Id, "address1").RecordNotFound() {
+			t.Errorf("Address should be created successfully")
 		}
 	} else {
 		t.Errorf(err.Error())

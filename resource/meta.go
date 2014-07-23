@@ -68,7 +68,7 @@ func (meta *Meta) updateMeta() {
 						if typ == "struct" {
 							context.DB.Model(value).Related(v)
 						}
-						return v
+						return reflect.Indirect(reflect.ValueOf(v)).Interface()
 					}
 					return ""
 				}
