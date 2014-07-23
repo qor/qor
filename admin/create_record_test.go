@@ -18,12 +18,19 @@ type CreditCard struct {
 	Issuer string
 }
 
+type Address struct {
+	Id       int64
+	Address1 string
+	UserId   int64
+}
+
 type User struct {
 	Id           int64
 	Name         string
 	Role         string
 	CreditCard   CreditCard
 	CreditCardId int64
+	Addresses    []Address
 }
 
 var server *httptest.Server
@@ -64,9 +71,10 @@ func TestCreateRecord(t *testing.T) {
 	}
 }
 
-func TestCreateRecordWithEmbeddedStruct(t *testing.T) {
+func TestCreateRecordAndHasOne(t *testing.T) {
+	name := "create_record_and_has_one"
 	form := url.Values{
-		"QorResource.Name":              {"create_record_with_embedded_struct"},
+		"QorResource.Name":              {name},
 		"QorResource.Role":              {"admin"},
 		"QorResource.CreditCard.Number": {"1234567890"},
 		"QorResource.CreditCard.Issuer": {"Visa"},
@@ -78,12 +86,34 @@ func TestCreateRecordWithEmbeddedStruct(t *testing.T) {
 		}
 
 		var user User
-		if db.First(&user, "name = ?", "create_record_with_embedded_struct").RecordNotFound() {
+		if db.First(&user, "name = ?", name).RecordNotFound() {
 			t.Errorf("User should be created successfully")
 		}
 
 		if db.Model(&user).Related(&user.CreditCard).RecordNotFound() || user.CreditCard.Number != "1234567890" {
 			t.Errorf("Embedded struct should be created successfully")
+		}
+	} else {
+		t.Errorf(err.Error())
+	}
+}
+
+func TestCreateRecordAndHasMany(t *testing.T) {
+	name := "create_record_and_has_many"
+	form := url.Values{
+		"QorResource.Name":                   {name},
+		"QorResource.Role":                   {"admin"},
+		"QorResource.Addresses.[0].Address1": {"address1"},
+	}
+
+	if req, err := http.PostForm(server.URL+"/admin/user", form); err == nil {
+		if req.StatusCode != 200 {
+			t.Errorf("Create request should be processed successfully")
+		}
+
+		var user User
+		if db.First(&user, "name = ?", name).RecordNotFound() {
+			t.Errorf("User should be created successfully")
 		}
 	} else {
 		t.Errorf(err.Error())
