@@ -2,6 +2,7 @@ package admin
 
 import (
 	"github.com/qor/qor"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
 	"net/http"
 
@@ -42,21 +43,21 @@ func (admin *Admin) New(context *qor.Context) {
 }
 
 func (admin *Admin) Create(context *qor.Context) {
-	resource := admin.Resources[context.ResourceName]
-	result := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type()).Interface()
-	metas := resource.AllowedMetas(resource.EditAttrs(), context, rules.Update)
-	Decode(result, metas, context, "QorResource.")
+	res := admin.Resources[context.ResourceName]
+	result := reflect.New(reflect.Indirect(reflect.ValueOf(res.Model)).Type()).Interface()
+	metas := res.AllowedMetas(res.EditAttrs(), context, rules.Update)
+	resource.Decode(result, metas, context, "QorResource.")
 	admin.DB.Save(result)
 	http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 }
 
 func (admin *Admin) Update(context *qor.Context) {
-	resource := admin.Resources[context.ResourceName]
-	result := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type()).Interface()
+	res := admin.Resources[context.ResourceName]
+	result := reflect.New(reflect.Indirect(reflect.ValueOf(res.Model)).Type()).Interface()
 
 	if !admin.DB.First(result, context.ResourceID).RecordNotFound() {
-		metas := resource.AllowedMetas(resource.EditAttrs(), context, rules.Update)
-		Decode(result, metas, context, "QorResource.")
+		metas := res.AllowedMetas(res.EditAttrs(), context, rules.Update)
+		resource.Decode(result, metas, context, "QorResource.")
 		admin.DB.Save(result)
 		http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 	}

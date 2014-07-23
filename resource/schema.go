@@ -1,14 +1,13 @@
-package admin
+package resource
 
 import (
 	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
 
 	"reflect"
 )
 
-func Decode(result interface{}, metas []resource.Meta, context *qor.Context, prefix string) {
+func Decode(result interface{}, metas []Meta, context *qor.Context, prefix string) {
 	request := context.Request
 	request.ParseMultipartForm(32 << 22)
 	// request.MultipartForm
