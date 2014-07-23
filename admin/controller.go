@@ -16,7 +16,7 @@ func (admin *Admin) Dashboard(context *qor.Context) {
 
 func (admin *Admin) Index(context *qor.Context) {
 	resource := admin.Resources[context.ResourceName]
-	sliceType := reflect.SliceOf(reflect.Indirect(reflect.ValueOf(resource.Model)).Type())
+	sliceType := reflect.SliceOf(reflect.ValueOf(resource.Model).Type())
 	slice := reflect.MakeSlice(sliceType, 0, 0)
 	slicePtr := reflect.New(sliceType)
 	slicePtr.Elem().Set(slice)
