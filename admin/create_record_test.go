@@ -39,7 +39,6 @@ var db gorm.DB
 func init() {
 	mux := http.NewServeMux()
 	db, _ = gorm.Open("sqlite3", "/tmp/qor_test.db")
-	db.LogMode(true)
 	db.DropTable(&User{})
 	db.DropTable(&CreditCard{})
 	db.DropTable(&Address{})
@@ -103,9 +102,10 @@ func TestCreateRecordAndHasOne(t *testing.T) {
 func TestCreateRecordAndHasMany(t *testing.T) {
 	name := "create_record_and_has_many"
 	form := url.Values{
-		"QorResource.Name":                   {name},
-		"QorResource.Role":                   {"admin"},
-		"QorResource.Addresses.[0].Address1": {"address1"},
+		"QorResource.Name":                  {name},
+		"QorResource.Role":                  {"admin"},
+		"QorResource.Addresses[0].Address1": {"address_1"},
+		"QorResource.Addresses[1].Address1": {"address_2"},
 	}
 
 	if req, err := http.PostForm(server.URL+"/admin/user", form); err == nil {
@@ -118,9 +118,12 @@ func TestCreateRecordAndHasMany(t *testing.T) {
 			t.Errorf("User should be created successfully")
 		}
 
-		var address Address
-		if db.First(&address, "user_id = ? and address1 = ?", user.Id, "address1").RecordNotFound() {
-			t.Errorf("Address should be created successfully")
+		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address_1").RecordNotFound() {
+			t.Errorf("Address 1 should be created successfully")
+		}
+
+		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address_2").RecordNotFound() {
+			t.Errorf("Address 2 should be created successfully")
 		}
 	} else {
 		t.Errorf(err.Error())

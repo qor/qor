@@ -97,6 +97,12 @@ func (meta *Meta) updateMeta() {
 			}
 		} else if typ == "slice" {
 			meta.Type = "collection_edit"
+			if meta.Resource == nil {
+				if field, ok := gorm.FieldByName(gorm.SnakeToUpperCamel(meta.Name), meta.base.Model); ok {
+					result := reflect.New(reflect.Indirect(reflect.ValueOf(field)).Type().Elem()).Interface()
+					meta.Resource = New(result)
+				}
+			}
 		}
 	}
 
