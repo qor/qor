@@ -19,7 +19,14 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 	}
 
 	if values, ok := request.Form[prefix+"_id"]; ok {
-		context.DB.First(result, values[0])
+		primaryKey := values[0]
+		context.DB.First(result, primaryKey)
+		if destroyValues, ok := request.Form[prefix+"_destroy"]; ok {
+			if destroyValues[0] != "0" {
+				context.DB.Delete(result, primaryKey)
+				return
+			}
+		}
 	}
 
 	for _, meta := range metas {
