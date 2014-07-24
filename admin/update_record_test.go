@@ -67,17 +67,17 @@ func TestUpdateHasOneRecord(t *testing.T) {
 }
 
 func TestUpdateHasManyRecord(t *testing.T) {
-	user := User{Name: "update_record_and_has_many", Role: "admin", Addresses: []Address{{Address1: "address 1"}, {Address1: "address 2"}}}
+	user := User{Name: "update_record_and_has_many", Role: "admin", Addresses: []Address{{Address1: "address 1.1", Address2: "address 1.2"}, {Address1: "address 2.1"}}}
 	db.Save(&user)
 
 	form := url.Values{
 		"QorResource.Name":                  {user.Name},
 		"QorResource.Role":                  {"admin"},
 		"QorResource.Addresses[0].Id":       {strconv.Itoa(user.Addresses[0].Id)},
-		"QorResource.Addresses[0].Address1": {"address 1 new"},
+		"QorResource.Addresses[0].Address1": {"address 1.1 new"},
 		"QorResource.Addresses[1].Id":       {strconv.Itoa(user.Addresses[1].Id)},
-		"QorResource.Addresses[1].Address1": {"address 2 new"},
-		"QorResource.Addresses[2].Address1": {"address 3"},
+		"QorResource.Addresses[1].Address1": {"address 2.1 new"},
+		"QorResource.Addresses[2].Address1": {"address 3.1"},
 	}
 
 	if req, err := http.PostForm(server.URL+"/admin/user/"+strconv.Itoa(user.Id), form); err == nil {
@@ -85,15 +85,18 @@ func TestUpdateHasManyRecord(t *testing.T) {
 			t.Errorf("Create request should be processed successfully")
 		}
 
-		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address 1 new").RecordNotFound() {
+		var address1 Address
+		if db.First(&address1, "user_id = ? and address1 = ?", user.Id, "address 1.1 new").RecordNotFound() {
 			t.Errorf("Address 1 should be updated successfully")
+		} else if address1.Address2 != "address 1.2" {
+			t.Errorf("Address 1's Address 2 should not be updated")
 		}
 
-		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address 2 new").RecordNotFound() {
+		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address 2.1 new").RecordNotFound() {
 			t.Errorf("Address 2 should be updated successfully")
 		}
 
-		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address 3").RecordNotFound() {
+		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address 3.1").RecordNotFound() {
 			t.Errorf("Address 3 should be created successfully")
 		}
 		var addresses []Address

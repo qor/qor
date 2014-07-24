@@ -18,6 +18,10 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 		formKeys = append(formKeys, key)
 	}
 
+	if values, ok := request.Form[prefix+"Id"]; ok {
+		context.DB.First(result, values[0])
+	}
+
 	for _, meta := range metas {
 		if meta.Type == "single_edit" {
 			metas := meta.Resource.AllowedMetas(meta.Resource.AllAttrs(), context, rules.Update)

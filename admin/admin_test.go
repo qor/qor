@@ -18,8 +18,9 @@ type CreditCard struct {
 
 type Address struct {
 	Id       int
-	Address1 string
 	UserId   int64
+	Address1 string
+	Address2 string
 }
 
 type User struct {
