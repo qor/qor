@@ -11,19 +11,19 @@ import (
 )
 
 type CreditCard struct {
-	Id     int64
+	Id     int
 	Number string
 	Issuer string
 }
 
 type Address struct {
-	Id       int64
+	Id       int
 	Address1 string
 	UserId   int64
 }
 
 type User struct {
-	Id           int64
+	Id           int
 	Name         string
 	Role         string
 	CreditCard   CreditCard
@@ -37,6 +37,7 @@ var db gorm.DB
 func init() {
 	mux := http.NewServeMux()
 	db, _ = gorm.Open("sqlite3", "/tmp/qor_test.db")
+	// db.LogMode(true)
 	db.DropTable(&User{})
 	db.DropTable(&CreditCard{})
 	db.DropTable(&Address{})

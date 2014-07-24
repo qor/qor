@@ -3,6 +3,7 @@ package resource
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -107,20 +108,31 @@ func (meta *Meta) updateMeta() {
 	}
 
 	if meta.Setter == nil {
-		if typ == "slice" {
-		} else if typ == "struct" {
-		} else {
-			meta.Setter = func(resource interface{}, value interface{}, context *qor.Context) {
-				field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Name)
-				if field.IsValid() && field.CanAddr() {
-					if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
-						scanner.Scan(value)
-					} else if reflect.TypeOf(value).ConvertibleTo(field.Type()) {
-						field.Set(reflect.ValueOf(value).Convert(field.Type()))
-					}
+		meta.Setter = func(resource interface{}, value interface{}, context *qor.Context) {
+			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Name)
+			if field.IsValid() && field.CanAddr() {
+				if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
+					scanner.Scan(value)
+				} else if reflect.TypeOf(value).ConvertibleTo(field.Type()) {
+					field.Set(reflect.ValueOf(value).Convert(field.Type()))
 				} else {
-					fmt.Println("Can't set value")
+					if str, ok := value.(string); ok {
+						switch field.Kind() {
+						case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+							value, _ = strconv.Atoi(str)
+							field.SetInt(reflect.ValueOf(value).Int())
+						case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+							value, _ = strconv.Atoi(str)
+							field.SetUint(reflect.ValueOf(value).Uint())
+						default:
+							fmt.Println("Can't set value", meta, meta.base)
+						}
+					} else {
+						fmt.Println("Can't set value", meta, meta.base)
+					}
 				}
+			} else {
+				fmt.Println("Can't set value", meta, meta.base)
 			}
 		}
 	}
