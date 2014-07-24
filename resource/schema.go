@@ -38,7 +38,6 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 					field.Set(reflect.Append(field, result.Elem()))
 				}
 			}
-
 		} else {
 			if values, ok := request.Form[prefix+meta.Name]; ok {
 				meta.Setter(result, values[0], context)

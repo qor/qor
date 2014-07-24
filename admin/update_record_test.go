@@ -77,6 +77,7 @@ func TestUpdateHasManyRecord(t *testing.T) {
 		"QorResource.Addresses[0].Address1": {"address 1 new"},
 		"QorResource.Addresses[1].Id":       {strconv.Itoa(user.Addresses[1].Id)},
 		"QorResource.Addresses[1].Address1": {"address 2 new"},
+		"QorResource.Addresses[2].Address1": {"address 3"},
 	}
 
 	if req, err := http.PostForm(server.URL+"/admin/user/"+strconv.Itoa(user.Id), form); err == nil {
@@ -92,9 +93,12 @@ func TestUpdateHasManyRecord(t *testing.T) {
 			t.Errorf("Address 2 should be updated successfully")
 		}
 
+		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address 3").RecordNotFound() {
+			t.Errorf("Address 3 should be created successfully")
+		}
 		var addresses []Address
-		if db.Find(&addresses, "user_id = ?", user.Id); len(addresses) != 2 {
-			t.Errorf("Addresses's count should not be changed after update")
+		if db.Find(&addresses, "user_id = ?", user.Id); len(addresses) != 3 {
+			t.Errorf("Addresses's count should be updated after update")
 		}
 	} else {
 		t.Errorf(err.Error())
