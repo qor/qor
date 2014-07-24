@@ -18,7 +18,7 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 		formKeys = append(formKeys, key)
 	}
 
-	if values, ok := request.Form[prefix+"Id"]; ok {
+	if values, ok := request.Form[prefix+"_id"]; ok {
 		context.DB.First(result, values[0])
 	}
 

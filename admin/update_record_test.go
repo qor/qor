@@ -38,7 +38,7 @@ func TestUpdateHasOneRecord(t *testing.T) {
 	form := url.Values{
 		"QorResource.Name":              {user.Name + "_new"},
 		"QorResource.Role":              {"admin"},
-		"QorResource.CreditCard.Id":     {strconv.Itoa(user.CreditCard.Id)},
+		"QorResource.CreditCard._id":    {strconv.Itoa(user.CreditCard.Id)},
 		"QorResource.CreditCard.Number": {"1234567890"},
 		"QorResource.CreditCard.Issuer": {"UnionPay"},
 	}
@@ -73,9 +73,9 @@ func TestUpdateHasManyRecord(t *testing.T) {
 	form := url.Values{
 		"QorResource.Name":                  {user.Name},
 		"QorResource.Role":                  {"admin"},
-		"QorResource.Addresses[0].Id":       {strconv.Itoa(user.Addresses[0].Id)},
+		"QorResource.Addresses[0]._id":      {strconv.Itoa(user.Addresses[0].Id)},
 		"QorResource.Addresses[0].Address1": {"address 1.1 new"},
-		"QorResource.Addresses[1].Id":       {strconv.Itoa(user.Addresses[1].Id)},
+		"QorResource.Addresses[1]._id":      {strconv.Itoa(user.Addresses[1].Id)},
 		"QorResource.Addresses[1].Address1": {"address 2.1 new"},
 		"QorResource.Addresses[2].Address1": {"address 3.1"},
 	}
