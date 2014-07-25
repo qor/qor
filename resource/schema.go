@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func Decode(result interface{}, metas []Meta, context *qor.Context, prefix string) {
+func Decode(result interface{}, metas []Meta, context *qor.Context, prefix string) bool {
 	request := context.Request
 	request.ParseMultipartForm(32 << 22)
 	// request.MultipartForm
@@ -24,7 +24,7 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 		if destroyValues, ok := request.Form[prefix+"_destroy"]; ok {
 			if destroyValues[0] != "0" {
 				context.DB.Delete(result, primaryKey)
-				return
+				return false
 			}
 		}
 	}
@@ -42,11 +42,12 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 			reg := regexp.MustCompile(prefix + meta.Name + `\[\d+\]\.`)
 			for _, key := range formKeys {
 				matches := reg.FindStringSubmatch(key)
-				if _, ok := matchedFormKeys[key]; !ok && len(matches) > 0 {
-					matchedFormKeys[key] = true
+				if len(matches) > 0 && !matchedFormKeys[matches[0]] {
+					matchedFormKeys[matches[0]] = true
 					result := reflect.New(field.Type().Elem())
-					Decode(result.Interface(), metas, context, matches[0])
-					field.Set(reflect.Append(field, result.Elem()))
+					if Decode(result.Interface(), metas, context, matches[0]) {
+						field.Set(reflect.Append(field, result.Elem()))
+					}
 				}
 			}
 		} else {
@@ -55,4 +56,5 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 			}
 		}
 	}
+	return true
 }
