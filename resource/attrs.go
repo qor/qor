@@ -83,7 +83,7 @@ func (resource *Resource) NewAttrs() []Meta {
 }
 
 func (resource *Resource) EditAttrs() []Meta {
-	return appendPrimaryKey(resource.getMetas(resource.attrs.editAttrs))
+	return resource.appendPrimaryKey(resource.getMetas(resource.attrs.editAttrs))
 }
 
 func (resource *Resource) ShowAttrs() []Meta {
@@ -91,11 +91,11 @@ func (resource *Resource) ShowAttrs() []Meta {
 }
 
 func (resource *Resource) AllAttrs() []Meta {
-	return appendPrimaryKey(resource.getMetas())
+	return resource.appendPrimaryKey(resource.getMetas())
 }
 
-func appendPrimaryKey(metas []Meta) []Meta {
-	primaryKeyMeta := Meta{Name: "_id", Type: "hidden", Value: func(value interface{}, context *qor.Context) interface{} {
+func (resource *Resource) appendPrimaryKey(metas []Meta) []Meta {
+	primaryKeyMeta := Meta{base: resource, Name: "_id", Type: "hidden", Value: func(value interface{}, context *qor.Context) interface{} {
 		return context.DB.NewScope(value).PrimaryKeyValue()
 	}}
 	primaryKeyMeta.updateMeta()
