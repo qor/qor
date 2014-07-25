@@ -95,7 +95,7 @@ func (resource *Resource) AllAttrs() []Meta {
 }
 
 func appendPrimaryKey(metas []Meta) []Meta {
-	primaryKeyMeta := Meta{Name: "_id", Type: "hidden", GetValue: func(value interface{}, context *qor.Context) interface{} {
+	primaryKeyMeta := Meta{Name: "_id", Type: "hidden", Value: func(value interface{}, context *qor.Context) interface{} {
 		return context.DB.NewScope(value).PrimaryKeyValue()
 	}}
 	primaryKeyMeta.updateMeta()

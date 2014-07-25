@@ -43,7 +43,7 @@ func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses .
 }
 
 func (content *Content) ValueOf(value interface{}, meta resource.Meta) interface{} {
-	return meta.GetValue(value, content.Context)
+	return meta.Value(value, content.Context)
 }
 
 func (content *Content) NewResourcePath(value interface{}) string {
@@ -110,7 +110,7 @@ func (content *Content) RenderMeta(writer *bytes.Buffer, meta resource.Meta, val
 		data["InputId"] = strings.Join(prefix, "")
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
-		data["Value"] = meta.GetValue(value, content.Context)
+		data["Value"] = meta.Value(value, content.Context)
 		data["Meta"] = meta
 
 		if err := tmpl.Execute(writer, data); err != nil {
