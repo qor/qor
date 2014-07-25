@@ -1,9 +1,9 @@
 package resource
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/rules"
+	"strings"
 
 	"go/ast"
 	"reflect"
@@ -54,7 +54,6 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 		}
 	}
 
-	primaryKey := gorm.GetPrimaryKey(resource.Model)
 	metas := []Meta{}
 	for _, attr := range attrs {
 		metaFound := false
@@ -66,7 +65,7 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 			}
 		}
 		if !metaFound {
-			if attr == primaryKey {
+			if strings.HasSuffix(attr, "Id") {
 				continue
 			}
 			var _meta Meta
