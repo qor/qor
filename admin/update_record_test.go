@@ -143,7 +143,7 @@ func TestDestroyEmbeddedHasOneRecord(t *testing.T) {
 			t.Errorf("Embedded struct should be destroyed successfully")
 		}
 
-		if !db.Unscoped().First(&CreditCard{}, "number = ? and issuer = ?", "1234567890", "JCB").RecordNotFound() {
+		if !db.First(&CreditCard{}, "number = ? and issuer = ?", "1234567890", "JCB").RecordNotFound() {
 			t.Errorf("Old embedded struct should be destroyed")
 		}
 	} else {

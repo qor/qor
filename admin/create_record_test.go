@@ -61,6 +61,8 @@ func TestCreateHasManyRecord(t *testing.T) {
 		"QorResource.Role":                  {"admin"},
 		"QorResource.Addresses[0].Address1": {"address_1"},
 		"QorResource.Addresses[1].Address1": {"address_2"},
+		"QorResource.Addresses[2]._id":      {"0"},
+		"QorResource.Addresses[2].Address1": {""},
 	}
 
 	if req, err := http.PostForm(server.URL+"/admin/user", form); err == nil {
@@ -79,6 +81,11 @@ func TestCreateHasManyRecord(t *testing.T) {
 
 		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address_2").RecordNotFound() {
 			t.Errorf("Address 2 should be created successfully")
+		}
+
+		var addresses []Address
+		if db.Find(&addresses, "user_id = ?", user.Id); len(addresses) != 2 {
+			t.Errorf("Blank address should not be created")
 		}
 	} else {
 		t.Errorf(err.Error())

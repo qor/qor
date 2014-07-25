@@ -3,6 +3,7 @@ package resource
 import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/rules"
+	"strings"
 
 	"reflect"
 	"regexp"
@@ -13,9 +14,12 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 	request.ParseMultipartForm(32 << 22)
 	// request.MultipartForm
 
-	var formKeys = []string{}
-	for key := range request.Form {
-		formKeys = append(formKeys, key)
+	var hasValueKeys = []string{}
+	for key, values := range request.Form {
+		value := values[0]
+		if value != "" && (!strings.HasSuffix(key, "._id") || value != "0") && !strings.HasSuffix(key, "._destroy") {
+			hasValueKeys = append(hasValueKeys, key)
+		}
 	}
 
 	if values, ok := request.Form[prefix+"_id"]; ok {
@@ -39,13 +43,13 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 			field := reflect.Indirect(reflect.ValueOf(result)).FieldByName(meta.Name)
 
 			matchedFormKeys := map[string]bool{}
-			reg := regexp.MustCompile(prefix + meta.Name + `\[\d+\]\.`)
-			for _, key := range formKeys {
+			reg := regexp.MustCompile("(" + prefix + meta.Name + `\[\d+\]\.)([^.]+)`)
+			for _, key := range hasValueKeys {
 				matches := reg.FindStringSubmatch(key)
-				if len(matches) > 0 && !matchedFormKeys[matches[0]] {
-					matchedFormKeys[matches[0]] = true
+				if len(matches) == 3 && !matchedFormKeys[matches[1]] {
+					matchedFormKeys[matches[1]] = true
 					result := reflect.New(field.Type().Elem())
-					if Decode(result.Interface(), metas, context, matches[0]) {
+					if Decode(result.Interface(), metas, context, matches[1]) {
 						field.Set(reflect.Append(field, result.Elem()))
 					}
 				}
