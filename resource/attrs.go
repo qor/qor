@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/rules"
 
@@ -53,6 +54,7 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 		}
 	}
 
+	primaryKey := gorm.GetPrimaryKey(resource.Model)
 	metas := []Meta{}
 	for _, attr := range attrs {
 		metaFound := false
@@ -64,6 +66,9 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 			}
 		}
 		if !metaFound {
+			if attr == primaryKey {
+				continue
+			}
 			var _meta Meta
 			_meta = Meta{Name: attr, base: resource}
 			_meta.updateMeta()

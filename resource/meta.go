@@ -43,21 +43,23 @@ func (meta *Meta) updateMeta() {
 		valueType = reflect.TypeOf(field).Kind().String()
 	}
 
-	if meta.Value == nil && hasColumn {
-		meta.Name = gorm.SnakeToUpperCamel(meta.Name)
-		meta.Value = func(value interface{}, context *qor.Context) interface{} {
-			if v, ok := gorm.FieldByName(meta.Name, value, true); ok {
-				if valueType == "struct" || valueType == "slice" {
-					context.DB.Model(value).Related(v)
+	if meta.Value == nil {
+		if hasColumn {
+			meta.Name = gorm.SnakeToUpperCamel(meta.Name)
+			meta.Value = func(value interface{}, context *qor.Context) interface{} {
+				if v, ok := gorm.FieldByName(meta.Name, value, true); ok {
+					if valueType == "struct" || valueType == "slice" {
+						context.DB.Model(value).Related(v)
+					}
+					return reflect.Indirect(reflect.ValueOf(v)).Interface()
 				}
-				return reflect.Indirect(reflect.ValueOf(v)).Interface()
-			}
 
-			qor.ExitWithMsg("Can't get value from meta: %v", reflect.ValueOf(meta).Type())
-			return ""
+				// qor.ExitWithMsg("Can't get value from meta: %v.%v", meta.base.Name, meta.Name)
+				return ""
+			}
+		} else {
+			qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(meta.base.Model))
 		}
-	} else {
-		qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(meta.base.Model))
 	}
 
 	// "select_one", "select_many", "image_with_crop", "table_edit", "table_view"
