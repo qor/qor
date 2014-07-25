@@ -70,7 +70,13 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 			metas = append(metas, _meta)
 		}
 	}
-	return metas
+
+	primaryKeyMeta := Meta{Name: "_id", Type: "hidden", GetValue: func(value interface{}, context *qor.Context) interface{} {
+		return context.DB.NewScope(value).PrimaryKeyValue()
+	}}
+	primaryKeyMeta.updateMeta()
+
+	return append(metas, primaryKeyMeta)
 }
 
 func (resource *Resource) IndexAttrs() []Meta {
