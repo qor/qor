@@ -2,8 +2,8 @@ package resource
 
 import (
 	"database/sql"
-	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -111,14 +111,14 @@ func (meta *Meta) updateMeta() {
 							value, _ = strconv.Atoi(str)
 							field.SetUint(reflect.ValueOf(value).Uint())
 						default:
-							fmt.Println("Can't set value", meta, meta.base)
+							qor.ExitWithMsg("Can't set value", meta, meta.base)
 						}
 					} else {
-						fmt.Println("Can't set value", meta, meta.base)
+						qor.ExitWithMsg("Can't set value", meta, meta.base)
 					}
 				}
-			} else {
-				fmt.Println("Can't set value", meta, meta.base)
+			} else if !strings.HasPrefix(meta.Name, "_") {
+				qor.ExitWithMsg("Can't set value", meta, meta.base)
 			}
 		}
 	}
