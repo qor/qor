@@ -66,8 +66,8 @@ func (meta *Meta) updateMeta() {
 				meta.Name = gorm.SnakeToUpperCamel(meta.Name)
 				meta.GetValue = func(value interface{}, context *qor.Context) interface{} {
 					if v, ok := gorm.FieldByName(meta.Name, value, true); ok {
-						if typ == "struct" || typ == "collection_edit" {
-							context.DB.Model(value).Related(v)
+						if typ == "struct" || typ == "slice" {
+							context.DB.Debug().Model(value).Related(v)
 						}
 						return reflect.Indirect(reflect.ValueOf(v)).Interface()
 					}
