@@ -1,10 +1,12 @@
 package admin
 
 import (
+	"fmt"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
 	"net/http"
+	"path"
 
 	"reflect"
 )
@@ -48,7 +50,8 @@ func (admin *Admin) Create(context *qor.Context) {
 	metas := res.AllowedMetas(res.EditAttrs(), context, rules.Update)
 	resource.Decode(result, metas, context, "QorResource.")
 	admin.DB.Save(result)
-	http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
+	primaryKey := fmt.Sprintf("%v", admin.DB.NewScope(result).PrimaryKeyValue())
+	http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
 }
 
 func (admin *Admin) Update(context *qor.Context) {
