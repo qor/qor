@@ -90,8 +90,12 @@ func (content *Content) RenderMeta(writer *bytes.Buffer, meta resource.Meta, val
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := content.funcMap(rules.Read, rules.Update)
-	funcsMap["render_form"] = func(value interface{}, metas []resource.Meta) string {
+	funcsMap["render_form"] = func(value interface{}, metas []resource.Meta, index ...int) string {
 		var result = bytes.NewBufferString("")
+		if len(index) > 0 {
+			last := prefix[len(prefix)-1]
+			prefix[len(prefix)-1] = fmt.Sprintf("%v[%v]", last, index[0])
+		}
 		content.renderForm(result, value, metas, prefix)
 		return result.String()
 	}

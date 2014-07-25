@@ -17,12 +17,20 @@ type CreditCard struct {
 	Issuer string
 }
 
+type Address struct {
+	Id       int
+	UserId   int64
+	Address1 string
+	Address2 string
+}
+
 type User struct {
 	Id           int64
 	Name         string
 	Role         string
 	CreditCard   CreditCard
 	CreditCardId int64
+	Addresses    []Address
 }
 
 var db gorm.DB
@@ -32,6 +40,7 @@ func init() {
 	db.LogMode(true)
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&CreditCard{})
+	db.AutoMigrate(&Address{})
 }
 
 func main() {
