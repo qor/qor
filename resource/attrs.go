@@ -71,12 +71,7 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 		}
 	}
 
-	primaryKeyMeta := Meta{Name: "_id", Type: "hidden", GetValue: func(value interface{}, context *qor.Context) interface{} {
-		return context.DB.NewScope(value).PrimaryKeyValue()
-	}}
-	primaryKeyMeta.updateMeta()
-
-	return append(metas, primaryKeyMeta)
+	return metas
 }
 
 func (resource *Resource) IndexAttrs() []Meta {
@@ -88,7 +83,7 @@ func (resource *Resource) NewAttrs() []Meta {
 }
 
 func (resource *Resource) EditAttrs() []Meta {
-	return resource.getMetas(resource.attrs.editAttrs)
+	return appendPrimaryKey(resource.getMetas(resource.attrs.editAttrs))
 }
 
 func (resource *Resource) ShowAttrs() []Meta {
@@ -96,7 +91,16 @@ func (resource *Resource) ShowAttrs() []Meta {
 }
 
 func (resource *Resource) AllAttrs() []Meta {
-	return resource.getMetas()
+	return appendPrimaryKey(resource.getMetas())
+}
+
+func appendPrimaryKey(metas []Meta) []Meta {
+	primaryKeyMeta := Meta{Name: "_id", Type: "hidden", GetValue: func(value interface{}, context *qor.Context) interface{} {
+		return context.DB.NewScope(value).PrimaryKeyValue()
+	}}
+	primaryKeyMeta.updateMeta()
+
+	return append(metas, primaryKeyMeta)
 }
 
 func (resource *Resource) AllowedMetas(attrs []Meta, context *qor.Context, rules ...rules.PermissionMode) []Meta {
