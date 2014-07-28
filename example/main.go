@@ -60,6 +60,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	user := resource.New(&User{})
+	user.Attrs().Index("name", "gender")
 	user.Meta().Register(resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
 	user.Meta().Register(resource.Meta{Name: "RoleId",
 		Label: "Role",

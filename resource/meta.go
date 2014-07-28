@@ -63,7 +63,7 @@ func (meta *Meta) updateMeta() {
 			if regexp.MustCompile(`^(u)?int(\d+)?`).MatchString(valueType) {
 				meta.Type = "number"
 			} else {
-				qor.ExitWithMsg("Unsupported value type %v for meta %v", meta.Type, reflect.ValueOf(meta).Type())
+				qor.ExitWithMsg("Unsupported value type %v for meta %v", valueType, meta.Name)
 			}
 		}
 	}
