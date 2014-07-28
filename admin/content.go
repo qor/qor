@@ -111,6 +111,9 @@ func (content *Content) RenderMeta(writer *bytes.Buffer, meta resource.Meta, val
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
 		data["Value"] = meta.Value(value, content.Context)
+		if meta.GetCollection != nil {
+			data["CollectionValue"] = meta.GetCollection(value, content.Context)
+		}
 		data["Meta"] = meta
 
 		if err := tmpl.Execute(writer, data); err != nil {

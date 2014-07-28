@@ -13,15 +13,16 @@ import (
 )
 
 type Meta struct {
-	base       *Resource
-	Name       string
-	Type       string
-	Label      string
-	Value      func(interface{}, *qor.Context) interface{}
-	Setter     func(resource interface{}, value interface{}, context *qor.Context)
-	Collection func(interface{}, *qor.Context) []interface{}
-	Resource   *Resource
-	Permission *rules.Permission
+	base          *Resource
+	Name          string
+	Type          string
+	Label         string
+	Value         func(interface{}, *qor.Context) interface{}
+	Setter        func(resource interface{}, value interface{}, context *qor.Context)
+	Collection    interface{}
+	GetCollection func(interface{}, *qor.Context) [][]string
+	Resource      *Resource
+	Permission    *rules.Permission
 }
 
 func (meta *Meta) HasPermission(mode rules.PermissionMode, context *qor.Context) bool {
@@ -32,17 +33,57 @@ func (meta *Meta) HasPermission(mode rules.PermissionMode, context *qor.Context)
 }
 
 func (meta *Meta) updateMeta() {
+	var hasColumn bool
+	var valueType string
+
 	if meta.Name == "" {
 		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
 	}
-	var hasColumn bool
-	var valueType = "string"
 
 	if field, ok := gorm.FieldByName(gorm.SnakeToUpperCamel(meta.Name), meta.base.Model); ok {
 		hasColumn = true
 		valueType = reflect.TypeOf(field).Kind().String()
 	}
 
+	// "select_one", "select_many", "image_with_crop", "table_edit", "table_view"
+	// []string, [][]string, []struct, .Resource -> Setter
+
+	// Set Meta Type
+	if meta.Type == "" {
+		switch valueType {
+		case "string":
+			meta.Type = "string"
+		case "bool":
+			meta.Type = "checkbox"
+		case "struct":
+			meta.Type = "single_edit"
+		case "slice":
+			meta.Type = "collection_edit"
+		default:
+			if regexp.MustCompile(`^(u)?int(\d+)?`).MatchString(valueType) {
+				meta.Type = "number"
+			} else {
+				qor.ExitWithMsg("Unsupported value type %v for meta %v", meta.Type, reflect.ValueOf(meta).Type())
+			}
+		}
+	}
+
+	// Set Meta Resource
+	if meta.Resource == nil {
+		if hasColumn && (valueType == "struct" || valueType == "slice") {
+			if field, ok := gorm.FieldByName(gorm.SnakeToUpperCamel(meta.Name), meta.base.Model); ok {
+				var result interface{}
+				if valueType == "struct" {
+					result = reflect.New(reflect.Indirect(reflect.ValueOf(field)).Type()).Interface()
+				} else if valueType == "slice" {
+					result = reflect.New(reflect.Indirect(reflect.ValueOf(field)).Type().Elem()).Interface()
+				}
+				meta.Resource = New(result)
+			}
+		}
+	}
+
+	// Set Meta Value
 	if meta.Value == nil {
 		if hasColumn {
 			meta.Name = gorm.SnakeToUpperCamel(meta.Name)
@@ -53,8 +94,6 @@ func (meta *Meta) updateMeta() {
 					}
 					return reflect.Indirect(reflect.ValueOf(v)).Interface()
 				}
-
-				// qor.ExitWithMsg("Can't get value from meta: %v.%v", meta.base.Name, meta.Name)
 				return ""
 			}
 		} else {
@@ -62,33 +101,24 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
-	// "select_one", "select_many", "image_with_crop", "table_edit", "table_view"
-	// []string, [][]string, []struct, .Resource -> Setter
-	if meta.Type == "" {
-		switch valueType {
-		case "string":
-			meta.Type = "string"
-		case "bool":
-			meta.Type = "checkbox"
-		case "struct":
-			meta.Type = "single_edit"
-			if meta.Resource == nil {
-				if field, ok := gorm.FieldByName(gorm.SnakeToUpperCamel(meta.Name), meta.base.Model); ok {
-					result := reflect.New(reflect.Indirect(reflect.ValueOf(field)).Type()).Interface()
-					meta.Resource = New(result)
+	// Set Meta Collection
+	switch meta.Type {
+	case "select_one":
+		if meta.Collection != nil {
+			if maps, ok := meta.Collection.([]string); ok {
+				meta.GetCollection = func(interface{}, *qor.Context) [][]string {
+					var results = [][]string{}
+					for _, value := range maps {
+						results = append(results, []string{value, value})
+					}
+					return results
 				}
-			}
-		case "slice":
-			meta.Type = "collection_edit"
-			if field, ok := gorm.FieldByName(gorm.SnakeToUpperCamel(meta.Name), meta.base.Model); ok {
-				result := reflect.New(reflect.Indirect(reflect.ValueOf(field)).Type().Elem()).Interface()
-				meta.Resource = New(result)
-			}
-		default:
-			if regexp.MustCompile(`^(u)?int(\d+)?`).MatchString(valueType) {
-				meta.Type = "number"
+			} else if maps, ok := meta.Collection.([][]string); ok {
+				meta.GetCollection = func(interface{}, *qor.Context) [][]string {
+					return maps
+				}
 			} else {
-				qor.ExitWithMsg("Unsupported value type %v for meta %v", meta.Type, reflect.ValueOf(meta).Type())
+				qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Model))
 			}
 		}
 	}

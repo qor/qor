@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/rules"
 	"strings"
@@ -64,6 +65,15 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 				break
 			}
 		}
+
+		for _, meta := range resource.meta.metas {
+			if meta.Name == gorm.SnakeToUpperCamel(attr) {
+				metas = append(metas, meta)
+				metaFound = true
+				break
+			}
+		}
+
 		if !metaFound {
 			if strings.HasSuffix(attr, "Id") {
 				continue

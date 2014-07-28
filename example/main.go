@@ -48,7 +48,8 @@ func main() {
 
 	user := resource.New(&User{})
 	user.Attrs().Index("name", "role")
-	// user.Attrs().Edit("name", "role", "credit_card")
+	user.Attrs().Edit("name", "role", "credit_card", "addresses")
+	user.Meta().Register(resource.Meta{Name: "Role", Type: "select_one", Collection: []string{"admin", "dev", "customer support"}})
 
 	admin := admin.New(&db)
 	admin.AddResource(user)
