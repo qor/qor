@@ -100,25 +100,22 @@ func (meta *Meta) updateMeta() {
 	}
 
 	// Set Meta Collection
-	switch meta.Type {
-	case "select_one":
-		if meta.Collection != nil {
-			if maps, ok := meta.Collection.([]string); ok {
-				meta.GetCollection = func(interface{}, *qor.Context) (results [][]string) {
-					for _, value := range maps {
-						results = append(results, []string{value, value})
-					}
-					return
+	if meta.Collection != nil {
+		if maps, ok := meta.Collection.([]string); ok {
+			meta.GetCollection = func(interface{}, *qor.Context) (results [][]string) {
+				for _, value := range maps {
+					results = append(results, []string{value, value})
 				}
-			} else if maps, ok := meta.Collection.([][]string); ok {
-				meta.GetCollection = func(interface{}, *qor.Context) [][]string {
-					return maps
-				}
-			} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
-				meta.GetCollection = f
-			} else {
-				qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Model))
+				return
 			}
+		} else if maps, ok := meta.Collection.([][]string); ok {
+			meta.GetCollection = func(interface{}, *qor.Context) [][]string {
+				return maps
+			}
+		} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
+			meta.GetCollection = f
+		} else {
+			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Model))
 		}
 	}
 

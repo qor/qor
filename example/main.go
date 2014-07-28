@@ -31,11 +31,17 @@ type Role struct {
 	Name string
 }
 
+type Language struct {
+	Id   int
+	Name string
+}
+
 type User struct {
 	Id           int64
 	Name         string
 	Gender       string
 	RoleId       int64
+	Languages    []Language
 	CreditCard   CreditCard
 	CreditCardId int64
 	Addresses    []Address
@@ -50,10 +56,16 @@ func init() {
 	db.AutoMigrate(&CreditCard{})
 	db.AutoMigrate(&Address{})
 	db.AutoMigrate(&Role{})
+	db.AutoMigrate(&Language{})
 
 	db.FirstOrCreate(&Role{}, Role{Name: "admin"})
 	db.FirstOrCreate(&Role{}, Role{Name: "dev"})
 	db.FirstOrCreate(&Role{}, Role{Name: "customer_support"})
+
+	db.FirstOrCreate(&Language{}, Role{Name: "CN"})
+	db.FirstOrCreate(&Language{}, Role{Name: "JP"})
+	db.FirstOrCreate(&Language{}, Role{Name: "EN"})
+	db.FirstOrCreate(&Language{}, Role{Name: "DE"})
 }
 
 func main() {
@@ -73,11 +85,32 @@ func main() {
 		},
 	})
 
+	// db.Model(&User).Relate(&Languages{})
+	user.Meta().Register(resource.Meta{Name: "Languages", Type: "select_many",
+		Value: func(interface{}, *qor.Context) interface{} {
+			languages := []Language{}
+			db.Find(&languages)
+			return languages
+		},
+		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
+			languages := []Language{}
+			db.Find(&languages)
+			for _, language := range languages {
+				results = append(results, []string{strconv.Itoa(language.Id), language.Name})
+			}
+			return results
+		},
+		Setter: func(resource interface{}, value interface{}, context *qor.Context) {
+		},
+	})
+
 	role := resource.New(&Role{})
+	language := resource.New(&Language{})
 
 	admin := admin.New(&db)
 	admin.AddResource(user)
 	admin.AddResource(role)
+	admin.AddResource(language)
 	admin.AddToMux("/admin", mux)
 
 	fmt.Println("listening on :8080")
