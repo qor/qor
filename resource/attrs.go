@@ -56,33 +56,30 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 	}
 
 	metas := []Meta{}
+OUT:
 	for _, attr := range attrs {
-		metaFound := false
 		for _, meta := range resource.meta.metas {
 			if meta.Name == attr {
 				metas = append(metas, meta)
-				metaFound = true
-				break
+				continue OUT
 			}
 		}
 
 		for _, meta := range resource.meta.metas {
 			if meta.Name == gorm.SnakeToUpperCamel(attr) {
 				metas = append(metas, meta)
-				metaFound = true
-				break
+				continue OUT
 			}
 		}
 
-		if !metaFound {
-			if strings.HasSuffix(attr, "Id") {
-				continue
-			}
-			var _meta Meta
-			_meta = Meta{Name: attr, base: resource}
-			_meta.updateMeta()
-			metas = append(metas, _meta)
+		if strings.HasSuffix(attr, "Id") {
+			continue
 		}
+
+		var _meta Meta
+		_meta = Meta{Name: attr, base: resource}
+		_meta.updateMeta()
+		metas = append(metas, _meta)
 	}
 
 	return metas

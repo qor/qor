@@ -27,6 +27,7 @@ type Address struct {
 type User struct {
 	Id           int64
 	Name         string
+	Gender       string
 	Role         string
 	CreditCard   CreditCard
 	CreditCardId int64
@@ -47,9 +48,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	user := resource.New(&User{})
-	user.Attrs().Index("name", "role")
-	user.Attrs().Edit("name", "role", "credit_card", "addresses")
-	user.Meta().Register(resource.Meta{Name: "Role", Type: "select_one", Collection: []string{"admin", "dev", "customer support"}})
+	user.Meta().Register(resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
 
 	admin := admin.New(&db)
 	admin.AddResource(user)
