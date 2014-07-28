@@ -45,9 +45,7 @@ func (meta *Meta) updateMeta() {
 		valueType = reflect.TypeOf(field).Kind().String()
 	}
 
-	// "select_one", "select_many", "image_with_crop", "table_edit", "table_view"
-	// []string, [][]string, []struct, .Resource -> Setter
-
+	// "select_many", "image_with_crop", "table_edit", "table_view"
 	// Set Meta Type
 	if meta.Type == "" {
 		switch valueType {

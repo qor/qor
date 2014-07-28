@@ -62,9 +62,7 @@ func main() {
 	user := resource.New(&User{})
 	user.Attrs().Index("name", "gender")
 	user.Meta().Register(resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
-	user.Meta().Register(resource.Meta{Name: "RoleId",
-		Label: "Role",
-		Type:  "select_one",
+	user.Meta().Register(resource.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			var roles []Role
 			context.DB.Find(&roles)
@@ -72,7 +70,8 @@ func main() {
 				results = append(results, []string{strconv.Itoa(role.Id), role.Name})
 			}
 			return
-		}})
+		},
+	})
 
 	role := resource.New(&Role{})
 
