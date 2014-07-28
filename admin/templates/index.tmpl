@@ -3,7 +3,7 @@
     <br/>
     <br/>
     {{range $meta := allowed_metas .Resource}}
-        {{$meta.Name}}
+        {{$meta.Label}}
     {{end}}<br/>
     {{range $resource := .Result}}
         {{range $index, $meta := allowed_metas}}
