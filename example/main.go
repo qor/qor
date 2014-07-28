@@ -65,14 +65,13 @@ func main() {
 	user.Meta().Register(resource.Meta{Name: "RoleId",
 		Label: "Role",
 		Type:  "select_one",
-		Collection: func(resource interface{}, context *qor.Context) [][]string {
+		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			var roles []Role
 			context.DB.Find(&roles)
-			var results = [][]string{}
 			for _, role := range roles {
 				results = append(results, []string{strconv.Itoa(role.Id), role.Name})
 			}
-			return results
+			return
 		}})
 
 	role := resource.New(&Role{})

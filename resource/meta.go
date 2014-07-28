@@ -106,12 +106,11 @@ func (meta *Meta) updateMeta() {
 	case "select_one":
 		if meta.Collection != nil {
 			if maps, ok := meta.Collection.([]string); ok {
-				meta.GetCollection = func(interface{}, *qor.Context) [][]string {
-					var results = [][]string{}
+				meta.GetCollection = func(interface{}, *qor.Context) (results [][]string) {
 					for _, value := range maps {
 						results = append(results, []string{value, value})
 					}
-					return results
+					return
 				}
 			} else if maps, ok := meta.Collection.([][]string); ok {
 				meta.GetCollection = func(interface{}, *qor.Context) [][]string {
