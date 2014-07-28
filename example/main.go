@@ -75,8 +75,11 @@ func main() {
 			return results
 		}})
 
+	role := resource.New(&Role{})
+
 	admin := admin.New(&db)
 	admin.AddResource(user)
+	admin.AddResource(role)
 	admin.AddToMux("/admin", mux)
 
 	fmt.Println("listening on :8080")
