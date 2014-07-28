@@ -32,6 +32,11 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 		var isIndexURL, isShowURL bool
 		context := admin.generateContext(w, r)
 
+		r.ParseMultipartForm(32 << 22)
+		if len(r.Form["_method"]) > 0 {
+			r.Method = strings.ToUpper(r.Form["_method"][0])
+		}
+
 		matches := pathMatch.FindStringSubmatch(r.URL.Path)
 		if len(matches) == 0 {
 			admin.Dashboard(admin.generateContext(w, r))

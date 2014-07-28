@@ -10,7 +10,6 @@ import (
 
 func Decode(result interface{}, metas []Meta, context *qor.Context, prefix string) bool {
 	request := context.Request
-	request.ParseMultipartForm(32 << 22)
 	// request.MultipartForm
 
 	var formKeys = []string{}

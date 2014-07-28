@@ -67,4 +67,12 @@ func (admin *Admin) Update(context *qor.Context) {
 }
 
 func (admin *Admin) Delete(context *qor.Context) {
+	res := admin.Resources[context.ResourceName]
+	result := reflect.New(reflect.Indirect(reflect.ValueOf(res.Model)).Type()).Interface()
+
+	if admin.DB.Delete(result, context.ResourceID).RowsAffected > 0 {
+		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.RelativePath()), http.StatusFound)
+	} else {
+		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.RelativePath()), http.StatusNotFound)
+	}
 }

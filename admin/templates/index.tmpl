@@ -14,6 +14,10 @@
             {{link_to $text $resource}}
         {{end}}
         {{end}}
+        <form action="{{url_for $resource}}" method="POST" style="display:inline">
+          <input name="_method" value="DELETE" type="hidden">
+          <input value="DELETE" type="submit"/>
+        </form>
         <br/>
     {{end}}
 {{end}}
