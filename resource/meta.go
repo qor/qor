@@ -117,6 +117,8 @@ func (meta *Meta) updateMeta() {
 				meta.GetCollection = func(interface{}, *qor.Context) [][]string {
 					return maps
 				}
+			} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
+				meta.GetCollection = f
 			} else {
 				qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Model))
 			}
