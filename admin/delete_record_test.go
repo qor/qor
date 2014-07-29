@@ -19,7 +19,7 @@ func TestDeleteRecord(t *testing.T) {
 			t.Errorf("Delete request should be processed successfully")
 		}
 
-		if !db.Debug().First(&User{}, "name = ?", "delete_record").RecordNotFound() {
+		if !db.First(&User{}, "name = ?", "delete_record").RecordNotFound() {
 			t.Errorf("User should be deleted successfully")
 		}
 	} else {

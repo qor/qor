@@ -37,11 +37,12 @@ type Language struct {
 }
 
 type User struct {
-	Id           int64
-	Name         string
-	Gender       string
-	RoleId       int64
-	Languages    []Language
+	Id        int64
+	Name      string
+	Gender    string
+	RoleId    int64
+	Languages []Language `orm:"many2many:user_languages;"`
+	// db.Model(User).Related(Languages, "Languages")
 	CreditCard   CreditCard
 	CreditCardId int64
 	Addresses    []Address
