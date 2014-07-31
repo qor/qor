@@ -3,10 +3,12 @@ package admin
 import (
 	"bytes"
 	"fmt"
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
 	"path"
+	"reflect"
 	"strings"
 
 	"text/template"
@@ -124,6 +126,30 @@ func (content *Content) RenderMeta(writer *bytes.Buffer, meta resource.Meta, val
 	}
 }
 
+func (content *Content) HasPrimaryKey(value interface{}, primaryKey interface{}) bool {
+	primaryKeys := []interface{}{}
+	reflectValue := reflect.ValueOf(value)
+	if reflectValue.Kind() == reflect.Ptr {
+		reflectValue = reflectValue.Elem()
+	}
+	if reflectValue.Kind() == reflect.Slice {
+		for i := 0; i < reflectValue.Len(); i++ {
+			scope := &gorm.Scope{Value: reflectValue.Index(i).Interface()}
+			primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
+		}
+	} else if reflectValue.Kind() == reflect.Struct {
+		scope := &gorm.Scope{Value: value}
+		primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
+	}
+
+	for _, key := range primaryKeys {
+		if fmt.Sprintf("%v", primaryKey) == fmt.Sprintf("%v", key) {
+			return true
+		}
+	}
+	return false
+}
+
 func (content *Content) funcMap(modes ...rules.PermissionMode) template.FuncMap {
 	return template.FuncMap{
 		"allowed_metas":     content.AllowedMetas(modes...),
@@ -132,5 +158,6 @@ func (content *Content) funcMap(modes ...rules.PermissionMode) template.FuncMap 
 		"new_resource_path": content.NewResourcePath,
 		"link_to":           content.LinkTo,
 		"render_form":       content.RenderForm,
+		"has_primary_key":   content.HasPrimaryKey,
 	}
 }

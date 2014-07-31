@@ -3,7 +3,6 @@ package resource
 import (
 	"database/sql"
 	"strconv"
-	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -40,44 +39,47 @@ func (meta *Meta) updateMeta() {
 		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
 	}
 
-	if field, ok := gorm.FieldByName(gorm.SnakeToUpperCamel(meta.Name), meta.base.Model); ok {
-		hasColumn = true
-		valueType = reflect.TypeOf(field).Kind().String()
-	}
+	scope := &gorm.Scope{Value: meta.base.Model}
+	var field *gorm.Field
+	field, hasColumn = scope.FieldByName(meta.Name)
+	valueType = reflect.TypeOf(field.Value).Kind().String()
 
-	// "select_many", "image_with_crop", "table_edit", "table_view"
 	// Set Meta Type
 	if meta.Type == "" {
-		switch valueType {
-		case "string":
-			meta.Type = "string"
-		case "bool":
-			meta.Type = "checkbox"
-		case "struct":
-			meta.Type = "single_edit"
-		case "slice":
-			meta.Type = "collection_edit"
-		default:
-			if regexp.MustCompile(`^(u)?int(\d+)?`).MatchString(valueType) {
-				meta.Type = "number"
-			} else {
-				qor.ExitWithMsg("Unsupported value type %v for meta %v", valueType, meta.Name)
+		if relationship := field.Relationship; relationship != nil {
+			if relationship.Kind == "belongs_to" || relationship.Kind == "has_one" {
+				meta.Type = "single_edit"
+			} else if relationship.Kind == "has_many" {
+				meta.Type = "collection_edit"
+			} else if relationship.Kind == "many_to_many" {
+				meta.Type = "select_many"
+			}
+		} else {
+			switch valueType {
+			case "string":
+				meta.Type = "string"
+			case "bool":
+				meta.Type = "checkbox"
+			default:
+				if regexp.MustCompile(`^(u)?int(\d+)?`).MatchString(valueType) {
+					meta.Type = "number"
+				} else {
+					qor.ExitWithMsg("Unsupported value type %v for meta %v", valueType, meta.Name)
+				}
 			}
 		}
 	}
 
 	// Set Meta Resource
 	if meta.Resource == nil {
-		if hasColumn && (valueType == "struct" || valueType == "slice") {
-			if field, ok := gorm.FieldByName(gorm.SnakeToUpperCamel(meta.Name), meta.base.Model); ok {
-				var result interface{}
-				if valueType == "struct" {
-					result = reflect.New(reflect.Indirect(reflect.ValueOf(field)).Type()).Interface()
-				} else if valueType == "slice" {
-					result = reflect.New(reflect.Indirect(reflect.ValueOf(field)).Type().Elem()).Interface()
-				}
-				meta.Resource = New(result)
+		if hasColumn && (field.Relationship != nil) {
+			var result interface{}
+			if valueType == "struct" {
+				result = reflect.New(reflect.Indirect(reflect.ValueOf(field.Value)).Type()).Interface()
+			} else if valueType == "slice" {
+				result = reflect.New(reflect.Indirect(reflect.ValueOf(field.Value)).Type().Elem()).Interface()
 			}
+			meta.Resource = New(result)
 		}
 	}
 
@@ -86,11 +88,24 @@ func (meta *Meta) updateMeta() {
 		if hasColumn {
 			meta.Name = gorm.SnakeToUpperCamel(meta.Name)
 			meta.Value = func(value interface{}, context *qor.Context) interface{} {
-				if v, ok := gorm.FieldByName(meta.Name, value, true); ok {
-					if valueType == "struct" || valueType == "slice" {
-						context.DB.Model(value).Related(v)
+				scope := &gorm.Scope{Value: value}
+				if f, ok := scope.FieldByName(meta.Name); ok {
+					if field.Relationship != nil {
+						if !reflect.ValueOf(f.Value).CanAddr() {
+							if reflect.ValueOf(f.Value).Kind() == reflect.Slice {
+								sliceType := reflect.ValueOf(f.Value).Type()
+								slice := reflect.MakeSlice(sliceType, 0, 0)
+								slicePtr := reflect.New(sliceType)
+								slicePtr.Elem().Set(slice)
+								f.Value = slicePtr.Interface()
+							} else if reflect.ValueOf(f.Value).Kind() == reflect.Struct {
+								f.Value = reflect.New(reflect.Indirect(reflect.ValueOf(f.Value)).Type()).Interface()
+							}
+						}
+
+						context.DB.Model(value).Related(f.Value, meta.Name)
 					}
-					return reflect.Indirect(reflect.ValueOf(v)).Interface()
+					return f.Value
 				}
 				return ""
 			}
@@ -117,34 +132,51 @@ func (meta *Meta) updateMeta() {
 		} else {
 			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Model))
 		}
+	} else if meta.Type == "select_one" || meta.Type == "select_many" {
+		qor.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
 	}
 
 	if meta.Setter == nil {
 		meta.Setter = func(resource interface{}, value interface{}, context *qor.Context) {
+			scope := &gorm.Scope{Value: resource}
+			scopeField, _ := scope.FieldByName(meta.Name)
 			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Name)
+
 			if field.IsValid() && field.CanAddr() {
-				if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
-					scanner.Scan(value)
-				} else if reflect.TypeOf(value).ConvertibleTo(field.Type()) {
-					field.Set(reflect.ValueOf(value).Convert(field.Type()))
-				} else {
-					if str, ok := value.(string); ok {
+				if values, ok := value.([]string); ok {
+					relationship := scopeField.Relationship
+					if relationship != nil && relationship.Kind == "many_to_many" {
+						context.DB.Where(values).Find(field.Addr().Interface())
+						context.DB.Model(resource).Where(values).Association(meta.Name).Replace(field.Interface())
+					} else {
 						switch field.Kind() {
 						case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-							value, _ = strconv.Atoi(str)
-							field.SetInt(reflect.ValueOf(value).Int())
+							if value, err := strconv.Atoi(values[0]); err == nil {
+								field.SetInt(reflect.ValueOf(value).Int())
+							} else {
+								qor.ExitWithMsg("Can't set value", meta, meta.base)
+							}
 						case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-							value, _ = strconv.Atoi(str)
-							field.SetUint(reflect.ValueOf(value).Uint())
+							if value, err := strconv.Atoi(values[0]); err == nil {
+								field.SetUint(reflect.ValueOf(value).Uint())
+							} else {
+								qor.ExitWithMsg("Can't set value", meta, meta.base)
+							}
 						default:
-							qor.ExitWithMsg("Can't set value", meta, meta.base)
+							if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
+								scanner.Scan(values[0])
+							} else if reflect.TypeOf(values).ConvertibleTo(field.Type()) {
+								field.Set(reflect.ValueOf(values).Convert(field.Type()))
+							} else if len(values) == 1 && reflect.TypeOf(values[0]).ConvertibleTo(field.Type()) {
+								field.Set(reflect.ValueOf(values[0]).Convert(field.Type()))
+							} else {
+								qor.ExitWithMsg("Can't set value", meta, meta.base)
+							}
 						}
-					} else {
-						qor.ExitWithMsg("Can't set value", meta, meta.base)
 					}
+				} else {
+					qor.ExitWithMsg("Can't set value", meta, meta.base)
 				}
-			} else if !strings.HasPrefix(meta.Name, "_") {
-				qor.ExitWithMsg("Can't set value", meta, meta.base)
 			}
 		}
 	}

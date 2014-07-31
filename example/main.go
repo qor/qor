@@ -41,7 +41,7 @@ type User struct {
 	Name      string
 	Gender    string
 	RoleId    int64
-	Languages []Language `orm:"many2many:user_languages;"`
+	Languages []Language `gorm:"many2many:user_languages;"`
 	// db.Model(User).Related(Languages, "Languages")
 	CreditCard   CreditCard
 	CreditCardId int64
@@ -86,13 +86,7 @@ func main() {
 		},
 	})
 
-	// db.Model(&User).Relate(&Languages{})
 	user.Meta().Register(resource.Meta{Name: "Languages", Type: "select_many",
-		Value: func(interface{}, *qor.Context) interface{} {
-			languages := []Language{}
-			db.Find(&languages)
-			return languages
-		},
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			languages := []Language{}
 			db.Find(&languages)
@@ -100,8 +94,6 @@ func main() {
 				results = append(results, []string{strconv.Itoa(language.Id), language.Name})
 			}
 			return results
-		},
-		Setter: func(resource interface{}, value interface{}, context *qor.Context) {
 		},
 	})
 

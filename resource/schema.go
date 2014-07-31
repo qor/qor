@@ -53,7 +53,7 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 			}
 		} else {
 			if values, ok := request.Form[prefix+meta.Name]; ok {
-				meta.Setter(result, values[0], context)
+				meta.Setter(result, values, context)
 			}
 		}
 	}
