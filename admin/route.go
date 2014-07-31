@@ -32,6 +32,7 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 		var isIndexURL, isShowURL bool
 		context := admin.generateContext(w, r)
 
+		// 128 MB
 		r.ParseMultipartForm(32 << 22)
 		if len(r.Form["_method"]) > 0 {
 			r.Method = strings.ToUpper(r.Form["_method"][0])
