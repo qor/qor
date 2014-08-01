@@ -52,8 +52,8 @@ func init() {
 	db.FirstOrCreate(&Role{}, Role{Name: "dev"})
 	db.FirstOrCreate(&Role{}, Role{Name: "customer_support"})
 
-	db.FirstOrCreate(&Language{}, Role{Name: "CN"})
-	db.FirstOrCreate(&Language{}, Role{Name: "JP"})
-	db.FirstOrCreate(&Language{}, Role{Name: "EN"})
-	db.FirstOrCreate(&Language{}, Role{Name: "DE"})
+	db.FirstOrCreate(&Language{}, Language{Name: "CN"})
+	db.FirstOrCreate(&Language{}, Language{Name: "JP"})
+	db.FirstOrCreate(&Language{}, Language{Name: "EN"})
+	db.FirstOrCreate(&Language{}, Language{Name: "DE"})
 }

@@ -1,6 +1,7 @@
 package admin_test
 
 import (
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"net/http"
 	"net/url"
@@ -145,6 +146,43 @@ func TestDestroyEmbeddedHasOneRecord(t *testing.T) {
 
 		if !db.First(&CreditCard{}, "number = ? and issuer = ?", "1234567890", "JCB").RecordNotFound() {
 			t.Errorf("Old embedded struct should be destroyed")
+		}
+	} else {
+		t.Errorf(err.Error())
+	}
+}
+
+func TestUpdateManyToManyRecord(t *testing.T) {
+	name := "update_record_many_to_many"
+	var languageCN Language
+	var languageEN Language
+	db.FirstOrCreate(&languageCN, Language{Name: "CN"})
+	db.FirstOrCreate(&languageEN, Language{Name: "EN"})
+	user := User{Name: name, Role: "admin", Languages: []Language{languageCN, languageEN}}
+	db.Save(&user)
+
+	form := url.Values{
+		"QorResource.Name":      {name + "_new"},
+		"QorResource.Role":      {"admin"},
+		"QorResource.Languages": {strconv.Itoa(languageCN.Id)},
+	}
+
+	if req, err := http.PostForm(server.URL+"/admin/user/"+strconv.Itoa(user.Id), form); err == nil {
+		if req.StatusCode != 200 {
+			t.Errorf("Update request should be processed successfully")
+		}
+
+		var user User
+		if db.First(&user, "name = ?", name+"_new").RecordNotFound() {
+			t.Errorf("User should be updated successfully")
+		}
+
+		var languages []Language
+		db.Debug().Model(&user).Related(&languages, "Languages")
+		fmt.Println(len(languages))
+
+		if len(languages) != 1 {
+			t.Errorf("User should have one languages after update")
 		}
 	} else {
 		t.Errorf(err.Error())
