@@ -97,38 +97,11 @@ Form:
 
     qor.DefineMeta("name", template)
 
-    <li>
-      <label>{{.Label}}</label>
-      <input type="{{.Type}}" name="{{.Name}}" value="{{.Value}}"/>
-    </li>
-
-    <label for="post_tag_ids">{{.Label}}</label>
-    <select id="post_tag_ids" name="post[tag_ids]" multiple="true">
-      <option value="1">Ruby</option>
-      <option value="6">Rails</option>
-      <option value="3">Forms</option>
-      <option value="4">Awesome</option>
-    </select>
-
-    <li>
-      <label for="post_author_id_1">
-        <input type="radio" id="post_author_id_1" value="1"> Justin
-      </label>
-    </li>
-    <li>
-      <label for="post_author_id_3">
-        <input type="radio" id="post_author_id_3" value="3"> Kate
-      </label>
-    </li>
-
 L10n
 
     locale = l18n.Locale("zh-CN")
     locale.Scope("scope").T("key")
     locale.Params(map[string]string).T("missing", "default value", "another default")
-
-Authentication:
-   Auth := auth.New()
 
 Localization:
 
