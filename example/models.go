@@ -29,6 +29,7 @@ type User struct {
 	Id           int64
 	Name         string
 	Gender       string
+	File         string
 	RoleId       int64
 	Languages    []Language `gorm:"many2many:user_languages;"`
 	CreditCard   CreditCard

@@ -10,7 +10,6 @@ import (
 
 func Decode(result interface{}, metas []Meta, context *qor.Context, prefix string) bool {
 	request := context.Request
-	// request.MultipartForm
 
 	var formKeys = []string{}
 	for key := range request.Form {
@@ -52,8 +51,13 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 				}
 			}
 		} else {
-			if values, ok := request.Form[prefix+meta.Name]; ok {
+			key := prefix + meta.Name
+			if values, ok := request.Form[key]; ok {
 				meta.Setter(result, values, context)
+			} else if request.MultipartForm != nil {
+				if _, ok := request.MultipartForm.File[key]; ok {
+					meta.Setter(result, key, context)
+				}
 			}
 		}
 	}
