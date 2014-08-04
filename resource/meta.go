@@ -180,9 +180,11 @@ func (meta *Meta) updateMeta() {
 					if headers, ok := context.Request.MultipartForm.File[value.(string)]; ok {
 						for _, header := range headers {
 							if media, ok := field.Interface().(media_library.MediaLibrary); ok {
-								media.ParseOption(fieldStruct.Tag.Get("media_library"))
-								path := media.GetPath(resource, meta.Name, header)
-								media.Store(path, header)
+								if file, err := header.Open(); err == nil {
+									media.ParseOption(fieldStruct.Tag.Get("media_library"))
+									path := media.GetPath(resource, meta.Name, header)
+									media.Store(path, file)
+								}
 							}
 						}
 					}

@@ -13,12 +13,12 @@ func (f FileSystem) fullpath(path string) string {
 	return path
 }
 
-func (f FileSystem) Store(path string, file *os.File) error {
+func (f FileSystem) Store(path string, src io.Reader) error {
+	path = f.fullpath(path)
 	f.Path, f.Valid = path, true
 
 	if dst, err := os.Create(f.fullpath(path)); err == nil {
-		f.File = file
-		io.Copy(dst, file)
+		io.Copy(dst, src)
 		return nil
 	} else {
 		return err

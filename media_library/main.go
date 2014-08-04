@@ -2,6 +2,7 @@ package media_library
 
 import (
 	"database/sql/driver"
+	"io"
 	"mime/multipart"
 	"os"
 )
@@ -23,8 +24,8 @@ type MediaLibrary interface {
 	ParseOption(string)
 	GetPath(interface{}, string, *multipart.FileHeader) string
 
-	Store(string, *os.File) error
-	Receive(filename string) error
+	Store(string, io.Reader) error
+	Receive(filename string) (*os.File, error)
 	Crop(CropOption) error
 
 	Url(style ...string) string
