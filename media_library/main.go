@@ -3,6 +3,7 @@ package media_library
 import (
 	"database/sql/driver"
 	"mime/multipart"
+	"os"
 )
 
 type Option map[string]string
@@ -20,8 +21,9 @@ type MediaLibrary interface {
 
 	GetOption() Option
 	ParseOption(string)
+	GetPath(interface{}, string, *multipart.FileHeader) string
 
-	Store(string, *multipart.FileHeader) error
+	Store(string, *os.File) error
 	Receive(filename string) error
 	Crop(CropOption) error
 

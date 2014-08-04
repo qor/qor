@@ -2,7 +2,6 @@ package media_library
 
 import (
 	"io"
-	"mime/multipart"
 	"os"
 )
 
@@ -14,19 +13,13 @@ func (f FileSystem) fullpath(path string) string {
 	return path
 }
 
-func (f FileSystem) Store(path string, header *multipart.FileHeader) error {
-	if header.Filename != "" {
-		f.Path, f.Valid = path, true
-	}
+func (f FileSystem) Store(path string, file *os.File) error {
+	f.Path, f.Valid = path, true
 
 	if dst, err := os.Create(f.fullpath(path)); err == nil {
-		if src, err := header.Open(); err == nil {
-			f.File = src
-			io.Copy(dst, src)
-			return nil
-		} else {
-			return err
-		}
+		f.File = file
+		io.Copy(dst, file)
+		return nil
 	} else {
 		return err
 	}

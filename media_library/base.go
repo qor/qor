@@ -3,20 +3,24 @@ package media_library
 import (
 	"database/sql/driver"
 	"errors"
+
+	"github.com/jinzhu/gorm"
+
 	"mime/multipart"
+	"os"
 )
 
 var ErrNotImplemented = errors.New("not implemented")
 
 type Base struct {
-	Option     Option
 	Path       string
-	CropOption CropOption
 	Valid      bool
+	Option     Option
+	CropOption CropOption
 	File       multipart.File
 }
 
-func (b Base) Scan(value interface{}) error {
+func (b *Base) Scan(value interface{}) error {
 	if v, ok := value.(string); ok {
 		b.Path, b.Valid = v, true
 		return nil
@@ -31,16 +35,15 @@ func (b Base) Value() (driver.Value, error) {
 	return nil, errors.New("file is invalid")
 }
 
-func (b Base) Store(path string, header *multipart.FileHeader) error {
-	if header.Filename != "" {
-		b.Path, b.Valid = path, true
-		if src, err := header.Open(); err == nil {
-			b.File = src
-			return nil
-		} else {
-			return err
-		}
-	}
+func (b Base) GetPath(value interface{}, column string, header *multipart.FileHeader) string {
+	scope := gorm.Scope{Value: value}
+	primaryKey := scope.PrimaryKeyValue()
+	return column
+}
+
+func (b Base) Store(path string, file *os.File) error {
+	b.Path, b.Valid = path, true
+	b.File = file
 	return ErrNotImplemented
 }
 

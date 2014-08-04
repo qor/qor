@@ -52,8 +52,8 @@ func Decode(result interface{}, metas []Meta, context *qor.Context, prefix strin
 			}
 		} else {
 			key := prefix + meta.Name
-			if values, ok := request.Form[key]; ok {
-				meta.Setter(result, values, context)
+			if _, ok := request.Form[key]; ok {
+				meta.Setter(result, key, context)
 			} else if request.MultipartForm != nil {
 				if _, ok := request.MultipartForm.File[key]; ok {
 					meta.Setter(result, key, context)

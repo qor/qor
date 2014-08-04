@@ -6,6 +6,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
+	"github.com/qor/qor/media_library"
 	"github.com/qor/qor/rules"
 	"reflect"
 	"regexp"
@@ -141,9 +142,10 @@ func (meta *Meta) updateMeta() {
 			scope := &gorm.Scope{Value: resource}
 			scopeField, _ := scope.FieldByName(meta.Name)
 			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Name)
+			fieldStruct, _ := reflect.Indirect(reflect.ValueOf(resource)).Type().FieldByName(meta.Name)
 
 			if field.IsValid() && field.CanAddr() {
-				if values, ok := value.([]string); ok {
+				if values, ok := context.Request.Form[value.(string)]; ok {
 					relationship := scopeField.Relationship
 					if relationship != nil && relationship.Kind == "many_to_many" {
 						context.DB.Where(values).Find(field.Addr().Interface())
@@ -171,6 +173,16 @@ func (meta *Meta) updateMeta() {
 								field.Set(reflect.ValueOf(values[0]).Convert(field.Type()))
 							} else {
 								qor.ExitWithMsg("Can't set value", meta, meta.base)
+							}
+						}
+					}
+				} else if context.Request.MultipartForm != nil {
+					if headers, ok := context.Request.MultipartForm.File[value.(string)]; ok {
+						for _, header := range headers {
+							if media, ok := field.Interface().(media_library.MediaLibrary); ok {
+								media.ParseOption(fieldStruct.Tag.Get("media_library"))
+								path := media.GetPath(resource, meta.Name, header)
+								media.Store(path, header)
 							}
 						}
 					}

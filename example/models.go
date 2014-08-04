@@ -1,6 +1,9 @@
 package main
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/media_library"
+)
 
 type CreditCard struct {
 	Id     int64
@@ -29,7 +32,7 @@ type User struct {
 	Id           int64
 	Name         string
 	Gender       string
-	File         string
+	File         media_library.FileSystem
 	RoleId       int64
 	Languages    []Language `gorm:"many2many:user_languages;"`
 	CreditCard   CreditCard
