@@ -21,7 +21,7 @@ type MediaLibrary interface {
 	GetOption() Option
 	ParseOption(string)
 
-	Store(multipart.File, *multipart.FileHeader) error
+	Store(string, *multipart.FileHeader) error
 	Receive(filename string) error
 	Crop(CropOption) error
 

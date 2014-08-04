@@ -6,13 +6,14 @@ import (
 	"mime/multipart"
 )
 
-var NotImplementError = errors.New("not implemented")
+var ErrNotImplemented = errors.New("not implemented")
 
 type Base struct {
+	Option     Option
 	Path       string
 	CropOption CropOption
 	Valid      bool
-	file       multipart.File
+	File       multipart.File
 }
 
 func (b Base) Scan(value interface{}) error {
@@ -30,21 +31,25 @@ func (b Base) Value() (driver.Value, error) {
 	return nil, errors.New("file is invalid")
 }
 
-func (b Base) Store(path string, file multipart.File, header *multipart.FileHeader) error {
+func (b Base) Store(path string, header *multipart.FileHeader) error {
 	if header.Filename != "" {
 		b.Path, b.Valid = path, true
-		b.file = file
-		// save
+		if src, err := header.Open(); err == nil {
+			b.File = src
+			return nil
+		} else {
+			return err
+		}
 	}
-	return NotImplementError
+	return ErrNotImplemented
 }
 
 func (Base) Receive(filename string) (multipart.File, error) {
-	return nil, NotImplementError
+	return nil, ErrNotImplemented
 }
 
 func (Base) Crop(option CropOption) error {
-	return NotImplementError
+	return ErrNotImplemented
 }
 
 func (Base) Url(...string) string {
@@ -53,4 +58,11 @@ func (Base) Url(...string) string {
 
 func (b Base) String() string {
 	return b.Url()
+}
+
+func (b Base) ParseOption(option string) {
+}
+
+func (b Base) GetOption() Option {
+	return Option{}
 }
