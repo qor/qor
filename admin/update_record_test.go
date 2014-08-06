@@ -69,7 +69,7 @@ func TestUpdateHasOneRecord(t *testing.T) {
 
 func TestUpdateHasManyRecord(t *testing.T) {
 	user := User{Name: "update_record_and_has_many", Role: "admin", Addresses: []Address{{Address1: "address 1.1", Address2: "address 1.2"}, {Address1: "address 2.1"}, {Address1: "address 3.1"}}}
-	db.Save(&user)
+	db.Debug().Save(&user)
 
 	form := url.Values{
 		"QorResource.Name":                  {user.Name},

@@ -67,7 +67,7 @@ func (meta *Meta) updateMeta() {
 				} else if _, ok := field.Value.(media_library.MediaLibrary); ok {
 					meta.Type = "file"
 				} else {
-					// qor.ExitWithMsg("Unsupported value type %v for meta %v", valueType, meta.Name)
+					qor.ExitWithMsg("Unsupported value type %v for meta %v", valueType, meta.Name)
 				}
 			}
 		}

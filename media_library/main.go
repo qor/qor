@@ -38,19 +38,19 @@ type MediaLibrary interface {
 }
 
 func SaveAndCropImage(scope *gorm.Scope) {
-	for _, field := range scope.Fields() {
-		if media, ok := field.Value.(MediaLibrary); ok {
-			media.ParseOption(field.Tag.Get("media_library"))
-			// primaryKey := scope.PrimaryKeyValue()
-			// path := media.GetPath(scope.Value, field.Name, media.GetFile())
-			// media.Store(path, file)
-		}
-	}
+	// for _, field := range scope.Fields() {
+	// 	if media, ok := field.Value.(MediaLibrary); ok {
+	// 		media.ParseOption(field.Tag.Get("media_library"))
+	// primaryKey := scope.PrimaryKeyValue()
+	// path := media.GetPath(scope.Value, field.Name, media.GetFile())
+	// media.Store(path, file)
+	// 	}
+	// }
 }
 
 func init() {
-	gorm.DefaultCallback.Update().After("gorm:save_after_associations").
-		Register("media_library:save_and_crop", SaveAndCropImage)
-	gorm.DefaultCallback.Create().After("gorm:save_after_associations").
-		Register("media_library:save_and_crop", SaveAndCropImage)
+	// gorm.DefaultCallback.Update().After("gorm:save_after_associations").
+	// 	Register("media_library:save_and_crop", SaveAndCropImage)
+	// gorm.DefaultCallback.Create().After("gorm:save_after_associations").
+	// 	Register("media_library:save_and_crop", SaveAndCropImage)
 }
