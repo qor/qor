@@ -64,8 +64,10 @@ func (meta *Meta) updateMeta() {
 			default:
 				if regexp.MustCompile(`^(u)?int(\d+)?`).MatchString(valueType) {
 					meta.Type = "number"
+				} else if _, ok := field.Value.(media_library.MediaLibrary); ok {
+					meta.Type = "file"
 				} else {
-					qor.ExitWithMsg("Unsupported value type %v for meta %v", valueType, meta.Name)
+					// qor.ExitWithMsg("Unsupported value type %v for meta %v", valueType, meta.Name)
 				}
 			}
 		}
@@ -142,7 +144,7 @@ func (meta *Meta) updateMeta() {
 			scope := &gorm.Scope{Value: resource}
 			scopeField, _ := scope.FieldByName(meta.Name)
 			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Name)
-			fieldStruct, _ := reflect.Indirect(reflect.ValueOf(resource)).Type().FieldByName(meta.Name)
+			// fieldStruct, _ := reflect.Indirect(reflect.ValueOf(resource)).Type().FieldByName(meta.Name)
 
 			if field.IsValid() && field.CanAddr() {
 				if values, ok := context.Request.Form[value.(string)]; ok {
@@ -181,9 +183,7 @@ func (meta *Meta) updateMeta() {
 						for _, header := range headers {
 							if media, ok := field.Interface().(media_library.MediaLibrary); ok {
 								if file, err := header.Open(); err == nil {
-									media.ParseOption(fieldStruct.Tag.Get("media_library"))
-									path := media.GetPath(resource, meta.Name, header)
-									media.Store(path, file)
+									media.SetFile(header.Filename, file)
 								}
 							}
 						}

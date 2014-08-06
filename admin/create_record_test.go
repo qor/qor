@@ -1,9 +1,15 @@
 package admin_test
 
 import (
+	"bytes"
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"testing"
@@ -124,5 +130,44 @@ func TestCreateManyToManyRecord(t *testing.T) {
 		}
 	} else {
 		t.Errorf(err.Error())
+	}
+}
+
+func TestUploadAttachment(t *testing.T) {
+	name := "create_record_upload_attachment"
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	if attachment, err := filepath.Abs("tests/qor.png"); err == nil {
+		if part, err := writer.CreateFormFile("QorResource.Avatar", filepath.Base(attachment)); err == nil {
+			if file, err := os.Open(attachment); err == nil {
+				io.Copy(part, file)
+			}
+		}
+		form := url.Values{
+			"QorResource.Name": {name},
+			"QorResource.Role": {"admin"},
+		}
+		for key, val := range form {
+			_ = writer.WriteField(key, val[0])
+		}
+		writer.Close()
+
+		if req, err := http.Post(server.URL+"/admin/user", writer.FormDataContentType(), body); err == nil {
+			if req.StatusCode != 200 {
+				t.Errorf("Create request should be processed successfully")
+			}
+
+			var user User
+			if db.First(&user, "name = ?", name).RecordNotFound() {
+				t.Errorf("User should be created successfully")
+			}
+
+			fmt.Println(user)
+			fmt.Println(user.Avatar.Path)
+			if user.Avatar.Path == "" {
+				t.Errorf("Avatar should be saved")
+			}
+		}
 	}
 }

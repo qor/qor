@@ -21,7 +21,7 @@ type Base struct {
 	Valid      bool
 	Option     Option
 	CropOption CropOption
-	File       multipart.File
+	Reader     io.Reader
 }
 
 func (b Base) Scan(value interface{}) error {

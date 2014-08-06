@@ -5,6 +5,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/media_library"
 	"github.com/qor/qor/resource"
 	"strconv"
 
@@ -34,6 +35,7 @@ type User struct {
 	Id           int
 	Name         string
 	Role         string
+	Avatar       media_library.FileSystem
 	CreditCard   CreditCard
 	CreditCardId int64
 	Addresses    []Address

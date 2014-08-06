@@ -32,8 +32,10 @@ func init() {
 		}
 	}
 
-	if dir, err := filepath.Abs("templates/qor"); err == nil && isExistingDir(dir) {
-		viewDirs = append(viewDirs, dir)
+	if dir, err := filepath.Abs(filepath.Dir(os.Args[0])); err == nil {
+		if dir := path.Join(dir, "src/github.com/qor/qor/admin/templates"); isExistingDir(dir) {
+			viewDirs = append(viewDirs, dir)
+		}
 	}
 
 	if dir := path.Join(os.Getenv("GOPATH"), "src/github.com/qor/qor/admin/templates"); isExistingDir(dir) {

@@ -15,9 +15,9 @@ func (f FileSystem) fullpath(path string) string {
 
 func (f FileSystem) Store(path string, src io.Reader) error {
 	path = f.fullpath(path)
-	f.Path, f.Valid = path, true
 
-	if dst, err := os.Create(f.fullpath(path)); err == nil {
+	if dst, err := os.Create(path); err == nil {
+		f.Path, f.Valid = path, true
 		io.Copy(dst, src)
 		return nil
 	} else {
