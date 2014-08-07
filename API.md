@@ -1,5 +1,23 @@
 Resource:
 
+type Resource struct {
+	Model interface{}
+    Metas []Meta
+}
+
+func (resource *Resource) RegisterMeta(interface {}) {
+}
+
+type Meta struct {
+    Name          string
+	Type          string
+	Label         string
+	Value         func(interface{}, *qor.Context) interface{}
+	Setter        func(resource interface{}, value interface{}, context *qor.Context)
+	Collection    func(interface{}, *qor.Context) [][]string
+	Permission    *rules.Permission
+}
+
     order = Resource.New(Order, "orders")
 
     order.Attrs().Index("order_id", "status", "amount")
@@ -9,9 +27,18 @@ Resource:
 
     order.Meta().Register(qor.Meta{Name: "username", Type: "select", Label: "hello", Value: "", Collection: "", Setter: ""})
     order.Meta().Register(qor.Meta{Name: "credit_card", Resource: creditcard})
+    order.Meta().Register(qor.Meta{Name: "Code", Resource: creditcard, permission: rule.Allow("admin")})
 
+    creditcard = Resource.New(Order, "credit_card")
+    creditcard.Meta().Register{qor.Meta{Name: "Code", Permission: rules.Allow("dev")}}
     qor.Meta{Name: "credit_card", Resource: creditcard, Permission: rule.Allow("admin")}
 
+    type ExchangeMeta struct {
+      Column string
+      Multi bool
+    }
+    order.ExchangeAttrs().Register{qor.ExchangeMeta{column: "Ext2", :property => "Code"}}
+    order.ExchangeAttrs().Register{qor.ExchangeColumn{column: "Ext2", :property => "credit_card.Code"}}
 
     order.Search().Name("Name").Register(func (d *gorm.DB, App) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")

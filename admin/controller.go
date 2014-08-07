@@ -2,13 +2,13 @@ package admin
 
 import (
 	"fmt"
+
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
+
 	"net/http"
 	"path"
-
-	"reflect"
 )
 
 func (admin *Admin) Dashboard(context *qor.Context) {
@@ -18,22 +18,16 @@ func (admin *Admin) Dashboard(context *qor.Context) {
 
 func (admin *Admin) Index(context *qor.Context) {
 	resource := admin.Resources[context.ResourceName]
-	sliceType := reflect.SliceOf(reflect.ValueOf(resource.Model).Type())
-	slice := reflect.MakeSlice(sliceType, 0, 0)
-	slicePtr := reflect.New(sliceType)
-	slicePtr.Elem().Set(slice)
-	result := slicePtr.Interface()
+	result := resource.NewSlice()
 	admin.DB.Find(result)
-
 	content := Content{Admin: admin, Context: context, Resource: resource, Result: result, Action: "index"}
 	admin.Render("index", content, rules.Read)
 }
 
 func (admin *Admin) Show(context *qor.Context) {
 	resource := admin.Resources[context.ResourceName]
-	result := reflect.New(reflect.Indirect(reflect.ValueOf(resource.Model)).Type()).Interface()
+	result := resource.NewStruct()
 	admin.DB.First(result, context.ResourceID)
-
 	content := Content{Admin: admin, Context: context, Resource: resource, Result: result, Action: "edit"}
 	admin.Render("show", content, rules.Read, rules.Update)
 }
@@ -46,7 +40,7 @@ func (admin *Admin) New(context *qor.Context) {
 
 func (admin *Admin) Create(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
-	result := reflect.New(reflect.Indirect(reflect.ValueOf(res.Model)).Type()).Interface()
+	result := resource.NewStruct()
 	metas := res.AllowedMetas(res.EditAttrs(), context, rules.Update)
 	resource.Decode(result, metas, context, "QorResource.")
 	admin.DB.Save(result)
@@ -56,7 +50,7 @@ func (admin *Admin) Create(context *qor.Context) {
 
 func (admin *Admin) Update(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
-	result := reflect.New(reflect.Indirect(reflect.ValueOf(res.Model)).Type()).Interface()
+	result := resource.NewStruct()
 
 	if !admin.DB.First(result, context.ResourceID).RecordNotFound() {
 		metas := res.AllowedMetas(res.EditAttrs(), context, rules.Update)
@@ -68,7 +62,7 @@ func (admin *Admin) Update(context *qor.Context) {
 
 func (admin *Admin) Delete(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
-	result := reflect.New(reflect.Indirect(reflect.ValueOf(res.Model)).Type()).Interface()
+	result := resource.NewStruct()
 
 	if admin.DB.Delete(result, context.ResourceID).RowsAffected > 0 {
 		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.RelativePath()), http.StatusFound)
