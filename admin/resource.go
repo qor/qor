@@ -70,30 +70,21 @@ func (res *Resource) getMetas(attrsSlice ...[]string) []resource.Meta {
 	}
 
 	metas := []resource.Meta{}
-OUT:
 	for _, attr := range attrs {
-		for _, meta := range res.Metas {
-			if meta.GetMeta().Name == attr {
-				metas = append(metas, *meta.GetMeta())
-				continue OUT
+		if meta, ok := res.Metas[attr]; ok {
+			metas = append(metas, *meta.GetMeta())
+		} else if meta, ok := res.Metas[gorm.SnakeToUpperCamel(attr)]; ok {
+			metas = append(metas, *meta.GetMeta())
+		} else {
+			if strings.HasSuffix(attr, "Id") {
+				continue
 			}
-		}
 
-		for _, meta := range res.Metas {
-			if meta.GetMeta().Name == gorm.SnakeToUpperCamel(attr) {
-				metas = append(metas, *meta.GetMeta())
-				continue OUT
-			}
+			var _meta resource.Meta
+			_meta = resource.Meta{Name: attr, Base: res}
+			_meta.UpdateMeta()
+			metas = append(metas, _meta)
 		}
-
-		if strings.HasSuffix(attr, "Id") {
-			continue
-		}
-
-		var _meta resource.Meta
-		_meta = resource.Meta{Name: attr, Base: res}
-		_meta.UpdateMeta()
-		metas = append(metas, _meta)
 	}
 
 	return metas

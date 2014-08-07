@@ -41,7 +41,7 @@ func (admin *Admin) Create(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewStruct()
 	metas := res.AllowedMetas(res.EditAttrs(), context, rules.Update)
-	res.Decode(result, metas, context, "QorResource.")
+	res.Decode(result, metas, context)
 	admin.DB.Save(result)
 	primaryKey := fmt.Sprintf("%v", admin.DB.NewScope(result).PrimaryKeyValue())
 	http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
@@ -53,7 +53,7 @@ func (admin *Admin) Update(context *qor.Context) {
 
 	if !admin.DB.First(result, context.ResourceID).RecordNotFound() {
 		metas := res.AllowedMetas(res.EditAttrs(), context, rules.Update)
-		res.Decode(result, metas, context, "QorResource.")
+		res.Decode(result, ConvertFormToMetaDatas(context, "QorResource."), context)
 		admin.DB.Save(result)
 		http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 	}

@@ -2,14 +2,13 @@ package admin
 
 import (
 	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
 
 	"reflect"
 	"regexp"
 )
 
-func Decode(result interface{}, metas []resource.Meta, context *qor.Context, prefix string) bool {
+func ConvertFormToMetaDatas(context *qor.Context, prefix string) bool {
 	request := context.Request
 
 	var formKeys = []string{}

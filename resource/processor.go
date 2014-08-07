@@ -5,7 +5,7 @@ import "github.com/qor/qor"
 type Processor struct {
 	Result    interface{}
 	Resource  *Resource
-	Context   qor.Context
+	Context   *qor.Context
 	MetaDatas MetaDatas
 }
 

@@ -13,9 +13,9 @@ func New(value interface{}) *Resource {
 type Resource struct {
 	Value      interface{}
 	Metas      map[string]Metaor
-	Finder     func(interface{}, MetaDatas, qor.Context) error
-	validators []func(interface{}, MetaDatas, qor.Context) []error
-	processors []func(interface{}, MetaDatas, qor.Context) []error
+	Finder     func(interface{}, MetaDatas, *qor.Context) error
+	validators []func(interface{}, MetaDatas, *qor.Context) []error
+	processors []func(interface{}, MetaDatas, *qor.Context) []error
 }
 
 type Resourcer interface {
@@ -26,15 +26,15 @@ func (res *Resource) GetResource() *Resource {
 	return res
 }
 
-func (res *Resource) SetFinder(fc func(result interface{}, metaDatas MetaDatas, context qor.Context) error) {
+func (res *Resource) SetFinder(fc func(result interface{}, metaDatas MetaDatas, context *qor.Context) error) {
 	res.Finder = fc
 }
 
-func (res *Resource) AddValidator(fc func(interface{}, MetaDatas, qor.Context) []error) {
+func (res *Resource) AddValidator(fc func(interface{}, MetaDatas, *qor.Context) []error) {
 	res.validators = append(res.validators, fc)
 }
 
-func (res *Resource) AddProcessor(fc func(interface{}, MetaDatas, qor.Context) []error) {
+func (res *Resource) AddProcessor(fc func(interface{}, MetaDatas, *qor.Context) []error) {
 	res.processors = append(res.processors, fc)
 }
 
@@ -45,7 +45,7 @@ func (res *Resource) RegisterMeta(metaor Metaor) {
 	res.Metas[meta.Name] = metaor
 }
 
-func (res *Resource) Decode(result interface{}, metaDatas MetaDatas, context qor.Context) *Processor {
+func (res *Resource) Decode(result interface{}, metaDatas MetaDatas, context *qor.Context) *Processor {
 	return &Processor{Resource: res, Result: result, Context: context}
 }
 
