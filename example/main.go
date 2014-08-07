@@ -16,8 +16,8 @@ func main() {
 
 	admin := admin.New(&db)
 
-	user := admin.NewResource("users", User{})
-	user.Attrs().Index("name", "gender")
+	user := admin.NewResource("user", User{})
+	user.IndexAttrs("name", "gender")
 	user.RegisterMeta(&resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
 	user.RegisterMeta(&resource.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
@@ -37,8 +37,8 @@ func main() {
 			}
 			return
 		}})
-	admin.NewResource("roles", Role{})
-	admin.NewResource("languages", Language{})
+	admin.NewResource("role", Role{})
+	admin.NewResource("language", Language{})
 	admin.AddToMux("/admin", mux)
 
 	fmt.Println("listening on :8080")

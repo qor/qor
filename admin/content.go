@@ -31,13 +31,13 @@ func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses .
 
 		switch content.Action {
 		case "index":
-			return res.AllowedMetas(res.IndexAttrs(), content.Context, modes...)
+			return res.AllowedMetas(res.IndexMetas(), content.Context, modes...)
 		case "show":
-			return res.AllowedMetas(res.ShowAttrs(), content.Context, modes...)
+			return res.AllowedMetas(res.ShowMetas(), content.Context, modes...)
 		case "edit":
-			return res.AllowedMetas(res.EditAttrs(), content.Context, modes...)
+			return res.AllowedMetas(res.EditMetas(), content.Context, modes...)
 		case "new":
-			return res.AllowedMetas(res.NewAttrs(), content.Context, modes...)
+			return res.AllowedMetas(res.NewMetas(), content.Context, modes...)
 		default:
 			return []resource.Meta{}
 		}

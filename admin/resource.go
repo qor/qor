@@ -12,39 +12,28 @@ import (
 )
 
 type Resource struct {
-	Name  string
-	attrs *attrs
+	Name string
 	resource.Resource
-}
-
-type attrs struct {
 	indexAttrs []string
 	newAttrs   []string
 	editAttrs  []string
 	showAttrs  []string
 }
 
-func (r *Resource) Attrs() *attrs {
-	if r.attrs == nil {
-		r.attrs = &attrs{}
-	}
-	return r.attrs
+func (r *Resource) IndexAttrs(columns ...string) {
+	r.indexAttrs = columns
 }
 
-func (a *attrs) Index(columns ...string) {
-	a.indexAttrs = columns
+func (r *Resource) NewAttrs(columns ...string) {
+	r.newAttrs = columns
 }
 
-func (a *attrs) New(columns ...string) {
-	a.newAttrs = columns
+func (r *Resource) EditAttrs(columns ...string) {
+	r.editAttrs = columns
 }
 
-func (a *attrs) Edit(columns ...string) {
-	a.editAttrs = columns
-}
-
-func (a *attrs) Show(columns ...string) {
-	a.showAttrs = columns
+func (r *Resource) ShowAttrs(columns ...string) {
+	r.showAttrs = columns
 }
 
 func (res *Resource) getMetas(attrsSlice ...[]string) []resource.Meta {
@@ -90,20 +79,20 @@ func (res *Resource) getMetas(attrsSlice ...[]string) []resource.Meta {
 	return metas
 }
 
-func (res *Resource) IndexAttrs() []resource.Meta {
-	return res.getMetas(res.attrs.indexAttrs, res.attrs.showAttrs)
+func (res *Resource) IndexMetas() []resource.Meta {
+	return res.getMetas(res.indexAttrs, res.showAttrs)
 }
 
-func (res *Resource) NewAttrs() []resource.Meta {
-	return res.getMetas(res.attrs.newAttrs, res.attrs.editAttrs)
+func (res *Resource) NewMetas() []resource.Meta {
+	return res.getMetas(res.newAttrs, res.editAttrs)
 }
 
-func (res *Resource) EditAttrs() []resource.Meta {
-	return res.appendPrimaryKey(res.getMetas(res.attrs.editAttrs))
+func (res *Resource) EditMetas() []resource.Meta {
+	return res.appendPrimaryKey(res.getMetas(res.editAttrs))
 }
 
-func (res *Resource) ShowAttrs() []resource.Meta {
-	return res.getMetas(res.attrs.showAttrs, res.attrs.editAttrs)
+func (res *Resource) ShowMetas() []resource.Meta {
+	return res.getMetas(res.showAttrs, res.editAttrs)
 }
 
 func (res *Resource) AllAttrs() []resource.Meta {

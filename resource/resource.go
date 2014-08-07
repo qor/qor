@@ -6,10 +6,6 @@ import (
 	"reflect"
 )
 
-func New(value interface{}) *Resource {
-	return &Resource{Value: value}
-}
-
 type Resource struct {
 	Value      interface{}
 	Metas      map[string]Metaor
@@ -53,12 +49,12 @@ func (res *Resource) Decode(result interface{}, metaDatas MetaDatas, context *qo
 	return &Processor{Resource: res, Result: result, Context: context}
 }
 
-func (res *Resource) NewSlice() []interface{} {
+func (res *Resource) NewSlice() interface{} {
 	sliceType := reflect.SliceOf(reflect.ValueOf(res.Value).Type())
 	slice := reflect.MakeSlice(sliceType, 0, 0)
 	slicePtr := reflect.New(sliceType)
 	slicePtr.Elem().Set(slice)
-	return slicePtr.Interface().([]interface{})
+	return slicePtr.Interface()
 }
 
 func (res *Resource) NewStruct() interface{} {

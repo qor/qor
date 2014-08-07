@@ -92,7 +92,13 @@ func (meta *Meta) UpdateMeta() {
 			} else if valueType == "slice" {
 				result = reflect.New(reflect.Indirect(reflect.ValueOf(field.Value)).Type().Elem()).Interface()
 			}
-			meta.Resource = New(result)
+
+			resource := reflect.New(reflect.Indirect(reflect.ValueOf(meta.Base)).Type()).Interface()
+			if resourcer, ok := resource.(Resourcer); ok {
+				res := resourcer.GetResource()
+				res.Value = result
+				meta.Resource = resourcer
+			}
 		}
 	}
 

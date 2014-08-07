@@ -57,8 +57,9 @@ func init() {
 	db.AutoMigrate(&Address{})
 	db.AutoMigrate(&Language{})
 
-	user := resource.New(&User{})
-	user.Meta().Register(resource.Meta{Name: "Languages", Type: "select_many",
+	admin := admin.New(&db)
+	user := admin.NewResource("user", User{})
+	user.RegisterMeta(&resource.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if languages := []Language{}; !context.DB.Find(&languages).RecordNotFound() {
 				for _, language := range languages {
@@ -68,8 +69,6 @@ func init() {
 			return
 		}})
 
-	admin := admin.New(&db)
-	admin.AddResource(user)
 	admin.AddToMux("/admin", mux)
 	server = httptest.NewServer(mux)
 }
