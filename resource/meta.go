@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"strconv"
 
+	"reflect"
+	"regexp"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/media_library"
 	"github.com/qor/qor/rules"
-	"reflect"
-	"regexp"
 )
 
 type Meta struct {

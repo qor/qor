@@ -12,7 +12,7 @@ func New(value interface{}) *Resource {
 
 type Resource struct {
 	Value      interface{}
-	Metas      []Metaor
+	Metas      map[string]Metaor
 	Finder     func(interface{}, MetaDatas, qor.Context) error
 	validators []func(interface{}, MetaDatas, qor.Context) []error
 	processors []func(interface{}, MetaDatas, qor.Context) []error
@@ -42,7 +42,7 @@ func (res *Resource) RegisterMeta(metaor Metaor) {
 	meta := metaor.GetMeta()
 	meta.UpdateMeta()
 	meta.Base = res
-	res.Metas = append(res.Metas, metaor)
+	res.Metas[meta.Name] = metaor
 }
 
 func (res *Resource) Decode(result interface{}, metaDatas MetaDatas, context qor.Context) *Processor {
