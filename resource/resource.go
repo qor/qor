@@ -39,9 +39,13 @@ func (res *Resource) AddProcessor(fc func(interface{}, MetaDatas, *qor.Context) 
 }
 
 func (res *Resource) RegisterMeta(metaor Metaor) {
+	if res.Metas == nil {
+		res.Metas = make(map[string]Metaor)
+	}
+
 	meta := metaor.GetMeta()
-	meta.UpdateMeta()
 	meta.Base = res
+	meta.UpdateMeta()
 	res.Metas[meta.Name] = metaor
 }
 
