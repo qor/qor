@@ -2,86 +2,53 @@ package resource
 
 import (
 	"github.com/qor/qor"
-	"github.com/qor/qor/rules"
 
 	"reflect"
 )
 
 func New(value interface{}) *Resource {
-	Resource{value: value}
+	return &Resource{Value: value}
 }
 
 type Resource struct {
-	value      interface{}
+	Value      interface{}
 	Metas      []Metaor
-	Finder     func()
-	validators []func()
-	processors []func()
+	Finder     func(interface{}, MetaDatas, qor.Context) error
+	validators []func(interface{}, MetaDatas, qor.Context) []error
+	processors []func(interface{}, MetaDatas, qor.Context) []error
 }
 
-func (r *Resource) SetFinder() {
+func (resource *Resource) SetFinder(fc func(result interface{}, metaDatas MetaDatas, context qor.Context) error) {
+	resource.Finder = fc
 }
 
-func (r *Resource) AddValidator() {
+func (resource *Resource) AddValidator(fc func(interface{}, MetaDatas, qor.Context) []error) {
+	resource.validators = append(resource.validators, fc)
 }
 
-func (r *Resource) AddProcessor() {
+func (resource *Resource) AddProcessor(fc func(interface{}, MetaDatas, qor.Context) []error) {
+	resource.processors = append(resource.processors, fc)
 }
 
-func (r *Resource) RegisterMeta(metaor Metaor) {
-	r.Metas = append(r.Metas, metaor)
+func (resource *Resource) RegisterMeta(metaor Metaor) {
+	meta := metaor.GetMeta()
+	meta.updateMeta()
+	meta.Base = resource
+	resource.Metas = append(resource.Metas, metaor)
 }
 
-func (r *Resource) NewSlice() []interface{} {
-	sliceType := reflect.SliceOf(reflect.ValueOf(r.Model).Type())
+func (resource *Resource) Decode(result interface{}, metaDatas MetaDatas, context qor.Context) *Processor {
+	return &Processor{Resource: resource, Result: result, Context: context}
+}
+
+func (resource *Resource) NewSlice() []interface{} {
+	sliceType := reflect.SliceOf(reflect.ValueOf(resource.Value).Type())
 	slice := reflect.MakeSlice(sliceType, 0, 0)
 	slicePtr := reflect.New(sliceType)
 	slicePtr.Elem().Set(slice)
-	return slicePtr.Interface()
+	return slicePtr.Interface().([]interface{})
 }
 
-func (r *Resource) NewStruct() interface{} {
-	return reflect.New(reflect.Indirect(reflect.ValueOf(r.Model)).Type()).Interface()
-}
-
-func (r *Resource) Decode(result interface{}, metaDatas MetaDatas) Processor {
-}
-
-type Processor struct {
-}
-
-func (p *Processor) Validate() []error {
-}
-
-func (p *Processor) Commit() []error {
-}
-
-type Meta struct {
-	Name       string
-	Type       string
-	Label      string
-	Value      func(interface{}, *qor.Context) interface{}
-	Setter     func(resource interface{}, value interface{}, context *qor.Context)
-	Collection interface{}
-	Resource   *Resource
-	Permission *rules.Permission
-}
-
-func (m *Meta) GetMeta() *Meta {
-	return m
-}
-
-type Metaor interface {
-	GetMeta() *Meta
-}
-
-type MetaData struct {
-	Name  string
-	Value interface{}
-	Metaor
-}
-
-type MetaDatas []MetaData
-
-func (m MetaDatas) Get(name string) Metaor {
+func (resource *Resource) NewStruct() interface{} {
+	return reflect.New(reflect.Indirect(reflect.ValueOf(resource.Value)).Type()).Interface()
 }

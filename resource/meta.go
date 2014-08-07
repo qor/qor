@@ -13,7 +13,7 @@ import (
 )
 
 type Meta struct {
-	base          *Resource
+	Base          *Resource
 	Name          string
 	Type          string
 	Label         string
@@ -23,6 +23,14 @@ type Meta struct {
 	GetCollection func(interface{}, *qor.Context) [][]string
 	Resource      *Resource
 	Permission    *rules.Permission
+}
+
+type Metaor interface {
+	GetMeta() *Meta
+}
+
+func (meta *Meta) GetMeta() *Meta {
+	return meta
 }
 
 func (meta *Meta) HasPermission(mode rules.PermissionMode, context *qor.Context) bool {
@@ -40,7 +48,7 @@ func (meta *Meta) updateMeta() {
 		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
 	}
 
-	scope := &gorm.Scope{Value: meta.base.Model}
+	scope := &gorm.Scope{Value: meta.Base.Value}
 	var field *gorm.Field
 	field, hasColumn = scope.FieldByName(meta.Name)
 	valueType = reflect.TypeOf(field.Value).Kind().String()
@@ -113,7 +121,7 @@ func (meta *Meta) updateMeta() {
 				return ""
 			}
 		} else {
-			qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(meta.base.Model))
+			qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(meta.Base.Value))
 		}
 	}
 
@@ -133,7 +141,7 @@ func (meta *Meta) updateMeta() {
 		} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
 			meta.GetCollection = f
 		} else {
-			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Model))
+			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.Base.Value))
 		}
 	} else if meta.Type == "select_one" || meta.Type == "select_many" {
 		qor.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
@@ -158,13 +166,13 @@ func (meta *Meta) updateMeta() {
 							if value, err := strconv.Atoi(values[0]); err == nil {
 								field.SetInt(reflect.ValueOf(value).Int())
 							} else {
-								qor.ExitWithMsg("Can't set value", meta, meta.base)
+								qor.ExitWithMsg("Can't set value", meta, meta.Base)
 							}
 						case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 							if value, err := strconv.Atoi(values[0]); err == nil {
 								field.SetUint(reflect.ValueOf(value).Uint())
 							} else {
-								qor.ExitWithMsg("Can't set value", meta, meta.base)
+								qor.ExitWithMsg("Can't set value", meta, meta.Base)
 							}
 						default:
 							if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
@@ -174,7 +182,7 @@ func (meta *Meta) updateMeta() {
 							} else if len(values) == 1 && reflect.TypeOf(values[0]).ConvertibleTo(field.Type()) {
 								field.Set(reflect.ValueOf(values[0]).Convert(field.Type()))
 							} else {
-								qor.ExitWithMsg("Can't set value", meta, meta.base)
+								qor.ExitWithMsg("Can't set value", meta, meta.Base)
 							}
 						}
 					}
@@ -189,7 +197,7 @@ func (meta *Meta) updateMeta() {
 						}
 					}
 				} else {
-					qor.ExitWithMsg("Can't set value", meta, meta.base)
+					qor.ExitWithMsg("Can't set value", meta, meta.Base)
 				}
 			}
 		}
@@ -198,15 +206,4 @@ func (meta *Meta) updateMeta() {
 	if meta.Label == "" {
 		meta.Label = meta.Name
 	}
-}
-
-type meta struct {
-	resource *Resource
-	metas    []Meta
-}
-
-func (m *meta) Register(meta Meta) {
-	meta.base = m.resource
-	meta.updateMeta()
-	m.metas = append(m.metas, meta)
 }

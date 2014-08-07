@@ -1,4 +1,4 @@
-package resource
+package admin
 
 import (
 	"github.com/jinzhu/gorm"
