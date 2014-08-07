@@ -2,65 +2,41 @@ package admin
 
 import (
 	"github.com/qor/qor"
-	"github.com/qor/qor/rules"
+	"github.com/qor/qor/resource"
 
-	"reflect"
 	"regexp"
+	"strings"
 )
 
-func ConvertFormToMetaDatas(context *qor.Context, prefix string) bool {
+func ConvertFormToMetaDatas(context *qor.Context, prefix string, res *Resource) (metaDatas resource.MetaDatas) {
+	var convertedMap map[string]bool
 	request := context.Request
+	metas := res.Metas
 
-	var formKeys = []string{}
 	for key := range request.Form {
-		formKeys = append(formKeys, key)
-	}
+		if strings.HasSuffix(key, prefix) {
+			isCurrent := regexp.MustCompile("(" + prefix + `([^\.]+))$`)
+			isNext := regexp.MustCompile("(" + prefix + `([^\.\[\]]+)(\[\d+\])?)(\.[^\.]+)+$`)
 
-	if values, ok := request.Form[prefix+"_id"]; ok {
-		primaryKey := values[0]
-		context.DB.First(result, primaryKey)
-		if destroyValues, ok := request.Form[prefix+"_destroy"]; ok {
-			if destroyValues[0] != "0" {
-				context.DB.Delete(result, primaryKey)
-				return false
-			}
-		}
-	}
-
-	for _, meta := range metas {
-		res := meta.Resource.(*Resource)
-		if meta.Type == "single_edit" {
-			metas := res.AllowedMetas(res.AllAttrs(), context, rules.Update)
-			field := reflect.Indirect(reflect.ValueOf(result)).FieldByName(meta.Name)
-			Decode(field.Addr().Interface(), metas, context, prefix+meta.Name+".")
-		} else if meta.Type == "collection_edit" {
-			metas := res.AllowedMetas(res.AllAttrs(), context, rules.Update)
-			field := reflect.Indirect(reflect.ValueOf(result)).FieldByName(meta.Name)
-
-			matchedFormKeys := map[string]bool{}
-			reg := regexp.MustCompile("(" + prefix + meta.Name + `\[\d+\]\.)([^.]+)`)
-			for _, key := range formKeys {
-				matches := reg.FindStringSubmatch(key)
-				if len(matches) == 3 && !matchedFormKeys[matches[1]] {
-					matchedFormKeys[matches[1]] = true
-					result := reflect.New(field.Type().Elem())
-					if Decode(result.Interface(), metas, context, matches[1]) {
-						if !reflect.DeepEqual(reflect.Zero(result.Type().Elem()).Interface(), result.Elem().Interface()) {
-							field.Set(reflect.Append(field, result.Elem()))
-						}
-					}
-				}
-			}
-		} else {
-			key := prefix + meta.Name
-			if _, ok := request.Form[key]; ok {
-				meta.Setter(result, key, context)
-			} else if request.MultipartForm != nil {
-				if _, ok := request.MultipartForm.File[key]; ok {
-					meta.Setter(result, key, context)
+			if matches := isCurrent.FindStringSubmatch(key); len(matches) > 0 {
+				metaData := resource.MetaData{Name: matches[2], Value: request.Form[key], Meta: metas[matches[1]]}
+				metaDatas = append(metaDatas, metaData)
+			} else if matches := isNext.FindStringSubmatch(key); len(matches) > 0 {
+				if _, ok := convertedMap[matches[1]]; !ok {
+					convertedMap[matches[1]] = true
+					meta := metas[matches[2]]
+					children := ConvertFormToMetaDatas(context, matches[1]+".", meta.GetMeta().Resource.(*Resource))
+					metaData := resource.MetaData{Name: matches[2], Meta: meta, MetaDatas: children}
+					metaData.MetaDatas = append(metaData.MetaDatas, metaData)
 				}
 			}
 		}
 	}
-	return true
+
+	if request.MultipartForm != nil {
+		// for key, header := range request.MultipartForm.File {
+		// xxxxx
+		// }
+	}
+	return
 }

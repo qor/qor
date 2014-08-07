@@ -17,10 +17,11 @@ func New(db *gorm.DB) *Admin {
 	return &admin
 }
 
-func (admin *Admin) NewResource(name string, value interface{}) {
+func (admin *Admin) NewResource(name string, value interface{}) *Resource {
 	resource := &Resource{Name: name}
 	resource.Value = value
 	admin.Resources[name] = resource
+	return resource
 }
 
 func (admin *Admin) SetAuth(auth auth.Auth) {

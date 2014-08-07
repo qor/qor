@@ -14,10 +14,12 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	user := resource.New(&User{})
+	admin := admin.New(&db)
+
+	user := admin.NewResource("users", User{})
 	user.Attrs().Index("name", "gender")
-	user.Meta().Register(resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
-	user.Meta().Register(resource.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
+	user.RegisterMeta(&resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
+	user.RegisterMeta(&resource.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if roles := []Role{}; !context.DB.Find(&roles).RecordNotFound() {
 				for _, role := range roles {
@@ -26,7 +28,7 @@ func main() {
 			}
 			return
 		}})
-	user.Meta().Register(resource.Meta{Name: "Languages", Type: "select_many",
+	user.RegisterMeta(&resource.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if languages := []Language{}; !context.DB.Find(&languages).RecordNotFound() {
 				for _, language := range languages {
@@ -35,11 +37,8 @@ func main() {
 			}
 			return
 		}})
-
-	admin := admin.New(&db)
-	admin.AddResource(user)
-	admin.AddResource(resource.New(&Role{}))
-	admin.AddResource(resource.New(&Language{}))
+	admin.NewResource("roles", Role{})
+	admin.NewResource("languages", Language{})
 	admin.AddToMux("/admin", mux)
 
 	fmt.Println("listening on :8080")
