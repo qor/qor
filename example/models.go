@@ -40,7 +40,12 @@ type User struct {
 var db gorm.DB
 
 func init() {
-	db, _ = gorm.Open("sqlite3", "/tmp/qor.db")
+	var err error
+	db, err = gorm.Open("sqlite3", "/tmp/qor.db")
+	if err != nil {
+		panic(err)
+	}
+
 	db.LogMode(true)
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&CreditCard{})
