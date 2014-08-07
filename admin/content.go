@@ -17,13 +17,13 @@ import (
 type Content struct {
 	Admin    *Admin
 	Context  *qor.Context
-	Resource *resource.Resource
+	Resource *Resource
 	Result   interface{}
 	Action   string
 }
 
-func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses ...*resource.Resource) []resource.Meta {
-	return func(reses ...*resource.Resource) []resource.Meta {
+func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses ...*Resource) []resource.Meta {
+	return func(reses ...*Resource) []resource.Meta {
 		var res = content.Resource
 		if len(reses) > 0 {
 			res = reses[0]
@@ -39,7 +39,7 @@ func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses .
 		case "new":
 			return res.AllowedMetas(res.NewAttrs(), content.Context, modes...)
 		default:
-			return []resource.Meta{}
+			return []Meta{}
 		}
 	}
 }
@@ -49,10 +49,10 @@ func (content *Content) ValueOf(value interface{}, meta resource.Meta) interface
 }
 
 func (content *Content) NewResourcePath(value interface{}) string {
-	if res, ok := value.(*resource.Resource); ok {
-		return path.Join(content.Admin.Prefix, res.RelativePath(), "new")
+	if res, ok := value.(*Resource); ok {
+		return path.Join(content.Admin.Prefix, res.Name, "new")
 	} else {
-		return path.Join(content.Admin.Prefix, content.Resource.RelativePath(), "new")
+		return path.Join(content.Admin.Prefix, content.Resource.Name, "new")
 	}
 }
 
@@ -60,11 +60,11 @@ func (content *Content) UrlFor(value interface{}) string {
 	var url string
 	if admin, ok := value.(*Admin); ok {
 		url = admin.Prefix
-	} else if res, ok := value.(*resource.Resource); ok {
-		url = path.Join(content.Admin.Prefix, res.RelativePath())
+	} else if res, ok := value.(*Resource); ok {
+		url = path.Join(content.Admin.Prefix, res.Name)
 	} else {
 		primaryKey := content.Admin.DB.NewScope(value).PrimaryKeyValue()
-		url = path.Join(content.Admin.Prefix, content.Resource.RelativePath(), fmt.Sprintf("%v", primaryKey))
+		url = path.Join(content.Admin.Prefix, content.Resource.Name, fmt.Sprintf("%v", primaryKey))
 	}
 	return url
 }

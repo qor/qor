@@ -3,18 +3,32 @@ package admin
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
-	"strings"
 
 	"go/ast"
 	"reflect"
+	"strings"
 )
+
+type Resource struct {
+	Name  string
+	attrs *attrs
+	resource.Resource
+}
 
 type attrs struct {
 	indexAttrs []string
 	newAttrs   []string
 	editAttrs  []string
 	showAttrs  []string
+}
+
+func (r *Resource) Attrs() *attrs {
+	if r.attrs == nil {
+		r.attrs = &attrs{}
+	}
+	return r.attrs
 }
 
 func (a *attrs) Index(columns ...string) {
@@ -33,7 +47,7 @@ func (a *attrs) Show(columns ...string) {
 	a.showAttrs = columns
 }
 
-func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
+func (res *Resource) getMetas(attrsSlice ...[]string) []resource.Meta {
 	var attrs []string
 	for _, value := range attrsSlice {
 		if value != nil {
@@ -44,7 +58,7 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 
 	if attrs == nil {
 		attrs = []string{}
-		indirectValue := reflect.Indirect(reflect.ValueOf(resource.Model))
+		indirectValue := reflect.Indirect(reflect.ValueOf(res.Value))
 		scopeTyp := indirectValue.Type()
 		for i := 0; i < scopeTyp.NumField(); i++ {
 			fieldStruct := scopeTyp.Field(i)
@@ -55,17 +69,18 @@ func (resource *Resource) getMetas(attrsSlice ...[]string) []Meta {
 		}
 	}
 
-	metas := []Meta{}
+	metas := []resource.Meta{}
 OUT:
 	for _, attr := range attrs {
-		for _, meta := range resource.meta.metas {
+		for _, meta := range res.Metas {
+			meta := meta.(Meta)
 			if meta.Name == attr {
 				metas = append(metas, meta)
 				continue OUT
 			}
 		}
 
-		for _, meta := range resource.meta.metas {
+		for _, meta := range res.Metas {
 			if meta.Name == gorm.SnakeToUpperCamel(attr) {
 				metas = append(metas, meta)
 				continue OUT

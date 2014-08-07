@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
 
 	"net/http"
@@ -40,9 +39,9 @@ func (admin *Admin) New(context *qor.Context) {
 
 func (admin *Admin) Create(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
-	result := resource.NewStruct()
+	result := res.NewStruct()
 	metas := res.AllowedMetas(res.EditAttrs(), context, rules.Update)
-	resource.Decode(result, metas, context, "QorResource.")
+	res.Decode(result, metas, context, "QorResource.")
 	admin.DB.Save(result)
 	primaryKey := fmt.Sprintf("%v", admin.DB.NewScope(result).PrimaryKeyValue())
 	http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
@@ -50,11 +49,11 @@ func (admin *Admin) Create(context *qor.Context) {
 
 func (admin *Admin) Update(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
-	result := resource.NewStruct()
+	result := res.NewStruct()
 
 	if !admin.DB.First(result, context.ResourceID).RecordNotFound() {
 		metas := res.AllowedMetas(res.EditAttrs(), context, rules.Update)
-		resource.Decode(result, metas, context, "QorResource.")
+		res.Decode(result, metas, context, "QorResource.")
 		admin.DB.Save(result)
 		http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 	}
@@ -62,11 +61,11 @@ func (admin *Admin) Update(context *qor.Context) {
 
 func (admin *Admin) Delete(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
-	result := resource.NewStruct()
+	result := res.NewStruct()
 
 	if admin.DB.Delete(result, context.ResourceID).RowsAffected > 0 {
-		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.RelativePath()), http.StatusFound)
+		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.Name), http.StatusFound)
 	} else {
-		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.RelativePath()), http.StatusNotFound)
+		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.Name), http.StatusNotFound)
 	}
 }
