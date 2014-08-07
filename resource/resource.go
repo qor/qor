@@ -18,37 +18,45 @@ type Resource struct {
 	processors []func(interface{}, MetaDatas, qor.Context) []error
 }
 
-func (resource *Resource) SetFinder(fc func(result interface{}, metaDatas MetaDatas, context qor.Context) error) {
-	resource.Finder = fc
+type Resourcer interface {
+	GetResource() *Resource
 }
 
-func (resource *Resource) AddValidator(fc func(interface{}, MetaDatas, qor.Context) []error) {
-	resource.validators = append(resource.validators, fc)
+func (res *Resource) GetResource() *Resource {
+	return res
 }
 
-func (resource *Resource) AddProcessor(fc func(interface{}, MetaDatas, qor.Context) []error) {
-	resource.processors = append(resource.processors, fc)
+func (res *Resource) SetFinder(fc func(result interface{}, metaDatas MetaDatas, context qor.Context) error) {
+	res.Finder = fc
 }
 
-func (resource *Resource) RegisterMeta(metaor Metaor) {
+func (res *Resource) AddValidator(fc func(interface{}, MetaDatas, qor.Context) []error) {
+	res.validators = append(res.validators, fc)
+}
+
+func (res *Resource) AddProcessor(fc func(interface{}, MetaDatas, qor.Context) []error) {
+	res.processors = append(res.processors, fc)
+}
+
+func (res *Resource) RegisterMeta(metaor Metaor) {
 	meta := metaor.GetMeta()
-	meta.updateMeta()
-	meta.Base = resource
-	resource.Metas = append(resource.Metas, metaor)
+	meta.UpdateMeta()
+	meta.Base = res
+	res.Metas = append(res.Metas, metaor)
 }
 
-func (resource *Resource) Decode(result interface{}, metaDatas MetaDatas, context qor.Context) *Processor {
-	return &Processor{Resource: resource, Result: result, Context: context}
+func (res *Resource) Decode(result interface{}, metaDatas MetaDatas, context qor.Context) *Processor {
+	return &Processor{Resource: res, Result: result, Context: context}
 }
 
-func (resource *Resource) NewSlice() []interface{} {
-	sliceType := reflect.SliceOf(reflect.ValueOf(resource.Value).Type())
+func (res *Resource) NewSlice() []interface{} {
+	sliceType := reflect.SliceOf(reflect.ValueOf(res.Value).Type())
 	slice := reflect.MakeSlice(sliceType, 0, 0)
 	slicePtr := reflect.New(sliceType)
 	slicePtr.Elem().Set(slice)
 	return slicePtr.Interface().([]interface{})
 }
 
-func (resource *Resource) NewStruct() interface{} {
-	return reflect.New(reflect.Indirect(reflect.ValueOf(resource.Value)).Type()).Interface()
+func (res *Resource) NewStruct() interface{} {
+	return reflect.New(reflect.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
 }

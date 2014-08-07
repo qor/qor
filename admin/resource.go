@@ -73,16 +73,15 @@ func (res *Resource) getMetas(attrsSlice ...[]string) []resource.Meta {
 OUT:
 	for _, attr := range attrs {
 		for _, meta := range res.Metas {
-			meta := meta.(Meta)
-			if meta.Name == attr {
-				metas = append(metas, meta)
+			if meta.GetMeta().Name == attr {
+				metas = append(metas, *meta.GetMeta())
 				continue OUT
 			}
 		}
 
 		for _, meta := range res.Metas {
-			if meta.Name == gorm.SnakeToUpperCamel(attr) {
-				metas = append(metas, meta)
+			if meta.GetMeta().Name == gorm.SnakeToUpperCamel(attr) {
+				metas = append(metas, *meta.GetMeta())
 				continue OUT
 			}
 		}
@@ -91,46 +90,46 @@ OUT:
 			continue
 		}
 
-		var _meta Meta
-		_meta = Meta{Name: attr, base: resource}
-		_meta.updateMeta()
+		var _meta resource.Meta
+		_meta = resource.Meta{Name: attr, Base: res}
+		_meta.UpdateMeta()
 		metas = append(metas, _meta)
 	}
 
 	return metas
 }
 
-func (resource *Resource) IndexAttrs() []Meta {
-	return resource.getMetas(resource.attrs.indexAttrs, resource.attrs.showAttrs)
+func (res *Resource) IndexAttrs() []resource.Meta {
+	return res.getMetas(res.attrs.indexAttrs, res.attrs.showAttrs)
 }
 
-func (resource *Resource) NewAttrs() []Meta {
-	return resource.getMetas(resource.attrs.newAttrs, resource.attrs.editAttrs)
+func (res *Resource) NewAttrs() []resource.Meta {
+	return res.getMetas(res.attrs.newAttrs, res.attrs.editAttrs)
 }
 
-func (resource *Resource) EditAttrs() []Meta {
-	return resource.appendPrimaryKey(resource.getMetas(resource.attrs.editAttrs))
+func (res *Resource) EditAttrs() []resource.Meta {
+	return res.appendPrimaryKey(res.getMetas(res.attrs.editAttrs))
 }
 
-func (resource *Resource) ShowAttrs() []Meta {
-	return resource.getMetas(resource.attrs.showAttrs, resource.attrs.editAttrs)
+func (res *Resource) ShowAttrs() []resource.Meta {
+	return res.getMetas(res.attrs.showAttrs, res.attrs.editAttrs)
 }
 
-func (resource *Resource) AllAttrs() []Meta {
-	return resource.appendPrimaryKey(resource.getMetas())
+func (res *Resource) AllAttrs() []resource.Meta {
+	return res.appendPrimaryKey(res.getMetas())
 }
 
-func (resource *Resource) appendPrimaryKey(metas []Meta) []Meta {
-	primaryKeyMeta := Meta{base: resource, Name: "_id", Type: "hidden", Value: func(value interface{}, context *qor.Context) interface{} {
+func (res *Resource) appendPrimaryKey(metas []resource.Meta) []resource.Meta {
+	primaryKeyMeta := resource.Meta{Base: res, Name: "_id", Type: "hidden", Value: func(value interface{}, context *qor.Context) interface{} {
 		return context.DB.NewScope(value).PrimaryKeyValue()
 	}}
-	primaryKeyMeta.updateMeta()
+	primaryKeyMeta.UpdateMeta()
 
 	return append(metas, primaryKeyMeta)
 }
 
-func (resource *Resource) AllowedMetas(attrs []Meta, context *qor.Context, rules ...rules.PermissionMode) []Meta {
-	var metas = []Meta{}
+func (res *Resource) AllowedMetas(attrs []resource.Meta, context *qor.Context, rules ...rules.PermissionMode) []resource.Meta {
+	var metas = []resource.Meta{}
 	for _, meta := range attrs {
 		for _, rule := range rules {
 			if meta.HasPermission(rule, context) {

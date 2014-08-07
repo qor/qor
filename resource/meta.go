@@ -13,7 +13,7 @@ import (
 )
 
 type Meta struct {
-	Base          *Resource
+	Base          Resourcer
 	Name          string
 	Type          string
 	Label         string
@@ -21,7 +21,7 @@ type Meta struct {
 	Setter        func(resource interface{}, value interface{}, context *qor.Context)
 	Collection    interface{}
 	GetCollection func(interface{}, *qor.Context) [][]string
-	Resource      *Resource
+	Resource      Resourcer
 	Permission    *rules.Permission
 }
 
@@ -40,7 +40,7 @@ func (meta *Meta) HasPermission(mode rules.PermissionMode, context *qor.Context)
 	return meta.Permission.HasPermission(mode, context)
 }
 
-func (meta *Meta) updateMeta() {
+func (meta *Meta) UpdateMeta() {
 	var hasColumn bool
 	var valueType string
 
@@ -48,7 +48,8 @@ func (meta *Meta) updateMeta() {
 		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
 	}
 
-	scope := &gorm.Scope{Value: meta.Base.Value}
+	base := meta.Base.GetResource()
+	scope := &gorm.Scope{Value: base.Value}
 	var field *gorm.Field
 	field, hasColumn = scope.FieldByName(meta.Name)
 	valueType = reflect.TypeOf(field.Value).Kind().String()
@@ -121,7 +122,7 @@ func (meta *Meta) updateMeta() {
 				return ""
 			}
 		} else {
-			qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(meta.Base.Value))
+			qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(base.Value))
 		}
 	}
 
@@ -141,7 +142,7 @@ func (meta *Meta) updateMeta() {
 		} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
 			meta.GetCollection = f
 		} else {
-			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.Base.Value))
+			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(base.Value))
 		}
 	} else if meta.Type == "select_one" || meta.Type == "select_many" {
 		qor.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)

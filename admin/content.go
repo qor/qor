@@ -39,7 +39,7 @@ func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses .
 		case "new":
 			return res.AllowedMetas(res.NewAttrs(), content.Context, modes...)
 		default:
-			return []Meta{}
+			return []resource.Meta{}
 		}
 	}
 }
