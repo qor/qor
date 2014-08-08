@@ -1,7 +1,5 @@
 package resource
 
-import "errors"
-
 type MetaData struct {
 	Name      string
 	Value     interface{}
@@ -9,13 +7,14 @@ type MetaData struct {
 	Meta      Metaor
 }
 
-type MetaDatas []MetaData
+type MetaDatas []*MetaData
 
-func (metaDatas *MetaDatas) Get(name string) (MetaData, error) {
-	for _, metaData := range *metaDatas {
-		if metaData.Name == name {
-			return metaData, nil
+func (mds MetaDatas) Get(name string) *MetaData {
+	for _, md := range mds {
+		if md.Name == name {
+			return md
 		}
 	}
-	return MetaData{}, errors.New("meta not found")
+
+	return nil
 }
