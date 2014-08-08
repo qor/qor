@@ -8,7 +8,7 @@ import (
 )
 
 func filenameWithLineNum() string {
-	var total = 3
+	var total = 10
 	var results []string
 	for i := 2; i < 15; i++ {
 		if _, file, line, ok := runtime.Caller(i); ok {

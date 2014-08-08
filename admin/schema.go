@@ -18,20 +18,21 @@ func ConvertFormToMetaDatas(context *qor.Context, prefix string, res *Resource) 
 
 	for key := range request.Form {
 		if strings.HasPrefix(key, prefix) {
-			isCurrent := regexp.MustCompile(prefix + `([^.]+)$`)
-			isNext := regexp.MustCompile(`(` + prefix + `([^.\[\]]+)(\[\d+\])?)(?:\.([^.]+)+)$`)
+			key = strings.TrimPrefix(key, prefix)
+			isCurrent := regexp.MustCompile("^[^.]+$")
+			isNext := regexp.MustCompile(`^(([^.\[\]]+)(\[\d+\])?)(?:\.([^.]+)+)$`)
 
 			if matches := isCurrent.FindStringSubmatch(key); len(matches) > 0 {
-				meta := metas[matches[1]]
-				metaData := resource.MetaData{Name: matches[1], Value: request.Form[key], Meta: meta}
+				meta := metas[matches[0]]
+				metaData := resource.MetaData{Name: matches[0], Value: request.Form[prefix+key], Meta: meta}
 				metaDatas = append(metaDatas, metaData)
 			} else if matches := isNext.FindStringSubmatch(key); len(matches) > 0 {
 				if _, ok := convertedMap[matches[1]]; !ok {
 					convertedMap[matches[1]] = true
 					meta := metas[matches[2]]
-					children := ConvertFormToMetaDatas(context, matches[1]+".", meta.GetMeta().Resource.(*Resource))
+					children := ConvertFormToMetaDatas(context, prefix+matches[1]+".", meta.GetMeta().Resource.(*Resource))
 					metaData := resource.MetaData{Name: matches[2], Meta: meta, MetaDatas: children}
-					metaData.MetaDatas = append(metaData.MetaDatas, metaData)
+					metaDatas = append(metaDatas, metaData)
 				}
 			}
 		}

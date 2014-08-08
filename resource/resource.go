@@ -16,6 +16,9 @@ type Resource struct {
 
 type Resourcer interface {
 	GetResource() *Resource
+	Decode(result interface{}, metaDatas MetaDatas, context *qor.Context) *Processor
+	NewSlice() interface{}
+	NewStruct() interface{}
 }
 
 func (res *Resource) GetResource() *Resource {

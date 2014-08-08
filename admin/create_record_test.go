@@ -92,7 +92,6 @@ func TestCreateHasManyRecord(t *testing.T) {
 
 		var addresses []Address
 		if db.Find(&addresses, "user_id = ?", user.Id); len(addresses) != 2 {
-			fmt.Println(addresses)
 			t.Errorf("Blank address should not be created")
 		}
 	} else {
