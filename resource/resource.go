@@ -46,7 +46,7 @@ func (res *Resource) RegisterMeta(metaor Metaor) {
 }
 
 func (res *Resource) Decode(result interface{}, metaDatas MetaDatas, context *qor.Context) *Processor {
-	return &Processor{Resource: res, Result: result, Context: context}
+	return &Processor{Resource: res, Result: result, Context: context, MetaDatas: metaDatas}
 }
 
 func (res *Resource) NewSlice() interface{} {

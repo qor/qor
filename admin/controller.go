@@ -17,16 +17,20 @@ func (admin *Admin) Dashboard(context *qor.Context) {
 
 func (admin *Admin) Index(context *qor.Context) {
 	resource := admin.Resources[context.ResourceName]
+
 	result := resource.NewSlice()
 	admin.DB.Find(result)
+
 	content := Content{Admin: admin, Context: context, Resource: resource, Result: result, Action: "index"}
 	admin.Render("index", content, rules.Read)
 }
 
 func (admin *Admin) Show(context *qor.Context) {
 	resource := admin.Resources[context.ResourceName]
+
 	result := resource.NewStruct()
 	admin.DB.First(result, context.ResourceID)
+
 	content := Content{Admin: admin, Context: context, Resource: resource, Result: result, Action: "edit"}
 	admin.Render("show", content, rules.Read, rules.Update)
 }
@@ -39,9 +43,11 @@ func (admin *Admin) New(context *qor.Context) {
 
 func (admin *Admin) Create(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
+
 	result := res.NewStruct()
-	res.Decode(result, ConvertFormToMetaDatas(context, "QorResource.", res), context)
+	res.Decode(result, ConvertFormToMetaDatas(context, "QorResource.", res), context).Start()
 	admin.DB.Save(result)
+
 	primaryKey := fmt.Sprintf("%v", admin.DB.NewScope(result).PrimaryKeyValue())
 	http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
 }
@@ -51,7 +57,7 @@ func (admin *Admin) Update(context *qor.Context) {
 	result := res.NewStruct()
 
 	if !admin.DB.First(result, context.ResourceID).RecordNotFound() {
-		res.Decode(result, ConvertFormToMetaDatas(context, "QorResource.", res), context)
+		res.Decode(result, ConvertFormToMetaDatas(context, "QorResource.", res), context).Start()
 		admin.DB.Save(result)
 		http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 	}

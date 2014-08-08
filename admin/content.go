@@ -22,8 +22,8 @@ type Content struct {
 	Action   string
 }
 
-func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses ...*Resource) []resource.Meta {
-	return func(reses ...*Resource) []resource.Meta {
+func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses ...*Resource) []*resource.Meta {
+	return func(reses ...*Resource) []*resource.Meta {
 		var res = content.Resource
 		if len(reses) > 0 {
 			res = reses[0]
@@ -39,12 +39,12 @@ func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses .
 		case "new":
 			return res.AllowedMetas(res.NewMetas(), content.Context, modes...)
 		default:
-			return []resource.Meta{}
+			return []*resource.Meta{}
 		}
 	}
 }
 
-func (content *Content) ValueOf(value interface{}, meta resource.Meta) interface{} {
+func (content *Content) ValueOf(value interface{}, meta *resource.Meta) interface{} {
 	return meta.Value(value, content.Context)
 }
 
@@ -76,23 +76,23 @@ func (content *Content) LinkTo(text interface{}, link interface{}) string {
 	return fmt.Sprintf(`<a href="%v">%v</a>`, content.UrlFor(link), text)
 }
 
-func (content *Content) RenderForm(value interface{}, metas []resource.Meta) string {
+func (content *Content) RenderForm(value interface{}, metas []*resource.Meta) string {
 	var result = bytes.NewBufferString("")
 	content.renderForm(result, value, metas, []string{"QorResource"})
 	return result.String()
 }
 
-func (content *Content) renderForm(result *bytes.Buffer, value interface{}, metas []resource.Meta, prefix []string) {
+func (content *Content) renderForm(result *bytes.Buffer, value interface{}, metas []*resource.Meta, prefix []string) {
 	for _, meta := range metas {
 		content.RenderMeta(result, meta, value, prefix)
 	}
 }
 
-func (content *Content) RenderMeta(writer *bytes.Buffer, meta resource.Meta, value interface{}, prefix []string) {
+func (content *Content) RenderMeta(writer *bytes.Buffer, meta *resource.Meta, value interface{}, prefix []string) {
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := content.funcMap(rules.Read, rules.Update)
-	funcsMap["render_form"] = func(value interface{}, metas []resource.Meta, index ...int) string {
+	funcsMap["render_form"] = func(value interface{}, metas []*resource.Meta, index ...int) string {
 		var result = bytes.NewBufferString("")
 		newPrefix := append([]string{}, prefix...)
 
