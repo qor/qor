@@ -1,9 +1,15 @@
 package resource
 
 import (
+	"errors"
 	"github.com/qor/qor"
 
 	"reflect"
+)
+
+var (
+	ErrProcessorRecordNotFound = errors.New("record not found")
+	ErrProcessorSkipLeft       = errors.New("skip left")
 )
 
 type Processor struct {
@@ -11,17 +17,52 @@ type Processor struct {
 	Resource  *Resource
 	Context   *qor.Context
 	MetaDatas MetaDatas
+	SkipLeft  bool
+}
+
+func (processor *Processor) checkSkipLeft(errs ...error) bool {
+	if processor.SkipLeft {
+		return true
+	}
+
+	for _, err := range errs {
+		if err == ErrProcessorSkipLeft {
+			processor.SkipLeft = true
+			break
+		}
+	}
+	return processor.SkipLeft
+}
+
+func (processor *Processor) Initialize() error {
+	err := ErrProcessorRecordNotFound
+	if finder := processor.Resource.Finder; finder != nil {
+		err = finder(processor.Result, processor.MetaDatas, processor.Context)
+	}
+	processor.checkSkipLeft(err)
+	return err
 }
 
 func (processor *Processor) Validate() (errors []error) {
-	resource := processor.Resource
-	for _, fc := range resource.validators {
-		errors = append(errors, fc(processor.Result, processor.MetaDatas, processor.Context)...)
+	if processor.checkSkipLeft() {
+		return
+	}
+
+	for _, fc := range processor.Resource.validators {
+		erres := fc(processor.Result, processor.MetaDatas, processor.Context)
+		if processor.checkSkipLeft(erres...) {
+			break
+		}
+		errors = append(errors, erres...)
 	}
 	return
 }
 
 func (processor *Processor) Decode() (errors []error) {
+	if processor.checkSkipLeft() {
+		return
+	}
+
 	for _, metaData := range processor.MetaDatas {
 		if metaor := metaData.Meta; metaor != nil {
 			meta := metaor.GetMeta()
@@ -44,25 +85,28 @@ func (processor *Processor) Decode() (errors []error) {
 			}
 		}
 	}
-
-	resource := processor.Resource
-	for _, fc := range resource.validators {
-		errors = append(errors, fc(processor.Result, processor.MetaDatas, processor.Context)...)
-	}
 	return
 }
 
 func (processor *Processor) Commit() (errors []error) {
 	errors = processor.Decode()
+	if processor.checkSkipLeft(errors...) {
+		return
+	}
 
 	resource := processor.Resource
 	for _, fc := range resource.processors {
-		errors = append(errors, fc(processor.Result, processor.MetaDatas, processor.Context)...)
+		erres := fc(processor.Result, processor.MetaDatas, processor.Context)
+		if processor.checkSkipLeft(erres...) {
+			break
+		}
+		errors = append(errors, erres...)
 	}
 	return
 }
 
 func (processor *Processor) Start() (errors []error) {
+	processor.Initialize()
 	if errors = append(errors, processor.Validate()...); len(errors) == 0 {
 		errors = append(errors, processor.Commit()...)
 	}
