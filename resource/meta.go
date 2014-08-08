@@ -170,9 +170,6 @@ func (meta *Meta) UpdateMeta() {
 				return
 			}
 			value := metaData.Value
-			if err != nil {
-				return
-			}
 			scope := &gorm.Scope{Value: resource}
 			scopeField, _ := scope.FieldByName(meta.Name)
 			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Name)
