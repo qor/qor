@@ -19,7 +19,7 @@ type Meta struct {
 	Type          string
 	Label         string
 	Value         func(interface{}, *qor.Context) interface{}
-	Setter        func(resource interface{}, value interface{}, context *qor.Context)
+	Setter        func(resource interface{}, metaDatas MetaDatas, context *qor.Context)
 	Collection    interface{}
 	GetCollection func(interface{}, *qor.Context) [][]string
 	Resource      Resourcer
@@ -29,14 +29,14 @@ type Meta struct {
 type Metaor interface {
 	GetMeta() *Meta
 	HasPermission(rules.PermissionMode, *qor.Context) bool
-	Set(resource interface{}, value interface{}, context *qor.Context)
+	Set(resource interface{}, value MetaDatas, context *qor.Context)
 }
 
 func (meta *Meta) GetMeta() *Meta {
 	return meta
 }
 
-func (meta *Meta) Set(resource interface{}, value interface{}, context *qor.Context) {
+func (meta *Meta) Set(resource interface{}, value MetaDatas, context *qor.Context) {
 	if meta.Setter != nil {
 		meta.Setter(resource, value, context)
 	}
@@ -164,57 +164,48 @@ func (meta *Meta) UpdateMeta() {
 	}
 
 	if meta.Setter == nil {
-		meta.Setter = func(resource interface{}, value interface{}, context *qor.Context) {
+		meta.Setter = func(resource interface{}, metaDatas MetaDatas, context *qor.Context) {
+			metaData, err := metaDatas.Get(meta.Name)
+			value := metaData.Value
+			if err != nil {
+				return
+			}
 			scope := &gorm.Scope{Value: resource}
 			scopeField, _ := scope.FieldByName(meta.Name)
 			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Name)
-			// fieldStruct, _ := reflect.Indirect(reflect.ValueOf(resource)).Type().FieldByName(meta.Name)
 
 			if field.IsValid() && field.CanAddr() {
-				if values, ok := context.Request.Form[value.(string)]; ok {
-					relationship := scopeField.Relationship
-					if relationship != nil && relationship.Kind == "many_to_many" {
-						context.DB.Where(values).Find(field.Addr().Interface())
-						context.DB.Model(resource).Where(values).Association(meta.Name).Replace(field.Interface())
-					} else {
-						switch field.Kind() {
-						case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-							if value, err := strconv.Atoi(values[0]); err == nil {
-								field.SetInt(reflect.ValueOf(value).Int())
-							} else {
-								qor.ExitWithMsg("Can't set value", meta, meta.Base)
-							}
-						case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-							if value, err := strconv.Atoi(values[0]); err == nil {
-								field.SetUint(reflect.ValueOf(value).Uint())
-							} else {
-								qor.ExitWithMsg("Can't set value", meta, meta.Base)
-							}
-						default:
-							if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
-								scanner.Scan(values[0])
-							} else if reflect.TypeOf(values).ConvertibleTo(field.Type()) {
-								field.Set(reflect.ValueOf(values).Convert(field.Type()))
-							} else if len(values) == 1 && reflect.TypeOf(values[0]).ConvertibleTo(field.Type()) {
-								field.Set(reflect.ValueOf(values[0]).Convert(field.Type()))
-							} else {
-								qor.ExitWithMsg("Can't set value", meta, meta.Base)
-							}
-						}
-					}
-				} else if context.Request.MultipartForm != nil {
-					if headers, ok := context.Request.MultipartForm.File[value.(string)]; ok {
-						for _, header := range headers {
-							if media, ok := field.Interface().(media_library.MediaLibrary); ok {
-								if file, err := header.Open(); err == nil {
-									media.SetFile(header.Filename, file)
-								}
-							}
-						}
-					}
+				relationship := scopeField.Relationship
+				if relationship != nil && relationship.Kind == "many_to_many" {
+					context.DB.Where(ToArray(value)).Find(field.Addr().Interface())
+					context.DB.Model(resource).Where(ToArray(value)).Association(meta.Name).Replace(field.Interface())
 				} else {
-					qor.ExitWithMsg("Can't set value", meta, meta.Base)
+					switch field.Kind() {
+					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+						field.SetInt(reflect.ValueOf(ToInt(value)).Int())
+					case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+						field.SetUint(reflect.ValueOf(ToInt(value)).Uint())
+					default:
+						if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
+							scanner.Scan(ToString(value))
+						} else if reflect.TypeOf(ToArray(value)).ConvertibleTo(field.Type()) {
+							field.Set(reflect.ValueOf(ToArray(value)).Convert(field.Type()))
+						} else if reflect.TypeOf(ToString(value)).ConvertibleTo(field.Type()) {
+							field.Set(reflect.ValueOf(ToString(value)).Convert(field.Type()))
+						} else {
+							qor.ExitWithMsg("Can't set value", meta, meta.Base)
+						}
+					}
 				}
+				// if headers, ok := context.Request.MultipartForm.File[value.(string)]; ok {
+				// 	for _, header := range headers {
+				// 		if media, ok := field.Interface().(media_library.MediaLibrary); ok {
+				// 			if file, err := header.Open(); err == nil {
+				// 				media.SetFile(header.Filename, file)
+				// 			}
+				// 		}
+				// 	}
+				// }
 			}
 		}
 	}
@@ -222,4 +213,33 @@ func (meta *Meta) UpdateMeta() {
 	if meta.Label == "" {
 		meta.Label = meta.Name
 	}
+}
+
+func ToArray(value interface{}) []string {
+	if v, ok := value.([]string); ok {
+		return v
+	} else if v, ok := value.(string); ok {
+		return []string{v}
+	}
+	return []string{}
+}
+
+func ToString(value interface{}) string {
+	if v, ok := value.([]string); ok && len(v) > 0 {
+		return v[0]
+	} else if v, ok := value.(string); ok {
+		return v
+	}
+	return ""
+}
+
+func ToInt(value interface{}) int {
+	var result string
+	if v, ok := value.([]string); ok && len(v) > 0 {
+		result = v[0]
+	} else if v, ok := value.(string); ok {
+		result = v
+	}
+	i, _ := strconv.Atoi(result)
+	return i
 }

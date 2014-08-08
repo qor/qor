@@ -20,7 +20,7 @@ func (processor *Processor) Validate() (errors []error) {
 func (processor *Processor) Decode() (errors []error) {
 	for _, metaData := range processor.MetaDatas {
 		if metaData.Meta != nil {
-			metaData.Meta.Set(processor.Result, metaData.Value, processor.Context)
+			metaData.Meta.Set(processor.Result, processor.MetaDatas, processor.Context)
 		}
 	}
 

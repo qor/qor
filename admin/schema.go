@@ -18,12 +18,12 @@ func ConvertFormToMetaDatas(context *qor.Context, prefix string, res *Resource) 
 
 	for key := range request.Form {
 		if strings.HasPrefix(key, prefix) {
-			isCurrent := regexp.MustCompile(`(` + prefix + `([^.]+))$`)
-			isNext := regexp.MustCompile(`(` + prefix + `([^.\[\]]+)(\[\d+\])?)(?:\.([^.]+))+$`)
+			isCurrent := regexp.MustCompile(prefix + `([^.]+)$`)
+			isNext := regexp.MustCompile(`(` + prefix + `([^.\[\]]+)(\[\d+\])?)(?:\.([^.]+)+)$`)
 
 			if matches := isCurrent.FindStringSubmatch(key); len(matches) > 0 {
 				meta := metas[matches[1]]
-				metaData := resource.MetaData{Name: matches[2], Value: request.Form[key], Meta: meta}
+				metaData := resource.MetaData{Name: matches[1], Value: request.Form[key], Meta: meta}
 				metaDatas = append(metaDatas, metaData)
 			} else if matches := isNext.FindStringSubmatch(key); len(matches) > 0 {
 				if _, ok := convertedMap[matches[1]]; !ok {
