@@ -2,6 +2,7 @@ package resource
 
 import (
 	"errors"
+
 	"github.com/qor/qor"
 
 	"reflect"
@@ -58,7 +59,7 @@ func (processor *Processor) Validate() (errors []error) {
 	return
 }
 
-func (processor *Processor) Decode() (errors []error) {
+func (processor *Processor) decode() (errors []error) {
 	if processor.checkSkipLeft() {
 		return
 	}
@@ -89,7 +90,7 @@ func (processor *Processor) Decode() (errors []error) {
 }
 
 func (processor *Processor) Commit() (errors []error) {
-	errors = processor.Decode()
+	errors = processor.decode()
 	if processor.checkSkipLeft(errors...) {
 		return
 	}
