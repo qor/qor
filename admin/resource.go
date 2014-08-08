@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -18,6 +19,25 @@ type Resource struct {
 	newAttrs   []string
 	editAttrs  []string
 	showAttrs  []string
+}
+
+func (res *Resource) GetFinder() func(result interface{}, metaDatas resource.MetaDatas, context *qor.Context) error {
+	if res.Finder != nil {
+		return res.Finder
+	} else {
+		return func(result interface{}, metaDatas resource.MetaDatas, context *qor.Context) error {
+			if id := metaDatas.Get("_id"); id != nil {
+				if destroy := metaDatas.Get("_destroy"); destroy != nil {
+					if fmt.Sprintf("%v", destroy.Value) != "0" {
+						context.DB.Delete(result, id.Value)
+						return resource.ErrProcessorSkipLeft
+					}
+				}
+				return context.DB.First(result, id.Value).Error
+			}
+			return nil
+		}
+	}
 }
 
 func (r *Resource) IndexAttrs(columns ...string) {

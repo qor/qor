@@ -16,13 +16,17 @@ type Resource struct {
 
 type Resourcer interface {
 	GetResource() *Resource
-	Decode(result interface{}, metaDatas MetaDatas, context *qor.Context) *Processor
+	GetFinder() func(result interface{}, metaDatas MetaDatas, context *qor.Context) error
 	NewSlice() interface{}
 	NewStruct() interface{}
 }
 
 func (res *Resource) GetResource() *Resource {
 	return res
+}
+
+func (res *Resource) GetFinder() func(result interface{}, metaDatas MetaDatas, context *qor.Context) error {
+	return res.Finder
 }
 
 func (res *Resource) SetFinder(fc func(result interface{}, metaDatas MetaDatas, context *qor.Context) error) {
@@ -46,10 +50,6 @@ func (res *Resource) RegisterMeta(metaor Metaor) {
 	meta.Base = res
 	meta.UpdateMeta()
 	res.Metas[meta.Name] = metaor
-}
-
-func (res *Resource) Decode(result interface{}, metaDatas MetaDatas, context *qor.Context) *Processor {
-	return &Processor{Resource: res, Result: result, Context: context, MetaDatas: metaDatas}
 }
 
 func (res *Resource) NewSlice() interface{} {
