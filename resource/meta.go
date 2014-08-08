@@ -165,7 +165,10 @@ func (meta *Meta) UpdateMeta() {
 
 	if meta.Setter == nil {
 		meta.Setter = func(resource interface{}, metaDatas MetaDatas, context *qor.Context) {
-			metaData, err := metaDatas.Get(meta.Name)
+			metaData := metaDatas.Get(meta.Name)
+			if metaData == nil {
+				return
+			}
 			value := metaData.Value
 			if err != nil {
 				return

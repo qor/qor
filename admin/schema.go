@@ -24,14 +24,14 @@ func ConvertFormToMetaDatas(context *qor.Context, prefix string, res *Resource) 
 
 			if matches := isCurrent.FindStringSubmatch(key); len(matches) > 0 {
 				meta := metas[matches[0]]
-				metaData := resource.MetaData{Name: matches[0], Value: request.Form[prefix+key], Meta: meta}
+				metaData := &resource.MetaData{Name: matches[0], Value: request.Form[prefix+key], Meta: meta}
 				metaDatas = append(metaDatas, metaData)
 			} else if matches := isNext.FindStringSubmatch(key); len(matches) > 0 {
 				if _, ok := convertedMap[matches[1]]; !ok {
 					convertedMap[matches[1]] = true
 					meta := metas[matches[2]]
 					children := ConvertFormToMetaDatas(context, prefix+matches[1]+".", meta.GetMeta().Resource.(*Resource))
-					metaData := resource.MetaData{Name: matches[2], Meta: meta, MetaDatas: children}
+					metaData := &resource.MetaData{Name: matches[2], Meta: meta, MetaDatas: children}
 					metaDatas = append(metaDatas, metaData)
 				}
 			}
