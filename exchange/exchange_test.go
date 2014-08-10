@@ -23,7 +23,6 @@ var testdb = func() *gorm.DB {
 		panic(err)
 	}
 
-	// db.LogMode(true)
 	db.DropTable(&User{})
 	db.AutoMigrate(&User{})
 
