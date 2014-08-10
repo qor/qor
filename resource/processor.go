@@ -3,15 +3,14 @@ package resource
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/qor/qor"
-
-	"reflect"
 )
 
 var (
-	ErrProcessorRecordNotFound = errors.New("record not found")
-	ErrProcessorSkipLeft       = errors.New("skip left")
+	ErrProcessorRecordNotFound = errors.New("resource: record not found")
+	ErrProcessorSkipLeft       = errors.New("resource: skip left")
 )
 
 type processor struct {
@@ -71,27 +70,34 @@ func (processor *processor) decode() (errors []error) {
 	}
 
 	for _, metaData := range processor.MetaDatas {
-		if metaor := metaData.Meta; metaor != nil {
-			meta := metaor.GetMeta()
-			if len(metaData.MetaDatas) > 0 {
-				if res := meta.GetMeta().Resource; res != nil {
-					field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.Name)
-					if field.Kind() == reflect.Struct {
-						association := field.Addr().Interface()
-						errors = append(errors, DecodeToResource(res, association, metaData.MetaDatas, processor.Context).Start()...)
-					} else if field.Kind() == reflect.Slice {
-						value := reflect.New(field.Type().Elem())
-						errors = append(errors, DecodeToResource(res, value.Interface(), metaData.MetaDatas, processor.Context).Start()...)
-						if !reflect.DeepEqual(reflect.Zero(field.Type().Elem()).Interface(), value.Elem().Interface()) {
-							field.Set(reflect.Append(field, value.Elem()))
-						}
-					}
-				}
-			} else {
-				metaData.Meta.Set(processor.Result, processor.MetaDatas, processor.Context)
+		if metaData.Meta == nil {
+			continue
+		}
+
+		meta := metaData.Meta.GetMeta()
+		if len(metaData.MetaDatas) == 0 {
+			metaData.Meta.Set(processor.Result, processor.MetaDatas, processor.Context)
+			continue
+		}
+
+		res := meta.GetMeta().Resource
+		if res == nil {
+			continue
+		}
+
+		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.Name)
+		if field.Kind() == reflect.Struct {
+			association := field.Addr().Interface()
+			errors = append(errors, DecodeToResource(res, association, metaData.MetaDatas, processor.Context).Start()...)
+		} else if field.Kind() == reflect.Slice {
+			value := reflect.New(field.Type().Elem())
+			errors = append(errors, DecodeToResource(res, value.Interface(), metaData.MetaDatas, processor.Context).Start()...)
+			if !reflect.DeepEqual(reflect.Zero(field.Type().Elem()).Interface(), value.Elem().Interface()) {
+				field.Set(reflect.Append(field, value.Elem()))
 			}
 		}
 	}
+
 	return
 }
 
