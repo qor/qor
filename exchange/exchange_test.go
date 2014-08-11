@@ -29,12 +29,19 @@ var testdb = func() *gorm.DB {
 	return &db
 }()
 
-func TestImport(t *testing.T) {
-	ex := &Exchange{DB: testdb}
-	userRes := ex.NewResource(User{})
+var (
+	ex      *Exchange
+	userRes *Resource
+)
+
+func init() {
+	ex = &Exchange{DB: testdb}
+	userRes = ex.NewResource(User{})
 	userRes.RegisterMeta(&Meta{Meta: resource.Meta{Name: "Name", Label: "Name"}})
 	userRes.RegisterMeta(&Meta{Meta: resource.Meta{Name: "Age", Label: "Age"}})
+}
 
+func TestImport(t *testing.T) {
 	r, err := os.Open("simple.xlsx")
 	if err != nil {
 		t.Fatal(err)

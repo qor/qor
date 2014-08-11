@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/jinzhu/gorm"
@@ -59,8 +60,7 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 		return errors.New("exchange: " + err.Error())
 	}
 
-	// var mds resource.MetaValues
-	ctx.DB.Begin()
+	db := ctx.DB.Begin()
 	for _, sheet := range xf.Sheets {
 		if len(sheet.Rows) <= 1 {
 			continue
@@ -98,13 +98,21 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 				err = formatErrors(i+1, errs)
 				break
 			}
-			ctx.DB.Save(p.Result)
+			if err = db.Save(p.Result).Error; err != nil {
+				break
+			}
 		}
 	}
+
 	if err != nil {
-		ctx.DB.Rollback()
-	} else {
-		ctx.DB.Commit()
+		if err := db.Rollback().Error; err != nil {
+			log.Println("exchange: rollback:", err.Error())
+		}
+		return
+	}
+
+	if err = db.Commit().Error; err != nil {
+		return
 	}
 
 	return
