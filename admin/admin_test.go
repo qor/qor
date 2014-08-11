@@ -58,7 +58,7 @@ func init() {
 	db.AutoMigrate(&Language{})
 
 	admin := admin.New(&db)
-	user := admin.NewResource("user", User{})
+	user := admin.NewResource(User{})
 	user.RegisterMeta(&resource.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if languages := []Language{}; !context.DB.Find(&languages).RecordNotFound() {

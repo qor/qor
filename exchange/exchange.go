@@ -59,7 +59,7 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 		return errors.New("exchange: " + err.Error())
 	}
 
-	// var mds resource.MetaDatas
+	// var mds resource.MetaValues
 	ctx.DB.Begin()
 	for _, sheet := range xf.Sheets {
 		if len(sheet.Rows) <= 1 {
@@ -80,7 +80,7 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 				continue
 			}
 
-			mds := res.GetMetaDatas(vmap)
+			mds := res.GetMetaValues(vmap)
 			p := resource.DecodeToResource(res, res.NewStruct(), mds, ctx)
 			err = p.Initialize()
 			if err != nil && err != resource.ErrProcessorRecordNotFound {
@@ -120,14 +120,14 @@ func formatErrors(line int, errs []error) error {
 	return fmt.Errorf("line %d: %s", line, msg)
 }
 
-func (res *Resource) GetMetaDatas(vmap map[string]string) (mds resource.MetaDatas) {
+func (res *Resource) GetMetaValues(vmap map[string]string) (mds resource.MetaValues) {
 	for _, mr := range res.Metas {
 		m, ok := mr.(*Meta)
 		if !ok {
 			continue
 		}
 
-		md := resource.MetaData{Name: m.Label, Meta: m}
+		md := resource.MetaValue{Name: m.Label, Meta: m}
 		if m.Resource == nil {
 			md.Value = vmap[m.Label]
 			delete(vmap, m.Label)
@@ -141,7 +141,7 @@ func (res *Resource) GetMetaDatas(vmap map[string]string) (mds resource.MetaData
 			continue
 		}
 
-		md.MetaDatas = ms.GetMetaDatas(vmap)
+		md.MetaValues = ms.GetMetaValues(vmap)
 		mds = append(mds, &md)
 	}
 

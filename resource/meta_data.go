@@ -1,18 +1,18 @@
 package resource
 
-type MetaData struct {
-	Name      string
-	Value     interface{}
-	MetaDatas MetaDatas
-	Meta      Metaor
+type MetaValue struct {
+	Name       string
+	Value      interface{}
+	MetaValues MetaValues
+	Meta       Metaor
 }
 
-type MetaDatas []*MetaData
+type MetaValues []*MetaValue
 
-func (mds MetaDatas) Get(name string) *MetaData {
-	for _, md := range mds {
-		if md.Name == name {
-			return md
+func (mvs MetaValues) Get(name string) *MetaValue {
+	for _, mv := range mvs {
+		if mv.Name == name {
+			return mv
 		}
 	}
 

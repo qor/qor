@@ -9,14 +9,14 @@ import (
 type Resource struct {
 	Value      interface{}
 	Metas      map[string]Metaor
-	Finder     func(interface{}, MetaDatas, *qor.Context) error
-	validators []func(interface{}, MetaDatas, *qor.Context) []error
-	processors []func(interface{}, MetaDatas, *qor.Context) []error
+	Finder     func(interface{}, MetaValues, *qor.Context) error
+	validators []func(interface{}, MetaValues, *qor.Context) []error
+	processors []func(interface{}, MetaValues, *qor.Context) []error
 }
 
 type Resourcer interface {
 	GetResource() *Resource
-	GetFinder() func(result interface{}, metaDatas MetaDatas, context *qor.Context) error
+	GetFinder() func(result interface{}, metaValues MetaValues, context *qor.Context) error
 	NewSlice() interface{}
 	NewStruct() interface{}
 }
@@ -25,19 +25,19 @@ func (res *Resource) GetResource() *Resource {
 	return res
 }
 
-func (res *Resource) GetFinder() func(result interface{}, metaDatas MetaDatas, context *qor.Context) error {
+func (res *Resource) GetFinder() func(result interface{}, metaValues MetaValues, context *qor.Context) error {
 	return res.Finder
 }
 
-func (res *Resource) SetFinder(fc func(result interface{}, metaDatas MetaDatas, context *qor.Context) error) {
+func (res *Resource) SetFinder(fc func(result interface{}, metaValues MetaValues, context *qor.Context) error) {
 	res.Finder = fc
 }
 
-func (res *Resource) AddValidator(fc func(interface{}, MetaDatas, *qor.Context) []error) {
+func (res *Resource) AddValidator(fc func(interface{}, MetaValues, *qor.Context) []error) {
 	res.validators = append(res.validators, fc)
 }
 
-func (res *Resource) AddProcessor(fc func(interface{}, MetaDatas, *qor.Context) []error) {
+func (res *Resource) AddProcessor(fc func(interface{}, MetaValues, *qor.Context) []error) {
 	res.processors = append(res.processors, fc)
 }
 

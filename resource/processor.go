@@ -17,12 +17,12 @@ type processor struct {
 	Result    interface{}
 	Resource  Resourcer
 	Context   *qor.Context
-	MetaDatas MetaDatas
+	MetaValues MetaValues
 	SkipLeft  bool
 }
 
-func DecodeToResource(res Resourcer, result interface{}, metaDatas MetaDatas, context *qor.Context) *processor {
-	return &processor{Resource: res, Result: result, Context: context, MetaDatas: metaDatas}
+func DecodeToResource(res Resourcer, result interface{}, metaValues MetaValues, context *qor.Context) *processor {
+	return &processor{Resource: res, Result: result, Context: context, MetaValues: metaValues}
 }
 
 func (processor *processor) checkSkipLeft(errs ...error) bool {
@@ -43,7 +43,7 @@ func (processor *processor) Initialize() error {
 	err := ErrProcessorRecordNotFound
 	if finder := processor.Resource.GetFinder(); finder != nil {
 		fmt.Println(finder)
-		err = finder(processor.Result, processor.MetaDatas, processor.Context)
+		err = finder(processor.Result, processor.MetaValues, processor.Context)
 	}
 	processor.checkSkipLeft(err)
 	return err
@@ -55,7 +55,7 @@ func (processor *processor) Validate() (errors []error) {
 	}
 
 	for _, fc := range processor.Resource.GetResource().validators {
-		erres := fc(processor.Result, processor.MetaDatas, processor.Context)
+		erres := fc(processor.Result, processor.MetaValues, processor.Context)
 		if processor.checkSkipLeft(erres...) {
 			break
 		}
@@ -69,14 +69,14 @@ func (processor *processor) decode() (errors []error) {
 		return
 	}
 
-	for _, metaData := range processor.MetaDatas {
-		if metaData.Meta == nil {
+	for _, metaValue := range processor.MetaValues {
+		if metaValue.Meta == nil {
 			continue
 		}
 
-		meta := metaData.Meta.GetMeta()
-		if len(metaData.MetaDatas) == 0 {
-			metaData.Meta.Set(processor.Result, processor.MetaDatas, processor.Context)
+		meta := metaValue.Meta.GetMeta()
+		if len(metaValue.MetaValues) == 0 {
+			metaValue.Meta.Set(processor.Result, processor.MetaValues, processor.Context)
 			continue
 		}
 
@@ -88,10 +88,10 @@ func (processor *processor) decode() (errors []error) {
 		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.Name)
 		if field.Kind() == reflect.Struct {
 			association := field.Addr().Interface()
-			errors = append(errors, DecodeToResource(res, association, metaData.MetaDatas, processor.Context).Start()...)
+			errors = append(errors, DecodeToResource(res, association, metaValue.MetaValues, processor.Context).Start()...)
 		} else if field.Kind() == reflect.Slice {
 			value := reflect.New(field.Type().Elem())
-			errors = append(errors, DecodeToResource(res, value.Interface(), metaData.MetaDatas, processor.Context).Start()...)
+			errors = append(errors, DecodeToResource(res, value.Interface(), metaValue.MetaValues, processor.Context).Start()...)
 			if !reflect.DeepEqual(reflect.Zero(field.Type().Elem()).Interface(), value.Elem().Interface()) {
 				field.Set(reflect.Append(field, value.Elem()))
 			}
@@ -108,7 +108,7 @@ func (processor *processor) Commit() (errors []error) {
 	}
 
 	for _, fc := range processor.Resource.GetResource().processors {
-		erres := fc(processor.Result, processor.MetaDatas, processor.Context)
+		erres := fc(processor.Result, processor.MetaValues, processor.Context)
 		if processor.checkSkipLeft(erres...) {
 			break
 		}

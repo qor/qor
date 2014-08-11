@@ -19,7 +19,7 @@ type Meta struct {
 	Type          string
 	Label         string
 	Value         func(interface{}, *qor.Context) interface{}
-	Setter        func(resource interface{}, metaDatas MetaDatas, context *qor.Context)
+	Setter        func(resource interface{}, metaValues MetaValues, context *qor.Context)
 	Collection    interface{}
 	GetCollection func(interface{}, *qor.Context) [][]string
 	Resource      Resourcer
@@ -29,14 +29,14 @@ type Meta struct {
 type Metaor interface {
 	GetMeta() *Meta
 	HasPermission(rules.PermissionMode, *qor.Context) bool
-	Set(resource interface{}, value MetaDatas, context *qor.Context)
+	Set(resource interface{}, value MetaValues, context *qor.Context)
 }
 
 func (meta *Meta) GetMeta() *Meta {
 	return meta
 }
 
-func (meta *Meta) Set(resource interface{}, value MetaDatas, context *qor.Context) {
+func (meta *Meta) Set(resource interface{}, value MetaValues, context *qor.Context) {
 	if meta.Setter != nil {
 		meta.Setter(resource, value, context)
 	}
@@ -164,12 +164,12 @@ func (meta *Meta) UpdateMeta() {
 	}
 
 	if meta.Setter == nil {
-		meta.Setter = func(resource interface{}, metaDatas MetaDatas, context *qor.Context) {
-			metaData := metaDatas.Get(meta.Name)
-			if metaData == nil {
+		meta.Setter = func(resource interface{}, metaValues MetaValues, context *qor.Context) {
+			metaValue := metaValues.Get(meta.Name)
+			if metaValue == nil {
 				return
 			}
-			value := metaData.Value
+			value := metaValue.Value
 			scope := &gorm.Scope{Value: resource}
 			scopeField, _ := scope.FieldByName(meta.Name)
 			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Name)
