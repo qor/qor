@@ -15,10 +15,12 @@ import (
 func main() {
 	mux := http.NewServeMux()
 
-	admin := admin.New(&db)
+	creditCard := admin.NewResource(CreditCard{})
+	creditCard.RegisterMeta(&resource.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
-	user := admin.NewResource("user", User{})
+	user := admin.NewResource(User{})
 	user.IndexAttrs("name", "gender")
+	user.RegisterMeta(&resource.Meta{Name: "CreditCard", Resource: creditCard})
 	user.RegisterMeta(&resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
 	user.RegisterMeta(&resource.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
@@ -38,15 +40,12 @@ func main() {
 			}
 			return
 		}})
-	admin.NewResource("role", Role{})
-	admin.NewResource("language", Language{})
-	admin.AddToMux("/admin", mux)
 
-	// exchanger := exchange.New(&db)
-	// userexchanger := exchange.NewResource(&CreditCard{})
-	// ccexchanger.RegisterMeta(&exchange.Meta{Name: "Number", Label: "CC Number"})
-	// userexchanger.RegisterMeta(exchange.Meta{Name: "CreditCard", Resource: ccexchanger})
-	// exchanger.UseResource(userexchanger)
+	web := admin.New(&db)
+	web.UseResource(user)
+	web.NewResource(Role{})
+	web.NewResource(Language{})
+	web.AddToMux("/admin", mux)
 
 	fmt.Println("listening on :8080")
 	http.ListenAndServe(":8080", mux)
