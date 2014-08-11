@@ -34,6 +34,7 @@ func TestImport(t *testing.T) {
 	userRes := ex.NewResource(User{})
 	userRes.RegisterMeta(&Meta{Meta: resource.Meta{Name: "Name", Label: "Name"}})
 	userRes.RegisterMeta(&Meta{Meta: resource.Meta{Name: "Age", Label: "Age"}})
+
 	r, err := os.Open("simple.xlsx")
 	if err != nil {
 		t.Fatal(err)
@@ -45,6 +46,6 @@ func TestImport(t *testing.T) {
 	var users []User
 	testdb.Find(&users)
 	if len(users) != 3 {
-		t.Fatal("should get 3 records")
+		t.Fatalf("should get 3 records, but got %d", len(users))
 	}
 }

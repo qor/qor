@@ -60,6 +60,7 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 	}
 
 	// var mds resource.MetaDatas
+	ctx.DB.Begin()
 	for _, sheet := range xf.Sheets {
 		if len(sheet.Rows) <= 1 {
 			continue
@@ -82,7 +83,6 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 			mds := res.GetMetaDatas(vmap)
 			p := resource.DecodeToResource(res, res.NewStruct(), mds, ctx)
 			err = p.Initialize()
-			// printutils.PrettyPrint(vmap)
 			if err != nil && err != resource.ErrProcessorRecordNotFound {
 				err = formatErrors(i+1, []error{err})
 				break
@@ -100,6 +100,11 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 			}
 			ctx.DB.Save(p.Result)
 		}
+	}
+	if err != nil {
+		ctx.DB.Rollback()
+	} else {
+		ctx.DB.Commit()
 	}
 
 	return
