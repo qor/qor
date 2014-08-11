@@ -2,7 +2,6 @@ package resource
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 
 	"github.com/qor/qor"
@@ -14,11 +13,11 @@ var (
 )
 
 type processor struct {
-	Result    interface{}
-	Resource  Resourcer
-	Context   *qor.Context
+	Result     interface{}
+	Resource   Resourcer
+	Context    *qor.Context
 	MetaValues MetaValues
-	SkipLeft  bool
+	SkipLeft   bool
 }
 
 func DecodeToResource(res Resourcer, result interface{}, metaValues MetaValues, context *qor.Context) *processor {
@@ -42,7 +41,6 @@ func (processor *processor) checkSkipLeft(errs ...error) bool {
 func (processor *processor) Initialize() error {
 	err := ErrProcessorRecordNotFound
 	if finder := processor.Resource.GetFinder(); finder != nil {
-		fmt.Println(finder)
 		err = finder(processor.Result, processor.MetaValues, processor.Context)
 	}
 	processor.checkSkipLeft(err)

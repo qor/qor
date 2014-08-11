@@ -1,7 +1,6 @@
 package admin_test
 
 import (
-	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"net/http"
 	"net/url"
@@ -69,7 +68,7 @@ func TestUpdateHasOneRecord(t *testing.T) {
 
 func TestUpdateHasManyRecord(t *testing.T) {
 	user := User{Name: "update_record_and_has_many", Role: "admin", Addresses: []Address{{Address1: "address 1.1", Address2: "address 1.2"}, {Address1: "address 2.1"}, {Address1: "address 3.1"}}}
-	db.Debug().Save(&user)
+	db.Save(&user)
 
 	form := url.Values{
 		"QorResource.Name":                  {user.Name},
@@ -178,8 +177,7 @@ func TestUpdateManyToManyRecord(t *testing.T) {
 		}
 
 		var languages []Language
-		db.Debug().Model(&user).Related(&languages, "Languages")
-		fmt.Println(len(languages))
+		db.Model(&user).Related(&languages, "Languages")
 
 		if len(languages) != 1 {
 			t.Errorf("User should have one languages after update")
