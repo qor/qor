@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -28,16 +29,40 @@ func (e *Exchange) NewResource(val interface{}) *Resource {
 
 type Resource struct {
 	resource.Resource
+
+	AutoCreate  bool
+	StopOnError bool
+}
+
+func (res *Resource) RegisterMeta(meta *resource.Meta) *Meta {
+	m := &Meta{Meta: meta}
+	res.Resource.RegisterMeta(m)
+	return m
 }
 
 type Meta struct {
-	resource.Meta
+	*resource.Meta
 	MultiDelimiter       string
 	HasSequentialColumns bool
 }
 
+func (m *Meta) Set(field string, val interface{}) {
+	reflect.ValueOf(*m).FieldByName(field).Set(reflect.ValueOf(val))
+}
+
 func ImportFileName() {}
 func ImportFile()     {}
+
+type ImportInfo struct {
+	Line  int
+	Data  string
+	Error error
+}
+
+type LineInfo struct {
+	LineNum    int
+	MetaValues resource.MetaValues
+}
 
 func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 	f, err := ioutil.TempFile("", "qor.exchange.")
@@ -80,8 +105,8 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 				continue
 			}
 
-			mds := res.GetMetaValues(vmap)
-			p := resource.DecodeToResource(res, res.NewStruct(), mds, ctx)
+			mvs := res.GetMetaValues(vmap)
+			p := resource.DecodeToResource(res, res.NewStruct(), mvs, ctx)
 			err = p.Initialize()
 			if err != nil && err != resource.ErrProcessorRecordNotFound {
 				err = formatErrors(i+1, []error{err})
@@ -128,18 +153,18 @@ func formatErrors(line int, errs []error) error {
 	return fmt.Errorf("line %d: %s", line, msg)
 }
 
-func (res *Resource) GetMetaValues(vmap map[string]string) (mds resource.MetaValues) {
+func (res *Resource) GetMetaValues(vmap map[string]string) (mvs resource.MetaValues) {
 	for _, mr := range res.Metas {
 		m, ok := mr.(*Meta)
 		if !ok {
 			continue
 		}
 
-		md := resource.MetaValue{Name: m.Label, Meta: m}
+		mv := resource.MetaValue{Name: m.Label, Meta: m}
 		if m.Resource == nil {
-			md.Value = vmap[m.Label]
+			mv.Value = vmap[m.Label]
 			delete(vmap, m.Label)
-			mds = append(mds, &md)
+			mvs.Values = append(mvs.Values, &mv)
 
 			continue
 		}
@@ -149,8 +174,8 @@ func (res *Resource) GetMetaValues(vmap map[string]string) (mds resource.MetaVal
 			continue
 		}
 
-		md.MetaValues = ms.GetMetaValues(vmap)
-		mds = append(mds, &md)
+		mv.MetaValues = ms.GetMetaValues(vmap)
+		mvs.Values = append(mvs.Values, &mv)
 	}
 
 	return

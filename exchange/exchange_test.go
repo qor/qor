@@ -12,9 +12,14 @@ import (
 )
 
 type User struct {
-	Id   int64
-	Name string
-	Age  int
+	Id        int64
+	Name      string
+	Age       int
+	Addresses []Address
+}
+
+type Address struct {
+	String string
 }
 
 var testdb = func() *gorm.DB {
@@ -39,6 +44,16 @@ func init() {
 	userRes = ex.NewResource(User{})
 	userRes.RegisterMeta(&Meta{Meta: resource.Meta{Name: "Name", Label: "Name"}})
 	userRes.RegisterMeta(&Meta{Meta: resource.Meta{Name: "Age", Label: "Age"}})
+
+	addRes := ex.NewResource(Address{})
+	addRes.RegisterMeta(&Meta{Meta: resource.Meta{Name: "String", Label: "Address"}})
+
+	ex.AddValidator(func(rel interface{}, mvs MetaValues, ctx *qor.Context) {
+		addMvs := mvs.Get("Addresses")
+	})
+
+	// userRes.RegisterMeta(resource.Meta{Name: "xxx"})).Set("AutoCreate", true)
+	// userRes.AddValidator(func(rel interface{}, mvs MetaValues, ctx *qor.Context) {})
 }
 
 func TestImport(t *testing.T) {
