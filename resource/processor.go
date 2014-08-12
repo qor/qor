@@ -53,11 +53,11 @@ func (processor *processor) Validate() (errors []error) {
 	}
 
 	for _, fc := range processor.Resource.GetResource().validators {
-		erres := fc(processor.Result, processor.MetaValues, processor.Context)
-		if processor.checkSkipLeft(erres...) {
+		err := fc(processor.Result, processor.MetaValues, processor.Context)
+		if processor.checkSkipLeft(err) {
 			break
 		}
-		errors = append(errors, erres...)
+		errors = append(errors, err)
 	}
 	return
 }
@@ -67,14 +67,16 @@ func (processor *processor) decode() (errors []error) {
 		return
 	}
 
-	for _, metaValue := range processor.MetaValues {
+	for _, metaValue := range processor.MetaValues.Values {
 		if metaValue.Meta == nil {
 			continue
 		}
 
 		meta := metaValue.Meta.GetMeta()
-		if len(metaValue.MetaValues) == 0 {
-			metaValue.Meta.Set(processor.Result, processor.MetaValues, processor.Context)
+		if len(metaValue.MetaValues.Values) == 0 {
+			if setter := metaValue.Meta.GetMeta().Setter; setter != nil {
+				setter(processor.Result, processor.MetaValues, processor.Context)
+			}
 			continue
 		}
 
@@ -86,14 +88,15 @@ func (processor *processor) decode() (errors []error) {
 		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.Name)
 		if field.Kind() == reflect.Struct {
 			association := field.Addr().Interface()
-			errors = append(errors, DecodeToResource(res, association, metaValue.MetaValues, processor.Context).Start()...)
+			DecodeToResource(res, association, metaValue.MetaValues, processor.Context).Start()
 		} else if field.Kind() == reflect.Slice {
 			value := reflect.New(field.Type().Elem())
-			errors = append(errors, DecodeToResource(res, value.Interface(), metaValue.MetaValues, processor.Context).Start()...)
+			DecodeToResource(res, value.Interface(), metaValue.MetaValues, processor.Context).Start()
 			if !reflect.DeepEqual(reflect.Zero(field.Type().Elem()).Interface(), value.Elem().Interface()) {
 				field.Set(reflect.Append(field, value.Elem()))
 			}
 		}
+		processor.MetaValues.Errors = append(processor.MetaValues.Errors, metaValue.MetaValues.Errors...)
 	}
 
 	return
@@ -106,11 +109,11 @@ func (processor *processor) Commit() (errors []error) {
 	}
 
 	for _, fc := range processor.Resource.GetResource().processors {
-		erres := fc(processor.Result, processor.MetaValues, processor.Context)
-		if processor.checkSkipLeft(erres...) {
+		err := fc(processor.Result, processor.MetaValues, processor.Context)
+		if processor.checkSkipLeft(err) {
 			break
 		}
-		errors = append(errors, erres...)
+		errors = append(errors, err)
 	}
 	return
 }

@@ -1,17 +1,17 @@
 package resource
 
 import (
-	"github.com/qor/qor"
-
 	"reflect"
+
+	"github.com/qor/qor"
 )
 
 type Resource struct {
 	Value      interface{}
 	Metas      map[string]Metaor
 	Finder     func(interface{}, MetaValues, *qor.Context) error
-	validators []func(interface{}, MetaValues, *qor.Context) []error
-	processors []func(interface{}, MetaValues, *qor.Context) []error
+	validators []func(interface{}, MetaValues, *qor.Context) error
+	processors []func(interface{}, MetaValues, *qor.Context) error
 }
 
 type Resourcer interface {
@@ -33,11 +33,11 @@ func (res *Resource) SetFinder(fc func(result interface{}, metaValues MetaValues
 	res.Finder = fc
 }
 
-func (res *Resource) AddValidator(fc func(interface{}, MetaValues, *qor.Context) []error) {
+func (res *Resource) AddValidator(fc func(interface{}, MetaValues, *qor.Context) error) {
 	res.validators = append(res.validators, fc)
 }
 
-func (res *Resource) AddProcessor(fc func(interface{}, MetaValues, *qor.Context) []error) {
+func (res *Resource) AddProcessor(fc func(interface{}, MetaValues, *qor.Context) error) {
 	res.processors = append(res.processors, fc)
 }
 

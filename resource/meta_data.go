@@ -5,12 +5,22 @@ type MetaValue struct {
 	Value      interface{}
 	MetaValues MetaValues
 	Meta       Metaor
+
+	error error
 }
 
-type MetaValues []*MetaValue
+type MetaValues struct {
+	Values []*MetaValue
+	Errors []error
+}
+
+func (mvs *MetaValues) AddError(mv MetaValue, err error) {
+	mv.error = err
+	mvs.Errors = append(mvs.Errors, err)
+}
 
 func (mvs MetaValues) Get(name string) *MetaValue {
-	for _, mv := range mvs {
+	for _, mv := range mvs.Values {
 		if mv.Name == name {
 			return mv
 		}

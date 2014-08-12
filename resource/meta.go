@@ -2,10 +2,9 @@ package resource
 
 import (
 	"database/sql"
-	"strconv"
-
 	"reflect"
 	"regexp"
+	"strconv"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -29,17 +28,10 @@ type Meta struct {
 type Metaor interface {
 	GetMeta() *Meta
 	HasPermission(rules.PermissionMode, *qor.Context) bool
-	Set(resource interface{}, value MetaValues, context *qor.Context)
 }
 
 func (meta *Meta) GetMeta() *Meta {
 	return meta
-}
-
-func (meta *Meta) Set(resource interface{}, value MetaValues, context *qor.Context) {
-	if meta.Setter != nil {
-		meta.Setter(resource, value, context)
-	}
 }
 
 func (meta *Meta) HasPermission(mode rules.PermissionMode, context *qor.Context) bool {
