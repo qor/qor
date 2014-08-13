@@ -20,6 +20,7 @@ func main() {
 	user := admin.NewResource(User{})
 	user.IndexAttrs("name", "gender")
 	user.RegisterMeta(&resource.Meta{Name: "CreditCard", Resource: creditCard})
+
 	user.RegisterMeta(&resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
 	user.RegisterMeta(&resource.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
