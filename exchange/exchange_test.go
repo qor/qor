@@ -42,15 +42,16 @@ var (
 func init() {
 	ex = &Exchange{DB: testdb}
 	userRes = ex.NewResource(User{})
-	userRes.RegisterMeta(&Meta{Meta: resource.Meta{Name: "Name", Label: "Name"}})
-	userRes.RegisterMeta(&Meta{Meta: resource.Meta{Name: "Age", Label: "Age"}})
+
+	userRes.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
+	userRes.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
 
 	addRes := ex.NewResource(Address{})
-	addRes.RegisterMeta(&Meta{Meta: resource.Meta{Name: "String", Label: "Address"}})
+	addRes.RegisterMeta(&resource.Meta{Name: "String", Label: "Address"})
 
-	ex.AddValidator(func(rel interface{}, mvs MetaValues, ctx *qor.Context) {
-		addMvs := mvs.Get("Addresses")
-	})
+	// ex.AddValidator(func(rel interface{}, mvs MetaValues, ctx *qor.Context) {
+	// 	addMvs := mvs.Get("Addresses")
+	// })
 
 	// userRes.RegisterMeta(resource.Meta{Name: "xxx"})).Set("AutoCreate", true)
 	// userRes.AddValidator(func(rel interface{}, mvs MetaValues, ctx *qor.Context) {})
@@ -69,5 +70,17 @@ func TestImport(t *testing.T) {
 	testdb.Find(&users)
 	if len(users) != 3 {
 		t.Fatalf("should get 3 records, but got %d", len(users))
+	}
+}
+
+func TestMetaSet(t *testing.T) {
+	res := ex.NewResource(User{})
+	res.RegisterMeta(&resource.Meta{Name: "Name"}).Set("MultiDelimiter", ",").Set("HasSequentialColumns", true)
+	meta := res.Metas["Name"].(*Meta)
+	if meta.MultiDelimiter != "," {
+		t.Errorf(`MultiDelimiter should be "," instead of "%s"`, meta.MultiDelimiter)
+	}
+	if !meta.HasSequentialColumns {
+		t.Errorf(`MultiDelimiter should be "true" instead of "%s"`, meta.HasSequentialColumns)
 	}
 }

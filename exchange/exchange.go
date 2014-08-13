@@ -46,8 +46,9 @@ type Meta struct {
 	HasSequentialColumns bool
 }
 
-func (m *Meta) Set(field string, val interface{}) {
-	reflect.ValueOf(*m).FieldByName(field).Set(reflect.ValueOf(val))
+func (m *Meta) Set(field string, val interface{}) *Meta {
+	reflect.ValueOf(m).Elem().FieldByName(field).Set(reflect.ValueOf(val))
+	return m
 }
 
 func ImportFileName() {}
