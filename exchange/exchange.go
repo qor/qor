@@ -21,6 +21,10 @@ type Exchange struct {
 	DB        *gorm.DB
 }
 
+func New(db *gorm.DB) *Exchange {
+	return &Exchange{DB: db}
+}
+
 func (e *Exchange) NewResource(val interface{}) *Resource {
 	res := &Resource{Resource: resource.Resource{Value: val}}
 	e.Resources = append(e.Resources, res)

@@ -40,14 +40,15 @@ var (
 )
 
 func init() {
-	ex = &Exchange{DB: testdb}
+	ex = New(testdb)
 	userRes = ex.NewResource(User{})
 
 	userRes.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
 	userRes.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
 
 	addRes := ex.NewResource(Address{})
-	addRes.RegisterMeta(&resource.Meta{Name: "String", Label: "Address"})
+	addRes.RegisterMeta(&resource.Meta{Name: "Name", Label: "Address1"})
+	addRes.RegisterMeta(&resource.Meta{Name: "Name", Label: "Address2"})
 
 	// ex.AddValidator(func(rel interface{}, mvs MetaValues, ctx *qor.Context) {
 	// 	addMvs := mvs.Get("Addresses")
