@@ -2,7 +2,6 @@ package exchange
 
 import (
 	"archive/zip"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -58,37 +57,38 @@ func (m *Meta) Set(field string, val interface{}) *Meta {
 func ImportFileName() {}
 func ImportFile()     {}
 
-type ImportInfo struct {
-	Line  int
-	Data  string
-	Error error
-}
-
-type LineInfo struct {
+type ImportStatus struct {
 	LineNum    int
 	MetaValues resource.MetaValues
 }
 
-func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
+type FileInfo struct {
+	TotalLines int
+}
+
+func (res *Resource) Import(r io.Reader, ctx *qor.Context) (fi FileInfo, ii chan ImportStatus, err error) {
 	f, err := ioutil.TempFile("", "qor.exchange.")
 	if err != nil {
-		return errors.New("exchange: " + err.Error())
+		return
 	}
 	defer func() { f.Close() }()
 	_, err = io.Copy(f, r)
 	if err != nil {
-		return errors.New("exchange: " + err.Error())
+		return
 	}
 	defer func() { os.Remove(f.Name()) }()
 
 	zr, err := zip.OpenReader(f.Name())
 	if err != nil {
-		return errors.New("exchange: " + err.Error())
+		return
 	}
 	xf, err := xlsx.ReadZip(zr)
 	if err != nil {
-		return errors.New("exchange: " + err.Error())
+		return
 	}
+
+	xf, fi = preprocessXLSXFile(xf)
+	ii = make(chan ImportStatus, 10)
 
 	db := ctx.DB.Begin()
 	for _, sheet := range xf.Sheets {
@@ -99,15 +99,8 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 		headers := sheet.Rows[0].Cells
 		for i, row := range sheet.Rows[1:] {
 			vmap := map[string]string{}
-			empty := true
 			for j, cell := range row.Cells {
 				vmap[headers[j].Value] = cell.Value
-				if empty {
-					empty = cell.Value == ""
-				}
-			}
-			if empty {
-				continue
 			}
 
 			mvs := res.GetMetaValues(vmap)
@@ -143,6 +136,45 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (err error) {
 
 	if err = db.Commit().Error; err != nil {
 		return
+	}
+
+	return
+}
+
+func preprocessXLSXFile(xf *xlsx.File) (nxf *xlsx.File, fi FileInfo) {
+	nxf = new(xlsx.File)
+	for _, sheet := range xf.Sheets {
+		if len(sheet.Rows) == 0 {
+			continue
+		}
+
+		nsheet := *sheet
+		nsheet.Rows = []*xlsx.Row{}
+		for _, row := range sheet.Rows {
+			if len(row.Cells) == 0 {
+				continue
+			}
+
+			empty := true
+			for _, cell := range row.Cells {
+				if cell.Value == "" {
+					continue
+				}
+
+				empty = false
+				break
+			}
+
+			if empty {
+				continue
+			}
+
+			nsheet.Rows = append(nsheet.Rows, row)
+		}
+
+		nsheet.MaxRow = len(nsheet.Rows)
+		fi.TotalLines += nsheet.MaxRow
+		nxf.Sheets = append(nxf.Sheets, &nsheet)
 	}
 
 	return

@@ -19,7 +19,8 @@ type User struct {
 }
 
 type Address struct {
-	String string
+	Id   int64
+	Name string
 }
 
 var testdb = func() *gorm.DB {
@@ -63,7 +64,7 @@ func TestImport(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = userRes.Import(r, &qor.Context{DB: ex.DB})
+	_, _, err = userRes.Import(r, &qor.Context{DB: ex.DB})
 	if err != nil {
 		t.Fatal(err)
 	}
