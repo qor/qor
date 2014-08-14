@@ -70,5 +70,6 @@ func init() {
 		}})
 
 	admin.AddToMux("/admin", mux)
+
 	server = httptest.NewServer(mux)
 }

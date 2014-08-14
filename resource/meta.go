@@ -2,6 +2,7 @@ package resource
 
 import (
 	"database/sql"
+	"fmt"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -207,13 +208,17 @@ func (meta *Meta) UpdateMeta() {
 	}
 }
 
-func ToArray(value interface{}) []string {
+func ToArray(value interface{}) (values []string) {
 	if v, ok := value.([]string); ok {
 		return v
 	} else if v, ok := value.(string); ok {
 		return []string{v}
+	} else if vs, ok := value.([]interface{}); ok {
+		for _, v := range vs {
+			values = append(values, fmt.Sprintf("%v", v))
+		}
 	}
-	return []string{}
+	return
 }
 
 func ToString(value interface{}) string {

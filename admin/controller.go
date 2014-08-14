@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/qor/qor"
@@ -44,9 +45,21 @@ func (admin *Admin) New(context *qor.Context) {
 
 func (admin *Admin) Create(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
+	var errs []error
 
 	result := res.NewStruct()
-	resource.DecodeToResource(res, result, ConvertFormToMetaValues(context, "QorResource.", res), context).Start()
+	if context.Request.Header.Get("Content-Type") == "application/json" {
+		decoder := json.NewDecoder(context.Request.Body)
+		values := map[string]interface{}{}
+		if err := decoder.Decode(&values); err == nil {
+			errs = resource.DecodeToResource(res, result, ConvertMapToMetaValues(context, values, res), context).Start()
+		} else {
+			errs = append(errs, err)
+		}
+	} else {
+		errs = resource.DecodeToResource(res, result, ConvertFormToMetaValues(context, "QorResource.", res), context).Start()
+	}
+
 	admin.DB.Save(result)
 
 	primaryKey := fmt.Sprintf("%v", admin.DB.NewScope(result).PrimaryKeyValue())
