@@ -58,8 +58,7 @@ func init() {
 }
 
 func TestImport(t *testing.T) {
-	testdb.DropTable(&User{})
-	testdb.AutoMigrate(&User{})
+	cleanup()
 
 	r, err := os.Open("simple.xlsx")
 	if err != nil {
@@ -87,17 +86,24 @@ func TestImport(t *testing.T) {
 	}
 }
 
-func TestImportError(t *testing.T) {
+func cleanup() {
 	testdb.DropTable(&User{})
 	testdb.AutoMigrate(&User{})
+	testdb.DropTable(&Address{})
+	testdb.AutoMigrate(&Address{})
+}
+
+func TestImportError(t *testing.T) {
+	cleanup()
 
 	userRes := ex.NewResource(User{})
 	userRes.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
 	userRes.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	ferr := errors.New("error")
 	var i int
 	userRes.AddValidator(func(rel interface{}, mvs resource.MetaValues, ctx *qor.Context) error {
 		if i++; i == 2 {
-			return errors.New("error")
+			return ferr
 		}
 		return nil
 	})
@@ -106,7 +112,7 @@ func TestImportError(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fi, _, err := userRes.Import(r, &qor.Context{DB: ex.DB})
+	fi, iic, err := userRes.Import(r, &qor.Context{DB: ex.DB})
 	if err != nil {
 		t.Error(err)
 	}
@@ -122,6 +128,19 @@ func TestImportError(t *testing.T) {
 		t.Error("should return an error")
 	}
 
+	var j int
+	var errs []error
+	for ii := range iic {
+		errs = append(errs, ii.Errors...)
+		if j++; j == 3 {
+			break
+		}
+	}
+
+	if len(errs) != 1 && errs[0] != ferr {
+		t.Error("Should receive errors properlly")
+	}
+
 	var users []User
 	testdb.Find(&users)
 	if len(users) != 0 {
@@ -130,6 +149,8 @@ func TestImportError(t *testing.T) {
 }
 
 func TestMetaSet(t *testing.T) {
+	cleanup()
+
 	res := ex.NewResource(User{})
 	res.RegisterMeta(&resource.Meta{Name: "Name"}).Set("MultiDelimiter", ",").Set("HasSequentialColumns", true)
 	meta := res.Metas["Name"].(*Meta)

@@ -147,6 +147,14 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fi FileInfo, iic c
 	throttle := make(chan bool, 20)
 	defer func() { close(throttle) }()
 	var hasError bool
+	lock := new(sync.Mutex)
+	setError := func(h bool) {
+		lock.Lock()
+		if !hasError {
+			hasError = h
+		}
+		lock.Unlock()
+	}
 
 	db := ctx.DB.Begin()
 	for _, sheet := range xf.Sheets {
@@ -164,8 +172,7 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fi FileInfo, iic c
 			go func(line int, row *xlsx.Row, iic chan ImportStatus) {
 				ii := ImportStatus{Sheet: sheet.Name}
 				defer func() {
-					// TODO: test hasError
-					hasError = len(ii.Errors) > 0
+					setError(len(ii.Errors) > 0)
 					iic <- ii
 					<-throttle
 					wait.Done()
@@ -180,19 +187,16 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fi FileInfo, iic c
 				p := resource.DecodeToResource(res, res.NewStruct(), ii.MetaValues, ctx)
 
 				if err := p.Initialize(); err != nil && err != resource.ErrProcessorRecordNotFound {
-					// err = formatErrors(i+1, []error{err})
 					ii.Errors = []error{err}
 					return
 				}
 
 				if errs := p.Validate(); len(errs) > 0 {
-					// err = formatErrors(i+1, errs)
 					ii.Errors = errs
 					return
 				}
 
 				if errs := p.Commit(); len(errs) > 0 {
-					// err = formatErrors(i+1, errs)
 					ii.Errors = errs
 					return
 				}
