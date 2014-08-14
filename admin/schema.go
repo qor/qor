@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"fmt"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 
@@ -39,7 +38,6 @@ func ConvertMapToMetaValues(context *qor.Context, values map[string]interface{},
 						metaValue := &resource.MetaValue{Name: key, Meta: meta, MetaValues: children}
 						metaValues.Values = append(metaValues.Values, metaValue)
 					} else if meta != nil {
-						fmt.Println(vs)
 						metaValue := &resource.MetaValue{Name: key, Value: vs, Meta: meta}
 						metaValues.Values = append(metaValues.Values, metaValue)
 						break

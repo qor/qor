@@ -237,7 +237,6 @@ func TestCreateRecordWithJSON(t *testing.T) {
 
 		var languages []Language
 		db.Model(&user).Related(&languages, "Languages")
-		fmt.Println(languages)
 
 		if len(languages) != 2 {
 			t.Errorf("User should have two languages after create")

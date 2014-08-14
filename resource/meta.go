@@ -171,7 +171,9 @@ func (meta *Meta) UpdateMeta() {
 				relationship := scopeField.Relationship
 				if relationship != nil && relationship.Kind == "many_to_many" {
 					context.DB.Where(ToArray(value)).Find(field.Addr().Interface())
-					context.DB.Model(resource).Where(ToArray(value)).Association(meta.Name).Replace(field.Interface())
+					if !scope.PrimaryKeyZero() {
+						context.DB.Model(resource).Association(meta.Name).Replace(field.Interface())
+					}
 				} else {
 					switch field.Kind() {
 					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
