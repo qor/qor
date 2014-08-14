@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
@@ -11,7 +12,7 @@ import (
 	"strings"
 )
 
-func ConvertMapToMetaValues(context *qor.Context, values map[string]interface{}, res *Resource) (metaValues resource.MetaValues) {
+func ConvertMapToMetaValues(context *qor.Context, values map[string]interface{}, res *Resource) (metaValues *resource.MetaValues) {
 	metas := make(map[string]resource.Metaor)
 	if res != nil {
 		for _, attr := range res.AllAttrs() {
@@ -19,6 +20,7 @@ func ConvertMapToMetaValues(context *qor.Context, values map[string]interface{},
 		}
 	}
 
+	metaValues = new(resource.MetaValues)
 	for key, value := range values {
 		meta := metas[key]
 		if str, ok := value.(string); ok {
@@ -52,7 +54,7 @@ func ConvertMapToMetaValues(context *qor.Context, values map[string]interface{},
 	return
 }
 
-func ConvertFormToMetaValues(context *qor.Context, prefix string, res *Resource) (metaValues resource.MetaValues) {
+func ConvertFormToMetaValues(context *qor.Context, prefix string, res *Resource) (metaValues *resource.MetaValues) {
 	request := context.Request
 	convertedMap := make(map[string]bool)
 	metas := make(map[string]resource.Metaor)
@@ -62,6 +64,7 @@ func ConvertFormToMetaValues(context *qor.Context, prefix string, res *Resource)
 		}
 	}
 
+	metaValues = new(resource.MetaValues)
 	for key := range request.Form {
 		if strings.HasPrefix(key, prefix) {
 			key = strings.TrimPrefix(key, prefix)

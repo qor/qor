@@ -16,11 +16,11 @@ type processor struct {
 	Result     interface{}
 	Resource   Resourcer
 	Context    *qor.Context
-	MetaValues MetaValues
+	MetaValues *MetaValues
 	SkipLeft   bool
 }
 
-func DecodeToResource(res Resourcer, result interface{}, metaValues MetaValues, context *qor.Context) *processor {
+func DecodeToResource(res Resourcer, result interface{}, metaValues *MetaValues, context *qor.Context) *processor {
 	return &processor{Resource: res, Result: result, Context: context, MetaValues: metaValues}
 }
 
@@ -53,11 +53,12 @@ func (processor *processor) Validate() (errors []error) {
 	}
 
 	for _, fc := range processor.Resource.GetResource().validators {
-		err := fc(processor.Result, processor.MetaValues, processor.Context)
-		if processor.checkSkipLeft(err) {
-			break
+		if err := fc(processor.Result, processor.MetaValues, processor.Context); err != nil {
+			if processor.checkSkipLeft(err) {
+				break
+			}
+			errors = append(errors, err)
 		}
-		errors = append(errors, err)
 	}
 	return
 }
@@ -109,11 +110,12 @@ func (processor *processor) Commit() (errors []error) {
 	}
 
 	for _, fc := range processor.Resource.GetResource().processors {
-		err := fc(processor.Result, processor.MetaValues, processor.Context)
-		if processor.checkSkipLeft(err) {
-			break
+		if err := fc(processor.Result, processor.MetaValues, processor.Context); err != nil {
+			if processor.checkSkipLeft(err) {
+				break
+			}
+			errors = append(errors, err)
 		}
-		errors = append(errors, err)
 	}
 	return
 }

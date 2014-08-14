@@ -3,7 +3,7 @@ package resource
 type MetaValue struct {
 	Name       string
 	Value      interface{}
-	MetaValues MetaValues
+	MetaValues *MetaValues
 	Meta       Metaor
 
 	error error
@@ -14,7 +14,7 @@ type MetaValues struct {
 	Errors []error
 }
 
-func (mvs *MetaValues) AddError(mv MetaValue, err error) {
+func (mvs *MetaValues) AddError(mv *MetaValue, err error) {
 	mv.error = err
 	mvs.Errors = append(mvs.Errors, err)
 }

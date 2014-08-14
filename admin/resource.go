@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -21,11 +22,11 @@ type Resource struct {
 	showAttrs  []string
 }
 
-func (res *Resource) GetFinder() func(result interface{}, metaValues resource.MetaValues, context *qor.Context) error {
+func (res *Resource) GetFinder() func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
 	if res.Finder != nil {
 		return res.Finder
 	} else {
-		return func(result interface{}, metaValues resource.MetaValues, context *qor.Context) error {
+		return func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
 			if id := metaValues.Get("_id"); id != nil {
 				if destroy := metaValues.Get("_destroy"); destroy != nil {
 					if fmt.Sprintf("%v", destroy.Value) != "0" {

@@ -19,7 +19,7 @@ type Meta struct {
 	Type          string
 	Label         string
 	Value         func(interface{}, *qor.Context) interface{}
-	Setter        func(resource interface{}, metaValues MetaValues, context *qor.Context)
+	Setter        func(resource interface{}, metaValues *MetaValues, context *qor.Context)
 	Collection    interface{}
 	GetCollection func(interface{}, *qor.Context) [][]string
 	Resource      Resourcer
@@ -157,7 +157,7 @@ func (meta *Meta) UpdateMeta() {
 	}
 
 	if meta.Setter == nil {
-		meta.Setter = func(resource interface{}, metaValues MetaValues, context *qor.Context) {
+		meta.Setter = func(resource interface{}, metaValues *MetaValues, context *qor.Context) {
 			metaValue := metaValues.Get(meta.Name)
 			if metaValue == nil {
 				return
