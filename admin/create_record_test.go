@@ -3,7 +3,6 @@ package admin_test
 import (
 	"bytes"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -11,6 +10,9 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
+
+	_ "github.com/mattn/go-sqlite3"
 
 	"testing"
 )
@@ -31,6 +33,17 @@ func TestCreateRecord(t *testing.T) {
 		}
 	} else {
 		t.Errorf(err.Error())
+	}
+}
+
+func TestCreateRecordWithJSON(t *testing.T) {
+	json := `{"Name":"api_create_record", "Role":"admin"}`
+	buf := strings.NewReader(json)
+
+	if req, err := http.Post(server.URL+"/api/user", "application/json", buf); err == nil {
+		fmt.Println(req)
+		fmt.Println(err)
+		t.Errorf("sss")
 	}
 }
 
