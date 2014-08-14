@@ -1,9 +1,12 @@
 package admin
 
 import (
+	"fmt"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
+	"github.com/qor/qor/rules"
 
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -91,4 +94,34 @@ func ConvertFormToMetaValues(context *qor.Context, prefix string, res *Resource)
 		// }
 	}
 	return
+}
+
+func ConvertObjectToMap(context *qor.Context, object interface{}, res *Resource) interface{} {
+	reflectValue := reflect.Indirect(reflect.ValueOf(object))
+	switch reflectValue.Kind() {
+	case reflect.Slice:
+		len := reflectValue.Len()
+		values := []interface{}{}
+		for i := 0; i < len; i++ {
+			values = append(values, ConvertObjectToMap(context, reflectValue.Index(i).Interface(), res))
+		}
+		return values
+	case reflect.Struct:
+		values := map[string]interface{}{}
+		metas := res.ShowMetas()
+		for _, meta := range metas {
+			if meta.HasPermission(rules.Read, context) {
+				value := meta.Value(object, context)
+				fmt.Println(object)
+				fmt.Println(value)
+				if res, ok := meta.Resource.(*Resource); ok {
+					value = ConvertObjectToMap(context, value, res)
+				}
+				values[meta.Name] = value
+			}
+		}
+		return values
+	default:
+		panic("can't convert object to map")
+	}
 }

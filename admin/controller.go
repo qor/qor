@@ -18,13 +18,18 @@ func (admin *Admin) Dashboard(context *qor.Context) {
 }
 
 func (admin *Admin) Index(context *qor.Context) {
-	resource := admin.Resources[context.ResourceName]
+	res := admin.Resources[context.ResourceName]
 
-	result := resource.NewSlice()
+	result := res.NewSlice()
 	admin.DB.Find(result)
 
-	content := Content{Admin: admin, Context: context, Resource: resource, Result: result, Action: "index"}
+	fmt.Println(context.Request.Header)
+	content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index"}
 	admin.Render("index", content, rules.Read)
+
+	js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
+	context.Writer.Header().Set("Content-Type", "application/json")
+	context.Writer.Write(js)
 }
 
 func (admin *Admin) Show(context *qor.Context) {
