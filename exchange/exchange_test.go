@@ -64,10 +64,21 @@ func TestImport(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, err = userRes.Import(r, &qor.Context{DB: ex.DB})
+	fi, _, err := userRes.Import(r, &qor.Context{DB: ex.DB})
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	if fi.TotalLines != 4 {
+		t.Errorf("Total lines should be 4 instead of %d", fi.TotalLines)
+	}
+
+	select {
+	case <-fi.Done:
+	case err := <-fi.Error:
+		t.Fatal(err)
+	}
+
 	var users []User
 	testdb.Find(&users)
 	if len(users) != 3 {
