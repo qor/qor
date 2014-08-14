@@ -74,7 +74,7 @@ func (processor *processor) decode() (errors []error) {
 		}
 
 		meta := metaValue.Meta.GetMeta()
-		if len(metaValue.MetaValues.Values) == 0 {
+		if metaValue.MetaValues == nil {
 			if setter := metaValue.Meta.GetMeta().Setter; setter != nil {
 				setter(processor.Result, processor.MetaValues, processor.Context)
 			}
