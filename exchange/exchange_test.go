@@ -1,6 +1,7 @@
 package exchange
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -28,9 +29,6 @@ var testdb = func() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-
-	db.DropTable(&User{})
-	db.AutoMigrate(&User{})
 
 	return &db
 }()
@@ -60,13 +58,16 @@ func init() {
 }
 
 func TestImport(t *testing.T) {
+	testdb.DropTable(&User{})
+	testdb.AutoMigrate(&User{})
+
 	r, err := os.Open("simple.xlsx")
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 	fi, _, err := userRes.Import(r, &qor.Context{DB: ex.DB})
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	if fi.TotalLines != 4 {
@@ -76,13 +77,55 @@ func TestImport(t *testing.T) {
 	select {
 	case <-fi.Done:
 	case err := <-fi.Error:
-		t.Fatal(err)
+		t.Error(err)
 	}
 
 	var users []User
 	testdb.Find(&users)
 	if len(users) != 3 {
-		t.Fatalf("should get 3 records, but got %d", len(users))
+		t.Errorf("should get 3 records, but got %d", len(users))
+	}
+}
+
+func TestImportError(t *testing.T) {
+	testdb.DropTable(&User{})
+	testdb.AutoMigrate(&User{})
+
+	userRes := ex.NewResource(User{})
+	userRes.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
+	userRes.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	var i int
+	userRes.AddValidator(func(rel interface{}, mvs resource.MetaValues, ctx *qor.Context) error {
+		if i++; i == 2 {
+			return errors.New("error")
+		}
+		return nil
+	})
+
+	r, err := os.Open("simple.xlsx")
+	if err != nil {
+		t.Error(err)
+	}
+	fi, _, err := userRes.Import(r, &qor.Context{DB: ex.DB})
+	if err != nil {
+		t.Error(err)
+	}
+
+	hasError := true
+	select {
+	case <-fi.Done:
+	case err := <-fi.Error:
+		hasError = err != nil
+	}
+
+	if !hasError {
+		t.Error("should return an error")
+	}
+
+	var users []User
+	testdb.Find(&users)
+	if len(users) != 0 {
+		t.Errorf("should get 0 records, but got %d", len(users))
 	}
 }
 
