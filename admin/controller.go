@@ -19,27 +19,30 @@ func (admin *Admin) Dashboard(context *qor.Context) {
 
 func (admin *Admin) Index(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
-
 	result := res.NewSlice()
 	admin.DB.Find(result)
 
-	fmt.Println(context.Request.Header)
-	content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index"}
-	admin.Render("index", content, rules.Read)
-
-	js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
-	context.Writer.Header().Set("Content-Type", "application/json")
-	context.Writer.Write(js)
+	responder.With("html", func() {
+		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index"}
+		admin.Render("index", content, rules.Read)
+	}).With("json", func() {
+		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
+		context.Writer.Write(js)
+	}).Respond(writer, request)
 }
 
 func (admin *Admin) Show(context *qor.Context) {
-	resource := admin.Resources[context.ResourceName]
-
-	result := resource.NewStruct()
+	res := admin.Resources[context.ResourceName]
+	result := res.NewStruct()
 	admin.DB.First(result, context.ResourceID)
 
-	content := Content{Admin: admin, Context: context, Resource: resource, Result: result, Action: "edit"}
-	admin.Render("show", content, rules.Read, rules.Update)
+	responder.With("html", func() {
+		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "edit"}
+		admin.Render("show", content, rules.Read, rules.Update)
+	}).With("json", func() {
+		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
+		context.Writer.Write(js)
+	}).Respond(writer, request)
 }
 
 func (admin *Admin) New(context *qor.Context) {
@@ -49,7 +52,9 @@ func (admin *Admin) New(context *qor.Context) {
 }
 
 func (admin *Admin) decode(result interface{}, res *Resource, context *qor.Context) (errs []error) {
-	if context.Request.Header.Get("Content-Type") == "application/json" {
+	responder.With("html", func() {
+		errs = resource.DecodeToResource(res, result, ConvertFormToMetaValues(context, "QorResource.", res), context).Start()
+	}).With("json", func() {
 		decoder := json.NewDecoder(context.Request.Body)
 		values := map[string]interface{}{}
 		if err := decoder.Decode(&values); err == nil {
@@ -57,9 +62,7 @@ func (admin *Admin) decode(result interface{}, res *Resource, context *qor.Conte
 		} else {
 			errs = append(errs, err)
 		}
-	} else {
-		errs = resource.DecodeToResource(res, result, ConvertFormToMetaValues(context, "QorResource.", res), context).Start()
-	}
+	}).Respond(writer, request)
 	return errs
 }
 
