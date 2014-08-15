@@ -35,7 +35,7 @@ func (admin *Admin) Index(context *qor.Context) {
 func (admin *Admin) Show(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewStruct()
-	admin.DB.First(result, context.ResourceID)
+	res.GetFinder()(result, nil, context)
 
 	responder.With("html", func() {
 		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "edit"}

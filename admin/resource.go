@@ -27,14 +27,23 @@ func (res *Resource) GetFinder() func(result interface{}, metaValues *resource.M
 		return res.Finder
 	} else {
 		return func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
-			if id := metaValues.Get("_id"); id != nil {
-				if destroy := metaValues.Get("_destroy"); destroy != nil {
-					if fmt.Sprintf("%v", destroy.Value) != "0" {
-						context.DB.Delete(result, id.Value)
-						return resource.ErrProcessorSkipLeft
+			var primaryKey string
+			if metaValues == nil {
+				primaryKey = context.ResourceID
+			} else if id := metaValues.Get("_id"); id != nil {
+				primaryKey = resource.ToString(id.Value)
+			}
+
+			if primaryKey != "" {
+				if metaValues != nil {
+					if destroy := metaValues.Get("_destroy"); destroy != nil {
+						if fmt.Sprintf("%v", destroy.Value) != "0" {
+							context.DB.Delete(result, primaryKey)
+							return resource.ErrProcessorSkipLeft
+						}
 					}
 				}
-				return context.DB.First(result, id.Value).Error
+				return context.DB.First(result, primaryKey).Error
 			}
 			return nil
 		}
