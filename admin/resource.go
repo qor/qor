@@ -22,36 +22,6 @@ type Resource struct {
 	showAttrs  []string
 }
 
-func (res *Resource) CallSearcher(result interface{}, context *qor.Context) error {
-	if res.Searcher != nil {
-		return res.Searcher(result, context)
-	} else {
-		return context.DB.Find(result).Error
-	}
-}
-
-func (res *Resource) CallSaver(result interface{}, context *qor.Context) error {
-	if res.Saver != nil {
-		return res.Saver(result, context)
-	} else {
-		return context.DB.Save(result).Error
-	}
-}
-
-func (res *Resource) CallDeleter(result interface{}, context *qor.Context) error {
-	if res.Deleter != nil {
-		return res.Deleter(result, context)
-	} else {
-		db := context.DB.Delete(result, context.ResourceID)
-		if db.Error != nil {
-			return db.Error
-		} else if db.RowsAffected == 0 {
-			return gorm.RecordNotFound
-		}
-		return nil
-	}
-}
-
 func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
 	if res.Finder != nil {
 		return res.Finder(result, metaValues, context)
