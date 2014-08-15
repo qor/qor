@@ -34,8 +34,13 @@ func (e *Exchange) NewResource(val interface{}) *Resource {
 type Resource struct {
 	resource.Resource
 
+	// TODO
 	AutoCreate  bool
 	StopOnError bool
+	JobThrottle int
+
+	MultiDelimiter       string
+	HasSequentialColumns bool
 }
 
 func (res *Resource) RegisterMeta(meta *resource.Meta) *Meta {
@@ -46,13 +51,20 @@ func (res *Resource) RegisterMeta(meta *resource.Meta) *Meta {
 
 type Meta struct {
 	*resource.Meta
-	MultiDelimiter       string
-	HasSequentialColumns bool
+
+	// TODO
+	Optional     bool // make use of validator?
+	AliasHeaders []string
 }
 
 func (m *Meta) Set(field string, val interface{}) *Meta {
 	reflect.ValueOf(m).Elem().FieldByName(field).Set(reflect.ValueOf(val))
 	return m
+}
+
+// TODO
+func (m *Meta) NormalizeHeaders() {
+
 }
 
 func ImportFileName() {}
@@ -61,7 +73,7 @@ func ImportFile()     {}
 type ImportStatus struct {
 	LineNum    int
 	Sheet      string
-	MetaValues resource.MetaValues
+	MetaValues *resource.MetaValues
 	Errors     []error
 }
 
@@ -183,7 +195,7 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fi FileInfo, iic c
 					vmap[headers[j].Value] = cell.Value
 				}
 
-				ii.MetaValues = res.GetMetaValues(vmap)
+				ii.MetaValues = res.GetMetaValues(vmap, 0)
 				p := resource.DecodeToResource(res, res.NewStruct(), ii.MetaValues, ctx)
 
 				if err := p.Initialize(); err != nil && err != resource.ErrProcessorRecordNotFound {
@@ -211,45 +223,53 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fi FileInfo, iic c
 
 	wait.Wait()
 
-rollback:
 	if hasError {
-		if err := db.Rollback().Error; err != nil {
-			// log.Println("exchange: rollback:", err.Error())
-			fi.Error <- err
-		}
-		fi.Error <- errors.New("meet error in job processing")
-		return
+		goto rollback
 	}
 
 	if err := db.Commit().Error; err != nil {
 		fi.Error <- err
 		return
 	}
-
 	fi.Done <- true
-}
+	return
 
-// TODO: should handle this in package resource?
-func formatErrors(line int, errs []error) error {
-	var msg string
-	for _, e := range errs {
-		msg += e.Error() + ";"
+rollback:
+	if err := db.Rollback().Error; err != nil {
+		// log.Println("exchange: rollback:", err.Error())
+		fi.Error <- err
 	}
-
-	return fmt.Errorf("line %d: %s", line, msg)
+	fi.Error <- errors.New("meet error in job processing")
+	return
 }
 
-func (res *Resource) GetMetaValues(vmap map[string]string) (mvs resource.MetaValues) {
+// // TODO: should handle this in package resource?
+// func formatErrors(line int, errs []error) error {
+// 	var msg string
+// 	for _, e := range errs {
+// 		msg += e.Error() + ";"
+// 	}
+
+// 	return fmt.Errorf("line %d: %s", line, msg)
+// }
+
+func (res *Resource) GetMetaValues(vmap map[string]string, index int) (mvs *resource.MetaValues) {
+	mvs = new(resource.MetaValues)
 	for _, mr := range res.Metas {
 		m, ok := mr.(*Meta)
 		if !ok {
 			continue
 		}
 
-		mv := resource.MetaValue{Name: m.Label, Meta: m}
+		label := m.Label
+		if index > 0 {
+			label = fmtLabel(label, index)
+		}
+
+		mv := resource.MetaValue{Name: label, Meta: m}
 		if m.Resource == nil {
-			mv.Value = vmap[m.Label]
-			delete(vmap, m.Label)
+			mv.Value = vmap[label]
+			delete(vmap, label)
 			mvs.Values = append(mvs.Values, &mv)
 
 			continue
@@ -260,9 +280,46 @@ func (res *Resource) GetMetaValues(vmap map[string]string) (mvs resource.MetaVal
 			continue
 		}
 
-		mv.MetaValues = ms.GetMetaValues(vmap)
-		mvs.Values = append(mvs.Values, &mv)
+		if !ms.HasSequentialColumns {
+			mv.MetaValues = ms.GetMetaValues(vmap, 0)
+			mvs.Values = append(mvs.Values, &mv)
+
+			continue
+		}
+
+		i := 1
+		markMeta := ms.getNonOptionalMeta()
+		for {
+			if _, ok := vmap[fmtLabel(markMeta.Label, i)]; !ok {
+				break
+			}
+
+			nmv := mv
+			nmv.MetaValues = ms.GetMetaValues(vmap, i)
+			mvs.Values = append(mvs.Values, &nmv)
+			i++
+		}
 	}
 
 	return
+}
+
+func fmtLabel(l string, i int) string {
+	return fmt.Sprintf("%s %#02d", l, i)
+}
+
+// TODO: what if all metas are optional?
+func (res *Resource) getNonOptionalMeta() *Meta {
+	for _, mr := range res.Metas {
+		m, ok := mr.(*Meta)
+		if !ok {
+			continue
+		}
+
+		if !m.Optional {
+			return m
+		}
+	}
+
+	return nil
 }
