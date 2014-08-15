@@ -22,67 +22,59 @@ type Resource struct {
 	showAttrs  []string
 }
 
-func (res *Resource) GetSearcher() func(interface{}, *qor.Context) error {
+func (res *Resource) CallSearcher(result interface{}, context *qor.Context) error {
 	if res.Searcher != nil {
-		return res.Searcher
+		return res.Searcher(result, context)
 	} else {
-		return func(result interface{}, context *qor.Context) error {
-			return context.DB.Find(result).Error
-		}
+		return context.DB.Find(result).Error
 	}
 }
 
-func (res *Resource) GetSaver() func(interface{}, *qor.Context) error {
+func (res *Resource) CallSaver(result interface{}, context *qor.Context) error {
 	if res.Saver != nil {
-		return res.Saver
+		return res.Saver(result, context)
 	} else {
-		return func(result interface{}, context *qor.Context) error {
-			return context.DB.Save(result).Error
-		}
+		return context.DB.Save(result).Error
 	}
 }
 
-func (res *Resource) GetDeleter() func(interface{}, *qor.Context) error {
+func (res *Resource) CallDeleter(result interface{}, context *qor.Context) error {
 	if res.Deleter != nil {
-		return res.Deleter
+		return res.Deleter(result, context)
 	} else {
-		return func(result interface{}, context *qor.Context) error {
-			db := context.DB.Delete(result, context.ResourceID)
-			if db.Error != nil {
-				return db.Error
-			} else if db.RowsAffected == 0 {
-				return gorm.RecordNotFound
-			}
-			return nil
+		db := context.DB.Delete(result, context.ResourceID)
+		if db.Error != nil {
+			return db.Error
+		} else if db.RowsAffected == 0 {
+			return gorm.RecordNotFound
 		}
+		return nil
 	}
 }
 
-func (res *Resource) GetFinder() func(interface{}, *resource.MetaValues, *qor.Context) error {
+func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
 	if res.Finder != nil {
-		return res.Finder
+		return res.Finder(result, metaValues, context)
 	} else {
-		return func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
-			var primaryKey string
-			if metaValues == nil {
-				primaryKey = context.ResourceID
-			} else if id := metaValues.Get("_id"); id != nil {
-				primaryKey = resource.ToString(id.Value)
-			}
+		var primaryKey string
+		if metaValues == nil {
+			primaryKey = context.ResourceID
+		} else if id := metaValues.Get("_id"); id != nil {
+			primaryKey = resource.ToString(id.Value)
+		}
 
-			if primaryKey != "" {
-				if metaValues != nil {
-					if destroy := metaValues.Get("_destroy"); destroy != nil {
-						if fmt.Sprintf("%v", destroy.Value) != "0" {
-							context.DB.Delete(result, primaryKey)
-							return resource.ErrProcessorSkipLeft
-						}
+		if primaryKey != "" {
+			if metaValues != nil {
+				if destroy := metaValues.Get("_destroy"); destroy != nil {
+					if fmt.Sprintf("%v", destroy.Value) != "0" {
+						context.DB.Delete(result, primaryKey)
+						return resource.ErrProcessorSkipLeft
 					}
 				}
-				return context.DB.First(result, primaryKey).Error
 			}
-			return nil
+			return context.DB.First(result, primaryKey).Error
 		}
+		return nil
 	}
 }
 

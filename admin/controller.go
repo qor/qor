@@ -21,7 +21,7 @@ func (admin *Admin) Dashboard(context *qor.Context) {
 func (admin *Admin) Index(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewSlice()
-	res.GetSearcher()(result, context)
+	res.CallSearcher(result, context)
 
 	responder.With("html", func() {
 		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index"}
@@ -35,7 +35,7 @@ func (admin *Admin) Index(context *qor.Context) {
 func (admin *Admin) Show(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewStruct()
-	res.GetFinder()(result, nil, context)
+	res.CallFinder(result, nil, context)
 
 	responder.With("html", func() {
 		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "edit"}
@@ -71,7 +71,7 @@ func (admin *Admin) Create(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewStruct()
 	if errs := admin.decode(result, res, context); len(errs) == 0 {
-		res.GetSaver()(result, context)
+		res.CallSaver(result, context)
 		primaryKey := fmt.Sprintf("%v", admin.DB.NewScope(result).PrimaryKeyValue())
 		http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
 	}
@@ -80,9 +80,9 @@ func (admin *Admin) Create(context *qor.Context) {
 func (admin *Admin) Update(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewStruct()
-	if res.GetFinder()(result, nil, context) == nil {
+	if res.CallFinder(result, nil, context) == nil {
 		if errs := admin.decode(result, res, context); len(errs) == 0 {
-			res.GetSaver()(result, context)
+			res.CallSaver(result, context)
 			http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 		}
 	}
@@ -91,7 +91,7 @@ func (admin *Admin) Update(context *qor.Context) {
 func (admin *Admin) Delete(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
 
-	if res.GetDeleter()(res.NewStruct(), context) == nil {
+	if res.CallDeleter(res.NewStruct(), context) == nil {
 		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.Name), http.StatusFound)
 	} else {
 		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.Name), http.StatusNotFound)

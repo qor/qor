@@ -40,9 +40,7 @@ func (processor *processor) checkSkipLeft(errs ...error) bool {
 
 func (processor *processor) Initialize() error {
 	err := ErrProcessorRecordNotFound
-	if finder := processor.Resource.GetFinder(); finder != nil {
-		err = finder(processor.Result, processor.MetaValues, processor.Context)
-	}
+	err = processor.Resource.CallFinder(processor.Result, processor.MetaValues, processor.Context)
 	processor.checkSkipLeft(err)
 	return err
 }
