@@ -15,31 +15,41 @@ import (
 	"github.com/tealeg/xlsx"
 )
 
+// TODO: support csv files
+
 type Exchange struct {
-	Resources []*Resource
-	// DB        *gorm.DB
+	Resource *Resource
+
+	// TODO
+	JobThrottle      int
+	StopOnError      bool
+	NormalizeHeaders func(sheet *xlsx.Sheet) []string
 }
 
-func New() *Exchange {
-	return &Exchange{}
-}
-
-func (e *Exchange) NewResource(val interface{}) *Resource {
-	res := &Resource{Resource: resource.Resource{Value: val}}
-	e.Resources = append(e.Resources, res)
-	return res
+func New(res *Resource) *Exchange {
+	return &Exchange{
+		Resource:    res,
+		JobThrottle: 1,
+		NormalizeHeaders: func(sheet *xlsx.Sheet) (headers []string) {
+			for _, c := range sheet.Rows[0].Cells {
+				headers = append(headers, c.Value)
+			}
+			return
+		},
+	}
 }
 
 type Resource struct {
 	resource.Resource
 
 	// TODO
-	AutoCreate  bool
-	StopOnError bool
-	JobThrottle int
-
+	AutoCreate           bool
 	MultiDelimiter       string
 	HasSequentialColumns bool
+}
+
+func NewResource(val interface{}) *Resource {
+	return &Resource{Resource: resource.Resource{Value: val}}
 }
 
 func (res *Resource) RegisterMeta(meta *resource.Meta) *Meta {
@@ -61,11 +71,6 @@ func (m *Meta) Set(field string, val interface{}) *Meta {
 	return m
 }
 
-// TODO
-func (m *Meta) NormalizeHeaders() {
-
-}
-
 func ImportFileName() {}
 func ImportFile()     {}
 
@@ -82,7 +87,7 @@ type FileInfo struct {
 	Error      chan error
 }
 
-func (res *Resource) Import(r io.Reader, ctx *qor.Context) (fileInfo FileInfo, importStatusChan chan ImportStatus, err error) {
+func (ex *Exchange) Import(r io.Reader, ctx *qor.Context) (fileInfo FileInfo, importStatusChan chan ImportStatus, err error) {
 	f, err := ioutil.TempFile("", "qor.exchange.")
 	if err != nil {
 		return
@@ -108,7 +113,7 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (fileInfo FileInfo, i
 	fileInfo.Error = make(chan error)
 	importStatusChan = make(chan ImportStatus, 10)
 
-	go res.process(xf, ctx, fileInfo, importStatusChan)
+	go ex.process(xf, ctx, fileInfo, importStatusChan)
 
 	return
 }
@@ -152,7 +157,7 @@ func preprocessXLSXFile(xf *xlsx.File) (totalLines int, nxf *xlsx.File) {
 	return
 }
 
-func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fileInfo FileInfo, importStatusChan chan ImportStatus) {
+func (ex *Exchange) process(xf *xlsx.File, ctx *qor.Context, fileInfo FileInfo, importStatusChan chan ImportStatus) {
 	var wait sync.WaitGroup
 	wait.Add(fileInfo.TotalLines - 1)
 	throttle := make(chan bool, 20)
@@ -168,6 +173,7 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fileInfo FileInfo,
 	}
 
 	db := ctx.DB.Begin()
+	res := ex.Resource
 	for _, sheet := range xf.Sheets {
 		if len(sheet.Rows) <= 1 {
 			continue
@@ -194,9 +200,10 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fileInfo FileInfo,
 					vmap[headers[j].Value] = cell.Value
 				}
 
-				importStatus.MetaValues = res.GetMetaValues(vmap, 0)
+				importStatus.MetaValues = res.getMetaValues(vmap, 0)
 				processor := resource.DecodeToResource(res, res.NewStruct(), importStatus.MetaValues, ctx)
 
+				// TODO: handle skip left
 				if err := processor.Initialize(); err != nil && err != resource.ErrProcessorRecordNotFound {
 					importStatus.Errors = []error{err}
 					return
@@ -212,6 +219,7 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fileInfo FileInfo,
 					return
 				}
 
+				// TODO: replace it with processor.Save
 				if err := db.Save(processor.Result).Error; err != nil {
 					importStatus.Errors = []error{err}
 					return
@@ -241,7 +249,7 @@ rollback:
 	return
 }
 
-func (res *Resource) GetMetaValues(vmap map[string]string, index int) (mvs *resource.MetaValues) {
+func (res *Resource) getMetaValues(vmap map[string]string, index int) (mvs *resource.MetaValues) {
 	mvs = new(resource.MetaValues)
 	for _, mr := range res.Metas {
 		m, ok := mr.(*Meta)
@@ -269,7 +277,7 @@ func (res *Resource) GetMetaValues(vmap map[string]string, index int) (mvs *reso
 		}
 
 		if !metaResource.HasSequentialColumns {
-			mv.MetaValues = metaResource.GetMetaValues(vmap, 0)
+			mv.MetaValues = metaResource.getMetaValues(vmap, 0)
 			mvs.Values = append(mvs.Values, &mv)
 
 			continue
@@ -283,7 +291,7 @@ func (res *Resource) GetMetaValues(vmap map[string]string, index int) (mvs *reso
 			}
 
 			nmv := mv
-			nmv.MetaValues = metaResource.GetMetaValues(vmap, i)
+			nmv.MetaValues = metaResource.getMetaValues(vmap, i)
 			mvs.Values = append(mvs.Values, &nmv)
 			i++
 		}
@@ -292,6 +300,7 @@ func (res *Resource) GetMetaValues(vmap map[string]string, index int) (mvs *reso
 	return
 }
 
+// TODO: support both "header 01" and "header 1"
 func fmtLabel(l string, i int) string {
 	return fmt.Sprintf("%s %#02d", l, i)
 }

@@ -35,21 +35,21 @@ var (
 
 		return &db
 	}()
-	ex = New()
 )
 
 func TestImportSimple(t *testing.T) {
 	cleanup()
 
-	useres := ex.NewResource(User{})
+	useres := NewResource(User{})
 	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
 	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	ex := New(useres)
 
 	r, err := os.Open("simple.xlsx")
 	if err != nil {
 		t.Fatal(err)
 	}
-	fi, _, err := useres.Import(r, &qor.Context{DB: ex.DB})
+	fi, _, err := ex.Import(r, &qor.Context{DB: testdb})
 	if err != nil {
 		t.Error(err)
 	}
@@ -74,19 +74,20 @@ func TestImportSimple(t *testing.T) {
 func TestImportNested(t *testing.T) {
 	cleanup()
 
-	useres := ex.NewResource(User{})
+	useres := NewResource(User{})
 	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
 	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
-	addres := ex.NewResource(Address{})
+	addres := NewResource(Address{})
 	addres.HasSequentialColumns = true
 	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
 	addres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Address"})
+	ex := New(useres)
 
 	r, err := os.Open("nested_resource.xlsx")
 	if err != nil {
 		t.Fatal(err)
 	}
-	fi, _, err := useres.Import(r, &qor.Context{DB: ex.DB})
+	fi, _, err := ex.Import(r, &qor.Context{DB: testdb})
 	if err != nil {
 		t.Error(err)
 	}
@@ -123,9 +124,10 @@ func cleanup() {
 func TestImportError(t *testing.T) {
 	cleanup()
 
-	useres := ex.NewResource(User{})
+	useres := NewResource(User{})
 	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
 	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	ex := New(useres)
 	ferr := errors.New("error")
 	var i int
 	useres.AddValidator(func(rel interface{}, mvs *resource.MetaValues, ctx *qor.Context) error {
@@ -139,7 +141,7 @@ func TestImportError(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fi, iic, err := useres.Import(r, &qor.Context{DB: ex.DB})
+	fi, iic, err := ex.Import(r, &qor.Context{DB: testdb})
 	if err != nil {
 		t.Error(err)
 	}
@@ -176,15 +178,15 @@ func TestImportError(t *testing.T) {
 }
 
 func TestGetMetaValues(t *testing.T) {
-	useres := ex.NewResource(User{})
+	useres := NewResource(User{})
 	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
 	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
-	addres := ex.NewResource(Address{})
+	addres := NewResource(Address{})
 	addres.HasSequentialColumns = true
 	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
 	addres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Address"})
 
-	mvs := useres.GetMetaValues(map[string]string{
+	mvs := useres.getMetaValues(map[string]string{
 		"Name":       "Van",
 		"Address 01": "China",
 		"Address 02": "USA",
