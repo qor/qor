@@ -35,7 +35,7 @@ var (
 
 		return &db
 	}()
-	ex = New(testdb)
+	ex = New()
 )
 
 func TestImportSimple(t *testing.T) {
@@ -71,55 +71,47 @@ func TestImportSimple(t *testing.T) {
 	}
 }
 
-// func TestImportNested(t *testing.T) {
-// 	cleanup()
+func TestImportNested(t *testing.T) {
+	cleanup()
 
-// 	useres := ex.NewResource(User{})
-// 	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
-// 	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
-// 	addres := ex.NewResource(Address{})
-// 	addres.HasSequentialColumns = true
-// 	addres.SetFinder(func(address interface{}, mvs *resource.MetaValues, ctx *qor.Context) error {
-// 		println("Finder")
-// 		return nil
-// 	})
-// 	addres.AddProcessor(func(address interface{}, mvs *resource.MetaValues, ctx *qor.Context) error {
-// 		fmt.Printf("%#v\n", address)
-// 		return nil
-// 	})
-// 	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
-// 	addres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Address"})
+	useres := ex.NewResource(User{})
+	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
+	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	addres := ex.NewResource(Address{})
+	addres.HasSequentialColumns = true
+	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
+	addres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Address"})
 
-// 	r, err := os.Open("nested_resource.xlsx")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	fi, _, err := useres.Import(r, &qor.Context{DB: ex.DB})
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
+	r, err := os.Open("nested_resource.xlsx")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fi, _, err := useres.Import(r, &qor.Context{DB: ex.DB})
+	if err != nil {
+		t.Error(err)
+	}
 
-// 	if fi.TotalLines != 4 {
-// 		t.Errorf("Total lines should be 4 instead of %d", fi.TotalLines)
-// 	}
+	if fi.TotalLines != 4 {
+		t.Errorf("Total lines should be 4 instead of %d", fi.TotalLines)
+	}
 
-// 	select {
-// 	case <-fi.Done:
-// 	case err := <-fi.Error:
-// 		t.Error(err)
-// 	}
+	select {
+	case <-fi.Done:
+	case err := <-fi.Error:
+		t.Error(err)
+	}
 
-// 	var users []User
-// 	testdb.Find(&users)
-// 	if len(users) != 3 {
-// 		t.Errorf("should get 3 users, but got %d", len(users))
-// 	}
-// 	var addresses []Address
-// 	testdb.Find(&addresses)
-// 	if len(addresses) != 6 {
-// 		t.Errorf("should get 6 addresses, but got %d", len(addresses))
-// 	}
-// }
+	var users []User
+	testdb.Find(&users)
+	if len(users) != 3 {
+		t.Errorf("should get 3 users, but got %d", len(users))
+	}
+	var addresses []Address
+	testdb.Find(&addresses)
+	if len(addresses) != 6 {
+		t.Errorf("should get 6 addresses, but got %d", len(addresses))
+	}
+}
 
 func cleanup() {
 	testdb.DropTable(&User{})
@@ -182,21 +174,6 @@ func TestImportError(t *testing.T) {
 		t.Errorf("should get 0 records, but got %d", len(users))
 	}
 }
-
-// TODO: FIXIT
-// func TestMetaSet(t *testing.T) {
-// 	cleanup()
-
-// 	res := ex.NewResource(User{})
-// 	res.RegisterMeta(&resource.Meta{Name: "Name"}).Set("MultiDelimiter", ",").Set("HasSequentialColumns", true)
-// 	meta := res.Metas["Name"].(*Meta)
-// 	if meta.MultiDelimiter != "," {
-// 		t.Errorf(`MultiDelimiter should be "," instead of "%s"`, meta.MultiDelimiter)
-// 	}
-// 	if !meta.HasSequentialColumns {
-// 		t.Errorf(`MultiDelimiter should be "true" instead of "%s"`, meta.HasSequentialColumns)
-// 	}
-// }
 
 func TestGetMetaValues(t *testing.T) {
 	useres := ex.NewResource(User{})

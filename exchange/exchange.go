@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/tealeg/xlsx"
@@ -18,11 +17,11 @@ import (
 
 type Exchange struct {
 	Resources []*Resource
-	DB        *gorm.DB
+	// DB        *gorm.DB
 }
 
-func New(db *gorm.DB) *Exchange {
-	return &Exchange{DB: db}
+func New() *Exchange {
+	return &Exchange{}
 }
 
 func (e *Exchange) NewResource(val interface{}) *Resource {
@@ -83,7 +82,7 @@ type FileInfo struct {
 	Error      chan error
 }
 
-func (res *Resource) Import(r io.Reader, ctx *qor.Context) (fi FileInfo, iic chan ImportStatus, err error) {
+func (res *Resource) Import(r io.Reader, ctx *qor.Context) (fileInfo FileInfo, importStatusChan chan ImportStatus, err error) {
 	f, err := ioutil.TempFile("", "qor.exchange.")
 	if err != nil {
 		return
@@ -104,12 +103,12 @@ func (res *Resource) Import(r io.Reader, ctx *qor.Context) (fi FileInfo, iic cha
 		return
 	}
 
-	fi.TotalLines, xf = preprocessXLSXFile(xf)
-	fi.Done = make(chan bool)
-	fi.Error = make(chan error)
-	iic = make(chan ImportStatus, 10)
+	fileInfo.TotalLines, xf = preprocessXLSXFile(xf)
+	fileInfo.Done = make(chan bool)
+	fileInfo.Error = make(chan error)
+	importStatusChan = make(chan ImportStatus, 10)
 
-	go res.process(xf, ctx, fi, iic)
+	go res.process(xf, ctx, fileInfo, importStatusChan)
 
 	return
 }
@@ -153,9 +152,9 @@ func preprocessXLSXFile(xf *xlsx.File) (totalLines int, nxf *xlsx.File) {
 	return
 }
 
-func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fi FileInfo, iic chan ImportStatus) {
+func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fileInfo FileInfo, importStatusChan chan ImportStatus) {
 	var wait sync.WaitGroup
-	wait.Add(fi.TotalLines - 1)
+	wait.Add(fileInfo.TotalLines - 1)
 	throttle := make(chan bool, 20)
 	defer func() { close(throttle) }()
 	var hasError bool
@@ -182,10 +181,10 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fi FileInfo, iic c
 			}
 
 			go func(line int, row *xlsx.Row, iic chan ImportStatus) {
-				ii := ImportStatus{Sheet: sheet.Name}
+				importStatus := ImportStatus{Sheet: sheet.Name}
 				defer func() {
-					setError(len(ii.Errors) > 0)
-					iic <- ii
+					setError(len(importStatus.Errors) > 0)
+					importStatusChan <- importStatus
 					<-throttle
 					wait.Done()
 				}()
@@ -195,29 +194,29 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fi FileInfo, iic c
 					vmap[headers[j].Value] = cell.Value
 				}
 
-				ii.MetaValues = res.GetMetaValues(vmap, 0)
-				p := resource.DecodeToResource(res, res.NewStruct(), ii.MetaValues, ctx)
+				importStatus.MetaValues = res.GetMetaValues(vmap, 0)
+				processor := resource.DecodeToResource(res, res.NewStruct(), importStatus.MetaValues, ctx)
 
-				if err := p.Initialize(); err != nil && err != resource.ErrProcessorRecordNotFound {
-					ii.Errors = []error{err}
+				if err := processor.Initialize(); err != nil && err != resource.ErrProcessorRecordNotFound {
+					importStatus.Errors = []error{err}
 					return
 				}
 
-				if errs := p.Validate(); len(errs) > 0 {
-					ii.Errors = errs
+				if errs := processor.Validate(); len(errs) > 0 {
+					importStatus.Errors = errs
 					return
 				}
 
-				if errs := p.Commit(); len(errs) > 0 {
-					ii.Errors = errs
+				if errs := processor.Commit(); len(errs) > 0 {
+					importStatus.Errors = errs
 					return
 				}
 
-				if err := db.Save(p.Result).Error; err != nil {
-					ii.Errors = []error{err}
+				if err := db.Save(processor.Result).Error; err != nil {
+					importStatus.Errors = []error{err}
 					return
 				}
-			}(i, row, iic)
+			}(i, row, importStatusChan)
 		}
 	}
 
@@ -228,30 +227,19 @@ func (res *Resource) process(xf *xlsx.File, ctx *qor.Context, fi FileInfo, iic c
 	}
 
 	if err := db.Commit().Error; err != nil {
-		fi.Error <- err
+		fileInfo.Error <- err
 		return
 	}
-	fi.Done <- true
+	fileInfo.Done <- true
 	return
 
 rollback:
 	if err := db.Rollback().Error; err != nil {
-		// log.Println("exchange: rollback:", err.Error())
-		fi.Error <- err
+		fileInfo.Error <- err
 	}
-	fi.Error <- errors.New("meet error in job processing")
+	fileInfo.Error <- errors.New("meet error in job processing")
 	return
 }
-
-// // TODO: should handle this in package resource?
-// func formatErrors(line int, errs []error) error {
-// 	var msg string
-// 	for _, e := range errs {
-// 		msg += e.Error() + ";"
-// 	}
-
-// 	return fmt.Errorf("line %d: %s", line, msg)
-// }
 
 func (res *Resource) GetMetaValues(vmap map[string]string, index int) (mvs *resource.MetaValues) {
 	mvs = new(resource.MetaValues)
@@ -266,7 +254,7 @@ func (res *Resource) GetMetaValues(vmap map[string]string, index int) (mvs *reso
 			label = fmtLabel(label, index)
 		}
 
-		mv := resource.MetaValue{Name: label, Meta: m}
+		mv := resource.MetaValue{Name: m.Name, Meta: m}
 		if m.Resource == nil {
 			mv.Value = vmap[label]
 			delete(vmap, label)
@@ -275,27 +263,27 @@ func (res *Resource) GetMetaValues(vmap map[string]string, index int) (mvs *reso
 			continue
 		}
 
-		ms, ok := m.Resource.(*Resource)
+		metaResource, ok := m.Resource.(*Resource)
 		if !ok {
 			continue
 		}
 
-		if !ms.HasSequentialColumns {
-			mv.MetaValues = ms.GetMetaValues(vmap, 0)
+		if !metaResource.HasSequentialColumns {
+			mv.MetaValues = metaResource.GetMetaValues(vmap, 0)
 			mvs.Values = append(mvs.Values, &mv)
 
 			continue
 		}
 
 		i := 1
-		markMeta := ms.getNonOptionalMeta()
+		markMeta := metaResource.getNonOptionalMeta()
 		for {
 			if _, ok := vmap[fmtLabel(markMeta.Label, i)]; !ok {
 				break
 			}
 
 			nmv := mv
-			nmv.MetaValues = ms.GetMetaValues(vmap, i)
+			nmv.MetaValues = metaResource.GetMetaValues(vmap, i)
 			mvs.Values = append(mvs.Values, &nmv)
 			i++
 		}
