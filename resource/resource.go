@@ -9,7 +9,10 @@ import (
 type Resource struct {
 	Value      interface{}
 	Metas      map[string]Metaor
+	Searcher   func(interface{}, *qor.Context) error
 	Finder     func(interface{}, *MetaValues, *qor.Context) error
+	Saver      func(interface{}, *qor.Context) error
+	Deleter    func(interface{}, *qor.Context) error
 	validators []func(interface{}, *MetaValues, *qor.Context) error
 	processors []func(interface{}, *MetaValues, *qor.Context) error
 }

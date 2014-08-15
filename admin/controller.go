@@ -21,7 +21,7 @@ func (admin *Admin) Dashboard(context *qor.Context) {
 func (admin *Admin) Index(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewSlice()
-	admin.DB.Find(result)
+	res.GetSearcher()(result, context)
 
 	responder.With("html", func() {
 		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index"}
@@ -71,7 +71,7 @@ func (admin *Admin) Create(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewStruct()
 	if errs := admin.decode(result, res, context); len(errs) == 0 {
-		admin.DB.Save(result)
+		res.GetSaver()(result, context)
 		primaryKey := fmt.Sprintf("%v", admin.DB.NewScope(result).PrimaryKeyValue())
 		http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
 	}
@@ -80,9 +80,9 @@ func (admin *Admin) Create(context *qor.Context) {
 func (admin *Admin) Update(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewStruct()
-	if !admin.DB.First(result, context.ResourceID).RecordNotFound() {
+	if res.GetFinder()(result, nil, context) == nil {
 		if errs := admin.decode(result, res, context); len(errs) == 0 {
-			admin.DB.Save(result)
+			res.GetSaver()(result, context)
 			http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 		}
 	}
@@ -90,9 +90,8 @@ func (admin *Admin) Update(context *qor.Context) {
 
 func (admin *Admin) Delete(context *qor.Context) {
 	res := admin.Resources[context.ResourceName]
-	result := res.NewStruct()
 
-	if admin.DB.Delete(result, context.ResourceID).RowsAffected > 0 {
+	if res.GetDeleter()(res.NewStruct(), context) == nil {
 		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.Name), http.StatusFound)
 	} else {
 		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.Name), http.StatusNotFound)

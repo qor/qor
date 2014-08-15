@@ -22,7 +22,43 @@ type Resource struct {
 	showAttrs  []string
 }
 
-func (res *Resource) GetFinder() func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+func (res *Resource) GetSearcher() func(interface{}, *qor.Context) error {
+	if res.Searcher != nil {
+		return res.Searcher
+	} else {
+		return func(result interface{}, context *qor.Context) error {
+			return context.DB.Find(result).Error
+		}
+	}
+}
+
+func (res *Resource) GetSaver() func(interface{}, *qor.Context) error {
+	if res.Saver != nil {
+		return res.Saver
+	} else {
+		return func(result interface{}, context *qor.Context) error {
+			return context.DB.Save(result).Error
+		}
+	}
+}
+
+func (res *Resource) GetDeleter() func(interface{}, *qor.Context) error {
+	if res.Deleter != nil {
+		return res.Deleter
+	} else {
+		return func(result interface{}, context *qor.Context) error {
+			db := context.DB.Delete(result, context.ResourceID)
+			if db.Error != nil {
+				return db.Error
+			} else if db.RowsAffected == 0 {
+				return gorm.RecordNotFound
+			}
+			return nil
+		}
+	}
+}
+
+func (res *Resource) GetFinder() func(interface{}, *resource.MetaValues, *qor.Context) error {
 	if res.Finder != nil {
 		return res.Finder
 	} else {
