@@ -6,6 +6,7 @@ import (
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
+	"github.com/qor/qor/responder"
 	"github.com/qor/qor/rules"
 
 	"net/http"
@@ -28,7 +29,7 @@ func (admin *Admin) Index(context *qor.Context) {
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)
-	}).Respond(writer, request)
+	}).Respond(context.Writer, context.Request)
 }
 
 func (admin *Admin) Show(context *qor.Context) {
@@ -42,7 +43,7 @@ func (admin *Admin) Show(context *qor.Context) {
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)
-	}).Respond(writer, request)
+	}).Respond(context.Writer, context.Request)
 }
 
 func (admin *Admin) New(context *qor.Context) {
@@ -62,7 +63,7 @@ func (admin *Admin) decode(result interface{}, res *Resource, context *qor.Conte
 		} else {
 			errs = append(errs, err)
 		}
-	}).Respond(writer, request)
+	}).Respond(context.Writer, context.Request)
 	return errs
 }
 

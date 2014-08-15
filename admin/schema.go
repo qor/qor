@@ -1,8 +1,6 @@
 package admin
 
 import (
-	"fmt"
-
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
@@ -115,8 +113,6 @@ func ConvertObjectToMap(context *qor.Context, object interface{}, res *Resource)
 		for _, meta := range metas {
 			if meta.HasPermission(rules.Read, context) {
 				value := meta.Value(object, context)
-				fmt.Println(object)
-				fmt.Println(value)
 				if res, ok := meta.Resource.(*Resource); ok {
 					value = ConvertObjectToMap(context, value, res)
 				}
