@@ -185,8 +185,7 @@ func (ex *Exchange) process(xf *xlsx.File, ctx *qor.Context, fileInfo FileInfo, 
 					return
 				}
 
-				// TODO: replace it with processor.Save
-				// res.CallSaver(processor.Result, ctx)
+				// can't replace this with resource.CallSafer for the sake of transaction
 				if err := db.Save(processor.Result).Error; err != nil {
 					importStatus.Errors = []error{err}
 					return
