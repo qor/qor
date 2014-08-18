@@ -73,7 +73,7 @@ func (meta *Meta) UpdateMeta() {
 			case "bool":
 				meta.Type = "checkbox"
 			default:
-				if regexp.MustCompile(`^(u)?int(\d+)?`).MatchString(valueType) {
+				if regexp.MustCompile(`^(u)?(int|float)(\d+)?`).MatchString(valueType) {
 					meta.Type = "number"
 				} else if _, ok := field.Value.(media_library.MediaLibrary); ok {
 					meta.Type = "file"
@@ -177,9 +177,11 @@ func (meta *Meta) UpdateMeta() {
 				} else {
 					switch field.Kind() {
 					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-						field.SetInt(reflect.ValueOf(ToInt(value)).Int())
+						field.SetInt(ToInt(value))
 					case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-						field.SetUint(reflect.ValueOf(ToInt(value)).Uint())
+						field.SetUint(ToUint(value))
+					case reflect.Float32, reflect.Float64:
+						field.SetFloat(ToFloat(value))
 					default:
 						if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
 							scanner.Scan(ToString(value))
@@ -232,13 +234,39 @@ func ToString(value interface{}) string {
 	return ""
 }
 
-func ToInt(value interface{}) int {
+func ToInt(value interface{}) int64 {
 	var result string
 	if v, ok := value.([]string); ok && len(v) > 0 {
 		result = v[0]
 	} else if v, ok := value.(string); ok {
 		result = v
 	}
-	i, _ := strconv.Atoi(result)
-	return i
+	// TODO: hiding error here could be a problem?
+	// i, _ := strconv.Atoi(result)
+	n, _ := strconv.ParseInt(result, 10, 64)
+	return n
+}
+
+func ToUint(value interface{}) uint64 {
+	var result string
+	if v, ok := value.([]string); ok && len(v) > 0 {
+		result = v[0]
+	} else if v, ok := value.(string); ok {
+		result = v
+	}
+	// TODO: hiding error here could be a problem?
+	n, _ := strconv.ParseUint(result, 10, 64)
+	return n
+}
+
+func ToFloat(value interface{}) float64 {
+	var result string
+	if v, ok := value.([]string); ok && len(v) > 0 {
+		result = v[0]
+	} else if v, ok := value.(string); ok {
+		result = v
+	}
+	// TODO: hiding error here could be a problem?
+	n, _ := strconv.ParseFloat(result, 64)
+	return n
 }
