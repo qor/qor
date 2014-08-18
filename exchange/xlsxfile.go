@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/tealeg/xlsx"
 )
@@ -65,13 +66,14 @@ func NewXLSXFileZipReader(zr *zip.ReadCloser) (nxf *XLSXFile, err error) {
 		var lines []string
 		skipline := true
 		for _, cell := range row.Cells {
+			field := strings.TrimSpace(cell.Value)
 			if skipline {
-				if cell.Value == "" {
+				if field == "" {
 					continue
 				}
 			}
 
-			lines = append(lines, cell.Value)
+			lines = append(lines, field)
 			skipline = false
 		}
 
