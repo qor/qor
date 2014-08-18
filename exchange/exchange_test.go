@@ -147,29 +147,25 @@ func TestImportError(t *testing.T) {
 	}
 
 	var hasError bool
-	select {
-	case <-fi.Done:
-	case err := <-fi.Error:
-		hasError = err != nil
+	var errs []error
+loop:
+	for {
+		select {
+		case <-fi.Done:
+		case err := <-fi.Error:
+			hasError = err != nil
+			break loop
+		case ii := <-iic:
+			errs = append(errs, ii.Errors...)
+		}
 	}
 
 	if !hasError {
 		t.Error("should return an error")
 	}
-
-	var j int
-	var errs []error
-	for ii := range iic {
-		errs = append(errs, ii.Errors...)
-		if j++; j == 3 {
-			break
-		}
-	}
-
 	if len(errs) != 1 && errs[0] != ferr {
 		t.Error("Should receive errors properlly")
 	}
-
 	var users []User
 	testdb.Find(&users)
 	if len(users) != 0 {
