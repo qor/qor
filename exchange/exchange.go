@@ -97,9 +97,10 @@ func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo
 			var importStatus ImportStatus
 			defer func() {
 				setError(len(importStatus.Errors) > 0)
-				importStatusChan <- importStatus
+
 				<-throttle
 				wait.Done()
+				importStatusChan <- importStatus
 			}()
 
 			vmap := map[string]string{}

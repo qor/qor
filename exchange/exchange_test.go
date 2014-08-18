@@ -136,11 +136,13 @@ type FullMarathon struct {
 func TestImportNormalizeHeader(t *testing.T) {
 	testdb.DropTable(FullMarathon{})
 	testdb.AutoMigrate(FullMarathon{})
+
 	marathon := NewResource(FullMarathon{})
 	marathon.RegisterMeta(&resource.Meta{Name: "RunningLevel", Label: "Running Level"})
 	marathon.RegisterMeta(&resource.Meta{Name: "Min1500", Label: "1500 Min"})
 	marathon.RegisterMeta(&resource.Meta{Name: "Sec1500", Label: "1500 Sec"})
 	ex := New(marathon)
+	ex.JobThrottle = 10
 	ex.DataStartAt = 3
 	ex.NormalizeHeaders = func(f File) (headers []string) {
 		if f.TotalLines() < 3 {
