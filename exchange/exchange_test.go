@@ -4,11 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/qor/qor"
+	"github.com/qor/qor/resource"
 )
 
 type User struct {
@@ -36,6 +35,13 @@ var (
 	}()
 )
 
+func cleanup() {
+	testdb.DropTable(&User{})
+	testdb.AutoMigrate(&User{})
+	testdb.DropTable(&Address{})
+	testdb.AutoMigrate(&Address{})
+}
+
 func TestImportSimple(t *testing.T) {
 	cleanup()
 
@@ -62,6 +68,7 @@ func TestImportSimple(t *testing.T) {
 	case <-fi.Done:
 	case err := <-fi.Error:
 		t.Error(err)
+		return
 	}
 
 	var users []User
@@ -87,7 +94,7 @@ func TestImportNested(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fi, _, err := ex.Import(f, &qor.Context{DB: testdb})
+	fi, ii, err := ex.Import(f, &qor.Context{DB: testdb})
 	if err != nil {
 		t.Error(err)
 	}
@@ -96,10 +103,16 @@ func TestImportNested(t *testing.T) {
 		t.Errorf("Total lines should be 4 instead of %d", fi.TotalLines)
 	}
 
-	select {
-	case <-fi.Done:
-	case err := <-fi.Error:
-		t.Error(err)
+loop:
+	for {
+		select {
+		case <-fi.Done:
+			break loop
+		case err := <-fi.Error:
+			t.Error(err)
+			break loop
+		case <-ii:
+		}
 	}
 
 	var users []User
@@ -114,11 +127,75 @@ func TestImportNested(t *testing.T) {
 	}
 }
 
-func cleanup() {
-	testdb.DropTable(&User{})
-	testdb.AutoMigrate(&User{})
-	testdb.DropTable(&Address{})
-	testdb.AutoMigrate(&Address{})
+type FullMarathon struct {
+	RunningLevel float64
+	Min1500      int
+	Sec1500      int
+}
+
+func TestImportNormalizeHeader(t *testing.T) {
+	testdb.DropTable(FullMarathon{})
+	testdb.AutoMigrate(FullMarathon{})
+	marathon := NewResource(FullMarathon{})
+	marathon.RegisterMeta(&resource.Meta{Name: "RunningLevel", Label: "Running Level"})
+	marathon.RegisterMeta(&resource.Meta{Name: "Min1500", Label: "1500 Min"})
+	marathon.RegisterMeta(&resource.Meta{Name: "Sec1500", Label: "1500 Sec"})
+	ex := New(marathon)
+	ex.DataStartAt = 3
+	ex.NormalizeHeaders = func(f File) (headers []string) {
+		if f.TotalLines() < 3 {
+			return
+		}
+
+		topHeaders, subHeaders := f.Line(1), f.Line(2)
+		if len(topHeaders) != len(subHeaders) {
+			return
+		}
+		for i, subHeader := range subHeaders {
+			var prefix string
+			topSec := topHeaders[:i+1]
+			lenSec := len(topSec)
+			for j := lenSec - 1; j >= 0; j-- {
+				if topHeader := topSec[j]; topHeader != "" {
+					prefix = topHeader
+					break
+				}
+			}
+
+			headers = append(headers, prefix+" "+subHeader)
+		}
+
+		return
+	}
+	f, err := NewXLSXFile("headers.xlsx")
+	if err != nil {
+		t.Error(err)
+	}
+	fi, ii, err := ex.Import(f, &qor.Context{DB: testdb})
+	if err != nil {
+		t.Error(err)
+	}
+
+loop:
+	for {
+		select {
+		case <-fi.Done:
+			break loop
+		case err := <-fi.Error:
+			t.Error(err)
+			break loop
+		case <-ii:
+		}
+	}
+
+	var marathones []FullMarathon
+	testdb.Find(&marathones)
+	if len(marathones) != 12 {
+		t.Errorf("should get 12 records, but got %d", len(marathones))
+	}
+	if marathones[1].RunningLevel != 28.1 {
+		t.Errorf("should get 28.1, but got %f", marathones[1].RunningLevel)
+	}
 }
 
 func TestImportError(t *testing.T) {

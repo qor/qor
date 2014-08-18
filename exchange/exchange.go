@@ -9,6 +9,7 @@ import (
 )
 
 // TODO: support csv files
+// TODO: support ImportStatus chan data sorter
 
 type Exchange struct {
 	Resource *Resource
@@ -17,15 +18,17 @@ type Exchange struct {
 	StopOnError bool
 
 	JobThrottle      int
+	StatusThrottle   int
 	NormalizeHeaders func(f File) []string
 	DataStartAt      int
 }
 
 func New(res *Resource) *Exchange {
 	return &Exchange{
-		Resource:    res,
-		JobThrottle: 1,
-		DataStartAt: 1,
+		Resource:       res,
+		JobThrottle:    1,
+		DataStartAt:    1,
+		StatusThrottle: 10,
 		NormalizeHeaders: func(f File) (headers []string) {
 			if f.TotalLines() <= 0 {
 				return
@@ -60,7 +63,7 @@ func (ex *Exchange) Import(f File, ctx *qor.Context) (fileInfo FileInfo, importS
 	fileInfo.TotalLines = f.TotalLines()
 	fileInfo.Done = make(chan bool)
 	fileInfo.Error = make(chan error)
-	importStatusChan = make(chan ImportStatus, 10)
+	importStatusChan = make(chan ImportStatus, ex.StatusThrottle)
 
 	go ex.process(f, ex.NormalizeHeaders(f), ctx, fileInfo, importStatusChan)
 
@@ -69,7 +72,7 @@ func (ex *Exchange) Import(f File, ctx *qor.Context) (fileInfo FileInfo, importS
 
 func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo FileInfo, importStatusChan chan ImportStatus) {
 	var wait sync.WaitGroup
-	wait.Add(f.TotalLines() - ex.DataStartAt)
+	wait.Add(fileInfo.TotalLines - ex.DataStartAt)
 	throttle := make(chan bool, ex.JobThrottle)
 	defer func() { close(throttle) }()
 	var hasError bool
@@ -84,13 +87,13 @@ func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo
 
 	db := ctx.DB.Begin()
 	res := ex.Resource
-	for i := ex.DataStartAt; i < f.TotalLines(); i++ {
+	for num := ex.DataStartAt; num < fileInfo.TotalLines; num++ {
 		throttle <- true
 		if hasError {
 			goto rollback
 		}
 
-		go func(line int, iic chan ImportStatus) {
+		go func(num int, importStatusChan chan ImportStatus) {
 			var importStatus ImportStatus
 			defer func() {
 				setError(len(importStatus.Errors) > 0)
@@ -100,8 +103,14 @@ func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo
 			}()
 
 			vmap := map[string]string{}
-			for j, val := range f.Line(line) {
-				vmap[headers[j]] = val
+			line := f.Line(num)
+			lineLen := len(line)
+			for j, header := range headers {
+				if j >= lineLen {
+					break
+				}
+
+				vmap[header] = line[j]
 			}
 
 			importStatus.MetaValues = res.getMetaValues(vmap, 0)
@@ -128,7 +137,7 @@ func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo
 				importStatus.Errors = []error{err}
 				return
 			}
-		}(i, importStatusChan)
+		}(num, importStatusChan)
 	}
 
 	wait.Wait()
