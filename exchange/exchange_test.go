@@ -2,7 +2,6 @@ package exchange
 
 import (
 	"errors"
-	"os"
 	"testing"
 
 	"github.com/qor/qor"
@@ -45,11 +44,12 @@ func TestImportSimple(t *testing.T) {
 	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
 	ex := New(useres)
 
-	r, err := os.Open("simple.xlsx")
+	f, err := NewXLSXFile("simple.xlsx")
 	if err != nil {
 		t.Fatal(err)
 	}
-	fi, _, err := ex.Import(r, &qor.Context{DB: testdb})
+
+	fi, _, err := ex.Import(f, &qor.Context{DB: testdb})
 	if err != nil {
 		t.Error(err)
 	}
@@ -83,11 +83,11 @@ func TestImportNested(t *testing.T) {
 	addres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Address"})
 	ex := New(useres)
 
-	r, err := os.Open("nested_resource.xlsx")
+	f, err := NewXLSXFile("nested_resource.xlsx")
 	if err != nil {
 		t.Fatal(err)
 	}
-	fi, _, err := ex.Import(r, &qor.Context{DB: testdb})
+	fi, _, err := ex.Import(f, &qor.Context{DB: testdb})
 	if err != nil {
 		t.Error(err)
 	}
@@ -137,11 +137,11 @@ func TestImportError(t *testing.T) {
 		return nil
 	})
 
-	r, err := os.Open("simple.xlsx")
+	f, err := NewXLSXFile("simple.xlsx")
 	if err != nil {
 		t.Error(err)
 	}
-	fi, iic, err := ex.Import(r, &qor.Context{DB: testdb})
+	fi, iic, err := ex.Import(f, &qor.Context{DB: testdb})
 	if err != nil {
 		t.Error(err)
 	}

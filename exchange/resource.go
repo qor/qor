@@ -11,6 +11,7 @@ type Resource struct {
 	resource.Resource
 
 	// TODO
+	AlwaysCreate         bool
 	AutoCreate           bool
 	MultiDelimiter       string
 	HasSequentialColumns bool

@@ -1,16 +1,11 @@
 package exchange
 
 import (
-	"archive/zip"
 	"errors"
-	"io"
-	"io/ioutil"
-	"os"
 	"sync"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/tealeg/xlsx"
 )
 
 // TODO: support csv files
@@ -19,20 +14,24 @@ type Exchange struct {
 	Resource *Resource
 
 	// TODO
+	StopOnError bool
+
 	JobThrottle      int
-	StopOnError      bool
-	NormalizeHeaders func(sheet *xlsx.Sheet) []string
+	NormalizeHeaders func(f File) []string
+	DataStartAt      int
 }
 
 func New(res *Resource) *Exchange {
 	return &Exchange{
 		Resource:    res,
 		JobThrottle: 1,
-		NormalizeHeaders: func(sheet *xlsx.Sheet) (headers []string) {
-			for _, c := range sheet.Rows[0].Cells {
-				headers = append(headers, c.Value)
+		DataStartAt: 1,
+		NormalizeHeaders: func(f File) (headers []string) {
+			if f.TotalLines() <= 0 {
+				return
 			}
-			return
+
+			return f.Line(0)
 		},
 	}
 }
@@ -42,7 +41,6 @@ func ImportFile()     {}
 
 type ImportStatus struct {
 	LineNum    int
-	Sheet      string
 	MetaValues *resource.MetaValues
 	Errors     []error
 }
@@ -53,80 +51,26 @@ type FileInfo struct {
 	Error      chan error
 }
 
-func (ex *Exchange) Import(r io.Reader, ctx *qor.Context) (fileInfo FileInfo, importStatusChan chan ImportStatus, err error) {
-	f, err := ioutil.TempFile("", "qor.exchange.")
-	if err != nil {
-		return
-	}
-	defer func() { f.Close() }()
-	_, err = io.Copy(f, r)
-	if err != nil {
-		return
-	}
-	defer func() { os.Remove(f.Name()) }()
+type File interface {
+	TotalLines() (num int)
+	Line(l int) (fields []string)
+}
 
-	zr, err := zip.OpenReader(f.Name())
-	if err != nil {
-		return
-	}
-	xf, err := xlsx.ReadZip(zr)
-	if err != nil {
-		return
-	}
-
-	fileInfo.TotalLines, xf = preprocessXLSXFile(xf)
+func (ex *Exchange) Import(f File, ctx *qor.Context) (fileInfo FileInfo, importStatusChan chan ImportStatus, err error) {
+	fileInfo.TotalLines = f.TotalLines()
 	fileInfo.Done = make(chan bool)
 	fileInfo.Error = make(chan error)
 	importStatusChan = make(chan ImportStatus, 10)
 
-	go ex.process(xf, ctx, fileInfo, importStatusChan)
+	go ex.process(f, ex.NormalizeHeaders(f), ctx, fileInfo, importStatusChan)
 
 	return
 }
 
-func preprocessXLSXFile(xf *xlsx.File) (totalLines int, nxf *xlsx.File) {
-	nxf = new(xlsx.File)
-	for _, sheet := range xf.Sheets {
-		if len(sheet.Rows) == 0 {
-			continue
-		}
-
-		nsheet := *sheet
-		nsheet.Rows = []*xlsx.Row{}
-		for _, row := range sheet.Rows {
-			if len(row.Cells) == 0 {
-				continue
-			}
-
-			empty := true
-			for _, cell := range row.Cells {
-				if cell.Value == "" {
-					continue
-				}
-
-				empty = false
-				break
-			}
-
-			if empty {
-				continue
-			}
-
-			nsheet.Rows = append(nsheet.Rows, row)
-		}
-
-		nsheet.MaxRow = len(nsheet.Rows)
-		totalLines += nsheet.MaxRow
-		nxf.Sheets = append(nxf.Sheets, &nsheet)
-	}
-
-	return
-}
-
-func (ex *Exchange) process(xf *xlsx.File, ctx *qor.Context, fileInfo FileInfo, importStatusChan chan ImportStatus) {
+func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo FileInfo, importStatusChan chan ImportStatus) {
 	var wait sync.WaitGroup
-	wait.Add(fileInfo.TotalLines - 1)
-	throttle := make(chan bool, 20)
+	wait.Add(f.TotalLines() - ex.DataStartAt)
+	throttle := make(chan bool, ex.JobThrottle)
 	defer func() { close(throttle) }()
 	var hasError bool
 	lock := new(sync.Mutex)
@@ -140,58 +84,51 @@ func (ex *Exchange) process(xf *xlsx.File, ctx *qor.Context, fileInfo FileInfo, 
 
 	db := ctx.DB.Begin()
 	res := ex.Resource
-	for _, sheet := range xf.Sheets {
-		if len(sheet.Rows) <= 1 {
-			continue
+	for i := ex.DataStartAt; i < f.TotalLines(); i++ {
+		throttle <- true
+		if hasError {
+			goto rollback
 		}
 
-		headers := sheet.Rows[0].Cells
-		for i, row := range sheet.Rows[1:] {
-			throttle <- true
-			if hasError {
-				goto rollback
+		go func(line int, iic chan ImportStatus) {
+			var importStatus ImportStatus
+			defer func() {
+				setError(len(importStatus.Errors) > 0)
+				importStatusChan <- importStatus
+				<-throttle
+				wait.Done()
+			}()
+
+			vmap := map[string]string{}
+			for j, val := range f.Line(line) {
+				vmap[headers[j]] = val
 			}
 
-			go func(line int, row *xlsx.Row, iic chan ImportStatus) {
-				importStatus := ImportStatus{Sheet: sheet.Name}
-				defer func() {
-					setError(len(importStatus.Errors) > 0)
-					importStatusChan <- importStatus
-					<-throttle
-					wait.Done()
-				}()
+			importStatus.MetaValues = res.getMetaValues(vmap, 0)
+			processor := resource.DecodeToResource(res, res.NewStruct(), importStatus.MetaValues, ctx)
 
-				vmap := map[string]string{}
-				for j, cell := range row.Cells {
-					vmap[headers[j].Value] = cell.Value
-				}
+			// TODO: handle skip left
+			if err := processor.Initialize(); err != nil && err != resource.ErrProcessorRecordNotFound {
+				importStatus.Errors = []error{err}
+				return
+			}
 
-				importStatus.MetaValues = res.getMetaValues(vmap, 0)
-				processor := resource.DecodeToResource(res, res.NewStruct(), importStatus.MetaValues, ctx)
+			if errs := processor.Validate(); len(errs) > 0 {
+				importStatus.Errors = errs
+				return
+			}
 
-				// TODO: handle skip left
-				if err := processor.Initialize(); err != nil && err != resource.ErrProcessorRecordNotFound {
-					importStatus.Errors = []error{err}
-					return
-				}
+			if errs := processor.Commit(); len(errs) > 0 {
+				importStatus.Errors = errs
+				return
+			}
 
-				if errs := processor.Validate(); len(errs) > 0 {
-					importStatus.Errors = errs
-					return
-				}
-
-				if errs := processor.Commit(); len(errs) > 0 {
-					importStatus.Errors = errs
-					return
-				}
-
-				// can't replace this with resource.CallSafer for the sake of transaction
-				if err := db.Save(processor.Result).Error; err != nil {
-					importStatus.Errors = []error{err}
-					return
-				}
-			}(i, row, importStatusChan)
-		}
+			// can't replace this with resource.CallSafer for the sake of transaction
+			if err := db.Save(processor.Result).Error; err != nil {
+				importStatus.Errors = []error{err}
+				return
+			}
+		}(i, importStatusChan)
 	}
 
 	wait.Wait()
