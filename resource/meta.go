@@ -16,6 +16,7 @@ import (
 type Meta struct {
 	Base          Resourcer
 	Name          string
+	Alias         string
 	Type          string
 	Label         string
 	Value         func(interface{}, *qor.Context) interface{}
@@ -48,12 +49,19 @@ func (meta *Meta) UpdateMeta() {
 
 	if meta.Name == "" {
 		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
+	} else {
+		if meta.Label == "" {
+			meta.Label = meta.Name
+		}
+		if meta.Alias == "" {
+			meta.Alias = gorm.SnakeToUpperCamel(meta.Name)
+		}
 	}
 
 	base := meta.Base.GetResource()
 	scope := &gorm.Scope{Value: base.Value}
 	var field *gorm.Field
-	field, hasColumn = scope.FieldByName(meta.Name)
+	field, hasColumn = scope.FieldByName(meta.Alias)
 	valueType = reflect.TypeOf(field.Value).Kind().String()
 
 	// Set Meta Type
@@ -106,10 +114,9 @@ func (meta *Meta) UpdateMeta() {
 	// Set Meta Value
 	if meta.Value == nil {
 		if hasColumn {
-			meta.Name = gorm.SnakeToUpperCamel(meta.Name)
 			meta.Value = func(value interface{}, context *qor.Context) interface{} {
 				scope := &gorm.Scope{Value: value}
-				if f, ok := scope.FieldByName(meta.Name); ok {
+				if f, ok := scope.FieldByName(meta.Alias); ok {
 					if field.Relationship != nil {
 						if !reflect.ValueOf(f.Value).CanAddr() {
 							if reflect.ValueOf(f.Value).Kind() == reflect.Slice {
@@ -123,7 +130,7 @@ func (meta *Meta) UpdateMeta() {
 							}
 						}
 
-						context.DB.Model(value).Related(f.Value, meta.Name)
+						context.DB.Model(value).Related(f.Value, meta.Alias)
 					}
 					return f.Value
 				}
@@ -164,15 +171,15 @@ func (meta *Meta) UpdateMeta() {
 			}
 			value := metaValue.Value
 			scope := &gorm.Scope{Value: resource}
-			scopeField, _ := scope.FieldByName(meta.Name)
-			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Name)
+			scopeField, _ := scope.FieldByName(meta.Alias)
+			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Alias)
 
 			if field.IsValid() && field.CanAddr() {
 				relationship := scopeField.Relationship
 				if relationship != nil && relationship.Kind == "many_to_many" {
 					context.DB.Where(ToArray(value)).Find(field.Addr().Interface())
 					if !scope.PrimaryKeyZero() {
-						context.DB.Model(resource).Association(meta.Name).Replace(field.Interface())
+						context.DB.Model(resource).Association(meta.Alias).Replace(field.Interface())
 					}
 				} else {
 					switch field.Kind() {
@@ -205,10 +212,6 @@ func (meta *Meta) UpdateMeta() {
 				// }
 			}
 		}
-	}
-
-	if meta.Label == "" {
-		meta.Label = meta.Name
 	}
 }
 

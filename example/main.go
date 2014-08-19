@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/resource"
+	"strconv"
 
 	"net/http"
 )
@@ -18,9 +18,10 @@ func main() {
 	creditCard.RegisterMeta(&resource.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
 	user := admin.NewResource(User{})
-	user.IndexAttrs("name", "gender")
+	user.EditAttrs("fullname", "gender")
 	user.RegisterMeta(&resource.Meta{Name: "CreditCard", Resource: creditCard})
 
+	user.RegisterMeta(&resource.Meta{Name: "fullname", Alias: "name"})
 	user.RegisterMeta(&resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
 	user.RegisterMeta(&resource.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {

@@ -2,8 +2,6 @@ package admin
 
 import (
 	"fmt"
-
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/rules"
@@ -89,8 +87,6 @@ func (res *Resource) getMetas(attrsSlice ...[]string) []*resource.Meta {
 	metas := []*resource.Meta{}
 	for _, attr := range attrs {
 		if meta, ok := res.Metas[attr]; ok {
-			metas = append(metas, meta.GetMeta())
-		} else if meta, ok := res.Metas[gorm.SnakeToUpperCamel(attr)]; ok {
 			metas = append(metas, meta.GetMeta())
 		} else {
 			if strings.HasSuffix(attr, "Id") {
