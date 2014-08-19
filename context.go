@@ -16,7 +16,7 @@ type Context struct {
 	CurrentUser  CurrentUser
 	ResourceName string
 	ResourceID   string
-	Config       Config
+	Config       *Config
 }
 
 func (context *Context) DB() *gorm.DB {

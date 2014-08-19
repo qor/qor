@@ -72,7 +72,7 @@ func (admin *Admin) Create(context *qor.Context) {
 	result := res.NewStruct()
 	if errs := admin.decode(result, res, context); len(errs) == 0 {
 		res.CallSaver(result, context)
-		primaryKey := fmt.Sprintf("%v", admin.DB.NewScope(result).PrimaryKeyValue())
+		primaryKey := fmt.Sprintf("%v", context.DB().NewScope(result).PrimaryKeyValue())
 		http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
 	}
 }

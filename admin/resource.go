@@ -35,12 +35,12 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 			if metaValues != nil {
 				if destroy := metaValues.Get("_destroy"); destroy != nil {
 					if fmt.Sprintf("%v", destroy.Value) != "0" {
-						context.DB.Delete(result, primaryKey)
+						context.DB().Delete(result, primaryKey)
 						return resource.ErrProcessorSkipLeft
 					}
 				}
 			}
-			return context.DB.First(result, primaryKey).Error
+			return context.DB().First(result, primaryKey).Error
 		}
 		return nil
 	}
@@ -137,7 +137,7 @@ func (res *Resource) AllAttrs() []*resource.Meta {
 
 func (res *Resource) appendPrimaryKey(metas []*resource.Meta) []*resource.Meta {
 	primaryKeyMeta := &resource.Meta{Base: res, Name: "_id", Type: "hidden", Value: func(value interface{}, context *qor.Context) interface{} {
-		return context.DB.NewScope(value).PrimaryKeyValue()
+		return context.DB().NewScope(value).PrimaryKeyValue()
 	}}
 	primaryKeyMeta.UpdateMeta()
 

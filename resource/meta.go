@@ -132,7 +132,7 @@ func (meta *Meta) UpdateMeta() {
 							}
 						}
 
-						context.DB.Model(value).Related(f.Value, meta.Alias)
+						context.DB().Model(value).Related(f.Value, meta.Alias)
 					}
 					return f.Value
 				}
@@ -179,9 +179,9 @@ func (meta *Meta) UpdateMeta() {
 			if field.IsValid() && field.CanAddr() {
 				relationship := scopeField.Relationship
 				if relationship != nil && relationship.Kind == "many_to_many" {
-					context.DB.Where(ToArray(value)).Find(field.Addr().Interface())
+					context.DB().Where(ToArray(value)).Find(field.Addr().Interface())
 					if !scope.PrimaryKeyZero() {
-						context.DB.Model(resource).Association(meta.Alias).Replace(field.Interface())
+						context.DB().Model(resource).Association(meta.Alias).Replace(field.Interface())
 					}
 				} else {
 					switch field.Kind() {
