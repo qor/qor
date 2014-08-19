@@ -97,7 +97,7 @@ func (res *Resource) getMetaValues(vmap map[string]string, index int) (mvs *reso
 			}
 		} else if metaResource.MultiDelimiter != "" {
 		} else {
-			mv.MetaValues, _ = metaResource.getMetaValues(vmap, 0)
+			mv.MetaValues, _ = metaResource.getMetaValues(vmap, index)
 			mvs.Values = append(mvs.Values, &mv)
 		}
 	}

@@ -24,10 +24,12 @@ type Address struct {
 	Name    string
 	Country string
 
-	Phones []Phone
+	Phone Phone
 }
 
 type Phone struct {
+	Id        int64
+	AddressId int64
 	Num       string
 	CreatedAt time.Time
 }
