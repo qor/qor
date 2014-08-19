@@ -85,7 +85,7 @@ func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo
 		lock.Unlock()
 	}
 
-	db := ctx.DB.Begin()
+	db := ctx.DB().Begin()
 	res := ex.Resource
 	for num := ex.DataStartAt; num < fileInfo.TotalLines; num++ {
 		throttle <- true

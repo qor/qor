@@ -1,12 +1,13 @@
 package admin_test
 
 import (
+	"strconv"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/resource"
-	"strconv"
 
 	"net/http"
 	"net/http/httptest"
@@ -57,7 +58,7 @@ func init() {
 	db.AutoMigrate(&Address{})
 	db.AutoMigrate(&Language{})
 
-	admin := admin.New(&db)
+	admin := admin.New(&qor.Config{DB: &db})
 	user := admin.NewResource(User{})
 	user.RegisterMeta(&resource.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {

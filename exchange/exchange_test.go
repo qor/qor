@@ -65,7 +65,7 @@ func TestImportSimple(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fi, _, err := ex.Import(f, &qor.Context{DB: testdb})
+	fi, _, err := ex.Import(f, &qor.Context{Config: &qor.Config{DB: testdb}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -104,7 +104,7 @@ func TestImportNested(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fi, ii, err := ex.Import(f, &qor.Context{DB: testdb})
+	fi, ii, err := ex.Import(f, &qor.Context{Config: &qor.Config{DB: testdb}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -183,7 +183,7 @@ func TestImportNormalizeHeader(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fi, ii, err := ex.Import(f, &qor.Context{DB: testdb})
+	fi, ii, err := ex.Import(f, &qor.Context{Config: &qor.Config{DB: testdb}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -230,7 +230,7 @@ func TestImportError(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fi, iic, err := ex.Import(f, &qor.Context{DB: testdb})
+	fi, iic, err := ex.Import(f, &qor.Context{Config: &qor.Config{DB: testdb}})
 	if err != nil {
 		t.Error(err)
 	}
