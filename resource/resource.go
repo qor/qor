@@ -28,6 +28,10 @@ type Resourcer interface {
 	NewStruct() interface{}
 }
 
+func New(value interface{}) *Resource {
+	return &Resource{Value: value}
+}
+
 func (res *Resource) GetResource() *Resource {
 	return res
 }
