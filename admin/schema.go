@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func ConvertMapToMetaValues(context *qor.Context, values map[string]interface{}, res *Resource) (metaValues *resource.MetaValues) {
+func ConvertMapToMetaValues(values map[string]interface{}, res *Resource) (metaValues *resource.MetaValues) {
 	metas := make(map[string]resource.Metaor)
 	if res != nil {
 		for _, attr := range res.AllAttrs() {
@@ -31,13 +31,13 @@ func ConvertMapToMetaValues(context *qor.Context, values map[string]interface{},
 			}
 
 			if vs, ok := value.(map[string]interface{}); ok {
-				children := ConvertMapToMetaValues(context, vs, res)
+				children := ConvertMapToMetaValues(vs, res)
 				metaValue := &resource.MetaValue{Name: key, Meta: meta, MetaValues: children}
 				metaValues.Values = append(metaValues.Values, metaValue)
 			} else if vs, ok := value.([]interface{}); ok {
 				for _, v := range vs {
 					if mv, ok := v.(map[string]interface{}); ok {
-						children := ConvertMapToMetaValues(context, mv, res)
+						children := ConvertMapToMetaValues(mv, res)
 						metaValue := &resource.MetaValue{Name: key, Meta: meta, MetaValues: children}
 						metaValues.Values = append(metaValues.Values, metaValue)
 					} else if meta != nil {

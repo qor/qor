@@ -59,7 +59,7 @@ func (admin *Admin) decode(result interface{}, res *Resource, context *qor.Conte
 		decoder := json.NewDecoder(context.Request.Body)
 		values := map[string]interface{}{}
 		if err := decoder.Decode(&values); err == nil {
-			errs = resource.DecodeToResource(res, result, ConvertMapToMetaValues(context, values, res), context).Start()
+			errs = resource.DecodeToResource(res, result, ConvertMapToMetaValues(values, res), context).Start()
 		} else {
 			errs = append(errs, err)
 		}
