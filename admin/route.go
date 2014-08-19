@@ -10,7 +10,7 @@ import (
 )
 
 func (admin *Admin) generateContext(w http.ResponseWriter, r *http.Request) *qor.Context {
-	context := qor.Context{Writer: w, Request: r, DB: admin.DB}
+	context := qor.Context{Writer: w, Request: r, Config: admin.Config}
 	if admin.auth != nil {
 		context.CurrentUser = admin.auth.GetCurrentUser(&context)
 	}

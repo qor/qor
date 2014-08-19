@@ -1,4 +1,5 @@
 Resource:
+
     order.Search().Name("Name").Register(func (d *gorm.DB, App) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")
     }) //.Suggestion(func() {})

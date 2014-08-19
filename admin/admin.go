@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"github.com/jinzhu/gorm"
+	"github.com/qor/qor"
 	"github.com/qor/qor/auth"
 	"github.com/qor/qor/resource"
 	"strings"
@@ -11,13 +11,13 @@ import (
 
 type Admin struct {
 	Prefix    string
-	DB        *gorm.DB
+	Config    *qor.Config
 	Resources map[string]*Resource
 	auth      auth.Auth
 }
 
-func New(db *gorm.DB) *Admin {
-	admin := Admin{Resources: map[string]*Resource{}, DB: db}
+func New(config *qor.Config) *Admin {
+	admin := Admin{Resources: map[string]*Resource{}, Config: config}
 	return &admin
 }
 

@@ -16,5 +16,9 @@ type Context struct {
 	CurrentUser  CurrentUser
 	ResourceName string
 	ResourceID   string
-	DB           *gorm.DB
+	Config       Config
+}
+
+func (context *Context) DB() *gorm.DB {
+	return context.Config.DB
 }
