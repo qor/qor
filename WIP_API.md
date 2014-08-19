@@ -25,43 +25,11 @@ Worker:
 
     Worker.New("name", resource).Handle(func() {})
 
-Admin: (TBD)
-
-    admin = Admin.New()
-    admin.UseResource(order)
-    admin.AddToMux("/admin", mux)
-
-    Layout:
-
-        views/themes/tis/resources/user/edit.tmpl
-        views/themes/tis/edit.tmpl
-        views/resources/user/edit.tmpl
-        views/themes/default/edit.tmpl
-
-        views/qor/themes/default/layout.tmpl
-        views/qor/themes/default/header.tmpl
-        views/qor/themes/default/footer.tmpl
-        views/qor/dashboard.tmpl {{define content}}
-        views/qor/index.tmpl
-        views/qor/new.tmpl
-        views/qor/edit.tmpl
-
-Api: (TBD)
-
-    api = Api.New()
-    api.UseResources(order)
-
 Mail: (TBD)
 
 Form:
-    qor.Meta{Name: "username", Type: "text", Label: "hello",
-             Value: " ",
-             DefaultValue: string/func() string,
-             Collection: []string / map[string]string / func() []string / func() map[string]string / []Meta / func() []Meta
-             Setter: func (value interface{}) error,
-             InputHtml: map[string]string{"alt": "hello"}}
 
-    qor.DefineMeta("name", template)
+    qor.RegisterMetaType("name", qor.Meta{Setter: xxx, Template: xxx, Value: xxx, Collection: xxx, InputHTML: xxx})
 
 L10n
 
