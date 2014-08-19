@@ -99,8 +99,8 @@ func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo
 				setError(len(importStatus.Errors) > 0)
 
 				<-throttle
-				wait.Done()
 				importStatusChan <- importStatus
+				wait.Done()
 			}()
 
 			vmap := map[string]string{}
@@ -114,7 +114,7 @@ func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo
 				vmap[header] = line[j]
 			}
 
-			importStatus.MetaValues = res.getMetaValues(vmap, 0)
+			importStatus.MetaValues, _ = res.getMetaValues(vmap, 0)
 			processor := resource.DecodeToResource(res, res.NewStruct(), importStatus.MetaValues, ctx)
 
 			// TODO: handle skip left

@@ -3,6 +3,7 @@ package exchange
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
@@ -22,6 +23,13 @@ type Address struct {
 	UserId  int64
 	Name    string
 	Country string
+
+	Phones []Phone
+}
+
+type Phone struct {
+	Num       string
+	CreatedAt time.Time
 }
 
 var (
@@ -230,64 +238,25 @@ func TestImportError(t *testing.T) {
 loop:
 	for {
 		select {
+		case ii := <-iic:
+			errs = append(errs, ii.Errors...)
 		case <-fi.Done:
+			break loop
 		case err := <-fi.Error:
 			hasError = err != nil
 			break loop
-		case ii := <-iic:
-			errs = append(errs, ii.Errors...)
 		}
 	}
 
 	if !hasError {
 		t.Error("should return an error")
 	}
-	if len(errs) != 1 && errs[0] != ferr {
+	if len(errs) != 1 || errs[0] != ferr {
 		t.Error("Should receive errors properlly")
 	}
 	var users []User
 	testdb.Find(&users)
 	if len(users) != 0 {
 		t.Errorf("should get 0 records, but got %d", len(users))
-	}
-}
-
-func TestGetMetaValues(t *testing.T) {
-	useres := NewResource(User{})
-	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
-	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
-	addres := NewResource(Address{})
-	addres.HasSequentialColumns = true
-	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
-	addres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Address"})
-
-	mvs := useres.getMetaValues(map[string]string{
-		"Name":       "Van",
-		"Address 01": "China",
-		"Address 02": "USA",
-	}, 0)
-
-	if len(mvs.Values) != 4 {
-		t.Errorf("expecting to retrieve 4 MetaValues instead of %d", len(mvs.Values))
-	}
-
-	var hasChina, hasUSA bool
-	for _, v := range mvs.Values {
-		if v.MetaValues == nil {
-			continue
-		}
-		switch v.MetaValues.Values[0].Value.(string) {
-		case "China":
-			hasChina = true
-		case "USA":
-			hasUSA = true
-		}
-	}
-
-	if !hasChina {
-		t.Error("Should contains China in mvs.Values")
-	}
-	if !hasUSA {
-		t.Error("Should contains USA in mvs.Values")
 	}
 }
