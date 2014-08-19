@@ -75,9 +75,21 @@ func (res *Resource) getMetas(attrsSlice ...[]string) []*resource.Meta {
 		attrs = []string{}
 		indirectValue := reflect.Indirect(reflect.ValueOf(res.Value))
 		scopeTyp := indirectValue.Type()
+		includedMeta := map[string]bool{}
+		for _, meta := range res.Metas {
+			meta := meta.GetMeta()
+			if _, ok := scopeTyp.FieldByName(meta.Name); !ok {
+				includedMeta[meta.Alias] = true
+				attrs = append(attrs, meta.Name)
+			}
+		}
+
 		for i := 0; i < scopeTyp.NumField(); i++ {
 			fieldStruct := scopeTyp.Field(i)
 			if !ast.IsExported(fieldStruct.Name) {
+				continue
+			}
+			if _, ok := includedMeta[fieldStruct.Name]; ok {
 				continue
 			}
 			attrs = append(attrs, fieldStruct.Name)

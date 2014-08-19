@@ -18,7 +18,7 @@ func main() {
 	creditCard.RegisterMeta(&resource.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
 	user := admin.NewResource(User{})
-	user.EditAttrs("fullname", "gender")
+	user.IndexAttrs("fullname", "gender")
 	user.RegisterMeta(&resource.Meta{Name: "CreditCard", Resource: creditCard})
 
 	user.RegisterMeta(&resource.Meta{Name: "fullname", Alias: "name"})

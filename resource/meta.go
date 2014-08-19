@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -51,11 +52,12 @@ func (meta *Meta) UpdateMeta() {
 		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
 	} else {
 		if meta.Label == "" {
-			meta.Label = meta.Name
+			meta.Label = strings.Title(meta.Name)
 		}
 		if meta.Alias == "" {
-			meta.Alias = gorm.SnakeToUpperCamel(meta.Name)
+			meta.Alias = meta.Name
 		}
+		meta.Alias = gorm.SnakeToUpperCamel(meta.Alias)
 	}
 
 	base := meta.Base.GetResource()
