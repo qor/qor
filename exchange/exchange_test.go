@@ -240,11 +240,16 @@ loop:
 		select {
 		case ii := <-iic:
 			errs = append(errs, ii.Errors...)
+			if len(errs) > 0 && hasError {
+				break loop
+			}
 		case <-fi.Done:
 			break loop
 		case err := <-fi.Error:
 			hasError = err != nil
-			break loop
+			if len(errs) > 0 && hasError {
+				break loop
+			}
 		}
 	}
 
