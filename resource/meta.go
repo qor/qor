@@ -64,7 +64,9 @@ func (meta *Meta) UpdateMeta() {
 	scope := &gorm.Scope{Value: base.Value}
 	var field *gorm.Field
 	field, hasColumn = scope.FieldByName(meta.Alias)
-	valueType = reflect.TypeOf(field.Value).Kind().String()
+	if hasColumn {
+		valueType = reflect.TypeOf(field.Value).Kind().String()
+	}
 
 	// Set Meta Type
 	if meta.Type == "" {
@@ -87,8 +89,6 @@ func (meta *Meta) UpdateMeta() {
 					meta.Type = "number"
 				} else if _, ok := field.Value.(media_library.MediaLibrary); ok {
 					meta.Type = "file"
-				} else {
-					qor.ExitWithMsg("Unsupported value type %v for meta %v", valueType, meta.Name)
 				}
 			}
 		}
