@@ -1,17 +1,20 @@
 package publish_test
 
 import (
+	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor/publish"
 
 	"testing"
 )
 
-var pb publish.Publish
+var pb *publish.Publish
 
 func init() {
-	pb, _ = publish.Open("sqlite3", "/tmp/qor_test.db")
-	pb.Support(Product{})
+	pb, _ = publish.Open("sqlite3", "/tmp/qor_publish_test.db")
+	pb.Support(&Product{})
+
+	pb.AutoMigrate(&Product{})
 	pb.AutoMigrateDrafts()
 }
 
@@ -20,5 +23,8 @@ type Product struct {
 }
 
 func TestPublishStruct(t *testing.T) {
-	pb.Save(Product{})
+	pb.Debug().Save(Product{Name: "product"})
+	var product Product
+	pb.Debug().First(&product)
+	fmt.Println(product)
 }

@@ -8,18 +8,25 @@ import (
 
 type Publish struct {
 	*gorm.DB
+	SupportedModels []interface{}
 }
 
-func Open(driver, source string) (Publish, error) {
+func Open(driver, source string) (*Publish, error) {
 	db, err := gorm.Open(driver, source)
-	return Publish{DB: &db}, err
-}
-
-func (publish *Publish) GormDB() *gorm.DB {
-	return publish.DB
+	return &Publish{DB: &db}, err
 }
 
 func (publish *Publish) Support(models ...interface{}) {
+	fmt.Println(models[0])
+	publish.SupportedModels = append(publish.SupportedModels, models...)
+}
+
+func (publish *Publish) AutoMigrateDrafts() {
+	for _, value := range publish.SupportedModels {
+		scope := gorm.Scope{Value: value}
+		fmt.Println(scope.TableName() + "_draft")
+		publish.Table(scope.TableName() + "_draft").AutoMigrate(value)
+	}
 }
 
 func (publish *Publish) ProductionMode() {

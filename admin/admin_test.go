@@ -53,10 +53,7 @@ func init() {
 	db.DropTable(&CreditCard{})
 	db.DropTable(&Address{})
 	db.DropTable(&Language{})
-	db.AutoMigrate(&User{})
-	db.AutoMigrate(&CreditCard{})
-	db.AutoMigrate(&Address{})
-	db.AutoMigrate(&Language{})
+	db.AutoMigrate(User{}, CreditCard{}, Address{}, Language{})
 
 	admin := admin.New(&qor.Config{DB: &db})
 	user := admin.NewResource(User{})
