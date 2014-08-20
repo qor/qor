@@ -84,7 +84,7 @@ func (processor *processor) decode() (errors []error) {
 			continue
 		}
 
-		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.Name)
+		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.Alias)
 		if field.Kind() == reflect.Struct {
 			association := field.Addr().Interface()
 			DecodeToResource(res, association, metaValue.MetaValues, processor.Context).Start()

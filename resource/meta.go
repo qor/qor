@@ -245,6 +245,8 @@ func ToInt(value interface{}) int64 {
 		result = v[0]
 	} else if v, ok := value.(string); ok {
 		result = v
+	} else {
+		return ToInt(fmt.Sprintf("%v", value))
 	}
 	// TODO: hiding error here could be a problem?
 	// i, _ := strconv.Atoi(result)
@@ -258,6 +260,8 @@ func ToUint(value interface{}) uint64 {
 		result = v[0]
 	} else if v, ok := value.(string); ok {
 		result = v
+	} else {
+		return ToUint(fmt.Sprintf("%v", value))
 	}
 	// TODO: hiding error here could be a problem?
 	n, _ := strconv.ParseUint(result, 10, 64)
@@ -270,6 +274,8 @@ func ToFloat(value interface{}) float64 {
 		result = v[0]
 	} else if v, ok := value.(string); ok {
 		result = v
+	} else {
+		return ToFloat(fmt.Sprintf("%v", value))
 	}
 	// TODO: hiding error here could be a problem?
 	n, _ := strconv.ParseFloat(result, 64)
