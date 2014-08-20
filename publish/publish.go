@@ -1,10 +1,6 @@
 package publish
 
-import (
-	"fmt"
-
-	"github.com/jinzhu/gorm"
-)
+import "github.com/jinzhu/gorm"
 
 type Publish struct {
 	*gorm.DB
@@ -21,7 +17,6 @@ func DraftTableName(scope *gorm.Scope) string {
 }
 
 func (publish *Publish) Support(models ...interface{}) {
-	fmt.Println(models[0])
 	publish.SupportedModels = append(publish.SupportedModels, models...)
 }
 
@@ -32,22 +27,17 @@ func (publish *Publish) AutoMigrateDrafts() {
 }
 
 func (publish *Publish) ProductionMode() *gorm.DB {
-	return publish.Set("publish_draft_mode", false)
+	return publish.Set("qor_publish:draft_mode", false)
 }
 
 func (publish *Publish) DraftMode() *gorm.DB {
-	return publish.Set("publish_draft_mode", true)
+	return publish.Set("qor_publish:draft_mode", true)
 }
 
 func SetTable(scope *gorm.Scope) {
-	var inDraft bool
-	if draftMode, ok := scope.Get("publish_draft_mode"); ok {
+	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok {
 		if value, ok := draftMode.(bool); ok && value {
-			inDraft = true
+			scope.Search.TableName = DraftTableName(scope)
 		}
-	}
-
-	if inDraft {
-		scope.Search.TableName = DraftTableName(scope)
 	}
 }
