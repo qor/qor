@@ -16,6 +16,10 @@ func Open(driver, source string) (*Publish, error) {
 	return &Publish{DB: &db}, err
 }
 
+func DraftTableName(scope *gorm.Scope) string {
+	return scope.TableName() + "_draft"
+}
+
 func (publish *Publish) Support(models ...interface{}) {
 	fmt.Println(models[0])
 	publish.SupportedModels = append(publish.SupportedModels, models...)
@@ -23,48 +27,27 @@ func (publish *Publish) Support(models ...interface{}) {
 
 func (publish *Publish) AutoMigrateDrafts() {
 	for _, value := range publish.SupportedModels {
-		scope := gorm.Scope{Value: value}
-		fmt.Println(scope.TableName() + "_draft")
-		publish.Table(scope.TableName() + "_draft").AutoMigrate(value)
+		publish.Table(DraftTableName(&gorm.Scope{Value: value})).AutoMigrate(value)
 	}
 }
 
-func (publish *Publish) ProductionMode() {
+func (publish *Publish) ProductionMode() *gorm.DB {
+	return publish.Set("publish_draft_mode", false)
 }
 
-func (publish *Publish) DraftMode() {
+func (publish *Publish) DraftMode() *gorm.DB {
+	return publish.Set("publish_draft_mode", true)
 }
 
 func SetTable(scope *gorm.Scope) {
-	tableName := scope.TableName()
-	inDraft := true
+	var inDraft bool
+	if draftMode, ok := scope.Get("publish_draft_mode"); ok {
+		if value, ok := draftMode.(bool); ok && value {
+			inDraft = true
+		}
+	}
 
 	if inDraft {
-		tableName = fmt.Sprintf("%v_draft", tableName)
-		scope.Search.TableName = tableName
+		scope.Search.TableName = DraftTableName(scope)
 	}
 }
-
-// Auto Migration
-
-// type Product struct {
-// 	Title     string
-// 	ColorCode string
-// 	Price     float64
-// 	Ext       string
-// 	PublishAt time.Time
-// 	Image     MediaLibrary `media_library:"path:/system/:table_name/:id/:filename;"`
-// }
-
-// Product{Title: "product A", Image: os.Open("xxxx")}
-// db.Save(&product)
-
-// db, err := publish.Open("sqlite", "/tmp/qor.db")
-// user := db.NewResource(&Product{})
-// user.InstantPublishAttrs("title", "color_code", "price", "colorA", "colorB")
-// user.IgnoredAttrs("ext")
-
-// /system_draft/products/xxx.png
-// /system/products/xxx.png
-
-// -> s3

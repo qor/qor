@@ -1,7 +1,6 @@
 package publish_test
 
 import (
-	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor/publish"
 
@@ -23,8 +22,7 @@ type Product struct {
 }
 
 func TestPublishStruct(t *testing.T) {
-	pb.Debug().Save(Product{Name: "product"})
+	pb.Save(Product{Name: "product"})
 	var product Product
-	pb.Debug().First(&product)
-	fmt.Println(product)
+	pb.First(&product)
 }

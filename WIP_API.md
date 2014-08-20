@@ -22,6 +22,26 @@ Publish:
     create data in production -> save in draft db first. (always use the id from draft db)
     Review before publish, diff in popup
 
+    type Product struct {
+       Title     string
+       ColorCode string
+       Price     float64
+       Ext       string
+       PublishAt time.Time
+       Image     MediaLibrary `media_library:"path:/system/:table_name/:id/:filename;"`
+    }
+
+    Product{Title: "product A", Image: os.Open("xxxx")}
+    db.Save(&product)
+
+    db, err := publish.Open("sqlite", "/tmp/qor.db")
+    user := db.NewResource(&Product{})
+    user.InstantPublishAttrs("title", "color_code", "price", "colorA", "colorB")
+    user.IgnoredAttrs("ext")
+
+    /system_draft/products/xxx.png
+    /system/products/xxx.png
+
 Worker:
 
     Worker.New("name", resource).Handle(func() {})
