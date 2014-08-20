@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
 
 type Resource struct {
-	resource.Resource
+	*resource.Resource
 
 	// TODO
 	AlwaysCreate         bool
@@ -18,15 +19,34 @@ type Resource struct {
 }
 
 func NewResource(val interface{}) *Resource {
-	return &Resource{Resource: resource.Resource{Value: val}}
+	res := &Resource{Resource: &resource.Resource{Value: val}}
+	res.AddValidator(func(_ interface{}, mvs *resource.MetaValues, ctx *qor.Context) error {
+		for _, mr := range res.Resource.Metas {
+			if meta, ok := mr.(*Meta); ok {
+				var hasMeta bool
+
+				for _, mv := range mvs.Values {
+					if mv.Name == meta.Name {
+						hasMeta = true
+						break
+					}
+				}
+				if !hasMeta && !meta.Optional {
+					return fmt.Errorf("exchange: should contains Meta %s in MetaValues", meta.Name)
+				}
+			}
+		}
+
+		return nil
+	})
+
+	return res
 }
 
 type Meta struct {
 	*resource.Meta
 
-	// TODO
-	Optional bool // make use of validator?
-
+	Optional     bool
 	AliasHeaders []string
 }
 
@@ -69,7 +89,8 @@ func (res *Resource) getMetaValues(vmap map[string]string, index int) (mvs *reso
 		}
 		mv := resource.MetaValue{Name: m.Name, Meta: m}
 		if m.Resource == nil {
-			if label := m.getCurrentLabel(vmap, index); label != "" {
+			label := m.getCurrentLabel(vmap, index)
+			if label != "" {
 				mv.Value = vmap[label]
 				delete(vmap, label)
 				mvs.Values = append(mvs.Values, &mv)

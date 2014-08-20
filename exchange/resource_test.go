@@ -4,6 +4,8 @@ import (
 	"log"
 	"testing"
 
+	"github.com/qor/qor"
+
 	"github.com/qor/qor/resource"
 )
 
@@ -104,5 +106,46 @@ func TestGetMetaValues(t *testing.T) {
 	}
 	if !hasAeon {
 		t.Error("Should contains 24 in mvs.Values")
+	}
+}
+
+func TestMetaOptional(t *testing.T) {
+	cleanup()
+
+	address := NewResource(Address{})
+	name := address.RegisterMeta(&resource.Meta{Name: "Name", Label: "Address"})
+	ex := New(address)
+	for i := 0; i < 2; i++ {
+		if i == 1 {
+			name.Set("Optional", true)
+		}
+		fi, _, err := ex.Import(&XLSXFile{
+			lines: [][]string{
+				[]string{"Country"},
+				[]string{"USA"},
+			},
+		}, &qor.Context{
+			DB: testdb,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var hasError bool
+		select {
+		case <-fi.Done:
+		case <-fi.Error:
+			hasError = true
+		}
+
+		switch i {
+		case 0:
+			if !hasError {
+				t.Error("Should receive error when Name is not optional")
+			}
+		case 1:
+			if hasError {
+				t.Error("Should not receive error when Name is optional")
+			}
+		}
 	}
 }
