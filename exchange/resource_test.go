@@ -124,9 +124,7 @@ func TestMetaOptional(t *testing.T) {
 				[]string{"Country"},
 				[]string{"USA"},
 			},
-		}, &qor.Context{
-			DB: testdb,
-		})
+		}, &qor.Context{Config: &qor.Config{DB: testdb}})
 		if err != nil {
 			t.Fatal(err)
 		}
