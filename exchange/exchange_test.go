@@ -149,8 +149,8 @@ func TestImportNormalizeHeader(t *testing.T) {
 
 	marathon := NewResource(FullMarathon{})
 	marathon.RegisterMeta(&resource.Meta{Name: "RunningLevel", Label: "Running Level"})
-	marathon.RegisterMeta(&resource.Meta{Name: "Min1500", Label: "1500 Min"})
-	marathon.RegisterMeta(&resource.Meta{Name: "Sec1500", Label: "1500 Sec"})
+	marathon.RegisterMeta(&resource.Meta{Name: "Min1500", Label: "1500M Min"})
+	marathon.RegisterMeta(&resource.Meta{Name: "Sec1500", Label: "1500M Sec"})
 	ex := New(marathon)
 	ex.JobThrottle = 10
 	ex.DataStartAt = 3
@@ -183,7 +183,7 @@ func TestImportNormalizeHeader(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fi, ii, err := ex.Import(f, &qor.Context{Config: &qor.Config{DB: testdb}})
+	fi, iic, err := ex.Import(f, &qor.Context{Config: &qor.Config{DB: testdb}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -196,7 +196,10 @@ loop:
 		case err := <-fi.Error:
 			t.Error(err)
 			break loop
-		case <-ii:
+		case ii := <-iic:
+			for _, err := range ii.Errors {
+				t.Error(err)
+			}
 		}
 	}
 
@@ -207,6 +210,12 @@ loop:
 	}
 	if marathones[1].RunningLevel != 28.1 {
 		t.Errorf("should get 28.1, but got %f", marathones[1].RunningLevel)
+	}
+	if marathones[1].Min1500 != 8 {
+		t.Errorf("should get 8, but got %f", marathones[1].Min1500)
+	}
+	if marathones[1].Sec1500 != 26 {
+		t.Errorf("should get 26, but got %f", marathones[1].Sec1500)
 	}
 }
 

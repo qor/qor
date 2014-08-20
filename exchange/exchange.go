@@ -158,6 +158,6 @@ rollback:
 	if err := db.Rollback().Error; err != nil {
 		fileInfo.Error <- err
 	}
-	fileInfo.Error <- errors.New("meet error in job processing")
+	fileInfo.Error <- errors.New("exchange: encounter error in job processing")
 	return
 }
