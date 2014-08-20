@@ -25,7 +25,8 @@ type Meta struct {
 	*resource.Meta
 
 	// TODO
-	Optional     bool // make use of validator?
+	Optional bool // make use of validator?
+
 	AliasHeaders []string
 }
 

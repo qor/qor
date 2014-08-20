@@ -1,6 +1,7 @@
 package exchange
 
 import (
+	"log"
 	"testing"
 
 	"github.com/qor/qor/resource"
@@ -17,11 +18,12 @@ func TestGetMetaValues(t *testing.T) {
 
 	user := NewResource(User{})
 	user.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
-	user.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	user.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"}).Set("AliasHeaders", []string{"Aeon"})
 	user.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: address})
 
 	mvs, _ := user.getMetaValues(map[string]string{
 		"Name":       "Van",
+		"Aeon":       "24",
 		"Address 01": "China",
 		"Address 02": "USA",
 		"Phone 01":   "xxx-xxx-xxx-1",
@@ -31,12 +33,18 @@ func TestGetMetaValues(t *testing.T) {
 		"Phone 03": "xxx-xxx-xxx-2",
 	}, 0)
 
-	expect := 3
+	expect := 4
 	if len(mvs.Values) != expect {
 		t.Errorf("expecting to retrieve %d MetaValues instead of %d", expect, len(mvs.Values))
 	}
 
-	var hasChina, hasUSA, hasPhone1, hasPhone2 bool
+	if testing.Verbose() {
+		for _, mv := range mvs.Values {
+			log.Printf("--> %+v\n", mv.Value)
+		}
+	}
+
+	var hasChina, hasUSA, hasPhone1, hasPhone2, hasName, hasAeon bool
 	for _, mv := range mvs.Values {
 		switch mv.Name {
 		case "Addresses":
@@ -67,8 +75,14 @@ func TestGetMetaValues(t *testing.T) {
 				}
 			}
 		case "Name":
+			hasName = true
 			if name := mv.Value.(string); name != "Van" {
 				t.Errorf(`Expect name "Van" but got %s`, name)
+			}
+		case "Age":
+			hasAeon = true
+			if aeon := mv.Value.(string); aeon != "24" {
+				t.Errorf(`Expect Aeon "24" but got "%s"`, aeon)
 			}
 		}
 	}
@@ -84,5 +98,11 @@ func TestGetMetaValues(t *testing.T) {
 	}
 	if !hasPhone2 {
 		t.Error("Should contains xxx-xxx-xxx-2 in mvs.Values")
+	}
+	if !hasName {
+		t.Error("Should contains Van in mvs.Values")
+	}
+	if !hasAeon {
+		t.Error("Should contains 24 in mvs.Values")
 	}
 }
