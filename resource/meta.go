@@ -194,12 +194,16 @@ func (meta *Meta) UpdateMeta() {
 					default:
 						if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
 							scanner.Scan(ToString(value))
-						} else if reflect.TypeOf(ToArray(value)).ConvertibleTo(field.Type()) {
-							field.Set(reflect.ValueOf(ToArray(value)).Convert(field.Type()))
-						} else if reflect.TypeOf(ToString(value)).ConvertibleTo(field.Type()) {
-							field.Set(reflect.ValueOf(ToString(value)).Convert(field.Type()))
+						} else if rvalue := reflect.ValueOf(value); reflect.TypeOf(rvalue.Type()).ConvertibleTo(field.Type()) {
+							field.Set(rvalue.Convert(field.Type()))
+						} else if tvalue := ToArray(value); reflect.TypeOf(tvalue).ConvertibleTo(field.Type()) {
+							field.Set(reflect.ValueOf(tvalue).Convert(field.Type()))
+						} else if tvalue := ToIntArray(value); reflect.TypeOf(tvalue).ConvertibleTo(field.Type()) {
+							field.Set(reflect.ValueOf(tvalue).Convert(field.Type()))
+						} else if tvalue := ToString(value); reflect.TypeOf(tvalue).ConvertibleTo(field.Type()) {
+							field.Set(reflect.ValueOf(tvalue).Convert(field.Type()))
 						} else {
-							qor.ExitWithMsg("Can't set value", meta, meta.Base)
+							qor.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.ValueOf(value).Type(), field.Type(), meta)
 						}
 					}
 				}
@@ -225,6 +229,15 @@ func ToArray(value interface{}) (values []string) {
 	} else if vs, ok := value.([]interface{}); ok {
 		for _, v := range vs {
 			values = append(values, fmt.Sprintf("%v", v))
+		}
+	}
+	return
+}
+
+func ToIntArray(value interface{}) (values []int) {
+	if vs, ok := value.([]interface{}); ok {
+		for _, v := range vs {
+			values = append(values, int(ToInt(fmt.Sprintf("%v", v))))
 		}
 	}
 	return
