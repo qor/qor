@@ -171,6 +171,7 @@ func (meta *Meta) UpdateMeta() {
 			if metaValue == nil {
 				return
 			}
+
 			value := metaValue.Value
 			scope := &gorm.Scope{Value: resource}
 			scopeField, _ := scope.FieldByName(meta.Alias)
@@ -196,26 +197,17 @@ func (meta *Meta) UpdateMeta() {
 							scanner.Scan(ToString(value))
 						} else if rvalue := reflect.ValueOf(value); reflect.TypeOf(rvalue.Type()).ConvertibleTo(field.Type()) {
 							field.Set(rvalue.Convert(field.Type()))
-						} else if tvalue := ToArray(value); reflect.TypeOf(tvalue).ConvertibleTo(field.Type()) {
-							field.Set(reflect.ValueOf(tvalue).Convert(field.Type()))
-						} else if tvalue := ToIntArray(value); reflect.TypeOf(tvalue).ConvertibleTo(field.Type()) {
-							field.Set(reflect.ValueOf(tvalue).Convert(field.Type()))
-						} else if tvalue := ToString(value); reflect.TypeOf(tvalue).ConvertibleTo(field.Type()) {
-							field.Set(reflect.ValueOf(tvalue).Convert(field.Type()))
+						} else if reflect.TypeOf([]string{}).ConvertibleTo(field.Type()) {
+							field.Set(reflect.ValueOf(ToArray(value)).Convert(field.Type()))
+						} else if reflect.TypeOf([]int{}).ConvertibleTo(field.Type()) {
+							field.Set(reflect.ValueOf(ToIntArray(value)).Convert(field.Type()))
+						} else if reflect.TypeOf("").ConvertibleTo(field.Type()) {
+							field.Set(reflect.ValueOf(ToString(value)).Convert(field.Type()))
 						} else {
 							qor.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.ValueOf(value).Type(), field.Type(), meta)
 						}
 					}
 				}
-				// if headers, ok := context.Request.MultipartForm.File[value.(string)]; ok {
-				// 	for _, header := range headers {
-				// 		if media, ok := field.Interface().(media_library.MediaLibrary); ok {
-				// 			if file, err := header.Open(); err == nil {
-				// 				media.SetFile(header.Filename, file)
-				// 			}
-				// 		}
-				// 	}
-				// }
 			}
 		}
 	}
@@ -230,6 +222,8 @@ func ToArray(value interface{}) (values []string) {
 		for _, v := range vs {
 			values = append(values, fmt.Sprintf("%v", v))
 		}
+	} else {
+		panic(value)
 	}
 	return
 }
@@ -239,6 +233,8 @@ func ToIntArray(value interface{}) (values []int) {
 		for _, v := range vs {
 			values = append(values, int(ToInt(fmt.Sprintf("%v", v))))
 		}
+	} else {
+		panic(value)
 	}
 	return
 }
@@ -248,8 +244,11 @@ func ToString(value interface{}) string {
 		return v[0]
 	} else if v, ok := value.(string); ok {
 		return v
+	} else if v, ok := value.([]interface{}); ok && len(v) > 0 {
+		return fmt.Sprintf("%v", v[0])
+	} else {
+		panic(value)
 	}
-	return ""
 }
 
 func ToInt(value interface{}) int64 {
@@ -261,10 +260,16 @@ func ToInt(value interface{}) int64 {
 	} else {
 		return ToInt(fmt.Sprintf("%v", value))
 	}
-	// TODO: hiding error here could be a problem?
-	// i, _ := strconv.Atoi(result)
-	n, _ := strconv.ParseInt(result, 10, 64)
-	return n
+
+	if i, err := strconv.ParseInt(result, 10, 64); err == nil {
+		return i
+	} else {
+		if result == "" {
+			return 0
+		} else {
+			panic("failed to parseint")
+		}
+	}
 }
 
 func ToUint(value interface{}) uint64 {
@@ -276,9 +281,12 @@ func ToUint(value interface{}) uint64 {
 	} else {
 		return ToUint(fmt.Sprintf("%v", value))
 	}
-	// TODO: hiding error here could be a problem?
-	n, _ := strconv.ParseUint(result, 10, 64)
-	return n
+
+	if i, err := strconv.ParseUint(result, 10, 64); err == nil {
+		return i
+	} else {
+		panic("failed to parseuint")
+	}
 }
 
 func ToFloat(value interface{}) float64 {
@@ -290,7 +298,14 @@ func ToFloat(value interface{}) float64 {
 	} else {
 		return ToFloat(fmt.Sprintf("%v", value))
 	}
-	// TODO: hiding error here could be a problem?
-	n, _ := strconv.ParseFloat(result, 64)
-	return n
+
+	if i, err := strconv.ParseFloat(result, 64); err == nil {
+		return i
+	} else {
+		if result == "" {
+			return 0
+		} else {
+			panic("failed to parsefloat")
+		}
+	}
 }
