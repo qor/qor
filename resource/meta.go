@@ -1,7 +1,9 @@
 package resource
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -195,16 +197,18 @@ func (meta *Meta) UpdateMeta() {
 					default:
 						if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
 							scanner.Scan(ToString(value))
-						} else if rvalue := reflect.ValueOf(value); reflect.TypeOf(rvalue.Type()).ConvertibleTo(field.Type()) {
-							field.Set(rvalue.Convert(field.Type()))
-						} else if reflect.TypeOf([]string{}).ConvertibleTo(field.Type()) {
-							field.Set(reflect.ValueOf(ToArray(value)).Convert(field.Type()))
-						} else if reflect.TypeOf([]int{}).ConvertibleTo(field.Type()) {
-							field.Set(reflect.ValueOf(ToIntArray(value)).Convert(field.Type()))
 						} else if reflect.TypeOf("").ConvertibleTo(field.Type()) {
 							field.Set(reflect.ValueOf(ToString(value)).Convert(field.Type()))
+						} else if reflect.TypeOf([]string{}).ConvertibleTo(field.Type()) {
+							field.Set(reflect.ValueOf(ToArray(value)).Convert(field.Type()))
+						} else if rvalue := reflect.ValueOf(value); reflect.TypeOf(rvalue.Type()).ConvertibleTo(field.Type()) {
+							field.Set(rvalue.Convert(field.Type()))
 						} else {
-							qor.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.ValueOf(value).Type(), field.Type(), meta)
+							var buf = bytes.NewBufferString("")
+							json.NewEncoder(buf).Encode(value)
+							if err := json.NewDecoder(strings.NewReader(buf.String())).Decode(field.Interface()); err != nil {
+								qor.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.ValueOf(value).Type(), field.Type(), meta)
+							}
 						}
 					}
 				}
@@ -221,17 +225,6 @@ func ToArray(value interface{}) (values []string) {
 	} else if vs, ok := value.([]interface{}); ok {
 		for _, v := range vs {
 			values = append(values, fmt.Sprintf("%v", v))
-		}
-	} else {
-		panic(value)
-	}
-	return
-}
-
-func ToIntArray(value interface{}) (values []int) {
-	if vs, ok := value.([]interface{}); ok {
-		for _, v := range vs {
-			values = append(values, int(ToInt(fmt.Sprintf("%v", v))))
 		}
 	} else {
 		panic(value)
