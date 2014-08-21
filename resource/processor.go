@@ -119,7 +119,7 @@ func (processor *processor) Commit() (errors []error) {
 }
 
 func (processor *processor) Start() (errors []error) {
-	errors = []error{processor.Initialize()}
+	processor.Initialize()
 	if errors = append(errors, processor.Validate()...); len(errors) == 0 {
 		errors = append(errors, processor.Commit()...)
 	}
