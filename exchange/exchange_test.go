@@ -12,10 +12,11 @@ import (
 )
 
 type User struct {
-	Id        int64
-	Name      string
-	Age       int
-	Addresses []Address
+	Id           int64
+	Name         string
+	Age          int
+	Addresses    []Address
+	OldAddresses []Address
 }
 
 type Address struct {
@@ -97,7 +98,7 @@ func TestImportNested(t *testing.T) {
 	addres := NewResource(Address{})
 	addres.HasSequentialColumns = true
 	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
-	addres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Address"})
+	addres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Country"})
 	ex := New(useres)
 
 	f, err := NewXLSXFile("nested_resource.xlsx")

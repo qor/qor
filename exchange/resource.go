@@ -3,6 +3,7 @@ package exchange
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -87,10 +88,10 @@ func (res *Resource) getMetaValues(vmap map[string]string, index int) (mvs *reso
 		if !ok {
 			continue
 		}
+
 		mv := resource.MetaValue{Name: m.Name, Meta: m}
 		if m.Resource == nil {
-			label := m.getCurrentLabel(vmap, index)
-			if label != "" {
+			if label := m.getCurrentLabel(vmap, index); label != "" {
 				mv.Value = vmap[label]
 				delete(vmap, label)
 				mvs.Values = append(mvs.Values, &mv)
@@ -118,9 +119,50 @@ func (res *Resource) getMetaValues(vmap map[string]string, index int) (mvs *reso
 				})
 			}
 		} else if metaResource.MultiDelimiter != "" {
+			for _, subVmap := range metaResource.getSubVmaps(vmap) {
+				subMvs, _ := metaResource.getMetaValues(subVmap, 0)
+				mvs.Values = append(mvs.Values, &resource.MetaValue{
+					Name:       m.Name,
+					Meta:       m,
+					MetaValues: subMvs,
+				})
+			}
 		} else {
 			mv.MetaValues, _ = metaResource.getMetaValues(vmap, index)
 			mvs.Values = append(mvs.Values, &mv)
+		}
+	}
+
+	return
+}
+
+func (res *Resource) getSubVmaps(vmap map[string]string) (subVmaps []map[string]string) {
+	for _, metaor := range res.Metas {
+		for k, v := range vmap {
+			meta := metaor.GetMeta()
+			if meta.Label == k {
+				for i, subv := range strings.Split(v, ",") {
+					if len(subVmaps) == i {
+						subVmaps = append(subVmaps, make(map[string]string))
+					}
+					subVmaps[i][k] = strings.TrimSpace(subv)
+				}
+			} else if meta.Resource != nil {
+				subResource, ok := meta.Resource.(*Resource)
+				if !ok {
+					continue
+				}
+				subMetaSubVmaps := subResource.getSubVmaps(vmap)
+				for i, subMetaVmap := range subMetaSubVmaps {
+					if len(subVmaps) == i {
+						subVmaps = append(subVmaps, make(map[string]string))
+					}
+					vmap := subVmaps[i]
+					for k, v := range subMetaVmap {
+						vmap[k] = v
+					}
+				}
+			}
 		}
 	}
 
