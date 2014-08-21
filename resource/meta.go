@@ -206,7 +206,7 @@ func (meta *Meta) UpdateMeta() {
 						} else {
 							var buf = bytes.NewBufferString("")
 							json.NewEncoder(buf).Encode(value)
-							if err := json.NewDecoder(strings.NewReader(buf.String())).Decode(field.Interface()); err != nil {
+							if err := json.NewDecoder(strings.NewReader(buf.String())).Decode(field.Addr().Interface()); err != nil {
 								qor.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.ValueOf(value).Type(), field.Type(), meta)
 							}
 						}
