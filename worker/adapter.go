@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"bytes"
 	"github.com/qor/qor/resource"
 
 	"io"
@@ -8,17 +9,19 @@ import (
 )
 
 type Adapter interface {
-	Enqueue(metaValues *resource.MetaValues) (jobId string)
+	Enqueue(metaValues *resource.MetaValues) Job
 	Listen(worker Worker)
-	GetProcessLog(jobId string) io.Reader
+	GetProcessLog(Job) io.Reader
+	LogWriter(Job) io.Writer
+	Kill(Job)
 }
 
 type SampleAdapter struct {
 }
 
-func (SampleAdapter) Enqueue(metaValues *resource.MetaValues) (jobId string) {
+func (SampleAdapter) Enqueue(metaValues *resource.MetaValues) Job {
 	// push to job queue
-	return ""
+	return Job{}
 }
 
 func (SampleAdapter) Listen(worker Worker) {
@@ -30,6 +33,13 @@ func (SampleAdapter) Listen(worker Worker) {
 	// the job queue handle schedule
 }
 
-func (SampleAdapter) GetProcessLog(jobId string) io.Reader {
+func (SampleAdapter) GetProcessLog(job Job) io.Reader {
 	return strings.NewReader("") // also need to a writer, it should read running job's logs
+}
+
+func (SampleAdapter) LogWriter(job Job) io.Writer {
+	return bytes.NewBuffer([]byte{})
+}
+
+func (SampleAdapter) Kill(job Job) {
 }

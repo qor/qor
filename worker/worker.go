@@ -4,11 +4,11 @@ import "github.com/qor/qor/resource"
 
 type Worker struct {
 	*resource.Resource
-	Handler   func(metaValues *resource.MetaValues)
-	OnError   func(metaValues *resource.MetaValues)
-	OnSuccess func(metaValues *resource.MetaValues)
-	OnStart   func(metaValues *resource.MetaValues)
-	OnKill    func(metaValues *resource.MetaValues)
+	Handler   func(job *Job)
+	OnError   func(job *Job)
+	OnSuccess func(job *Job)
+	OnStart   func(job *Job)
+	OnKill    func(job *Job)
 	Adapter
 }
 
