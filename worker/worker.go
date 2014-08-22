@@ -29,5 +29,5 @@ func (worker Worker) UseAdapter(adapter Adapter) {
 }
 
 func (worker Worker) Listen() {
-	Adapter.Listen(worker)
+	worker.Adapter.Listen(worker)
 }
