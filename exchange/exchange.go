@@ -12,11 +12,8 @@ import (
 // TODO: support ImportStatus chan data sorter
 
 type Exchange struct {
-	Resource *Resource
-
-	// TODO
-	StopOnError bool
-
+	Resource         *Resource
+	StopOnError      bool
 	JobThrottle      int
 	StatusThrottle   int
 	NormalizeHeaders func(f File) []string
@@ -89,7 +86,7 @@ func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo
 	res := ex.Resource
 	for num := ex.DataStartAt; num < fileInfo.TotalLines; num++ {
 		throttle <- true
-		if hasError {
+		if hasError && ex.StopOnError {
 			goto rollback
 		}
 
@@ -117,8 +114,7 @@ func (ex *Exchange) process(f File, headers []string, ctx *qor.Context, fileInfo
 			importStatus.MetaValues, _ = res.getMetaValues(vmap, 0)
 			processor := resource.DecodeToResource(res, res.NewStruct(), importStatus.MetaValues, ctx)
 
-			// TODO: handle skip left
-			if err := processor.Initialize(); err != nil && err != resource.ErrProcessorRecordNotFound {
+			if err := processor.Initialize(); err != nil {
 				importStatus.Errors = []error{err}
 				return
 			}
