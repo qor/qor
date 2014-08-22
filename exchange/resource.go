@@ -11,16 +11,13 @@ import (
 
 type Resource struct {
 	*resource.Resource
-
-	// TODO
-	AlwaysCreate         bool
 	AutoCreate           bool
 	MultiDelimiter       string
 	HasSequentialColumns bool
 }
 
 func NewResource(val interface{}) *Resource {
-	res := &Resource{Resource: &resource.Resource{Value: val}}
+	res := &Resource{Resource: &resource.Resource{Value: val}, AutoCreate: true}
 	res.AddValidator(func(_ interface{}, mvs *resource.MetaValues, ctx *qor.Context) error {
 		for _, mr := range res.Resource.Metas {
 			if meta, ok := mr.(*Meta); ok {
@@ -44,9 +41,21 @@ func NewResource(val interface{}) *Resource {
 	return res
 }
 
+func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, ctx *qor.Context) (err error) {
+	if res.Finder != nil {
+		err = res.Finder(result, metaValues, ctx)
+		if err == resource.ErrProcessorRecordNotFound && res.AutoCreate {
+			err = nil
+		}
+	} else if !res.AutoCreate {
+		err = resource.ErrProcessorRecordNotFound
+	}
+
+	return
+}
+
 type Meta struct {
 	*resource.Meta
-
 	Optional     bool
 	AliasHeaders []string
 }
