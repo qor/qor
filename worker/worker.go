@@ -4,7 +4,7 @@ import "github.com/qor/qor/resource"
 
 type Worker struct {
 	*resource.Resource
-	Handler   func(job *Job)
+	Handler   func(job *Job) error
 	OnError   func(job *Job)
 	OnSuccess func(job *Job)
 	OnStart   func(job *Job)
@@ -22,6 +22,21 @@ func (worker Worker) AllowSchedule() {
 
 func (worker Worker) AllMetas() []resource.Meta {
 	return []resource.Meta{}
+}
+
+func (worker Worker) RunHandler(job *Job) {
+	defer func() {
+		if r := recover(); r != nil {
+			worker.OnError(job)
+		}
+	}()
+
+	worker.OnStart(job)
+	if err := worker.Handler(job); err == nil {
+		worker.OnSuccess(job)
+	} else {
+		worker.OnError(job)
+	}
 }
 
 func (worker Worker) UseAdapter(adapter Adapter) {
