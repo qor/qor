@@ -12,19 +12,19 @@ type Worker struct {
 	Adapter
 }
 
-func New(name string) Worker {
-	return Worker{}
+func New(name string) *Worker {
+	return &Worker{}
 }
 
-func (worker Worker) AllowSchedule() {
+func (worker *Worker) AllowSchedule() {
 	worker.RegisterMeta(&resource.Meta{Name: "Schedule", Type: "schedule"})
 }
 
-func (worker Worker) AllMetas() []resource.Meta {
+func (worker *Worker) AllMetas() []resource.Meta {
 	return []resource.Meta{}
 }
 
-func (worker Worker) RunHandler(job *Job) {
+func (worker *Worker) RunHandler(job *Job) {
 	defer func() {
 		if r := recover(); r != nil {
 			worker.OnError(job)
@@ -32,17 +32,18 @@ func (worker Worker) RunHandler(job *Job) {
 	}()
 
 	worker.OnStart(job)
-	if err := worker.Handler(job); err == nil {
+	worker.Handler(job)
+	if len(job.Errors) == 0 {
 		worker.OnSuccess(job)
 	} else {
 		worker.OnError(job)
 	}
 }
 
-func (worker Worker) UseAdapter(adapter Adapter) {
+func (worker *Worker) UseAdapter(adapter Adapter) {
 	worker.Adapter = adapter
 }
 
-func (worker Worker) Listen() {
+func (worker *Worker) Listen() {
 	worker.Adapter.Listen(worker)
 }
