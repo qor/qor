@@ -42,10 +42,6 @@ Publish:
     /system_draft/products/xxx.png
     /system/products/xxx.png
 
-Worker:
-
-    Worker.New("name", resource).Handle(func() {})
-
 Mail: (TBD)
 
 Form:
