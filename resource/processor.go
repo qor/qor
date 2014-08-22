@@ -39,8 +39,7 @@ func (processor *processor) checkSkipLeft(errs ...error) bool {
 }
 
 func (processor *processor) Initialize() error {
-	err := ErrProcessorRecordNotFound
-	err = processor.Resource.CallFinder(processor.Result, processor.MetaValues, processor.Context)
+	err := processor.Resource.CallFinder(processor.Result, processor.MetaValues, processor.Context)
 	processor.checkSkipLeft(err)
 	return err
 }
