@@ -9,7 +9,7 @@ import (
 
 type Adapter interface {
 	Enqueue(metaValues *resource.MetaValues) (jobId string)
-	Listen()
+	Listen(worker Worker)
 	GetProcessLog(jobId string) io.Reader
 }
 
@@ -21,7 +21,7 @@ func (SampleAdapter) Enqueue(metaValues *resource.MetaValues) (jobId string) {
 	return ""
 }
 
-func (SampleAdapter) Listen() {
+func (SampleAdapter) Listen(worker Worker) {
 	// parse ARGV, to check it is in running job, if so run the job and exit program after finish
 
 	// listen from job queue -> if there is a new job -> start a new process to run the job -> save process id

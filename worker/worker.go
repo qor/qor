@@ -27,3 +27,7 @@ func (worker Worker) AllMetas() []resource.Meta {
 func (worker Worker) UseAdapter(adapter Adapter) {
 	worker.Adapter = adapter
 }
+
+func (worker Worker) Listen() {
+	Adapter.Listen(worker)
+}
