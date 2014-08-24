@@ -29,7 +29,7 @@ func NewResource(val interface{}) *Resource {
 						break
 					}
 				}
-				if !hasMeta && !meta.Optional {
+				if !hasMeta && !meta.Optional && meta.Resource == nil {
 					return fmt.Errorf("exchange: should contains Meta %s in MetaValues", meta.Name)
 				}
 			}

@@ -1,6 +1,7 @@
 package exchange
 
 import (
+	"bytes"
 	"log"
 	"testing"
 
@@ -157,34 +158,26 @@ func TestMetaOptional(t *testing.T) {
 
 	address := NewResource(Address{})
 	name := address.RegisterMeta(&resource.Meta{Name: "Name", Label: "Address"})
-	ex := New(address)
+	ex := New(address, &qor.Config{DB: testdb})
 	for i := 0; i < 2; i++ {
 		if i == 1 {
 			name.Set("Optional", true)
 		}
-		fi, _, err := ex.Import(&XLSXFile{
+		var buf bytes.Buffer
+		err := ex.Import(&XLSXFile{
 			lines: [][]string{
 				[]string{"Country"},
 				[]string{"USA"},
 			},
-		}, &qor.Context{Config: &qor.Config{DB: testdb}})
-		if err != nil {
-			t.Fatal(err)
-		}
-		var hasError bool
-		select {
-		case <-fi.Done:
-		case <-fi.Error:
-			hasError = true
-		}
+		}, &buf)
 
 		switch i {
 		case 0:
-			if !hasError {
+			if err == nil {
 				t.Error("Should receive error when Name is not optional")
 			}
 		case 1:
-			if hasError {
+			if err != nil {
 				t.Error("Should not receive error when Name is optional")
 			}
 		}

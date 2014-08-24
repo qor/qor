@@ -1,6 +1,7 @@
 package exchange
 
 import (
+	"bytes"
 	"errors"
 	"testing"
 	"time"
@@ -59,27 +60,17 @@ func TestImportSimple(t *testing.T) {
 	useres := NewResource(User{})
 	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
 	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
-	ex := New(useres)
+	ex := New(useres, &qor.Config{DB: testdb})
 
 	f, err := NewXLSXFile("simple.xlsx")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	fi, _, err := ex.Import(f, &qor.Context{Config: &qor.Config{DB: testdb}})
+	var buf bytes.Buffer
+	err = ex.Import(f, &buf)
 	if err != nil {
 		t.Error(err)
-	}
-
-	if fi.TotalLines != 4 {
-		t.Errorf("Total lines should be 4 instead of %d", fi.TotalLines)
-	}
-
-	select {
-	case <-fi.Done:
-	case err := <-fi.Error:
-		t.Error(err)
-		return
 	}
 
 	var users []User
@@ -99,31 +90,17 @@ func TestImportNested(t *testing.T) {
 	addres.HasSequentialColumns = true
 	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
 	addres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Country"})
-	ex := New(useres)
+	ex := New(useres, &qor.Config{DB: testdb})
 
 	f, err := NewXLSXFile("nested_resource.xlsx")
 	if err != nil {
 		t.Fatal(err)
 	}
-	fi, ii, err := ex.Import(f, &qor.Context{Config: &qor.Config{DB: testdb}})
+
+	var buf bytes.Buffer
+	err = ex.Import(f, &buf)
 	if err != nil {
 		t.Error(err)
-	}
-
-	if fi.TotalLines != 4 {
-		t.Errorf("Total lines should be 4 instead of %d", fi.TotalLines)
-	}
-
-loop:
-	for {
-		select {
-		case <-fi.Done:
-			break loop
-		case err := <-fi.Error:
-			t.Error(err)
-			break loop
-		case <-ii:
-		}
 	}
 
 	var users []User
@@ -152,7 +129,7 @@ func TestImportNormalizeHeader(t *testing.T) {
 	marathon.RegisterMeta(&resource.Meta{Name: "RunningLevel", Label: "Running Level"})
 	marathon.RegisterMeta(&resource.Meta{Name: "Min1500", Label: "1500M Min"})
 	marathon.RegisterMeta(&resource.Meta{Name: "Sec1500", Label: "1500M Sec"})
-	ex := New(marathon)
+	ex := New(marathon, &qor.Config{DB: testdb})
 	ex.JobThrottle = 10
 	ex.DataStartAt = 3
 	ex.NormalizeHeaders = func(f File) (headers []string) {
@@ -184,24 +161,11 @@ func TestImportNormalizeHeader(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fi, iic, err := ex.Import(f, &qor.Context{Config: &qor.Config{DB: testdb}})
+
+	var buf bytes.Buffer
+	err = ex.Import(f, &buf)
 	if err != nil {
 		t.Error(err)
-	}
-
-loop:
-	for {
-		select {
-		case <-fi.Done:
-			break loop
-		case err := <-fi.Error:
-			t.Error(err)
-			break loop
-		case ii := <-iic:
-			for _, err := range ii.Errors {
-				t.Error(err)
-			}
-		}
 	}
 
 	var marathones []FullMarathon
@@ -226,8 +190,8 @@ func TestImportError(t *testing.T) {
 	useres := NewResource(User{})
 	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
 	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
-	ex := New(useres)
-	ferr := errors.New("error")
+	ex := New(useres, &qor.Config{DB: testdb})
+	ferr := errors.New("an validator error in the second line")
 	var i int
 	useres.AddValidator(func(rel interface{}, mvs *resource.MetaValues, ctx *qor.Context) error {
 		if i++; i == 2 {
@@ -240,37 +204,17 @@ func TestImportError(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fi, iic, err := ex.Import(f, &qor.Context{Config: &qor.Config{DB: testdb}})
-	if err != nil {
-		t.Error(err)
+	var buf bytes.Buffer
+	err = ex.Import(f, &buf)
+	if err == nil {
+		t.Error("Should encouter error")
 	}
 
-	var hasError bool
-	var errs []error
-loop:
-	for {
-		select {
-		case ii := <-iic:
-			errs = append(errs, ii.Errors...)
-			if len(errs) > 0 && hasError {
-				break loop
-			}
-		case <-fi.Done:
-			break loop
-		case err := <-fi.Error:
-			hasError = err != nil
-			if len(errs) > 0 && hasError {
-				break loop
-			}
-		}
+	logs := "2/4: 1 Van 24  \n3/4: an validator error in the second line; \n4/4: 3 Kate 25  \n"
+	if buf.String() != logs {
+		t.Errorf(`Expect log %q but got %q`, logs, buf.String())
 	}
 
-	if !hasError {
-		t.Error("should return an error")
-	}
-	if len(errs) != 1 || errs[0] != ferr {
-		t.Error("Should receive errors properlly")
-	}
 	var users []User
 	testdb.Find(&users)
 	if len(users) != 0 {
