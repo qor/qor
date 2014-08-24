@@ -21,5 +21,5 @@ func (f *CSVFile) TotalLines() (num int) {
 }
 
 func (f *CSVFile) Line(l int) []string {
-	return f[l]
+	return f.lines[l]
 }
