@@ -7,6 +7,7 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
+	"net/http"
 	"path"
 	"reflect"
 	"strings"
@@ -20,6 +21,7 @@ type Content struct {
 	Resource *Resource
 	Result   interface{}
 	Action   string
+	Writer   http.ResponseWriter
 }
 
 func (content *Content) AllowedMetas(modes ...roles.PermissionMode) func(reses ...*Resource) []*resource.Meta {

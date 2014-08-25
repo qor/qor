@@ -2,6 +2,7 @@ package admin
 
 import (
 	"github.com/qor/qor"
+	"github.com/qor/qor/roles"
 
 	"net/http"
 	"path"
@@ -10,10 +11,13 @@ import (
 )
 
 func (admin *Admin) generateContext(w http.ResponseWriter, r *http.Request) *qor.Context {
-	context := qor.Context{Writer: w, Request: r, Config: admin.Config}
+	var currentUser *qor.CurrentUser
+	context := qor.Context{Config: admin.Config}
 	if admin.auth != nil {
-		context.CurrentUser = admin.auth.GetCurrentUser(&context)
+		// FIXME
+		currentUser = admin.auth.GetCurrentUser(&context)
 	}
+	context.Roles = roles.MatchedRoles(r, currentUser)
 	return &context
 }
 
@@ -24,7 +28,7 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 	admin.Prefix = prefix
 
 	mux.HandleFunc(strings.TrimRight(prefix, "/"), func(w http.ResponseWriter, r *http.Request) {
-		admin.Dashboard(admin.generateContext(w, r))
+		admin.Dashboard(w, r, admin.generateContext(w, r))
 	})
 
 	pathMatch := regexp.MustCompile(path.Join(prefix, `(\w+)(?:/(\w+))?[^/]*/?$`))
@@ -40,7 +44,7 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 
 		matches := pathMatch.FindStringSubmatch(r.URL.Path)
 		if len(matches) == 0 {
-			admin.Dashboard(admin.generateContext(w, r))
+			admin.Dashboard(w, r, admin.generateContext(w, r))
 			return
 		}
 
@@ -57,17 +61,17 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 
 		switch {
 		case r.Method == "GET" && isIndexURL:
-			admin.Index(context)
+			admin.Index(w, r, context)
 		case r.Method == "GET" && isShowURL && context.ResourceID == "new":
-			admin.New(context)
+			admin.New(w, r, context)
 		case r.Method == "GET" && isShowURL:
-			admin.Show(context)
+			admin.Show(w, r, context)
 		case r.Method == "POST" && isShowURL:
-			admin.Update(context)
+			admin.Update(w, r, context)
 		case r.Method == "POST" && isIndexURL:
-			admin.Create(context)
+			admin.Create(w, r, context)
 		case r.Method == "DELETE" && isShowURL:
-			admin.Delete(context)
+			admin.Delete(w, r, context)
 		default:
 			http.NotFound(w, r)
 		}

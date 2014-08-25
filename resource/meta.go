@@ -43,7 +43,7 @@ func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context)
 	if meta.Permission == nil {
 		return true
 	}
-	return meta.Permission.HasPermission(mode, context)
+	return meta.Permission.HasPermission(mode, context.Roles...)
 }
 
 func (meta *Meta) UpdateMeta() {

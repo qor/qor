@@ -1,22 +1,16 @@
 package qor
 
-import (
-	"github.com/jinzhu/gorm"
-
-	"net/http"
-)
+import "github.com/jinzhu/gorm"
 
 type CurrentUser interface {
 	DisplayName() string
 }
 
 type Context struct {
-	Writer       http.ResponseWriter
-	Request      *http.Request
-	CurrentUser  CurrentUser
 	ResourceName string
 	ResourceID   string
 	Config       *Config
+	Roles        []string
 }
 
 func (context *Context) DB() *gorm.DB {

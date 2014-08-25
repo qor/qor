@@ -4,6 +4,7 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
+	"net/http"
 
 	"reflect"
 	"regexp"
@@ -64,8 +65,7 @@ func ConvertMapToMetaValues(values map[string]interface{}, res resourcer) (metaV
 	return
 }
 
-func ConvertFormToMetaValues(context *qor.Context, prefix string, res *Resource) (metaValues *resource.MetaValues) {
-	request := context.Request
+func ConvertFormToMetaValues(context *qor.Context, prefix string, res *Resource, request *http.Request) (metaValues *resource.MetaValues) {
 	convertedMap := make(map[string]bool)
 	metas := make(map[string]resource.Metaor)
 	if res != nil {
@@ -93,7 +93,7 @@ func ConvertFormToMetaValues(context *qor.Context, prefix string, res *Resource)
 					if meta != nil && meta.GetMeta() != nil {
 						res = meta.GetMeta().Resource.(*Resource)
 					}
-					children := ConvertFormToMetaValues(context, prefix+matches[1]+".", res)
+					children := ConvertFormToMetaValues(context, prefix+matches[1]+".", res, request)
 					metaValue := &resource.MetaValue{Name: matches[2], Meta: meta, MetaValues: children}
 					metaValues.Values = append(metaValues.Values, metaValue)
 				}
