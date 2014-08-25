@@ -6,7 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/rules"
+	"github.com/qor/qor/roles"
 	"path"
 	"reflect"
 	"strings"
@@ -22,7 +22,7 @@ type Content struct {
 	Action   string
 }
 
-func (content *Content) AllowedMetas(modes ...rules.PermissionMode) func(reses ...*Resource) []*resource.Meta {
+func (content *Content) AllowedMetas(modes ...roles.PermissionMode) func(reses ...*Resource) []*resource.Meta {
 	return func(reses ...*Resource) []*resource.Meta {
 		var res = content.Resource
 		if len(reses) > 0 {
@@ -91,7 +91,7 @@ func (content *Content) renderForm(result *bytes.Buffer, value interface{}, meta
 func (content *Content) RenderMeta(writer *bytes.Buffer, meta *resource.Meta, value interface{}, prefix []string) {
 	prefix = append(prefix, meta.Name)
 
-	funcsMap := content.funcMap(rules.Read, rules.Update)
+	funcsMap := content.funcMap(roles.Read, roles.Update)
 	funcsMap["render_form"] = func(value interface{}, metas []*resource.Meta, index ...int) string {
 		var result = bytes.NewBufferString("")
 		newPrefix := append([]string{}, prefix...)
@@ -150,7 +150,7 @@ func (content *Content) HasPrimaryKey(value interface{}, primaryKey interface{})
 	return false
 }
 
-func (content *Content) funcMap(modes ...rules.PermissionMode) template.FuncMap {
+func (content *Content) funcMap(modes ...roles.PermissionMode) template.FuncMap {
 	return template.FuncMap{
 		"allowed_metas":     content.AllowedMetas(modes...),
 		"value_of":          content.ValueOf,

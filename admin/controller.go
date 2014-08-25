@@ -7,7 +7,7 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/responder"
-	"github.com/qor/qor/rules"
+	"github.com/qor/qor/roles"
 
 	"net/http"
 	"path"
@@ -15,7 +15,7 @@ import (
 
 func (admin *Admin) Dashboard(context *qor.Context) {
 	content := Content{Admin: admin, Context: context, Action: "dashboard"}
-	admin.Render("dashboard", content, rules.Read)
+	admin.Render("dashboard", content, roles.Read)
 }
 
 func (admin *Admin) Index(context *qor.Context) {
@@ -25,7 +25,7 @@ func (admin *Admin) Index(context *qor.Context) {
 
 	responder.With("html", func() {
 		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index"}
-		admin.Render("index", content, rules.Read)
+		admin.Render("index", content, roles.Read)
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)
@@ -39,7 +39,7 @@ func (admin *Admin) Show(context *qor.Context) {
 
 	responder.With("html", func() {
 		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "edit"}
-		admin.Render("show", content, rules.Read, rules.Update)
+		admin.Render("show", content, roles.Read, roles.Update)
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)
@@ -49,7 +49,7 @@ func (admin *Admin) Show(context *qor.Context) {
 func (admin *Admin) New(context *qor.Context) {
 	resource := admin.Resources[context.ResourceName]
 	content := Content{Admin: admin, Context: context, Resource: resource, Action: "new"}
-	admin.Render("new", content, rules.Create)
+	admin.Render("new", content, roles.Create)
 }
 
 func (admin *Admin) decode(result interface{}, res *Resource, context *qor.Context) (errs []error) {

@@ -3,7 +3,7 @@ package admin
 import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/rules"
+	"github.com/qor/qor/roles"
 
 	"reflect"
 	"regexp"
@@ -123,7 +123,7 @@ func ConvertObjectToMap(context *qor.Context, object interface{}, res *Resource)
 		values := map[string]interface{}{}
 		metas := res.ShowMetas()
 		for _, meta := range metas {
-			if meta.HasPermission(rules.Read, context) {
+			if meta.HasPermission(roles.Read, context) {
 				value := meta.Value(object, context)
 				if res, ok := meta.Resource.(*Resource); ok {
 					value = ConvertObjectToMap(context, value, res)

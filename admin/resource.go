@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/rules"
+	"github.com/qor/qor/roles"
 
 	"go/ast"
 	"reflect"
@@ -144,11 +144,11 @@ func (res *Resource) appendPrimaryKey(metas []*resource.Meta) []*resource.Meta {
 	return append(metas, primaryKeyMeta)
 }
 
-func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *qor.Context, rules ...rules.PermissionMode) []*resource.Meta {
+func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *qor.Context, roles ...roles.PermissionMode) []*resource.Meta {
 	var metas = []*resource.Meta{}
 	for _, meta := range attrs {
-		for _, rule := range rules {
-			if meta.HasPermission(rule, context) {
+		for _, role := range roles {
+			if meta.HasPermission(role, context) {
 				metas = append(metas, meta)
 				break
 			}

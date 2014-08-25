@@ -1,4 +1,4 @@
-package rules
+package roles
 
 import "github.com/qor/qor"
 
@@ -13,7 +13,7 @@ const (
 )
 
 type Permission struct {
-	rule       *Rule
+	role       *Role
 	allowRoles map[PermissionMode][]string
 	denyRoles  map[PermissionMode][]string
 }
@@ -21,7 +21,7 @@ type Permission struct {
 func (permission *Permission) HasPermission(mode PermissionMode, context *qor.Context) bool {
 	if len(permission.denyRoles) != 0 {
 		if roles := permission.denyRoles[mode]; roles != nil {
-			if definitions := permission.rule.definitions; definitions != nil {
+			if definitions := permission.role.definitions; definitions != nil {
 				for _, r := range roles {
 					if definitions[r](context) {
 						return false
@@ -33,7 +33,7 @@ func (permission *Permission) HasPermission(mode PermissionMode, context *qor.Co
 
 	if len(permission.allowRoles) != 0 {
 		if roles := permission.allowRoles[mode]; roles != nil {
-			if definitions := permission.rule.definitions; definitions != nil {
+			if definitions := permission.role.definitions; definitions != nil {
 				for _, r := range roles {
 					if definitions[r](context) {
 						return true

@@ -13,7 +13,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/media_library"
-	"github.com/qor/qor/rules"
+	"github.com/qor/qor/roles"
 )
 
 type Meta struct {
@@ -27,19 +27,19 @@ type Meta struct {
 	Collection    interface{}
 	GetCollection func(interface{}, *qor.Context) [][]string
 	Resource      Resourcer
-	Permission    *rules.Permission
+	Permission    *roles.Permission
 }
 
 type Metaor interface {
 	GetMeta() *Meta
-	HasPermission(rules.PermissionMode, *qor.Context) bool
+	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
 
 func (meta *Meta) GetMeta() *Meta {
 	return meta
 }
 
-func (meta *Meta) HasPermission(mode rules.PermissionMode, context *qor.Context) bool {
+func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
 	if meta.Permission == nil {
 		return true
 	}

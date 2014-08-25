@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 	"fmt"
-	"github.com/qor/qor/rules"
+	"github.com/qor/qor/roles"
 	"os"
 	"path"
 	"path/filepath"
@@ -65,7 +65,7 @@ func (content Content) getTemplate(tmpl *template.Template, layout string) (*tem
 	return tmpl, errors.New("template not found")
 }
 
-func (admin *Admin) Render(str string, content Content, modes ...rules.PermissionMode) {
+func (admin *Admin) Render(str string, content Content, modes ...roles.PermissionMode) {
 	var tmpl *template.Template
 
 	cacheKey := path.Join(content.Context.ResourceName, str)
