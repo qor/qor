@@ -1,10 +1,8 @@
 package admin
 
 import (
-	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
-	"net/http"
 
 	"reflect"
 	"regexp"
@@ -65,7 +63,8 @@ func ConvertMapToMetaValues(values map[string]interface{}, res resourcer) (metaV
 	return
 }
 
-func ConvertFormToMetaValues(context *qor.Context, prefix string, res *Resource, request *http.Request) (metaValues *resource.MetaValues) {
+func ConvertFormToMetaValues(context *Context, prefix string, res *Resource) (metaValues *resource.MetaValues) {
+	request := context.Request
 	convertedMap := make(map[string]bool)
 	metas := make(map[string]resource.Metaor)
 	if res != nil {
@@ -93,7 +92,7 @@ func ConvertFormToMetaValues(context *qor.Context, prefix string, res *Resource,
 					if meta != nil && meta.GetMeta() != nil {
 						res = meta.GetMeta().Resource.(*Resource)
 					}
-					children := ConvertFormToMetaValues(context, prefix+matches[1]+".", res, request)
+					children := ConvertFormToMetaValues(context, prefix+matches[1]+".", res)
 					metaValue := &resource.MetaValue{Name: matches[2], Meta: meta, MetaValues: children}
 					metaValues.Values = append(metaValues.Values, metaValue)
 				}
@@ -109,7 +108,7 @@ func ConvertFormToMetaValues(context *qor.Context, prefix string, res *Resource,
 	return
 }
 
-func ConvertObjectToMap(context *qor.Context, object interface{}, res *Resource) interface{} {
+func ConvertObjectToMap(context *Context, object interface{}, res *Resource) interface{} {
 	reflectValue := reflect.Indirect(reflect.ValueOf(object))
 	switch reflectValue.Kind() {
 	case reflect.Slice:
@@ -123,8 +122,8 @@ func ConvertObjectToMap(context *qor.Context, object interface{}, res *Resource)
 		values := map[string]interface{}{}
 		metas := res.ShowMetas()
 		for _, meta := range metas {
-			if meta.HasPermission(roles.Read, context) {
-				value := meta.Value(object, context)
+			if meta.HasPermission(roles.Read, context.Context) {
+				value := meta.Value(object, context.Context)
 				if res, ok := meta.Resource.(*Resource); ok {
 					value = ConvertObjectToMap(context, value, res)
 				}

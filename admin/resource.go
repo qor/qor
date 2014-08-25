@@ -144,11 +144,11 @@ func (res *Resource) appendPrimaryKey(metas []*resource.Meta) []*resource.Meta {
 	return append(metas, primaryKeyMeta)
 }
 
-func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *qor.Context, roles ...roles.PermissionMode) []*resource.Meta {
+func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *Context, roles ...roles.PermissionMode) []*resource.Meta {
 	var metas = []*resource.Meta{}
 	for _, meta := range attrs {
 		for _, role := range roles {
-			if meta.HasPermission(role, context) {
+			if meta.HasPermission(role, context.Context) {
 				metas = append(metas, meta)
 				break
 			}

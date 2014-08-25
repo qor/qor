@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/jinzhu/gorm"
-	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
-	"net/http"
 	"path"
 	"reflect"
 	"strings"
@@ -17,11 +15,10 @@ import (
 
 type Content struct {
 	Admin    *Admin
-	Context  *qor.Context
+	Context  *Context
 	Resource *Resource
 	Result   interface{}
 	Action   string
-	Writer   http.ResponseWriter
 }
 
 func (content *Content) AllowedMetas(modes ...roles.PermissionMode) func(reses ...*Resource) []*resource.Meta {
@@ -47,7 +44,7 @@ func (content *Content) AllowedMetas(modes ...roles.PermissionMode) func(reses .
 }
 
 func (content *Content) ValueOf(value interface{}, meta *resource.Meta) interface{} {
-	return meta.Value(value, content.Context)
+	return meta.Value(value, content.Context.Context)
 }
 
 func (content *Content) NewResourcePath(value interface{}) string {
@@ -114,9 +111,9 @@ func (content *Content) RenderMeta(writer *bytes.Buffer, meta *resource.Meta, va
 		data["InputId"] = strings.Join(prefix, "")
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
-		data["Value"] = meta.Value(value, content.Context)
+		data["Value"] = meta.Value(value, content.Context.Context)
 		if meta.GetCollection != nil {
-			data["CollectionValue"] = meta.GetCollection(value, content.Context)
+			data["CollectionValue"] = meta.GetCollection(value, content.Context.Context)
 		}
 		data["Meta"] = meta
 

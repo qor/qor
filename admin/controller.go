@@ -3,8 +3,6 @@ package admin
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/responder"
 	"github.com/qor/qor/roles"
@@ -13,87 +11,87 @@ import (
 	"path"
 )
 
-func (admin *Admin) Dashboard(writer http.ResponseWriter, request *http.Request, context *qor.Context) {
-	content := Content{Admin: admin, Context: context, Action: "dashboard", Writer: writer}
+func (admin *Admin) Dashboard(context *Context) {
+	content := Content{Admin: admin, Context: context, Action: "dashboard"}
 	admin.Render("dashboard", content, roles.Read)
 }
 
-func (admin *Admin) Index(writer http.ResponseWriter, request *http.Request, context *qor.Context) {
+func (admin *Admin) Index(context *Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewSlice()
-	res.CallSearcher(result, context)
+	res.CallSearcher(result, context.Context)
 
 	responder.With("html", func() {
-		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index", Writer: writer}
+		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index"}
 		admin.Render("index", content, roles.Read)
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
-		writer.Write(js)
-	}).Respond(writer, request)
+		context.Writer.Write(js)
+	}).Respond(context.Writer, context.Request)
 }
 
-func (admin *Admin) Show(writer http.ResponseWriter, request *http.Request, context *qor.Context) {
+func (admin *Admin) Show(context *Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewStruct()
-	res.CallFinder(result, nil, context)
+	res.CallFinder(result, nil, context.Context)
 
 	responder.With("html", func() {
-		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "edit", Writer: writer}
+		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "edit"}
 		admin.Render("show", content, roles.Read, roles.Update)
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
-		writer.Write(js)
-	}).Respond(writer, request)
+		context.Writer.Write(js)
+	}).Respond(context.Writer, context.Request)
 }
 
-func (admin *Admin) New(writer http.ResponseWriter, request *http.Request, context *qor.Context) {
+func (admin *Admin) New(context *Context) {
 	resource := admin.Resources[context.ResourceName]
-	content := Content{Admin: admin, Context: context, Resource: resource, Action: "new", Writer: writer}
+	content := Content{Admin: admin, Context: context, Resource: resource, Action: "new"}
 	admin.Render("new", content, roles.Create)
 }
 
-func (admin *Admin) decode(result interface{}, res *Resource, context *qor.Context, writer http.ResponseWriter, request *http.Request) (errs []error) {
+func (admin *Admin) decode(result interface{}, res *Resource, context *Context) (errs []error) {
 	responder.With("html", func() {
-		errs = resource.DecodeToResource(res, result, ConvertFormToMetaValues(context, "QorResource.", res, request), context).Start()
+		errs = resource.DecodeToResource(res, result, ConvertFormToMetaValues(context, "QorResource.", res), context.Context).Start()
 	}).With("json", func() {
-		decoder := json.NewDecoder(request.Body)
+		decoder := json.NewDecoder(context.Request.Body)
 		values := map[string]interface{}{}
 		if err := decoder.Decode(&values); err == nil {
-			errs = resource.DecodeToResource(res, result, ConvertMapToMetaValues(values, res), context).Start()
+			errs = resource.DecodeToResource(res, result, ConvertMapToMetaValues(values, res), context.Context).Start()
 		} else {
 			errs = append(errs, err)
 		}
-	}).Respond(writer, request)
+	}).Respond(context.Writer, context.Request)
 	return errs
 }
 
-func (admin *Admin) Create(writer http.ResponseWriter, request *http.Request, context *qor.Context) {
+func (admin *Admin) Create(context *Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewStruct()
-	if errs := admin.decode(result, res, context, writer, request); len(errs) == 0 {
-		res.CallSaver(result, context)
+	if errs := admin.decode(result, res, context); len(errs) == 0 {
+		res.CallSaver(result, context.Context)
 		primaryKey := fmt.Sprintf("%v", context.DB().NewScope(result).PrimaryKeyValue())
-		http.Redirect(writer, request, path.Join(request.RequestURI, primaryKey), http.StatusFound)
+		http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
 	}
 }
 
-func (admin *Admin) Update(writer http.ResponseWriter, request *http.Request, context *qor.Context) {
+func (admin *Admin) Update(context *Context) {
 	res := admin.Resources[context.ResourceName]
 	result := res.NewStruct()
-	if res.CallFinder(result, nil, context) == nil {
-		if errs := admin.decode(result, res, context, writer, request); len(errs) == 0 {
-			res.CallSaver(result, context)
-			http.Redirect(writer, request, request.RequestURI, http.StatusFound)
+	if res.CallFinder(result, nil, context.Context) == nil {
+		if errs := admin.decode(result, res, context); len(errs) == 0 {
+			res.CallSaver(result, context.Context)
+			http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 		}
 	}
 }
 
-func (admin *Admin) Delete(writer http.ResponseWriter, request *http.Request, context *qor.Context) {
+func (admin *Admin) Delete(context *Context) {
 	res := admin.Resources[context.ResourceName]
 
-	if res.CallDeleter(res.NewStruct(), context) == nil {
-		http.Redirect(writer, request, path.Join(admin.Prefix, res.Name), http.StatusFound)
+	if res.CallDeleter(res.NewStruct(), context.Context) == nil {
+		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.Name), http.StatusFound)
 	} else {
-		http.Redirect(writer, request, path.Join(admin.Prefix, res.Name), http.StatusNotFound)
+		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.Name), http.StatusNotFound)
 	}
 }

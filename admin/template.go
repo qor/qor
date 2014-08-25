@@ -86,7 +86,7 @@ func (admin *Admin) Render(str string, content Content, modes ...roles.Permissio
 		tmpl = t
 	}
 
-	if err := tmpl.Execute(content.Writer, content); err != nil {
+	if err := tmpl.Execute(content.Context.Writer, content); err != nil {
 		fmt.Println(err)
 	}
 }

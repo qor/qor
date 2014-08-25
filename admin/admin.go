@@ -2,7 +2,6 @@ package admin
 
 import (
 	"github.com/qor/qor"
-	"github.com/qor/qor/auth"
 	"github.com/qor/qor/resource"
 	"strings"
 
@@ -13,7 +12,7 @@ type Admin struct {
 	Prefix    string
 	Config    *qor.Config
 	Resources map[string]*Resource
-	auth      auth.Auth
+	auth      Auth
 }
 
 func New(config *qor.Config) *Admin {
@@ -40,6 +39,6 @@ func (admin *Admin) UseResource(res *Resource) {
 	admin.Resources[res.Name] = res
 }
 
-func (admin *Admin) SetAuth(auth auth.Auth) {
+func (admin *Admin) SetAuth(auth Auth) {
 	admin.auth = auth
 }

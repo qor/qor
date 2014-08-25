@@ -7,10 +7,9 @@ type CurrentUser interface {
 }
 
 type Context struct {
-	ResourceName string
-	ResourceID   string
-	Config       *Config
-	Roles        []string
+	ResourceID string
+	Config     *Config
+	Roles      []string
 }
 
 func (context *Context) DB() *gorm.DB {

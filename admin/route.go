@@ -10,11 +10,10 @@ import (
 	"strings"
 )
 
-func (admin *Admin) generateContext(w http.ResponseWriter, r *http.Request) *qor.Context {
+func (admin *Admin) generateContext(w http.ResponseWriter, r *http.Request) *Context {
 	var currentUser *qor.CurrentUser
-	context := qor.Context{Config: admin.Config}
+	context := Context{Context: &qor.Context{Config: admin.Config}, Writer: w, Request: r}
 	if admin.auth != nil {
-		// FIXME
 		currentUser = admin.auth.GetCurrentUser(&context)
 	}
 	context.Roles = roles.MatchedRoles(r, currentUser)
@@ -28,7 +27,7 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 	admin.Prefix = prefix
 
 	mux.HandleFunc(strings.TrimRight(prefix, "/"), func(w http.ResponseWriter, r *http.Request) {
-		admin.Dashboard(w, r, admin.generateContext(w, r))
+		admin.Dashboard(admin.generateContext(w, r))
 	})
 
 	pathMatch := regexp.MustCompile(path.Join(prefix, `(\w+)(?:/(\w+))?[^/]*/?$`))
@@ -44,7 +43,7 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 
 		matches := pathMatch.FindStringSubmatch(r.URL.Path)
 		if len(matches) == 0 {
-			admin.Dashboard(w, r, admin.generateContext(w, r))
+			admin.Dashboard(admin.generateContext(w, r))
 			return
 		}
 
@@ -61,17 +60,17 @@ func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
 
 		switch {
 		case r.Method == "GET" && isIndexURL:
-			admin.Index(w, r, context)
+			admin.Index(context)
 		case r.Method == "GET" && isShowURL && context.ResourceID == "new":
-			admin.New(w, r, context)
+			admin.New(context)
 		case r.Method == "GET" && isShowURL:
-			admin.Show(w, r, context)
+			admin.Show(context)
 		case r.Method == "POST" && isShowURL:
-			admin.Update(w, r, context)
+			admin.Update(context)
 		case r.Method == "POST" && isIndexURL:
-			admin.Create(w, r, context)
+			admin.Create(context)
 		case r.Method == "DELETE" && isShowURL:
-			admin.Delete(w, r, context)
+			admin.Delete(context)
 		default:
 			http.NotFound(w, r)
 		}
