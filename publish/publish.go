@@ -1,6 +1,10 @@
 package publish
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+
+	"reflect"
+)
 
 type Publish struct {
 	*gorm.DB
@@ -9,6 +13,11 @@ type Publish struct {
 
 func Open(driver, source string) (*Publish, error) {
 	db, err := gorm.Open(driver, source)
+
+	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table", SetTable)
+	db.Callback().Delete().Before("gorm:begin_transaction").Register("publish:set_table", SetTable)
+	db.Callback().Update().Before("gorm:begin_transaction").Register("publish:set_table", SetTable)
+	db.Callback().Query().Before("gorm:query").Register("publish:set_table", SetTable)
 	return &Publish{DB: &db}, err
 }
 
@@ -18,6 +27,12 @@ func DraftTableName(scope *gorm.Scope) string {
 
 func (publish *Publish) Support(models ...interface{}) {
 	publish.SupportedModels = append(publish.SupportedModels, models...)
+
+	var supportedModels []string
+	for _, model := range publish.SupportedModels {
+		supportedModels = append(supportedModels, reflect.Indirect(reflect.ValueOf(model)).Type().String())
+	}
+	publish.InstantSet("publish:support_models", supportedModels)
 }
 
 func (publish *Publish) AutoMigrateDrafts() {
@@ -37,7 +52,27 @@ func (publish *Publish) DraftMode() *gorm.DB {
 func SetTable(scope *gorm.Scope) {
 	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok {
 		if value, ok := draftMode.(bool); ok && value {
-			scope.Search.TableName = DraftTableName(scope)
+			data := scope.IndirectValue()
+			if data.Kind() == reflect.Slice {
+				elem := data.Type().Elem()
+				if elem.Kind() == reflect.Ptr {
+					elem = elem.Elem()
+				}
+				data = reflect.New(elem).Elem()
+			}
+			currentModel := data.Type().String()
+
+			var supportedModels []string
+			if value, ok := scope.Get("publish:support_models"); ok {
+				supportedModels = value.([]string)
+			}
+
+			for _, model := range supportedModels {
+				if model == currentModel {
+					scope.Search.TableName = DraftTableName(scope)
+					break
+				}
+			}
 		}
 	}
 }
