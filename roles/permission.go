@@ -7,7 +7,7 @@ const (
 	Update
 	Create
 	Delete
-	CURD
+	CRUD
 )
 
 type Permission struct {
@@ -50,7 +50,7 @@ func (permission *Permission) HasPermission(mode PermissionMode, roles ...string
 }
 
 func (permission *Permission) Allow(mode PermissionMode, roles ...string) *Permission {
-	if mode == CURD {
+	if mode == CRUD {
 		return permission.Allow(Create, roles...).Allow(Update, roles...).Allow(Read, roles...).Allow(Delete, roles...)
 	}
 
@@ -62,7 +62,7 @@ func (permission *Permission) Allow(mode PermissionMode, roles ...string) *Permi
 }
 
 func (permission *Permission) Deny(mode PermissionMode, roles ...string) *Permission {
-	if mode == CURD {
+	if mode == CRUD {
 		return permission.Deny(Create, roles...).Deny(Update, roles...).Deny(Read, roles...).Deny(Delete, roles...)
 	}
 

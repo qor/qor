@@ -18,8 +18,8 @@ func TestAllow(t *testing.T) {
 	}
 }
 
-func TestCURD(t *testing.T) {
-	permission := roles.Allow(roles.CURD, "admin")
+func TestCRUD(t *testing.T) {
+	permission := roles.Allow(roles.CRUD, "admin")
 	if !permission.HasPermission(roles.Read, "admin") {
 		t.Errorf("Admin should has permission to Read")
 	}
