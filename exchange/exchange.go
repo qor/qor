@@ -130,7 +130,7 @@ func (ex *Exchange) process(f File, doneChan chan bool, errChan chan error, impo
 		lock.Unlock()
 	}
 
-	db := ex.Config.DB.Begin()
+	db := ex.DB().Begin()
 	res := ex.Resource
 	headers := ex.NormalizeHeaders(f)
 	for num := ex.DataStartAt; num < totalLines; num++ {
