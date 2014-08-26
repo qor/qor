@@ -10,5 +10,4 @@ type Context struct {
 	*qor.Context
 	ResourceName string
 	Writer       http.ResponseWriter
-	Request      *http.Request
 }
