@@ -39,6 +39,7 @@ type GoogleDriveConverter struct {
 }
 
 // How to create a google api service account: https://developers.google.com/drive/web/service-accounts
+// About google-api-go-client: https://code.google.com/p/google-api-go-client/wiki/GettingStarted
 //
 //	 The contents of your RSA private key or your PEM file
 //	 that contains a private key.
