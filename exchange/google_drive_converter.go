@@ -35,6 +35,17 @@ type GoogleDriveConverter struct {
 	config *oauth2.JWTConfig
 }
 
+// More explanations, see: http://godoc.org/github.com/golang/oauth2
+//
+//	 The contents of your RSA private key or your PEM file
+//	 that contains a private key.
+//	 If you have a p12 file instead, you
+//	 can use `openssl` to export the private key into a pem file.
+//
+//	    $ openssl pkcs12 -in key.p12 -out key.pem -nodes
+//
+//	 It only supports PEM containers with no passphrase.
+//
 func NewGoogleDriveConverter(clientEmail, keyFilePath string) (gdc *GoogleDriveConverter, err error) {
 	key, err := ioutil.ReadFile(keyFilePath)
 	if err != nil {
