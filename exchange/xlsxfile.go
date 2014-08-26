@@ -11,6 +11,8 @@ import (
 	"github.com/tealeg/xlsx"
 )
 
+// XLSXFile only support xlsx format. It's a very weak feature.
+// Recommend using GoogleDriveConverter to convert excel file instead.
 type XLSXFile struct {
 	lines [][]string
 }

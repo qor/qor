@@ -13,9 +13,11 @@ import (
 	"github.com/golang/oauth2/google"
 )
 
+type ContentType string
+
 const (
-	ExcelContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-	CSVContentType   = "text/csv"
+	ExcelContentType ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+	CSVContentType   ContentType = "text/csv"
 )
 
 type googleDriveFile struct {
@@ -66,6 +68,8 @@ func NewGoogleDriveConverter(clientEmail, keyFilePath string) (gdc *GoogleDriveC
 	return
 }
 
+// NewGoogleDriveConverterByJSONKey will accept a json key file downloaded from google
+// project and return a GoogleDriveConverter. Built for convinence.
 func NewGoogleDriveConverterByJSONKey(jsonKey string) (gdc *GoogleDriveConverter, err error) {
 	rawkey, err := ioutil.ReadFile(jsonKey)
 	if err != nil {
@@ -90,8 +94,8 @@ func NewGoogleDriveConverterByJSONKey(jsonKey string) (gdc *GoogleDriveConverter
 	return
 }
 
-func (gdc *GoogleDriveConverter) Convert(path, from, to string) (r io.Reader, err error) {
-	gdf := &googleDriveFile{contentType: from}
+func (gdc *GoogleDriveConverter) Convert(path string, from, to ContentType) (r io.Reader, err error) {
+	gdf := &googleDriveFile{contentType: string(from)}
 	gdf.File, err = os.Open(path)
 	if err != nil {
 		return
@@ -107,15 +111,15 @@ func (gdc *GoogleDriveConverter) Convert(path, from, to string) (r io.Reader, er
 	if err != nil {
 		return
 	}
-	scheme := &drive.File{MimeType: from}
+	scheme := &drive.File{MimeType: string(from)}
 	file, err := svc.Files.Insert(scheme).Media(gdf).Convert(true).Do()
 	if err != nil {
 		return
 	}
 
-	csvLink, ok := file.ExportLinks[to]
+	csvLink, ok := file.ExportLinks[string(to)]
 	if !ok {
-		err = fmt.Errorf("can't find ExportLinks for %s", to)
+		err = fmt.Errorf("can't find ExportLinks for %s", string(to))
 		return
 	}
 
