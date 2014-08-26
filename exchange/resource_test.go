@@ -158,7 +158,7 @@ func TestMetaOptional(t *testing.T) {
 
 	address := NewResource(Address{})
 	name := address.RegisterMeta(&resource.Meta{Name: "Name", Label: "Address"})
-	ex := New(address, &qor.Config{DB: testdb})
+	ex := New(address)
 	for i := 0; i < 2; i++ {
 		if i == 1 {
 			name.Set("Optional", true)
@@ -169,7 +169,7 @@ func TestMetaOptional(t *testing.T) {
 				[]string{"Country"},
 				[]string{"USA"},
 			},
-		}, &buf)
+		}, &buf, &qor.Context{Config: &qor.Config{DB: testdb}})
 
 		switch i {
 		case 0:

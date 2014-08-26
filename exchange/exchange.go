@@ -20,16 +20,14 @@ type Exchange struct {
 	StatusThrottle   int
 	NormalizeHeaders func(f File) []string
 	DataStartAt      int
-	Config           *qor.Config
 }
 
-func New(res *Resource, cfg *qor.Config) *Exchange {
+func New(res *Resource) *Exchange {
 	return &Exchange{
 		Resource:       res,
 		JobThrottle:    1,
 		DataStartAt:    1,
 		StatusThrottle: 10,
-		Config:         cfg,
 		NormalizeHeaders: func(f File) (headers []string) {
 			if f.TotalLines() <= 0 {
 				return
@@ -57,12 +55,12 @@ type File interface {
 	Line(l int) (fields []string)
 }
 
-func (ex *Exchange) Import(f File, log io.Writer) (err error) {
+func (ex *Exchange) Import(f File, log io.Writer, ctx *qor.Context) (err error) {
 	doneChan := make(chan bool)
 	errChan := make(chan error)
 	importStatusChan := make(chan ImportStatus, ex.StatusThrottle)
 
-	go ex.process(f, doneChan, errChan, importStatusChan, log)
+	go ex.process(f, doneChan, errChan, importStatusChan, log, ctx)
 
 	var statuses []ImportStatus
 	// index := ex.DataStartAt
@@ -114,7 +112,7 @@ loop:
 // 	return index, newStatuses
 // }
 
-func (ex *Exchange) process(f File, doneChan chan bool, errChan chan error, importStatusChan chan ImportStatus, log io.Writer) {
+func (ex *Exchange) process(f File, doneChan chan bool, errChan chan error, importStatusChan chan ImportStatus, log io.Writer, ctx *qor.Context) {
 	var wait sync.WaitGroup
 	totalLines := f.TotalLines()
 	wait.Add(totalLines - ex.DataStartAt)
@@ -130,7 +128,7 @@ func (ex *Exchange) process(f File, doneChan chan bool, errChan chan error, impo
 		lock.Unlock()
 	}
 
-	db := ex.Config.DB.Begin()
+	db := ctx.DB().Begin()
 	res := ex.Resource
 	headers := ex.NormalizeHeaders(f)
 	for num := ex.DataStartAt; num < totalLines; num++ {
@@ -170,7 +168,7 @@ func (ex *Exchange) process(f File, doneChan chan bool, errChan chan error, impo
 			}
 
 			importStatus.MetaValues, _ = res.getMetaValues(vmap, 0)
-			processor := resource.DecodeToResource(res, res.NewStruct(), importStatus.MetaValues, nil)
+			processor := resource.DecodeToResource(res, res.NewStruct(), importStatus.MetaValues, ctx)
 
 			if err := processor.Initialize(); err != nil {
 				importStatus.Errors = []error{err}

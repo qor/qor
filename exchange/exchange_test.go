@@ -60,7 +60,7 @@ func TestImportSimple(t *testing.T) {
 	useres := NewResource(User{})
 	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
 	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
-	ex := New(useres, &qor.Config{DB: testdb})
+	ex := New(useres)
 
 	f, err := NewXLSXFile("simple.xlsx")
 	if err != nil {
@@ -68,7 +68,7 @@ func TestImportSimple(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err = ex.Import(f, &buf)
+	err = ex.Import(f, &buf, &qor.Context{Config: &qor.Config{DB: testdb}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -90,7 +90,7 @@ func TestImportNested(t *testing.T) {
 	addres.HasSequentialColumns = true
 	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
 	addres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Country"})
-	ex := New(useres, &qor.Config{DB: testdb})
+	ex := New(useres)
 
 	f, err := NewXLSXFile("nested_resource.xlsx")
 	if err != nil {
@@ -98,7 +98,7 @@ func TestImportNested(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err = ex.Import(f, &buf)
+	err = ex.Import(f, &buf, &qor.Context{Config: &qor.Config{DB: testdb}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -129,7 +129,7 @@ func TestImportNormalizeHeader(t *testing.T) {
 	marathon.RegisterMeta(&resource.Meta{Name: "RunningLevel", Label: "Running Level"})
 	marathon.RegisterMeta(&resource.Meta{Name: "Min1500", Label: "1500M Min"})
 	marathon.RegisterMeta(&resource.Meta{Name: "Sec1500", Label: "1500M Sec"})
-	ex := New(marathon, &qor.Config{DB: testdb})
+	ex := New(marathon)
 	ex.JobThrottle = 10
 	ex.DataStartAt = 3
 	ex.NormalizeHeaders = func(f File) (headers []string) {
@@ -163,7 +163,7 @@ func TestImportNormalizeHeader(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err = ex.Import(f, &buf)
+	err = ex.Import(f, &buf, &qor.Context{Config: &qor.Config{DB: testdb}})
 	if err != nil {
 		t.Error(err)
 	}
@@ -190,7 +190,7 @@ func TestImportError(t *testing.T) {
 	useres := NewResource(User{})
 	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
 	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
-	ex := New(useres, &qor.Config{DB: testdb})
+	ex := New(useres)
 	ferr := errors.New("an validator error in the second line")
 	var i int
 	useres.AddValidator(func(rel interface{}, mvs *resource.MetaValues, ctx *qor.Context) error {
@@ -205,7 +205,7 @@ func TestImportError(t *testing.T) {
 		t.Error(err)
 	}
 	var buf bytes.Buffer
-	err = ex.Import(f, &buf)
+	err = ex.Import(f, &buf, &qor.Context{Config: &qor.Config{DB: testdb}})
 	if err == nil {
 		t.Error("Should encouter error")
 	}
