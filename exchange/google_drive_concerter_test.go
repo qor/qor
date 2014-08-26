@@ -8,11 +8,12 @@ import (
 	"testing"
 )
 
-var googleAPIEmail, googleAPIKeyFile, excelfile, csvfile string
+var googleAPIEmail, googleAPIKeyFile, jsonKey, excelfile, csvfile string
 
 func init() {
 	flag.StringVar(&googleAPIEmail, "googleAPIEmail", "", "")
 	flag.StringVar(&googleAPIKeyFile, "googleAPIKeyFile", "", "")
+	flag.StringVar(&jsonKey, "jsonKey", "", "")
 	flag.StringVar(&excelfile, "excelfile", "", "")
 	flag.StringVar(&csvfile, "csvfile", "", "")
 }
@@ -20,13 +21,20 @@ func init() {
 func TestNewGoogleDriveCSVConverter(t *testing.T) {
 	flag.Parse()
 
-	if googleAPIEmail == "" || googleAPIKeyFile == "" {
+	var err error
+	var converter *GoogleDriveConverter
+	if googleAPIEmail != "" && googleAPIKeyFile != "" {
+		converter, err = NewGoogleDriveConverter(googleAPIEmail, googleAPIKeyFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+	} else if jsonKey != "" {
+		converter, err = NewGoogleDriveConverterByJSONKey(jsonKey)
+		if err != nil {
+			t.Fatal(err)
+		}
+	} else {
 		return
-	}
-
-	converter, err := NewGoogleDriveConverter(googleAPIEmail, googleAPIKeyFile)
-	if err != nil {
-		t.Fatal(err)
 	}
 
 	if excelfile != "" {

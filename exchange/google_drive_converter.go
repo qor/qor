@@ -1,6 +1,7 @@
 package exchange
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -35,7 +36,7 @@ type GoogleDriveConverter struct {
 	config *oauth2.JWTConfig
 }
 
-// More explanations, see: http://godoc.org/github.com/golang/oauth2
+// How to create a google api service account: https://developers.google.com/drive/web/service-accounts
 //
 //	 The contents of your RSA private key or your PEM file
 //	 that contains a private key.
@@ -46,6 +47,7 @@ type GoogleDriveConverter struct {
 //
 //	 It only supports PEM containers with no passphrase.
 //
+//	More explanations, see: http://godoc.org/github.com/golang/oauth2
 func NewGoogleDriveConverter(clientEmail, keyFilePath string) (gdc *GoogleDriveConverter, err error) {
 	key, err := ioutil.ReadFile(keyFilePath)
 	if err != nil {
@@ -55,6 +57,30 @@ func NewGoogleDriveConverter(clientEmail, keyFilePath string) (gdc *GoogleDriveC
 	gdc.config, err = google.NewServiceAccountConfig(&oauth2.JWTOptions{
 		Email:      clientEmail,
 		PrivateKey: key,
+		Scopes:     []string{"https://www.googleapis.com/auth/drive"},
+	})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func NewGoogleDriveConverterByJSONKey(jsonKey string) (gdc *GoogleDriveConverter, err error) {
+	rawkey, err := ioutil.ReadFile(jsonKey)
+	if err != nil {
+		return
+	}
+	key := map[string]string{}
+	err = json.Unmarshal(rawkey, &key)
+	if err != nil {
+		return
+	}
+
+	gdc = new(GoogleDriveConverter)
+	gdc.config, err = google.NewServiceAccountConfig(&oauth2.JWTOptions{
+		Email:      key["client_email"],
+		PrivateKey: []byte(key["private_key"]),
 		Scopes:     []string{"https://www.googleapis.com/auth/drive"},
 	})
 	if err != nil {
