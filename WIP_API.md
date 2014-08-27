@@ -42,6 +42,12 @@ Publish:
     /system_draft/products/xxx.png
     /system/products/xxx.png
 
+    publish.GetDependencies(objects...)
+    for _, object := range objects {
+      get relations
+    }
+    publish.Publish(struct...) // insert into products_draft (name, color_id) select name, color_id from products;
+
 Mail: (TBD)
 
 Form:
