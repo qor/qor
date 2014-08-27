@@ -67,9 +67,9 @@ func TestCreateStructFromDraft(t *testing.T) {
 
 func TestCreateStructFromProduction(t *testing.T) {
 	name := "create_product_from_production"
-	pbprod.Create(&Product{Name: name, Color: Color{Name: name}})
+	pbprod.Debug().Create(&Product{Name: name, Color: Color{Name: name}})
 
-	if pbprod.First(&Product{}, "name = ?", name).RecordNotFound() {
+	if pbprod.Debug().First(&Product{}, "name = ?", name).RecordNotFound() {
 		t.Errorf("record should not be found in production db")
 	}
 
@@ -83,6 +83,46 @@ func TestCreateStructFromProduction(t *testing.T) {
 
 	var product Product
 	pbprod.First(&product, "name = ?", name)
+	if pbprod.Debug().Model(&product).Related(&product.Color); product.Color.Name != name {
+		t.Errorf("should be able to find related struct")
+	}
+}
+
+func TestUpdateStructFromDraft(t *testing.T) {
+	name := "update_product_from_draft"
+	newName := name + "_v2"
+	product := Product{Name: name, Color: Color{Name: name}}
+	pbprod.Create(&product)
+
+	pbdraft.Model(&product).Update("name", newName)
+
+	if pbprod.First(&Product{}, "name = ?", name).RecordNotFound() {
+		t.Errorf("record should not be changed in production db")
+	}
+
+	if pbdraft.First(&Product{}, "name = ?", newName).RecordNotFound() {
+		t.Errorf("record should be changed in draft db")
+	}
+	if pbdraft.Model(&product).Related(&product.Color); product.Color.Name != name {
+		t.Errorf("should be able to find related struct")
+	}
+}
+
+func TestUpdateStructFromProduction(t *testing.T) {
+	name := "update_product_from_production"
+	newName := name + "_v2"
+	product := Product{Name: name, Color: Color{Name: name}}
+	pbprod.Create(&product)
+	pbprod.Model(&product).Update("name", newName)
+
+	if pbprod.First(&Product{}, "name = ?", newName).RecordNotFound() {
+		t.Errorf("record should be changed in production db")
+	}
+
+	if pbdraft.First(&Product{}, "name = ?", newName).RecordNotFound() {
+		t.Errorf("record should be changed in draft db")
+	}
+
 	if pbprod.Model(&product).Related(&product.Color); product.Color.Name != name {
 		t.Errorf("should be able to find related struct")
 	}
