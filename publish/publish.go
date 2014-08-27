@@ -91,32 +91,31 @@ func SetTable(force bool) func(*gorm.Scope) {
 	}
 }
 
-func SyncToProductionAfterCreate(scope *gorm.Scope) {
+func GetModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
 	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok && !draftMode.(bool) {
 		if table, ok := scope.InstanceGet("publish:original_table"); ok {
 			clone := scope.New(scope.Value)
 			clone.Search.TableName = table.(string)
-			gorm.Create(clone)
+			return true, clone
 		}
+	}
+	return false, nil
+}
+
+func SyncToProductionAfterCreate(scope *gorm.Scope) {
+	if ok, clone := GetModeAndNewScope(scope); ok {
+		gorm.Create(clone)
 	}
 }
 
 func SyncToProductionAfterUpdate(scope *gorm.Scope) {
-	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok && !draftMode.(bool) {
-		if table, ok := scope.InstanceGet("publish:original_table"); ok {
-			clone := scope.New(scope.Value)
-			clone.Search.TableName = table.(string)
-			gorm.Update(clone)
-		}
+	if ok, clone := GetModeAndNewScope(scope); ok {
+		gorm.Update(clone)
 	}
 }
 
 func SyncToProductionAfterDelete(scope *gorm.Scope) {
-	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok && !draftMode.(bool) {
-		if table, ok := scope.InstanceGet("publish:original_table"); ok {
-			clone := scope.New(scope.Value)
-			clone.Search.TableName = table.(string)
-			gorm.Delete(clone)
-		}
+	if ok, clone := GetModeAndNewScope(scope); ok {
+		gorm.Delete(clone)
 	}
 }
