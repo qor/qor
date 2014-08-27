@@ -19,6 +19,8 @@ func Open(driver, source string) (*Publish, error) {
 		Register("publish:sync_to_production_after_create", SyncToProductionAfterCreate)
 
 	db.Callback().Delete().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTable(true))
+	db.Callback().Delete().Before("gorm:commit_or_rollback_transaction").
+		Register("publish:sync_to_production_after_delete", SyncToProductionAfterDelete)
 
 	db.Callback().Update().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTable(true))
 	db.Callback().Update().Before("gorm:commit_or_rollback_transaction").
@@ -105,6 +107,16 @@ func SyncToProductionAfterUpdate(scope *gorm.Scope) {
 			clone := scope.New(scope.Value)
 			clone.Search.TableName = table.(string)
 			gorm.Update(clone)
+		}
+	}
+}
+
+func SyncToProductionAfterDelete(scope *gorm.Scope) {
+	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok && !draftMode.(bool) {
+		if table, ok := scope.InstanceGet("publish:original_table"); ok {
+			clone := scope.New(scope.Value)
+			clone.Search.TableName = table.(string)
+			gorm.Delete(clone)
 		}
 	}
 }

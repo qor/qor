@@ -7,6 +7,7 @@ import (
 	"github.com/qor/qor/publish"
 
 	"testing"
+	"time"
 )
 
 var pb *publish.Publish
@@ -27,10 +28,11 @@ func init() {
 }
 
 type Product struct {
-	Id      int
-	Name    string
-	Color   Color
-	ColorId int
+	Id        int
+	Name      string
+	Color     Color
+	ColorId   int
+	DeletedAt time.Time
 }
 
 type Color struct {
@@ -125,5 +127,47 @@ func TestUpdateStructFromProduction(t *testing.T) {
 
 	if pbprod.Model(&product).Related(&product.Color); product.Color.Name != name {
 		t.Errorf("should be able to find related struct")
+	}
+}
+
+func TestDeleteStructFromDraft(t *testing.T) {
+	name := "delete_product_from_draft"
+	product := Product{Name: name, Color: Color{Name: name}}
+	pbprod.Create(&product)
+	pbdraft.Delete(&product)
+
+	if pbprod.First(&Product{}, "name = ?", name).RecordNotFound() {
+		t.Errorf("record should not be deleted in production db")
+	}
+
+	if !pbdraft.First(&Product{}, "name = ?", name).RecordNotFound() {
+		t.Errorf("record should be soft deleted in draft db")
+	}
+
+	if pbdraft.Unscoped().First(&Product{}, "name = ?", name).RecordNotFound() {
+		t.Errorf("record should be soft deleted in draft db")
+	}
+}
+
+func TestDeleteStructFromProduction(t *testing.T) {
+	name := "delete_product_from_production"
+	product := Product{Name: name, Color: Color{Name: name}}
+	pbprod.Create(&product)
+	pbprod.Delete(&product)
+
+	if !pbprod.First(&Product{}, "name = ?", name).RecordNotFound() {
+		t.Errorf("record should be soft deleted in production db")
+	}
+
+	if pbdraft.Unscoped().First(&Product{}, "name = ?", name).RecordNotFound() {
+		t.Errorf("record should be soft deleted in production db")
+	}
+
+	if !pbdraft.First(&Product{}, "name = ?", name).RecordNotFound() {
+		t.Errorf("record should be soft deleted in draft db")
+	}
+
+	if pbdraft.Unscoped().First(&Product{}, "name = ?", name).RecordNotFound() {
+		t.Errorf("record should be soft deleted in draft db")
 	}
 }
