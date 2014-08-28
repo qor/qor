@@ -16,6 +16,7 @@ type User struct {
 	Id           int64
 	Name         string
 	Age          int
+	CellPhone    Phone
 	Addresses    []Address
 	OldAddresses []Address
 }
@@ -31,6 +32,7 @@ type Address struct {
 
 type Phone struct {
 	Id        int64
+	UserId    int64
 	AddressId int64
 	Num       string
 	CreatedAt time.Time
@@ -219,5 +221,69 @@ func TestImportError(t *testing.T) {
 	testdb.Find(&users)
 	if len(users) != 0 {
 		t.Errorf("should get 0 records, but got %d", len(users))
+	}
+}
+
+func TestExport(t *testing.T) {
+	records := []interface{}{
+		User{
+			Name: "Van",
+			Age:  24,
+			Addresses: []Address{
+				{Country: "China", Phone: Phone{Num: "xxx-xxx-xxx-0"}},
+				{Country: "Japan", Phone: Phone{Num: "zzz-zzz-zzz-0"}},
+				{Country: "New Zealand", Phone: Phone{Num: "kkk-kkk-kkk-0"}},
+			},
+			OldAddresses: []Address{
+				{Country: "Africa"},
+			},
+			CellPhone: Phone{Num: "yyy-yyy-yyy-0"},
+		},
+		User{
+			Name: "Jane",
+			Age:  26,
+			Addresses: []Address{
+				{Country: "USA", Phone: Phone{Num: "xxx-xxx-xxx-1"}},
+			},
+			OldAddresses: []Address{
+				{Country: "Africa"},
+				{Country: "Brazil"},
+			},
+			CellPhone: Phone{Num: "yyy-yyy-yyy-1"},
+		},
+	}
+
+	phone := NewResource(Phone{})
+	cellphone := NewResource(Phone{})
+	addres := NewResource(Address{})
+	oldaddres := NewResource(Address{})
+	useres := NewResource(User{})
+	phone.HasSequentialColumns = true
+	addres.HasSequentialColumns = true
+	oldaddres.MultiDelimiter = ","
+
+	phone.RegisterMeta(&resource.Meta{Name: "Num", Label: "Phone"})
+	oldaddres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Old Countries"})
+	cellphone.RegisterMeta(&resource.Meta{Name: "Num", Label: "CellPhone"})
+
+	addres.RegisterMeta(&resource.Meta{Name: "Phone", Resource: phone})
+	addres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Country"})
+
+	useres.RegisterMeta(&resource.Meta{Name: "OldAddresses", Resource: oldaddres})
+	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
+	useres.RegisterMeta(&resource.Meta{Name: "CellPhone", Resource: cellphone})
+	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
+
+	ex := New(useres)
+	var buf bytes.Buffer
+	ex.Export(records, &buf, &qor.Context{Config: &qor.Config{DB: testdb}})
+	expect := `Old Countries,Phone 01,Phone 02,Phone 03,Country 01,Country 02,Country 03,CellPhone,Age,Name
+Africa,xxx-xxx-xxx-0,zzz-zzz-zzz-0,kkk-kkk-kkk-0,China,Japan,New Zealand,yyy-yyy-yyy-0,24,Van
+"Africa,Brazil",xxx-xxx-xxx-1,,,USA,,,yyy-yyy-yyy-1,26,Jane
+`
+
+	if buf.String() != expect {
+		t.Errorf("expect: %q\ngot: %q", expect, buf.String())
 	}
 }

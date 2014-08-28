@@ -4,14 +4,22 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"reflect"
+	"strings"
 	"sync"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
 
-// TODO: support csv files
-// TODO: support ImportStatus chan data sorter
+// TODO: Formated Value
+//  	def formatted_description=(description)
+//  		self.description = description.to_s.gsub(/[\r\n]/, "")
+//  	end
+//
+//  	def formatted_description
+//  		self.description.to_s.gsub(/[\r\n]/, "")
+//  	end
 
 type Exchange struct {
 	Resource         *Resource
@@ -55,12 +63,23 @@ type File interface {
 	Line(l int) (fields []string)
 }
 
+type logger struct {
+	log    io.Writer
+	locker sync.Mutex
+}
+
+func (c *logger) Write(data []byte) (int, error) {
+	c.locker.Lock()
+	defer c.locker.Unlock()
+	return c.log.Write(data)
+}
+
 func (ex *Exchange) Import(f File, log io.Writer, ctx *qor.Context) (err error) {
 	doneChan := make(chan bool)
 	errChan := make(chan error)
 	importStatusChan := make(chan ImportStatus, ex.StatusThrottle)
 
-	go ex.process(f, doneChan, errChan, importStatusChan, log, ctx)
+	go ex.process(f, doneChan, errChan, importStatusChan, &logger{log: log}, ctx)
 
 	var statuses []ImportStatus
 	// index := ex.DataStartAt
@@ -148,7 +167,7 @@ func (ex *Exchange) process(f File, doneChan chan bool, errChan chan error, impo
 						msg += err.Error() + "; "
 					}
 				} else {
-					msg = abstractMsg(line)
+					msg = digestMsg(line)
 				}
 				log.Write([]byte(fmt.Sprintf("%d/%d: %s\n", num+1, totalLines, msg)))
 
@@ -214,7 +233,7 @@ rollback:
 	return
 }
 
-func abstractMsg(line []string) (msg string) {
+func digestMsg(line []string) (msg string) {
 	for i, field := range line {
 		if i > 3 {
 			return
@@ -223,4 +242,117 @@ func abstractMsg(line []string) (msg string) {
 	}
 
 	return
+}
+
+// Export will format data into csv string and write it into a writer, by the definitions of metas.
+func (ex *Exchange) Export(records []interface{}, w io.Writer, ctx *qor.Context) (err error) {
+	var headers []string
+	walkMetas(ex.Resource, nil, func(_ resource.Resourcer, metaor resource.Metaor, _ interface{}) {
+		if meta := metaor.GetMeta(); meta.Resource == nil {
+			headers = append(headers, meta.Label)
+		}
+	})
+
+	var fieldMaps []map[string]string
+	var walker func(resource.Resourcer, resource.Metaor, interface{})
+	fieldSizes := map[string]int{}
+	for _, record := range records {
+		fieldMap := map[string]string{}
+		labelCounter := map[string]int{}
+		walker = func(res resource.Resourcer, metaor resource.Metaor, record interface{}) {
+			if meta := metaor.GetMeta(); meta.Resource == nil {
+				metaRes, ok := res.(*Resource)
+				if !ok {
+					return
+				}
+
+				value := fmt.Sprintf("%v", meta.Value(record, ctx))
+				label := meta.Label
+				labelCounter[label] = labelCounter[label] + 1
+				if metaRes.HasSequentialColumns {
+					index := labelCounter[label]
+					if size, ok := fieldSizes[meta.Label]; !ok {
+						fieldSizes[meta.Label] = index
+					} else if size < index {
+						fieldSizes[meta.Label] = index
+					}
+
+					label = fmt.Sprintf("%s %#02d", label, index)
+				} else if metaRes.MultiDelimiter != "" {
+					prev := fieldMap[label]
+					if prev != "" {
+						prev += metaRes.MultiDelimiter
+					}
+					value = prev + value
+				}
+
+				fieldMap[label] = value
+			} else if fieldValue := reflect.ValueOf(record); fieldValue.Type().Kind() == reflect.Slice {
+				for i, count := 0, fieldValue.Len(); i < count; i++ {
+					metaRecord := fieldValue.Index(i).Interface()
+					walkMetas(meta.Resource, metaRecord, walker)
+				}
+			}
+		}
+
+		walkMetas(ex.Resource, record, walker)
+		fieldMaps = append(fieldMaps, fieldMap)
+	}
+
+	headers = populateHeaders(headers, fieldSizes)
+	w.Write([]byte(strings.Join(headers, ",") + "\n"))
+
+	for _, fieldMap := range fieldMaps {
+		var fields []string
+		for _, header := range headers {
+			field := fieldMap[header]
+			if strings.Contains(field, ",") {
+				field = "\"" + field + "\""
+			}
+			fields = append(fields, field)
+		}
+		w.Write([]byte(strings.Join(fields, ",") + "\n"))
+	}
+
+	return
+}
+
+// populateHeaders append index to headers for meta with HasSequentialColumns.
+//   ["name", "age", "address"] + {name: 2, address: 1} => ["name 01", "name 02", "age", "address 01"]
+func populateHeaders(headers []string, fieldSizes map[string]int) (newHeaders []string) {
+	for _, header := range headers {
+		if size, ok := fieldSizes[header]; ok {
+			for i := 0; i < size; i++ {
+				newHeaders = append(newHeaders, fmt.Sprintf("%s %#02d", header, i+1))
+			}
+		} else {
+			newHeaders = append(newHeaders, header)
+		}
+	}
+
+	return
+}
+
+func walkMetas(resx resource.Resourcer, value interface{}, walker func(resource.Resourcer, resource.Metaor, interface{})) {
+	res, ok := resx.(*Resource)
+	if !ok {
+		return
+	}
+	for _, header := range res.HeadersInOrder {
+		metaor := res.Metas[header]
+		walker(resx, metaor, value)
+		if resx := metaor.GetMeta().Resource; resx != nil {
+			if value != nil {
+				field := reflect.ValueOf(value).FieldByName(metaor.GetMeta().Name)
+				switch field.Type().Kind() {
+				case reflect.Struct:
+					walkMetas(resx, field.Interface(), walker)
+				case reflect.Slice:
+					walker(resx, metaor, field.Interface())
+				}
+			} else {
+				walkMetas(resx, value, walker)
+			}
+		}
+	}
 }

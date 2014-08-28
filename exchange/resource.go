@@ -14,6 +14,7 @@ type Resource struct {
 	AutoCreate           bool
 	MultiDelimiter       string
 	HasSequentialColumns bool
+	HeadersInOrder       []string
 }
 
 func NewResource(val interface{}) *Resource {
@@ -87,6 +88,7 @@ func (m *Meta) getCurrentLabel(vmap map[string]string, index int) string {
 func (res *Resource) RegisterMeta(meta *resource.Meta) *Meta {
 	m := &Meta{Meta: meta}
 	res.Resource.RegisterMeta(m)
+	res.HeadersInOrder = append(res.HeadersInOrder, meta.Name)
 	return m
 }
 
