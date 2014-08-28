@@ -245,9 +245,10 @@ func digestMsg(line []string) (msg string) {
 }
 
 // Export will format data into csv string and write it into a writer, by the definitions of metas.
-func (ex *Exchange) Export(records []interface{}, w io.Writer, ctx *qor.Context) (err error) {
+// Note: records must be a slice or Export will panic.
+func (ex *Exchange) Export(records interface{}, w io.Writer, ctx *qor.Context) (err error) {
 	var headers []string
-	walkMetas(ex.Resource, nil, func(_ resource.Resourcer, metaor resource.Metaor, _ interface{}) {
+	walkMetas(ex.Resource, ctx, nil, func(_ resource.Resourcer, metaor resource.Metaor, _ interface{}) {
 		if meta := metaor.GetMeta(); meta.Resource == nil {
 			headers = append(headers, meta.Label)
 		}
@@ -256,7 +257,9 @@ func (ex *Exchange) Export(records []interface{}, w io.Writer, ctx *qor.Context)
 	var fieldMaps []map[string]string
 	var walker func(resource.Resourcer, resource.Metaor, interface{})
 	fieldSizes := map[string]int{}
-	for _, record := range records {
+	recordsx := reflect.ValueOf(records)
+	for i, count := 0, recordsx.Len(); i < count; i++ {
+		record := recordsx.Index(i).Interface()
 		fieldMap := map[string]string{}
 		labelCounter := map[string]int{}
 		walker = func(res resource.Resourcer, metaor resource.Metaor, record interface{}) {
@@ -287,15 +290,15 @@ func (ex *Exchange) Export(records []interface{}, w io.Writer, ctx *qor.Context)
 				}
 
 				fieldMap[label] = value
-			} else if fieldValue := reflect.ValueOf(record); fieldValue.Type().Kind() == reflect.Slice {
-				for i, count := 0, fieldValue.Len(); i < count; i++ {
-					metaRecord := fieldValue.Index(i).Interface()
-					walkMetas(meta.Resource, metaRecord, walker)
+			} else if fieldValue := reflect.ValueOf(record); fieldValue.Kind() == reflect.Slice {
+				for j, count := 0, fieldValue.Len(); j < count; j++ {
+					metaRecord := fieldValue.Index(j).Interface()
+					walkMetas(meta.Resource, ctx, metaRecord, walker)
 				}
 			}
 		}
 
-		walkMetas(ex.Resource, record, walker)
+		walkMetas(ex.Resource, ctx, record, walker)
 		fieldMaps = append(fieldMaps, fieldMap)
 	}
 
@@ -319,40 +322,58 @@ func (ex *Exchange) Export(records []interface{}, w io.Writer, ctx *qor.Context)
 
 // populateHeaders append index to headers for meta with HasSequentialColumns.
 //   ["name", "age", "address"] + {name: 2, address: 1} => ["name 01", "name 02", "age", "address 01"]
+// TODO: should take empty value into consideration
 func populateHeaders(headers []string, fieldSizes map[string]int) (newHeaders []string) {
 	for _, header := range headers {
 		if size, ok := fieldSizes[header]; ok {
 			for i := 0; i < size; i++ {
-				newHeaders = append(newHeaders, fmt.Sprintf("%s %#02d", header, i+1))
+				if strings.Contains(header, ",") {
+					newHeaders = append(newHeaders, fmt.Sprintf("\"%s %#02d\"", header, i+1))
+				} else {
+					newHeaders = append(newHeaders, fmt.Sprintf("%s %#02d", header, i+1))
+				}
 			}
 		} else {
-			newHeaders = append(newHeaders, header)
+			if strings.Contains(header, ",") {
+				newHeaders = append(newHeaders, "\""+header+"\"")
+			} else {
+				newHeaders = append(newHeaders, header)
+			}
 		}
 	}
 
 	return
 }
 
-func walkMetas(resx resource.Resourcer, value interface{}, walker func(resource.Resourcer, resource.Metaor, interface{})) {
+// TODO: support pointer type
+func walkMetas(resx resource.Resourcer, ctx *qor.Context, record interface{}, walker func(resource.Resourcer, resource.Metaor, interface{})) {
 	res, ok := resx.(*Resource)
 	if !ok {
 		return
 	}
 	for _, header := range res.HeadersInOrder {
 		metaor := res.Metas[header]
-		walker(resx, metaor, value)
+		walker(resx, metaor, record)
 		if resx := metaor.GetMeta().Resource; resx != nil {
-			if value != nil {
-				field := reflect.ValueOf(value).FieldByName(metaor.GetMeta().Name)
-				switch field.Type().Kind() {
+			if record != nil {
+				metaRecord := deepIndirect(reflect.ValueOf(metaor.GetMeta().Value(record, ctx)))
+				switch metaRecord.Kind() {
 				case reflect.Struct:
-					walkMetas(resx, field.Interface(), walker)
+					walkMetas(resx, ctx, metaRecord.Interface(), walker)
 				case reflect.Slice:
-					walker(resx, metaor, field.Interface())
+					walker(resx, metaor, metaRecord.Interface())
 				}
 			} else {
-				walkMetas(resx, value, walker)
+				walkMetas(resx, ctx, nil, walker)
 			}
 		}
 	}
+}
+
+func deepIndirect(val reflect.Value) reflect.Value {
+	if val.Kind() == reflect.Ptr {
+		return deepIndirect(val.Elem())
+	}
+
+	return val
 }

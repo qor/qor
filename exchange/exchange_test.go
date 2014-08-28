@@ -18,7 +18,12 @@ type User struct {
 	Age          int
 	CellPhone    Phone
 	Addresses    []Address
-	OldAddresses []Address
+	OldAddresses []OldAddress
+
+	// TODO
+	// Pointer type in exchange.Export, for example
+	//  	CellPhone    *Phone
+	//  	Addresses    []*Address
 }
 
 type Address struct {
@@ -28,6 +33,13 @@ type Address struct {
 	Country string
 
 	Phone Phone
+}
+
+type OldAddress struct {
+	Id      int64
+	UserId  int64
+	Name    string
+	Country string
 }
 
 type Phone struct {
@@ -54,6 +66,10 @@ func cleanup() {
 	testdb.AutoMigrate(&User{})
 	testdb.DropTable(&Address{})
 	testdb.AutoMigrate(&Address{})
+	testdb.DropTable(&OldAddress{})
+	testdb.AutoMigrate(&OldAddress{})
+	testdb.DropTable(&Phone{})
+	testdb.AutoMigrate(&Phone{})
 }
 
 func TestImportSimple(t *testing.T) {
@@ -225,7 +241,8 @@ func TestImportError(t *testing.T) {
 }
 
 func TestExport(t *testing.T) {
-	records := []interface{}{
+	cleanup()
+	records := []User{
 		User{
 			Name: "Van",
 			Age:  24,
@@ -234,7 +251,7 @@ func TestExport(t *testing.T) {
 				{Country: "Japan", Phone: Phone{Num: "zzz-zzz-zzz-0"}},
 				{Country: "New Zealand", Phone: Phone{Num: "kkk-kkk-kkk-0"}},
 			},
-			OldAddresses: []Address{
+			OldAddresses: []OldAddress{
 				{Country: "Africa"},
 			},
 			CellPhone: Phone{Num: "yyy-yyy-yyy-0"},
@@ -245,7 +262,7 @@ func TestExport(t *testing.T) {
 			Addresses: []Address{
 				{Country: "USA", Phone: Phone{Num: "xxx-xxx-xxx-1"}},
 			},
-			OldAddresses: []Address{
+			OldAddresses: []OldAddress{
 				{Country: "Africa"},
 				{Country: "Brazil"},
 			},
@@ -253,37 +270,46 @@ func TestExport(t *testing.T) {
 		},
 	}
 
-	phone := NewResource(Phone{})
-	cellphone := NewResource(Phone{})
-	addres := NewResource(Address{})
-	oldaddres := NewResource(Address{})
-	useres := NewResource(User{})
+	for _, record := range records {
+		testdb.Create(&record)
+	}
+
+	var (
+		user       = NewResource(User{})
+		address    = NewResource(Address{})
+		oldAddress = NewResource(Address{})
+		phone      = NewResource(Phone{})
+		cellphone  = NewResource(Phone{})
+	)
 	phone.HasSequentialColumns = true
-	addres.HasSequentialColumns = true
-	oldaddres.MultiDelimiter = ","
+	address.HasSequentialColumns = true
+	oldAddress.MultiDelimiter = ","
 
+	user.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
+	user.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	user.RegisterMeta(&resource.Meta{Name: "CellPhone", Resource: cellphone})
+	user.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: address})
+	user.RegisterMeta(&resource.Meta{Name: "OldAddresses", Resource: oldAddress})
+	address.RegisterMeta(&resource.Meta{Name: "Country", Label: "Country"})
+	address.RegisterMeta(&resource.Meta{Name: "Phone", Resource: phone})
 	phone.RegisterMeta(&resource.Meta{Name: "Num", Label: "Phone"})
-	oldaddres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Old Countries"})
 	cellphone.RegisterMeta(&resource.Meta{Name: "Num", Label: "CellPhone"})
+	oldAddress.RegisterMeta(&resource.Meta{Name: "Country", Label: "Old Countries"})
 
-	addres.RegisterMeta(&resource.Meta{Name: "Phone", Resource: phone})
-	addres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Country"})
-
-	useres.RegisterMeta(&resource.Meta{Name: "OldAddresses", Resource: oldaddres})
-	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
-	useres.RegisterMeta(&resource.Meta{Name: "CellPhone", Resource: cellphone})
-	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
-	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
-
-	ex := New(useres)
+	ex := New(user)
 	var buf bytes.Buffer
+	records = []User{}
+	db := testdb.Find(&records)
+	if db.Error != nil {
+		t.Fatal(db.Error)
+	}
 	ex.Export(records, &buf, &qor.Context{Config: &qor.Config{DB: testdb}})
-	expect := `Old Countries,Phone 01,Phone 02,Phone 03,Country 01,Country 02,Country 03,CellPhone,Age,Name
-Africa,xxx-xxx-xxx-0,zzz-zzz-zzz-0,kkk-kkk-kkk-0,China,Japan,New Zealand,yyy-yyy-yyy-0,24,Van
-"Africa,Brazil",xxx-xxx-xxx-1,,,USA,,,yyy-yyy-yyy-1,26,Jane
+	expect := `Name,Age,CellPhone,Country 01,Country 02,Country 03,Phone 01,Phone 02,Phone 03,Old Countries
+Van,24,yyy-yyy-yyy-0,China,Japan,New Zealand,xxx-xxx-xxx-0,zzz-zzz-zzz-0,kkk-kkk-kkk-0,Africa
+Jane,26,yyy-yyy-yyy-1,USA,,,xxx-xxx-xxx-1,,,"Africa,Brazil"
 `
 
 	if buf.String() != expect {
-		t.Errorf("expect: %q\ngot: %q", expect, buf.String())
+		t.Errorf("expect: %s\ngot: %s", expect, buf.String())
 	}
 }
