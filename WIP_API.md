@@ -45,6 +45,7 @@ Publish:
     publish.GetDependencies(objects...)
     for _, object := range objects {
       get relations
+      get many to many relations
     }
     publish.Publish(struct...) // insert into products_draft (name, color_id) select name, color_id from products;
 
