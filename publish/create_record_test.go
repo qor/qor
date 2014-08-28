@@ -1,10 +1,6 @@
 package publish_test
 
-import (
-	_ "github.com/mattn/go-sqlite3"
-
-	"testing"
-)
+import "testing"
 
 func TestCreateStructFromDraft(t *testing.T) {
 	name := "create_product_from_draft"
