@@ -24,8 +24,17 @@ func TestCreateStructFromDraft(t *testing.T) {
 
 	var product Product
 	pbdraft.First(&product, "name = ?", name)
+
+	if !product.PublishStatus {
+		t.Errorf("Product's publish status should be DIRTY when created from draft db")
+	}
+
 	if pbdraft.Model(&product).Related(&product.Color); product.Color.Name != name {
 		t.Errorf("should be able to find related struct")
+	} else {
+		if product.Color.PublishStatus {
+			t.Errorf("Color's publish status should be PUBLISHED because it is not publishable")
+		}
 	}
 }
 
@@ -47,7 +56,16 @@ func TestCreateStructFromProduction(t *testing.T) {
 
 	var product Product
 	pbprod.First(&product, "name = ?", name)
+
+	if product.PublishStatus {
+		t.Errorf("Product's publish status should be PUBLISHED when created from production db")
+	}
+
 	if pbprod.Model(&product).Related(&product.Color); product.Color.Name != name {
 		t.Errorf("should be able to find related struct")
+	} else {
+		if product.Color.PublishStatus {
+			t.Errorf("Color's publish status should be PUBLISHED because it is not publishable")
+		}
 	}
 }

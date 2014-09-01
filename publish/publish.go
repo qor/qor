@@ -6,8 +6,13 @@ import (
 	"reflect"
 )
 
+const (
+	PUBLISHED = false
+	DIRTY     = true
+)
+
 type Publish struct {
-	PublishStatus string
+	PublishStatus bool
 }
 
 type DB struct {
@@ -18,19 +23,19 @@ type DB struct {
 func Open(driver, source string) (*DB, error) {
 	db, err := gorm.Open(driver, source)
 
-	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTable(true))
+	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production_after_create", SyncToProductionAfterCreate)
 
-	db.Callback().Delete().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTable(true))
+	db.Callback().Delete().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
 	db.Callback().Delete().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production_after_delete", SyncToProductionAfterDelete)
 
-	db.Callback().Update().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTable(true))
+	db.Callback().Update().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
 	db.Callback().Update().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production", SyncToProductionAfterUpdate)
 
-	db.Callback().Query().Before("gorm:query").Register("publish:set_table_in_draft_mode", SetTable(false))
+	db.Callback().Query().Before("gorm:query").Register("publish:set_table_in_draft_mode", SetTableAndPublishStatus(false))
 	return &DB{DB: &db}, err
 }
 
@@ -63,10 +68,10 @@ func (db *DB) DraftMode() *gorm.DB {
 	return db.Set("qor_publish:draft_mode", true)
 }
 
-func SetTable(force bool) func(*gorm.Scope) {
+func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
 	return func(scope *gorm.Scope) {
 		if draftMode, ok := scope.Get("qor_publish:draft_mode"); force || ok {
-			if value, ok := draftMode.(bool); force || ok && value {
+			if isDraft, ok := draftMode.(bool); force || ok && isDraft {
 				data := scope.IndirectValue()
 				if data.Kind() == reflect.Slice {
 					elem := data.Type().Elem()
@@ -87,6 +92,9 @@ func SetTable(force bool) func(*gorm.Scope) {
 						table := scope.TableName()
 						scope.InstanceSet("publish:original_table", table)
 						scope.Search.TableName = DraftTableName(table)
+						if isDraft {
+							scope.SetColumn("PublishStatus", DIRTY)
+						}
 						break
 					}
 				}
