@@ -2,6 +2,7 @@ package publish
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor"
 
 	"reflect"
 )
@@ -28,6 +29,7 @@ func Open(driver, source string) (*DB, error) {
 		Register("publish:sync_to_production_after_create", SyncToProductionAfterCreate)
 
 	db.Callback().Delete().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
+	db.Callback().Delete().Replace("gorm:delete", Delete)
 	db.Callback().Delete().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production_after_delete", SyncToProductionAfterDelete)
 
@@ -44,6 +46,15 @@ func DraftTableName(table string) string {
 }
 
 func (db *DB) Support(models ...interface{}) {
+	for _, model := range models {
+		scope := gorm.Scope{Value: model}
+		for _, column := range []string{"DeletedAt", "PublishStatus"} {
+			if !scope.HasColumn(column) {
+				qor.ExitWithMsg("%v has no %v column", model, column)
+			}
+		}
+	}
+
 	db.SupportedModels = append(db.SupportedModels, models...)
 
 	var supportedModels []string
@@ -66,68 +77,4 @@ func (db *DB) ProductionMode() *gorm.DB {
 
 func (db *DB) DraftMode() *gorm.DB {
 	return db.Set("qor_publish:draft_mode", true)
-}
-
-func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
-	return func(scope *gorm.Scope) {
-		if draftMode, ok := scope.Get("qor_publish:draft_mode"); force || ok {
-			if isDraft, ok := draftMode.(bool); force || ok && isDraft {
-				data := scope.IndirectValue()
-				if data.Kind() == reflect.Slice {
-					elem := data.Type().Elem()
-					if elem.Kind() == reflect.Ptr {
-						elem = elem.Elem()
-					}
-					data = reflect.New(elem).Elem()
-				}
-				currentModel := data.Type().String()
-
-				var supportedModels []string
-				if value, ok := scope.Get("publish:support_models"); ok {
-					supportedModels = value.([]string)
-				}
-
-				for _, model := range supportedModels {
-					if model == currentModel {
-						table := scope.TableName()
-						scope.InstanceSet("publish:original_table", table)
-						scope.Search.TableName = DraftTableName(table)
-						if isDraft {
-							scope.SetColumn("PublishStatus", DIRTY)
-						}
-						break
-					}
-				}
-			}
-		}
-	}
-}
-
-func GetModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
-	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok && !draftMode.(bool) {
-		if table, ok := scope.InstanceGet("publish:original_table"); ok {
-			clone := scope.New(scope.Value)
-			clone.Search.TableName = table.(string)
-			return true, clone
-		}
-	}
-	return false, nil
-}
-
-func SyncToProductionAfterCreate(scope *gorm.Scope) {
-	if ok, clone := GetModeAndNewScope(scope); ok {
-		gorm.Create(clone)
-	}
-}
-
-func SyncToProductionAfterUpdate(scope *gorm.Scope) {
-	if ok, clone := GetModeAndNewScope(scope); ok {
-		gorm.Update(clone)
-	}
-}
-
-func SyncToProductionAfterDelete(scope *gorm.Scope) {
-	if ok, clone := GetModeAndNewScope(scope); ok {
-		gorm.Delete(clone)
-	}
 }
