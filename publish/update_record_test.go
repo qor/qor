@@ -10,6 +10,7 @@ func TestUpdateStructFromDraft(t *testing.T) {
 
 	pbdraft.Model(&product).Update("name", newName)
 
+	pbdraft.First(&product, product.Id)
 	if !product.PublishStatus {
 		t.Errorf("Product's publish status should be DIRTY when updated from draft db")
 	}
