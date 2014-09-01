@@ -2,13 +2,14 @@ package publish_test
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor/publish"
-	"time"
 )
 
-var pb *publish.Publish
+var pb *publish.DB
 var pbdraft *gorm.DB
 var pbprod *gorm.DB
 

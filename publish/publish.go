@@ -6,12 +6,12 @@ import (
 	"reflect"
 )
 
-type Publish struct {
+type DB struct {
 	*gorm.DB
 	SupportedModels []interface{}
 }
 
-func Open(driver, source string) (*Publish, error) {
+func Open(driver, source string) (*DB, error) {
 	db, err := gorm.Open(driver, source)
 
 	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTable(true))
@@ -27,36 +27,36 @@ func Open(driver, source string) (*Publish, error) {
 		Register("publish:sync_to_production", SyncToProductionAfterUpdate)
 
 	db.Callback().Query().Before("gorm:query").Register("publish:set_table_in_draft_mode", SetTable(false))
-	return &Publish{DB: &db}, err
+	return &DB{DB: &db}, err
 }
 
 func DraftTableName(table string) string {
 	return table + "_draft"
 }
 
-func (publish *Publish) Support(models ...interface{}) {
-	publish.SupportedModels = append(publish.SupportedModels, models...)
+func (db *DB) Support(models ...interface{}) {
+	db.SupportedModels = append(db.SupportedModels, models...)
 
 	var supportedModels []string
-	for _, model := range publish.SupportedModels {
+	for _, model := range db.SupportedModels {
 		supportedModels = append(supportedModels, reflect.Indirect(reflect.ValueOf(model)).Type().String())
 	}
-	publish.InstantSet("publish:support_models", supportedModels)
+	db.InstantSet("publish:support_models", supportedModels)
 }
 
-func (publish *Publish) AutoMigrateDrafts() {
-	for _, value := range publish.SupportedModels {
+func (db *DB) AutoMigrateDrafts() {
+	for _, value := range db.SupportedModels {
 		table := (&gorm.Scope{Value: value}).TableName()
-		publish.Table(DraftTableName(table)).AutoMigrate(value)
+		db.Table(DraftTableName(table)).AutoMigrate(value)
 	}
 }
 
-func (publish *Publish) ProductionMode() *gorm.DB {
-	return publish.Set("qor_publish:draft_mode", false)
+func (db *DB) ProductionMode() *gorm.DB {
+	return db.Set("qor_publish:draft_mode", false)
 }
 
-func (publish *Publish) DraftMode() *gorm.DB {
-	return publish.Set("qor_publish:draft_mode", true)
+func (db *DB) DraftMode() *gorm.DB {
+	return db.Set("qor_publish:draft_mode", true)
 }
 
 func SetTable(force bool) func(*gorm.Scope) {
