@@ -22,7 +22,7 @@ func init() {
 	for _, table := range []string{"products", "products_draft", "colors"} {
 		pb.Exec(fmt.Sprintf("drop table %v", table))
 	}
-	pb.AutoMigrate(Product{}, Color{})
+	pb.AutoMigrate(&Product{}, &Color{})
 	pb.AutoMigrateDrafts()
 }
 
@@ -32,9 +32,11 @@ type Product struct {
 	Color     Color
 	ColorId   int
 	DeletedAt time.Time
+	publish.Publish
 }
 
 type Color struct {
 	Id   int
 	Name string
+	publish.Publish
 }

@@ -6,6 +6,10 @@ import (
 	"reflect"
 )
 
+type Publish struct {
+	PublishStatus string
+}
+
 type DB struct {
 	*gorm.DB
 	SupportedModels []interface{}
