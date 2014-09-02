@@ -2,6 +2,7 @@ package worker
 
 import (
 	"bytes"
+
 	"github.com/qor/qor/resource"
 
 	"io"

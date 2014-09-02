@@ -67,7 +67,7 @@ func (meta *Meta) UpdateMeta() {
 	var field *gorm.Field
 	field, hasColumn = scope.FieldByName(meta.Alias)
 	if hasColumn {
-		valueType = reflect.TypeOf(field.Value).Kind().String()
+		valueType = field.Field.Type().Kind().String()
 	}
 
 	// Set Meta Type
@@ -89,7 +89,7 @@ func (meta *Meta) UpdateMeta() {
 			default:
 				if regexp.MustCompile(`^(u)?(int|float)(\d+)?`).MatchString(valueType) {
 					meta.Type = "number"
-				} else if _, ok := field.Value.(media_library.MediaLibrary); ok {
+				} else if _, ok := field.Field.Interface().(media_library.MediaLibrary); ok {
 					meta.Type = "file"
 				}
 			}
@@ -101,9 +101,9 @@ func (meta *Meta) UpdateMeta() {
 		if hasColumn && (field.Relationship != nil) {
 			var result interface{}
 			if valueType == "struct" {
-				result = reflect.New(reflect.Indirect(reflect.ValueOf(field.Value)).Type()).Interface()
+				result = reflect.New(reflect.Indirect(field.Field).Type()).Interface()
 			} else if valueType == "slice" {
-				result = reflect.New(reflect.Indirect(reflect.ValueOf(field.Value)).Type().Elem()).Interface()
+				result = reflect.New(reflect.Indirect(field.Field).Type().Elem()).Interface()
 			}
 
 			resource := reflect.New(reflect.Indirect(reflect.ValueOf(meta.Base)).Type()).Interface()
@@ -122,21 +122,21 @@ func (meta *Meta) UpdateMeta() {
 				scope := &gorm.Scope{Value: value}
 				if f, ok := scope.FieldByName(meta.Alias); ok {
 					if field.Relationship != nil {
-						if !reflect.ValueOf(f.Value).CanAddr() {
-							if reflect.ValueOf(f.Value).Kind() == reflect.Slice {
-								sliceType := reflect.ValueOf(f.Value).Type()
+						if !f.Field.CanAddr() {
+							if f.Field.Kind() == reflect.Slice {
+								sliceType := f.Field.Type()
 								slice := reflect.MakeSlice(sliceType, 0, 0)
 								slicePtr := reflect.New(sliceType)
 								slicePtr.Elem().Set(slice)
-								f.Value = slicePtr.Interface()
-							} else if reflect.ValueOf(f.Value).Kind() == reflect.Struct {
-								f.Value = reflect.New(reflect.Indirect(reflect.ValueOf(f.Value)).Type()).Interface()
+								f.Set(slicePtr)
+							} else if f.Field.Kind() == reflect.Struct {
+								f.Set(reflect.New(reflect.Indirect(f.Field).Type()))
 							}
 						}
 
-						context.DB().Model(value).Related(f.Value, meta.Alias)
+						context.DB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
 					}
-					return f.Value
+					return f.Field.Interface()
 				}
 				return ""
 			}
