@@ -1,8 +1,6 @@
 package publish
 
 import (
-	"fmt"
-
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 
@@ -81,48 +79,10 @@ func (db *DB) DraftMode() *gorm.DB {
 	return db.Set("qor_publish:draft_mode", true)
 }
 
-type Dependency struct {
-	Type   reflect.Type
-	Values []interface{}
-}
-
-func (dependency *Dependency) GetDependencies() []*Dependency {
-	var dependencies = []*Dependency{}
-	return dependencies
-}
-
-func (db *DB) GetDependencies(records ...interface{}) map[string]*Dependency {
-	var dependencies = map[string]*Dependency{}
-	var supportedModels []string
-	if value, ok := db.Get("publish:support_models"); ok {
-		supportedModels = value.([]string)
-	}
-
-	for _, record := range records {
-		reflectValue := reflect.ValueOf(record)
-		scope := gorm.Scope{Value: record}
-		var currentModel = reflectValue.Type().String()
-		for _, model := range supportedModels {
-			if model == currentModel {
-				dependency, ok := dependencies[currentModel]
-				if !ok {
-					dependency = &Dependency{Type: reflectValue.Type()}
-				}
-				dependency.Values = append(dependency.Values, scope.PrimaryKey())
-				dependencies[currentModel] = dependency
-				break
-			}
-		}
-	}
-	return dependencies
+func (db *DB) NewResolver(records ...interface{}) *Resolver {
+	return &Resolver{Records: records, DB: db}
 }
 
 func (db *DB) Publish(records ...interface{}) {
-	dependencies := db.GetDependencies(records...)
-
-	for _, dependency := range dependencies {
-		fmt.Printf("dependency %+v\n", dependency)
-		// delete from products where products.id in (?)
-		// insert into products (columns) select columns from products_draft where products_draft.id in (?);
-	}
+	db.NewResolver(records).Publish()
 }
