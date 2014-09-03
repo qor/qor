@@ -21,6 +21,15 @@ type DB struct {
 	SupportedModels []interface{}
 }
 
+func modelType(value interface{}) reflect.Type {
+	reflectValue := reflect.Indirect(reflect.ValueOf(value))
+	if reflectValue.Kind() == reflect.Slice {
+		reflectValue = reflectValue.Elem()
+	}
+
+	return reflectValue.Type()
+}
+
 func Open(driver, source string) (*DB, error) {
 	db, err := gorm.Open(driver, source)
 
@@ -59,7 +68,7 @@ func (db *DB) Support(models ...interface{}) {
 
 	var supportedModels []string
 	for _, model := range db.SupportedModels {
-		supportedModels = append(supportedModels, reflect.Indirect(reflect.ValueOf(model)).Type().String())
+		supportedModels = append(supportedModels, modelType(model).String())
 	}
 	db.InstantSet("publish:support_models", supportedModels)
 }
