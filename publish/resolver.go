@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 )
@@ -109,6 +110,35 @@ func (resolver *Resolver) Publish() {
 		}
 	}
 
-	// delete from products where products.id in (?)
-	// insert into products (columns) select columns from products_draft where products_draft.id in (?);
+	for _, dependency := range resolver.Dependencies {
+		value := reflect.New(dependency.Type)
+		fromScope := resolver.DB.DraftMode().NewScope(value)
+		fromTable := fromScope.QuotedTableName()
+		fromPrimaryKey := fromScope.PrimaryKey()
+		toScope := resolver.DB.ProductionMode().NewScope(value)
+		toTable := toScope.QuotedTableName()
+
+		resolver.DB.ProductionMode().Delete(value.Interface(), dependency.PrimaryKeys)
+
+		var columns []string
+		for _, field := range toScope.Fields() {
+			columns = append(columns, field.DBName)
+		}
+
+		var insertColumns []string
+		for _, column := range columns {
+			insertColumns = append(insertColumns, fmt.Sprintf("%v.%v", toTable, column))
+		}
+
+		var selectColumns []string
+		for _, column := range columns {
+			selectColumns = append(selectColumns, fmt.Sprintf("%v.%v", fromTable, column))
+		}
+
+		sql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v from %v where %v.%v in (?);",
+			toTable, strings.Join(insertColumns, " ,"), strings.Join(selectColumns, " ,"),
+			fromTable, fromTable, fromPrimaryKey)
+
+		resolver.DB.Exec(sql, dependency.PrimaryKeys)
+	}
 }
