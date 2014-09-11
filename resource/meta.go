@@ -122,19 +122,9 @@ func (meta *Meta) UpdateMeta() {
 				scope := &gorm.Scope{Value: value}
 				if f, ok := scope.FieldByName(meta.Alias); ok {
 					if field.Relationship != nil {
-						if !f.Field.CanAddr() {
-							if f.Field.Kind() == reflect.Slice {
-								sliceType := f.Field.Type()
-								slice := reflect.MakeSlice(sliceType, 0, 0)
-								slicePtr := reflect.New(sliceType)
-								slicePtr.Elem().Set(slice)
-								f.Set(slicePtr)
-							} else if f.Field.Kind() == reflect.Struct {
-								f.Set(reflect.New(reflect.Indirect(f.Field).Type()))
-							}
+						if f.Field.CanAddr() {
+							context.DB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
 						}
-
-						context.DB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
 					}
 					return f.Field.Interface()
 				}
