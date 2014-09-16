@@ -73,3 +73,37 @@ Localization:
       ProductId int64
       LanguageCode string
     }
+
+Layout:
+
+    render_layout "xxx"
+
+    type Action struct {
+      Name string
+    }
+    layout.RegisterAction(name string, fc func)
+
+    type Widget struct {
+      Name          string
+      Attrs         string
+      RequiredAttrs string
+      Template      string
+      Moveable      bool
+    }
+
+    slide := Resource{Name: "Slide"}
+    slide.RegisterMeta(qor.Meta{Name: "link", Type: "string"})
+    slide.RegisterMeta(qor.Meta{Name: "image", Type: "media"})
+
+    slides := Resource{Name: "Slides"}
+    slides.RegisterMeta(qor.Meta{Name: "slides", Resource: slide})
+    slides.RegisterMeta(qor.Meta{Name: "slide_menu", Value: func{}, Resource: slide_menu})
+
+    type Layout struct {
+      Name       string
+      WidgetName string
+      Style      string
+      Value      string
+    }
+
+    layout.Render(name)
