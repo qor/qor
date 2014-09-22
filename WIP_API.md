@@ -88,12 +88,14 @@ Layout:
       Attrs         string
       RequiredAttrs string
       Template      string
-      Moveable      bool
     }
 
-    slide := Resource{Name: "Slide"}
+    button := Resource{Name: "Button"}
+
+    slide := Resource{Name: "Slide", Master: false}
     slide.RegisterMeta(qor.Meta{Name: "link", Type: "string"})
     slide.RegisterMeta(qor.Meta{Name: "image", Type: "media"})
+    slide.RegisterMeta(qor.Meta{Name: "button", Resource:  button})
 
     slides := Resource{Name: "Slides"}
     slides.RegisterMeta(qor.Meta{Name: "slides", Resource: slide})
