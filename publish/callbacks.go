@@ -2,7 +2,6 @@ package publish
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/jinzhu/gorm"
 )
@@ -11,15 +10,7 @@ func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
 	return func(scope *gorm.Scope) {
 		if draftMode, ok := scope.Get("qor_publish:draft_mode"); force || ok {
 			if isDraft, ok := draftMode.(bool); force || ok && isDraft {
-				data := scope.IndirectValue()
-				if data.Kind() == reflect.Slice {
-					elem := data.Type().Elem()
-					if elem.Kind() == reflect.Ptr {
-						elem = elem.Elem()
-					}
-					data = reflect.New(elem).Elem()
-				}
-				currentModel := data.Type().String()
+				currentModel := modelType(scope.IndirectValue()).String()
 
 				var supportedModels []string
 				if value, ok := scope.Get("publish:support_models"); ok {
@@ -28,10 +19,10 @@ func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
 
 				for _, model := range supportedModels {
 					if model == currentModel {
-						table := scope.TableName()
-						scope.InstanceSet("publish:original_table", table)
+						productionTable := scope.TableName()
+						scope.InstanceSet("publish:original_table", productionTable)
 						scope.InstanceSet("publish:supported_model", true)
-						scope.Search.TableName = DraftTableName(table)
+						scope.Search.TableName = DraftTableName(productionTable)
 						if isDraft {
 							scope.SetColumn("PublishStatus", DIRTY)
 						}
@@ -43,7 +34,7 @@ func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
 	}
 }
 
-func GetModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
+func GetModeAndOriginalScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
 	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok && !draftMode.(bool) {
 		if table, ok := scope.InstanceGet("publish:original_table"); ok {
 			clone := scope.New(scope.Value)
@@ -55,19 +46,19 @@ func GetModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope
 }
 
 func SyncToProductionAfterCreate(scope *gorm.Scope) {
-	if ok, clone := GetModeAndNewScope(scope); ok {
+	if ok, clone := GetModeAndOriginalScope(scope); ok {
 		gorm.Create(clone)
 	}
 }
 
 func SyncToProductionAfterUpdate(scope *gorm.Scope) {
-	if ok, clone := GetModeAndNewScope(scope); ok {
+	if ok, clone := GetModeAndOriginalScope(scope); ok {
 		gorm.Update(clone)
 	}
 }
 
 func SyncToProductionAfterDelete(scope *gorm.Scope) {
-	if ok, clone := GetModeAndNewScope(scope); ok {
+	if ok, clone := GetModeAndOriginalScope(scope); ok {
 		gorm.Delete(clone)
 	}
 }
