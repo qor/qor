@@ -157,6 +157,9 @@ func (meta *Meta) UpdateMeta() {
 		qor.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
 	}
 
+	scopeField, _ := scope.FieldByName(meta.Alias)
+	relationship := scopeField.Relationship
+
 	if meta.Setter == nil {
 		meta.Setter = func(resource interface{}, metaValues *MetaValues, context *qor.Context) {
 			metaValue := metaValues.Get(meta.Name)
@@ -166,11 +169,9 @@ func (meta *Meta) UpdateMeta() {
 
 			value := metaValue.Value
 			scope := &gorm.Scope{Value: resource}
-			scopeField, _ := scope.FieldByName(meta.Alias)
 			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Alias)
 
 			if field.IsValid() && field.CanAddr() {
-				relationship := scopeField.Relationship
 				if relationship != nil && relationship.Kind == "many_to_many" {
 					context.DB().Where(ToArray(value)).Find(field.Addr().Interface())
 					if !scope.PrimaryKeyZero() {
