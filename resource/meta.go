@@ -158,7 +158,6 @@ func (meta *Meta) UpdateMeta() {
 	}
 
 	scopeField, _ := scope.FieldByName(meta.Alias)
-	relationship := scopeField.Relationship
 
 	if meta.Setter == nil {
 		meta.Setter = func(resource interface{}, metaValues *MetaValues, context *qor.Context) {
@@ -172,6 +171,7 @@ func (meta *Meta) UpdateMeta() {
 			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Alias)
 
 			if field.IsValid() && field.CanAddr() {
+				relationship := scopeField.Relationship
 				if relationship != nil && relationship.Kind == "many_to_many" {
 					context.DB().Where(ToArray(value)).Find(field.Addr().Interface())
 					if !scope.PrimaryKeyZero() {
