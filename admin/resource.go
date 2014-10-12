@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
@@ -14,10 +15,11 @@ import (
 type Resource struct {
 	Name string
 	resource.Resource
-	indexAttrs []string
-	newAttrs   []string
-	editAttrs  []string
-	showAttrs  []string
+	indexAttrs  []string
+	newAttrs    []string
+	editAttrs   []string
+	showAttrs   []string
+	cachedMetas *map[string][]*resource.Meta
 }
 
 func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
@@ -115,24 +117,48 @@ func (res *Resource) getMetas(attrsSlice ...[]string) []*resource.Meta {
 	return metas
 }
 
+func (res *Resource) getCachedMetas(cacheKey string, fc func() []*resource.Meta) []*resource.Meta {
+	if res.cachedMetas == nil {
+		res.cachedMetas = &map[string][]*resource.Meta{}
+	}
+
+	if values, ok := (*res.cachedMetas)[cacheKey]; ok {
+		return values
+	} else {
+		values = fc()
+		(*res.cachedMetas)[cacheKey] = values
+		return values
+	}
+}
+
 func (res *Resource) IndexMetas() []*resource.Meta {
-	return res.getMetas(res.indexAttrs, res.showAttrs)
+	return res.getCachedMetas("index_metas", func() []*resource.Meta {
+		return res.getMetas(res.indexAttrs, res.showAttrs)
+	})
 }
 
 func (res *Resource) NewMetas() []*resource.Meta {
-	return res.getMetas(res.newAttrs, res.editAttrs)
+	return res.getCachedMetas("new_metas", func() []*resource.Meta {
+		return res.getMetas(res.newAttrs, res.editAttrs)
+	})
 }
 
 func (res *Resource) EditMetas() []*resource.Meta {
-	return res.appendPrimaryKey(res.getMetas(res.editAttrs))
+	return res.getCachedMetas("edit_metas", func() []*resource.Meta {
+		return res.appendPrimaryKey(res.getMetas(res.editAttrs))
+	})
 }
 
 func (res *Resource) ShowMetas() []*resource.Meta {
-	return res.getMetas(res.showAttrs, res.editAttrs)
+	return res.getCachedMetas("show_metas", func() []*resource.Meta {
+		return res.getMetas(res.showAttrs, res.editAttrs)
+	})
 }
 
 func (res *Resource) AllAttrs() []*resource.Meta {
-	return res.appendPrimaryKey(res.getMetas())
+	return res.getCachedMetas("all_metas", func() []*resource.Meta {
+		return res.appendPrimaryKey(res.getMetas())
+	})
 }
 
 func (res *Resource) appendPrimaryKey(metas []*resource.Meta) []*resource.Meta {

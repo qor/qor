@@ -1,9 +1,10 @@
 package admin
 
 import (
+	"strings"
+
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"strings"
 
 	"reflect"
 )
@@ -26,7 +27,7 @@ func NewResource(value interface{}, names ...string) *Resource {
 		name = n
 	}
 
-	return &Resource{Name: name, Resource: resource.Resource{Value: value}}
+	return &Resource{Name: name, Resource: resource.Resource{Value: value}, cachedMetas: &map[string][]*resource.Meta{}}
 }
 
 func (admin *Admin) NewResource(value interface{}, names ...string) *Resource {
