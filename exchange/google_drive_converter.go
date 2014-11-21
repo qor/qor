@@ -1,7 +1,6 @@
 package exchange
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -35,7 +34,7 @@ func (f googleDriveFile) ContentType() string {
 }
 
 type GoogleDriveConverter struct {
-	config *oauth2.JWTConfig
+	flow *oauth2.Flow
 }
 
 // How to create a google api service account: https://developers.google.com/drive/web/service-accounts
@@ -57,11 +56,12 @@ func NewGoogleDriveConverter(clientEmail, keyFilePath string) (gdc *GoogleDriveC
 		return
 	}
 	gdc = new(GoogleDriveConverter)
-	gdc.config, err = google.NewServiceAccountConfig(&oauth2.JWTOptions{
-		Email:      clientEmail,
-		PrivateKey: key,
-		Scopes:     []string{"https://www.googleapis.com/auth/drive"},
-	})
+	gdc.flow, err = oauth2.New(
+		oauth2.JWTClient(clientEmail, key),
+		oauth2.Scope("https://www.googleapis.com/auth/drive"),
+		google.JWTEndpoint(),
+		// oauth2.Subject("user@example.com"),
+	)
 	if err != nil {
 		return
 	}
@@ -71,23 +71,27 @@ func NewGoogleDriveConverter(clientEmail, keyFilePath string) (gdc *GoogleDriveC
 
 // NewGoogleDriveConverterByJSONKey will accept a json key file downloaded from google
 // project and return a GoogleDriveConverter. Built for convinence.
-func NewGoogleDriveConverterByJSONKey(jsonKey string) (gdc *GoogleDriveConverter, err error) {
-	rawkey, err := ioutil.ReadFile(jsonKey)
-	if err != nil {
-		return
-	}
-	key := map[string]string{}
-	err = json.Unmarshal(rawkey, &key)
-	if err != nil {
-		return
-	}
+func NewGoogleDriveConverterByJSONKey(filename string) (gdc *GoogleDriveConverter, err error) {
+	// rawkey, err := ioutil.ReadFile(jsonKey)
+	// if err != nil {
+	// 	return
+	// }
+	// key := map[string]string{}
+	// err = json.Unmarshal(rawkey, &key)
+	// if err != nil {
+	// 	return
+	// }
 
 	gdc = new(GoogleDriveConverter)
-	gdc.config, err = google.NewServiceAccountConfig(&oauth2.JWTOptions{
-		Email:      key["client_email"],
-		PrivateKey: []byte(key["private_key"]),
-		Scopes:     []string{"https://www.googleapis.com/auth/drive"},
-	})
+	gdc.flow, err = oauth2.New(
+		google.ServiceAccountJSONKey(filename),
+		oauth2.Scope("https://www.googleapis.com/auth/drive"),
+	)
+	// gdc.config, err = google.NewServiceAccountConfig(&oauth2.JWTOptions{
+	// 	Email:      key["client_email"],
+	// 	PrivateKey: []byte(key["private_key"]),
+	// 	Scopes:     []string{"https://www.googleapis.com/auth/drive"},
+	// })
 	if err != nil {
 		return
 	}
@@ -107,7 +111,7 @@ func (gdc *GoogleDriveConverter) Convert(path string, from, to ContentType) (r i
 	}
 	gdf.size = int(stat.Size())
 
-	client := http.Client{Transport: gdc.config.NewTransport()}
+	client := http.Client{Transport: gdc.flow.NewTransport()}
 	svc, err := drive.New(&client)
 	if err != nil {
 		return
