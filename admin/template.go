@@ -3,11 +3,12 @@ package admin
 import (
 	"errors"
 	"fmt"
-	"github.com/qor/qor/roles"
 	"os"
 	"path"
-	"path/filepath"
 	"regexp"
+	"strings"
+
+	"github.com/qor/qor/roles"
 
 	"text/template"
 )
@@ -25,21 +26,23 @@ func isExistingDir(pth string) bool {
 	return fi.Mode().IsDir()
 }
 
+var Root, _ = os.Getwd()
+
 func init() {
 	if root := os.Getenv("WEB_ROOT"); root != "" {
-		if dir := path.Join(root, "templates/qor"); isExistingDir(dir) {
+		Root = root
+	}
+
+	for _, dir := range []string{path.Join(Root, "app/views/qor"), path.Join(Root, "templates/qor")} {
+		if isExistingDir(dir) {
 			viewDirs = append(viewDirs, dir)
 		}
 	}
 
-	if dir, err := filepath.Abs(filepath.Dir(os.Args[0])); err == nil {
-		if dir := path.Join(dir, "src/github.com/qor/qor/admin/templates"); isExistingDir(dir) {
+	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+		if dir := path.Join(gopath, "src/github.com/qor/qor/admin/templates"); isExistingDir(dir) {
 			viewDirs = append(viewDirs, dir)
 		}
-	}
-
-	if dir := path.Join(os.Getenv("GOPATH"), "src/github.com/qor/qor/admin/templates"); isExistingDir(dir) {
-		viewDirs = append(viewDirs, dir)
 	}
 }
 
