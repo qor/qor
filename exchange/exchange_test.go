@@ -22,7 +22,7 @@ type User struct {
 
 	// TODO
 	// Pointer type in exchange.Export, for example
-	CellPhonePtr *Phone
+	// CellPhonePtr *Phone
 	// AddressesPtr []*Address
 }
 
@@ -254,8 +254,8 @@ func TestExport(t *testing.T) {
 			OldAddresses: []OldAddress{
 				{Country: "Africa"},
 			},
-			CellPhone:    Phone{Num: "yyy-yyy-yyy-0"},
-			CellPhonePtr: &Phone{Num: "yyy-yyy-yyy-0"},
+			CellPhone: Phone{Num: "yyy-yyy-yyy-0"},
+			// CellPhonePtr: &Phone{Num: "yyy-yyy-yyy-0"},
 		},
 		User{
 			Name: "Jane",
