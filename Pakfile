@@ -1,0 +1,26 @@
+# Pakfile[.yaml]
+packages:
+- name: code.google.com/p/google-api-go-client/drive/v2
+- name: github.com/golang/oauth2
+- name: github.com/golang/oauth2/google
+- name: github.com/jinzhu/gorm
+- name: github.com/mattn/go-sqlite3
+- name: github.com/tealeg/xlsx
+
+#
+# Configuration Options:
+# - name:
+#   pakname: pak
+#   targetbranch: origin/master
+
+#
+# Examples:
+#
+# packages:
+# - name: github.com/theplant/req1
+#   pakname: pak
+#   targetbranch: origin/branch1
+# - name: github.com/theplant/req2
+#   pakname: pak
+#   targetbranch: origin/master
+#
