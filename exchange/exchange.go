@@ -263,6 +263,7 @@ func (ex *Exchange) Export(records interface{}, w io.Writer, ctx *qor.Context) (
 		fieldMap := map[string]string{}
 		labelCounter := map[string]int{}
 		walker = func(res resource.Resourcer, metaor resource.Metaor, record interface{}) {
+			// fmt.Printf("--> %+v\n", record)
 			if meta := metaor.GetMeta(); meta.Resource == nil {
 				metaRes, ok := res.(*Resource)
 				if !ok {

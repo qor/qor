@@ -22,8 +22,8 @@ type User struct {
 
 	// TODO
 	// Pointer type in exchange.Export, for example
-	//  	CellPhone    *Phone
-	//  	Addresses    []*Address
+	CellPhonePtr *Phone
+	// AddressesPtr []*Address
 }
 
 type Address struct {
@@ -254,7 +254,8 @@ func TestExport(t *testing.T) {
 			OldAddresses: []OldAddress{
 				{Country: "Africa"},
 			},
-			CellPhone: Phone{Num: "yyy-yyy-yyy-0"},
+			CellPhone:    Phone{Num: "yyy-yyy-yyy-0"},
+			CellPhonePtr: &Phone{Num: "yyy-yyy-yyy-0"},
 		},
 		User{
 			Name: "Jane",
@@ -299,7 +300,18 @@ func TestExport(t *testing.T) {
 	ex := New(user)
 	var buf bytes.Buffer
 	records = []User{}
+
 	db := testdb.Find(&records)
+	for i, record := range records {
+		testdb.Model(&record).Related(&record.CellPhone)
+		testdb.Model(&record).Related(&record.Addresses)
+		testdb.Model(&record).Related(&record.OldAddresses)
+		for j, addr := range record.Addresses {
+			testdb.Model(&addr).Related(&addr.Phone)
+			record.Addresses[j] = addr
+		}
+		records[i] = record
+	}
 	if db.Error != nil {
 		t.Fatal(db.Error)
 	}
