@@ -133,6 +133,7 @@ func (meta *Meta) UpdateMeta() {
 					fields := strings.Split(alias, ".")
 					alias = fields[len(fields)-1]
 				}
+
 				if f, ok := scope.FieldByName(alias); ok {
 					if field.Relationship != nil {
 						if f.Field.CanAddr() {
@@ -141,31 +142,11 @@ func (meta *Meta) UpdateMeta() {
 					}
 					return f.Field.Interface()
 				}
+
 				return ""
 			}
 		} else {
 			qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(base.Value))
-		}
-	}
-
-	if nestedField {
-		oldvalue := meta.Value
-		meta.Value = func(value interface{}, context *qor.Context) interface{} {
-			model := deepIndirect(reflect.ValueOf(value))
-			fields := strings.Split(meta.Alias, ".")
-			for _, field := range fields[:len(fields)-1] {
-				submodel := model.FieldByName(field)
-				if key := submodel.FieldByName("id"); !key.IsValid() || key.Uint() == 0 {
-					if submodel.CanAddr() {
-						context.DB().Model(model.Interface()).Related(submodel.Addr().Interface())
-						model = submodel
-					} else {
-						break
-					}
-				}
-			}
-
-			return oldvalue(model.Interface(), context)
 		}
 	}
 
@@ -203,11 +184,19 @@ func (meta *Meta) UpdateMeta() {
 
 			value := metaValue.Value
 			scope := &gorm.Scope{Value: resource}
-			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Alias)
+			alias := meta.Alias
+			if nestedField {
+				fields := strings.Split(alias, ".")
+				alias = fields[len(fields)-1]
+			}
+			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(alias)
 
 			if field.IsValid() && field.CanAddr() {
-				relationship := scopeField.Relationship
-				if relationship != nil && relationship.Kind == "many_to_many" {
+				var relationship string
+				if scopeField != nil && scopeField.Relationship != nil {
+					relationship = scopeField.Relationship.Kind
+				}
+				if relationship == "many_to_many" {
 					context.DB().Where(ToArray(value)).Find(field.Addr().Interface())
 					if !scope.PrimaryKeyZero() {
 						context.DB().Model(resource).Association(meta.Alias).Replace(field.Interface())
@@ -241,6 +230,35 @@ func (meta *Meta) UpdateMeta() {
 			}
 		}
 	}
+
+	if nestedField {
+		oldvalue := meta.Value
+		meta.Value = func(value interface{}, context *qor.Context) interface{} {
+			return oldvalue(getNestedModel(value, meta.Alias, context), context)
+		}
+		oldSetter := meta.Setter
+		meta.Setter = func(resource interface{}, metaValues *MetaValues, context *qor.Context) {
+			oldSetter(getNestedModel(resource, meta.Alias, context), metaValues, context)
+		}
+	}
+}
+
+func getNestedModel(value interface{}, alias string, context *qor.Context) interface{} {
+	model := deepIndirect(reflect.ValueOf(value))
+	fields := strings.Split(alias, ".")
+	for _, field := range fields[:len(fields)-1] {
+		submodel := model.FieldByName(field)
+		if key := submodel.FieldByName("id"); !key.IsValid() || key.Uint() == 0 {
+			if submodel.CanAddr() {
+				context.DB().Model(model.Interface()).Related(submodel.Addr().Interface())
+				model = submodel
+			} else {
+				break
+			}
+		}
+	}
+
+	return model.Addr().Interface()
 }
 
 func deepIndirect(val reflect.Value) reflect.Value {
