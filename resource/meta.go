@@ -47,9 +47,6 @@ func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context)
 }
 
 func (meta *Meta) UpdateMeta() {
-	var hasColumn bool
-	var valueType string
-
 	if meta.Name == "" {
 		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
 	} else {
@@ -62,10 +59,21 @@ func (meta *Meta) UpdateMeta() {
 		meta.Alias = gorm.SnakeToUpperCamel(meta.Alias)
 	}
 
-	base := meta.Base.GetResource()
-	scope := &gorm.Scope{Value: base.Value}
-	var field *gorm.Field
-	field, hasColumn = scope.FieldByName(meta.Alias)
+	var (
+		base        = meta.Base.GetResource()
+		scope       = &gorm.Scope{Value: base.Value}
+		field       *gorm.Field
+		hasColumn   bool
+		nestedField = strings.Contains(meta.Alias, ".")
+		valueType   string
+	)
+	if nestedField {
+		submodel, name := parseNestedField(reflect.ValueOf(base.Value), meta.Alias)
+		subscope := &gorm.Scope{Value: submodel.Interface()}
+		field, hasColumn = subscope.FieldByName(name)
+	} else {
+		field, hasColumn = scope.FieldByName(meta.Alias)
+	}
 	if hasColumn {
 		valueType = field.Field.Type().Kind().String()
 	}
@@ -120,7 +128,12 @@ func (meta *Meta) UpdateMeta() {
 		if hasColumn {
 			meta.Value = func(value interface{}, context *qor.Context) interface{} {
 				scope := &gorm.Scope{Value: value}
-				if f, ok := scope.FieldByName(meta.Alias); ok {
+				alias := meta.Alias
+				if nestedField {
+					fields := strings.Split(alias, ".")
+					alias = fields[len(fields)-1]
+				}
+				if f, ok := scope.FieldByName(alias); ok {
 					if field.Relationship != nil {
 						if f.Field.CanAddr() {
 							context.DB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
@@ -132,6 +145,27 @@ func (meta *Meta) UpdateMeta() {
 			}
 		} else {
 			qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(base.Value))
+		}
+	}
+
+	if nestedField {
+		oldvalue := meta.Value
+		meta.Value = func(value interface{}, context *qor.Context) interface{} {
+			model := deepIndirect(reflect.ValueOf(value))
+			fields := strings.Split(meta.Alias, ".")
+			for _, field := range fields[:len(fields)-1] {
+				submodel := model.FieldByName(field)
+				if key := submodel.FieldByName("id"); !key.IsValid() || key.Uint() == 0 {
+					if submodel.CanAddr() {
+						context.DB().Model(model.Interface()).Related(submodel.Addr().Interface())
+						model = submodel
+					} else {
+						break
+					}
+				}
+			}
+
+			return oldvalue(model.Interface(), context)
 		}
 	}
 
@@ -159,6 +193,7 @@ func (meta *Meta) UpdateMeta() {
 
 	scopeField, _ := scope.FieldByName(meta.Alias)
 
+	// TODO: also support nested fields (Phone.Num)?
 	if meta.Setter == nil {
 		meta.Setter = func(resource interface{}, metaValues *MetaValues, context *qor.Context) {
 			metaValue := metaValues.Get(meta.Name)
@@ -206,6 +241,25 @@ func (meta *Meta) UpdateMeta() {
 			}
 		}
 	}
+}
+
+func deepIndirect(val reflect.Value) reflect.Value {
+	for val.Kind() == reflect.Ptr {
+		val = reflect.Indirect(val)
+	}
+
+	return val
+}
+
+// Profile.Name
+func parseNestedField(value reflect.Value, name string) (reflect.Value, string) {
+	fields := strings.Split(name, ".")
+	value = deepIndirect(value)
+	for _, field := range fields[:len(fields)-1] {
+		value = value.FieldByName(field)
+	}
+
+	return value, fields[len(fields)-1]
 }
 
 func ToArray(value interface{}) (values []string) {
