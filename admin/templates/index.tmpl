@@ -1,23 +1,35 @@
 {{define "content"}}
-    {{link_to "New" (new_resource_path .Resource)}}
-    <br/>
-    <br/>
-    {{range $meta := allowed_metas .Resource}}
-        {{$meta.Label}}
-    {{end}}<br/>
-    {{range $resource := .Result}}
-        {{range $index, $meta := allowed_metas}}
-        {{$text := value_of $resource $meta}}
-        {{if $index}}
-            {{$text}}
-        {{else}}
-            {{link_to $text $resource}}
+  <p>{{link_to "New" (new_resource_path .Resource)}}</p>
+
+  <table>
+    <thead>
+      <tr>
+        {{range $meta := allowed_metas .Resource}}
+          <th>{{$meta.Label}}</th>
         {{end}}
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        {{range $resource := .Result}}
+          {{range $index, $meta := allowed_metas}}
+            {{$text := value_of $resource $meta}}
+            <td>
+              {{if $index}}
+                {{$text}}
+              {{else}}
+                {{link_to $text $resource}}
+              {{end}}
+            </td>
+          {{end}}
+
+          <!-- <form action="{{url_for $resource}}" method="POST" style="display:inline">
+            <input name="_method" value="DELETE" type="hidden">
+            <input value="DELETE" type="submit"/>
+          </form> -->
         {{end}}
-        <form action="{{url_for $resource}}" method="POST" style="display:inline">
-          <input name="_method" value="DELETE" type="hidden">
-          <input value="DELETE" type="submit"/>
-        </form>
-        <br/>
-    {{end}}
+      </tr>
+    </tbody>
+  </table>
 {{end}}
