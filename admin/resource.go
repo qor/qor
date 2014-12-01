@@ -3,13 +3,13 @@ package admin
 import (
 	"fmt"
 
+	"github.com/jinzhu/gorm"
+
+	"strings"
+
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
-
-	"go/ast"
-	"reflect"
-	"strings"
 )
 
 type Resource struct {
@@ -74,27 +74,24 @@ func (res *Resource) getMetas(attrsSlice ...[]string) []*resource.Meta {
 	}
 
 	if attrs == nil {
+		scope := &gorm.Scope{Value: res.Value}
 		attrs = []string{}
-		indirectValue := reflect.Indirect(reflect.ValueOf(res.Value))
-		scopeTyp := indirectValue.Type()
+		fields := scope.Fields()
+
 		includedMeta := map[string]bool{}
 		for _, meta := range res.Metas {
 			meta := meta.GetMeta()
-			if _, ok := scopeTyp.FieldByName(meta.Name); !ok {
+			if _, ok := fields[meta.Name]; !ok {
 				includedMeta[meta.Alias] = true
 				attrs = append(attrs, meta.Name)
 			}
 		}
 
-		for i := 0; i < scopeTyp.NumField(); i++ {
-			fieldStruct := scopeTyp.Field(i)
-			if !ast.IsExported(fieldStruct.Name) {
+		for _, field := range fields {
+			if _, ok := includedMeta[field.Name]; ok {
 				continue
 			}
-			if _, ok := includedMeta[fieldStruct.Name]; ok {
-				continue
-			}
-			attrs = append(attrs, fieldStruct.Name)
+			attrs = append(attrs, field.Name)
 		}
 	}
 
