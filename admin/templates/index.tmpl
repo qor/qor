@@ -11,25 +11,25 @@
     </thead>
 
     <tbody>
-      <tr>
         {{range $resource := .Result}}
-          {{range $index, $meta := allowed_metas}}
-            {{$text := value_of $resource $meta}}
-            <td>
-              {{if $index}}
-                {{$text}}
-              {{else}}
-                {{link_to $text $resource}}
-              {{end}}
-            </td>
-          {{end}}
+          <tr>
+            {{range $index, $meta := allowed_metas}}
+              {{$text := value_of $resource $meta}}
+              <td>
+                {{if $index}}
+                  {{$text}}
+                {{else}}
+                  {{link_to $text $resource}}
+                {{end}}
+              </td>
+            {{end}}
 
-          <!-- <form action="{{url_for $resource}}" method="POST" style="display:inline">
-            <input name="_method" value="DELETE" type="hidden">
-            <input value="DELETE" type="submit"/>
-          </form> -->
+            <!-- <form action="{{url_for $resource}}" method="POST" style="display:inline">
+              <input name="_method" value="DELETE" type="hidden">
+              <input value="DELETE" type="submit"/>
+            </form> -->
+          </tr>
         {{end}}
-      </tr>
     </tbody>
   </table>
 {{end}}
