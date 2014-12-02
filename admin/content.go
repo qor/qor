@@ -3,12 +3,13 @@ package admin
 import (
 	"bytes"
 	"fmt"
-	"github.com/jinzhu/gorm"
-	"github.com/qor/qor/resource"
-	"github.com/qor/qor/roles"
 	"path"
 	"reflect"
 	"strings"
+
+	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/resource"
+	"github.com/qor/qor/roles"
 
 	"text/template"
 )
@@ -121,7 +122,7 @@ func (content *Content) RenderMeta(writer *bytes.Buffer, meta *resource.Meta, va
 			fmt.Println(err)
 		}
 	} else {
-		fmt.Printf("Form type %v not supported\n", meta.Type)
+		fmt.Printf("%v: form type %v not supported\n", meta.Name, meta.Type)
 	}
 }
 

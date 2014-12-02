@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -97,6 +98,8 @@ func (meta *Meta) UpdateMeta() {
 			default:
 				if regexp.MustCompile(`^(u)?(int|float)(\d+)?`).MatchString(valueType) {
 					meta.Type = "number"
+				} else if _, ok := field.Field.Interface().(time.Time); ok {
+					meta.Type = "datetime"
 				} else if _, ok := field.Field.Interface().(media_library.MediaLibrary); ok {
 					meta.Type = "file"
 				}
