@@ -244,35 +244,33 @@ func (meta *Meta) UpdateMeta() {
 }
 
 func getNestedModel(value interface{}, alias string, context *qor.Context) interface{} {
-	model := deepIndirect(reflect.ValueOf(value))
+	model := reflect.Indirect(reflect.ValueOf(value))
 	fields := strings.Split(alias, ".")
 	for _, field := range fields[:len(fields)-1] {
-		submodel := model.FieldByName(field)
-		if key := submodel.FieldByName("id"); !key.IsValid() || key.Uint() == 0 {
-			if submodel.CanAddr() {
-				context.DB().Model(model.Interface()).Related(submodel.Addr().Interface())
-				model = submodel
-			} else {
-				break
+		if model.CanAddr() {
+			submodel := model.FieldByName(field)
+			if key := submodel.FieldByName("id"); !key.IsValid() || key.Uint() == 0 {
+				if submodel.CanAddr() {
+					context.DB().Model(model.Interface()).Related(submodel.Addr().Interface())
+					model = submodel
+				} else {
+					break
+				}
 			}
 		}
 	}
 
-	return model.Addr().Interface()
-}
-
-func deepIndirect(val reflect.Value) reflect.Value {
-	for val.Kind() == reflect.Ptr {
-		val = reflect.Indirect(val)
+	if model.CanAddr() {
+		return model.Addr().Interface()
+	} else {
+		return nil
 	}
-
-	return val
 }
 
 // Profile.Name
 func parseNestedField(value reflect.Value, name string) (reflect.Value, string) {
 	fields := strings.Split(name, ".")
-	value = deepIndirect(value)
+	value = reflect.Indirect(value)
 	for _, field := range fields[:len(fields)-1] {
 		value = value.FieldByName(field)
 	}
