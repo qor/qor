@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/now"
 	"github.com/qor/qor"
 	"github.com/qor/qor/media_library"
 	"github.com/qor/qor/roles"
@@ -221,6 +222,12 @@ func (meta *Meta) UpdateMeta() {
 							field.Set(reflect.ValueOf(ToArray(value)).Convert(field.Type()))
 						} else if rvalue := reflect.ValueOf(value); reflect.TypeOf(rvalue.Type()).ConvertibleTo(field.Type()) {
 							field.Set(rvalue.Convert(field.Type()))
+						} else if _, ok := field.Addr().Interface().(*time.Time); ok {
+							if str := ToString(value); str != "" {
+								if newTime, err := now.Parse(str); err == nil {
+									field.Set(reflect.ValueOf(newTime))
+								}
+							}
 						} else {
 							var buf = bytes.NewBufferString("")
 							json.NewEncoder(buf).Encode(value)
