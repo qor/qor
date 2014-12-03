@@ -327,12 +327,10 @@ func ToInt(value interface{}) int64 {
 
 	if i, err := strconv.ParseInt(result, 10, 64); err == nil {
 		return i
+	} else if result == "" {
+		return 0
 	} else {
-		if result == "" {
-			return 0
-		} else {
-			panic("failed to parseint")
-		}
+		panic("failed to parseint")
 	}
 }
 
@@ -348,6 +346,8 @@ func ToUint(value interface{}) uint64 {
 
 	if i, err := strconv.ParseUint(result, 10, 64); err == nil {
 		return i
+	} else if result == "" {
+		return 0
 	} else {
 		panic("failed to parseuint")
 	}
@@ -365,11 +365,9 @@ func ToFloat(value interface{}) float64 {
 
 	if i, err := strconv.ParseFloat(result, 64); err == nil {
 		return i
+	} else if result == "" {
+		return 0
 	} else {
-		if result == "" {
-			return 0
-		} else {
-			panic("failed to parsefloat")
-		}
+		panic("failed to parsefloat")
 	}
 }
