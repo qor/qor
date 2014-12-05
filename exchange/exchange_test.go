@@ -140,8 +140,8 @@ type FullMarathon struct {
 }
 
 func TestImportNormalizeHeader(t *testing.T) {
-	testdb.DropTable(FullMarathon{})
-	testdb.AutoMigrate(FullMarathon{})
+	testdb.DropTable(&FullMarathon{})
+	testdb.AutoMigrate(&FullMarathon{})
 
 	marathon := NewResource(FullMarathon{})
 	marathon.RegisterMeta(&resource.Meta{Name: "RunningLevel", Label: "Running Level"})
