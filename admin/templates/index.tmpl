@@ -1,7 +1,11 @@
 {{define "content"}}
-  <p>{{link_to "New" (new_resource_path .Resource)}}</p>
-
-  <table>
+<article class="article clearfix" id="orders">
+  <section class="section filter-wrapper">
+    
+  </section>
+  
+  <section class="section table-wrapper">
+  <table class="table">
     <thead>
       <tr>
         {{range $meta := allowed_metas .Resource}}
@@ -11,25 +15,29 @@
     </thead>
 
     <tbody>
-        {{range $resource := .Result}}
-          <tr>
-            {{range $index, $meta := allowed_metas}}
-              {{$text := value_of $resource $meta}}
-              <td>
-                {{if $index}}
-                  {{$text}}
-                {{else}}
-                  {{link_to $text $resource}}
-                {{end}}
-              </td>
-            {{end}}
 
-            <!-- <form action="{{url_for $resource}}" method="POST" style="display:inline">
-              <input name="_method" value="DELETE" type="hidden">
-              <input value="DELETE" type="submit"/>
-            </form> -->
-          </tr>
-        {{end}}
+      {{range $resource := .Result}}
+        <tr>
+          {{range $index, $meta := allowed_metas}}
+            {{$text := value_of $resource $meta}}
+            <td>
+              {{if $index}}
+                {{$text}}
+              {{else}}
+                {{link_to $text $resource}}
+              {{end}}
+            </td>
+          {{end}}
+
+          <!-- <form action="{{url_for $resource}}" method="POST" style="display:inline">
+            <input name="_method" value="DELETE" type="hidden">
+            <input value="DELETE" type="submit"/>
+          </form> -->
+        </tr>
+      {{end}}
     </tbody>
   </table>
+  </section>
+
+</article>
 {{end}}
