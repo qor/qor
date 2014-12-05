@@ -1,6 +1,5 @@
 code.google.com/p/google-api-go-client/drive/v2: 6ddfebb10ece847f1ae09c701834f1b15abbd8b2
 github.com/golang/oauth2: c048af9da2ff4db86f1ad989c73c6ec7a62c57a4
-github.com/golang/oauth2/google: c048af9da2ff4db86f1ad989c73c6ec7a62c57a4
 github.com/jinzhu/gorm: cbcb88d3d1047d49cf054836d987a83bc29653ce
 github.com/mattn/go-sqlite3: d10e2c8f62100097910367dee90a9bd89d426a44
 github.com/tealeg/xlsx: d6607c512cf8c1083a9b5ec1efd7e1ccfb1832c8

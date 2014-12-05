@@ -2,7 +2,6 @@
 packages:
 - name: code.google.com/p/google-api-go-client/drive/v2
 - name: github.com/golang/oauth2
-- name: github.com/golang/oauth2/google
 - name: github.com/jinzhu/gorm
 - name: github.com/mattn/go-sqlite3
 - name: github.com/tealeg/xlsx
