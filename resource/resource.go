@@ -10,8 +10,8 @@ import (
 type Resource struct {
 	Value      interface{}
 	Metas      map[string]Metaor
-	Searcher   func(interface{}, *qor.Context) error
-	Finder     func(interface{}, *MetaValues, *qor.Context) error
+	Searcher   func(*qor.Context) (interface{}, error)
+	Finder     func(*MetaValues, *qor.Context) (interface{}, error)
 	Saver      func(interface{}, *qor.Context) error
 	Deleter    func(interface{}, *qor.Context) error
 	validators []func(interface{}, *MetaValues, *qor.Context) error
@@ -20,8 +20,8 @@ type Resource struct {
 
 type Resourcer interface {
 	GetResource() *Resource
-	CallSearcher(interface{}, *qor.Context) error
-	CallFinder(interface{}, *MetaValues, *qor.Context) error
+	CallSearcher(*qor.Context) (interface{}, error)
+	CallFinder(*MetaValues, *qor.Context) (interface{}, error)
 	CallSaver(interface{}, *qor.Context) error
 	CallDeleter(interface{}, *qor.Context) error
 	NewSlice() interface{}
@@ -36,11 +36,13 @@ func (res *Resource) GetResource() *Resource {
 	return res
 }
 
-func (res *Resource) CallSearcher(result interface{}, context *qor.Context) error {
+func (res *Resource) CallSearcher(context *qor.Context) (interface{}, error) {
+	result := res.NewSlice()
 	if res.Searcher != nil {
-		return res.Searcher(result, context)
+		return res.Searcher(context)
 	} else {
-		return context.DB().Find(result).Error
+		err := context.DB().Find(result).Error
+		return result, err
 	}
 }
 
@@ -66,14 +68,15 @@ func (res *Resource) CallDeleter(result interface{}, context *qor.Context) error
 	}
 }
 
-func (res *Resource) CallFinder(result interface{}, metaValues *MetaValues, context *qor.Context) error {
+func (res *Resource) CallFinder(metaValues *MetaValues, context *qor.Context) (result interface{}, err error) {
 	if res.Finder != nil {
-		return res.Finder(result, metaValues, context)
+		return res.Finder(metaValues, context)
 	} else {
+		result := res.NewStruct()
 		if metaValues == nil {
-			return context.DB().First(result, context.ResourceID).Error
+			err = context.DB().First(result, context.ResourceID).Error
 		}
-		return nil
+		return result, err
 	}
 }
 

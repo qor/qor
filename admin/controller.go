@@ -19,8 +19,7 @@ func (admin *Admin) Dashboard(context *Context) {
 
 func (admin *Admin) Index(context *Context) {
 	res := admin.Resources[context.ResourceName]
-	result := res.NewSlice()
-	res.CallSearcher(result, context.Context)
+	result, _ := res.CallSearcher(context.Context)
 
 	responder.With("html", func() {
 		// TODO: initialize in Admin.ServeHttp?
@@ -34,8 +33,7 @@ func (admin *Admin) Index(context *Context) {
 
 func (admin *Admin) Show(context *Context) {
 	res := admin.Resources[context.ResourceName]
-	result := res.NewStruct()
-	res.CallFinder(result, nil, context.Context)
+	result, _ := res.CallFinder(nil, context.Context)
 
 	responder.With("html", func() {
 		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "edit"}
@@ -84,8 +82,7 @@ func (admin *Admin) Create(context *Context) {
 
 func (admin *Admin) Update(context *Context) {
 	res := admin.Resources[context.ResourceName]
-	result := res.NewStruct()
-	if res.CallFinder(result, nil, context.Context) == nil {
+	if result, err := res.CallFinder(nil, context.Context); err == nil {
 		if errs := admin.decode(result, res, context); len(errs) == 0 {
 			res.CallSaver(result, context.Context)
 			responder.With("html", func() {

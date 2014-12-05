@@ -38,8 +38,8 @@ func (processor *processor) checkSkipLeft(errs ...error) bool {
 	return processor.SkipLeft
 }
 
-func (processor *processor) Initialize() error {
-	err := processor.Resource.CallFinder(processor.Result, processor.MetaValues, processor.Context)
+func (processor *processor) Initialize() (err error) {
+	processor.Result, err = processor.Resource.CallFinder(processor.MetaValues, processor.Context)
 	processor.checkSkipLeft(err)
 	return err
 }
