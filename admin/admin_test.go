@@ -1,16 +1,16 @@
 package admin_test
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"strconv"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/resource"
 
-	"net/http"
-	"net/http/httptest"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type CreditCard struct {
@@ -53,7 +53,7 @@ func init() {
 	db.DropTable(&CreditCard{})
 	db.DropTable(&Address{})
 	db.DropTable(&Language{})
-	db.AutoMigrate(User{}, CreditCard{}, Address{}, Language{})
+	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Language{})
 
 	admin := admin.New(&qor.Config{DB: &db})
 	user := admin.NewResource(User{})
@@ -67,7 +67,7 @@ func init() {
 			return
 		}})
 
-	admin.AddToMux("/admin", mux)
+	admin.MountTo("/admin", mux)
 
 	server = httptest.NewServer(mux)
 }

@@ -1,16 +1,71 @@
 package admin
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/qor/qor"
 	"github.com/qor/qor/roles"
-
-	"net/http"
-	"path"
-	"regexp"
-	"strings"
 )
 
-func (admin *Admin) generateContext(w http.ResponseWriter, r *http.Request) *Context {
+type Handle func(c *Context)
+
+type Router struct {
+	Prefix  string
+	gets    map[string]Handle
+	posts   map[string]Handle
+	deletes map[string]Handle
+	puts    map[string]Handle
+}
+
+func newRouter() *Router {
+	return &Router{
+		gets:    map[string]Handle{},
+		posts:   map[string]Handle{},
+		deletes: map[string]Handle{},
+		puts:    map[string]Handle{},
+	}
+}
+
+// Possible path types
+// /admin/orders
+// /admin/orders/new
+// /admin/orders/123
+func (r *Router) parsePath(path string) (res, id string) {
+	parts := strings.Split(strings.TrimLeft(path, r.Prefix), "/")
+	// fmt.Printf("--> %+v\n", parts)
+	for _, part := range parts {
+		if part != "" && res == "" {
+			res = part
+			continue
+		}
+
+		if part != "" && id == "" {
+			id = part
+			break
+		}
+	}
+
+	return
+}
+
+func (r *Router) Get(path string, handle Handle) {
+	r.gets[path] = handle
+}
+
+func (r *Router) Post(path string, handle Handle) {
+	r.posts[path] = handle
+}
+
+func (r *Router) Put(path string, handle Handle) {
+	r.puts[path] = handle
+}
+
+func (r *Router) Delete(path string, handle Handle) {
+	r.deletes[path] = handle
+}
+
+func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	var currentUser *qor.CurrentUser
 	context := Context{Context: &qor.Context{Config: admin.Config, Request: r}, Writer: w}
 	if admin.auth != nil {
@@ -20,63 +75,77 @@ func (admin *Admin) generateContext(w http.ResponseWriter, r *http.Request) *Con
 	return &context
 }
 
-func (admin *Admin) AddToMux(prefix string, mux *http.ServeMux) {
-	// format "/admin" to "/admin/"
-	// the trail "/" will match under domain, refer function pathMatch in net/http/server.go
-	prefix = regexp.MustCompile("//(//)*").ReplaceAllString("/"+prefix+"/", "/")
-	admin.Prefix = prefix
+// TODO: to extend this api
+func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
+	prefix = "/" + strings.Trim(prefix, "/")
+	router := admin.router
+	router.Prefix = prefix + "/"
 
-	mux.HandleFunc(strings.TrimRight(prefix, "/"), func(w http.ResponseWriter, r *http.Request) {
-		admin.Dashboard(admin.generateContext(w, r))
-	})
+	mux.Handle(prefix, admin)        // /:prefix
+	mux.Handle(router.Prefix, admin) // /:prefix/:xxx
+}
 
-	pathMatch := regexp.MustCompile(path.Join(prefix, `(\w+)(?:/(\w+))?[^/]*/?$`))
-	mux.HandleFunc(prefix, func(w http.ResponseWriter, r *http.Request) {
-		var isIndexURL, isShowURL bool
-		context := admin.generateContext(w, r)
+func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	// 128 MB
+	req.ParseMultipartForm(32 << 22)
+	if len(req.Form["_method"]) > 0 {
+		req.Method = strings.ToUpper(req.Form["_method"][0])
+	}
 
-		// 128 MB
-		r.ParseMultipartForm(32 << 22)
-		if len(r.Form["_method"]) > 0 {
-			r.Method = strings.ToUpper(r.Form["_method"][0])
+	var (
+		router          = admin.router
+		context         = admin.NewContext(w, req)
+		builtin, custom Handle
+	)
+
+	context.ResourceName, context.ResourceID = router.parsePath(req.URL.Path)
+	// fmt.Printf("--> %+v\n", req.URL.Path)
+	// fmt.Printf("--> %+v\n", context.ResourceName, context.ResourceID)
+	if context.ResourceName == "" && context.ResourceID == "" {
+		builtin = admin.Dashboard
+	} else if context.ResourceID == "new" {
+		// /admin/:ressource/new
+		switch req.Method {
+		case "GET":
+			custom = router.gets["/"+context.ResourceName+"/new"]
+			builtin = admin.New
 		}
-
-		matches := pathMatch.FindStringSubmatch(r.URL.Path)
-		if len(matches) == 0 {
-			admin.Dashboard(admin.generateContext(w, r))
-			return
+	} else if context.ResourceName != "" && context.ResourceID == "" {
+		// /admin/:ressource
+		switch req.Method {
+		case "GET":
+			custom = router.gets["/"+context.ResourceName]
+			builtin = admin.Index
+		case "POST":
+			custom = router.posts["/"+context.ResourceName]
+			builtin = admin.Create
+		case "PUT":
+			custom = router.puts["/"+context.ResourceName+"/new"]
+			builtin = admin.Create
 		}
-
-		if _, ok := admin.Resources[matches[1]]; matches[1] != "" && ok {
-			isIndexURL = true
-			context.ResourceName = matches[1]
-
-			if matches[2] != "" { // "/admin/user/1234"
-				context.ResourceID = matches[2]
-				isIndexURL = false
-				isShowURL = true
-			}
+	} else if context.ResourceName != "" && context.ResourceID != "" {
+		// /admin/:ressource/:id
+		switch req.Method {
+		case "GET":
+			custom = router.gets["/"+context.ResourceName+"/:id"]
+			builtin = admin.Show
+		case "POST":
+			custom = router.posts["/"+context.ResourceName+"/:id"]
+			builtin = admin.Update
+		case "PUT":
+			custom = router.puts["/"+context.ResourceName+"/:id"]
+			builtin = admin.Update
+		case "DELETE":
+			custom = router.deletes["/"+context.ResourceName+"/:id"]
+			builtin = admin.Delete
 		}
+	}
 
-		switch {
-		case r.Method == "GET" && isIndexURL:
-			admin.Index(context)
-		case r.Method == "GET" && isShowURL && context.ResourceID == "new":
-			admin.New(context)
-		case r.Method == "GET" && isShowURL:
-			admin.Show(context)
-		case r.Method == "POST" && isShowURL:
-			admin.Update(context)
-		case r.Method == "PUT" && isShowURL:
-			admin.Update(context)
-		case r.Method == "POST" && isIndexURL:
-			admin.Create(context)
-		case r.Method == "PUT" && isIndexURL:
-			admin.Create(context)
-		case r.Method == "DELETE" && isShowURL:
-			admin.Delete(context)
-		default:
-			http.NotFound(w, r)
-		}
-	})
+	if custom != nil {
+		custom(context)
+	} else if builtin != nil {
+		builtin(context)
+	} else {
+		http.NotFound(w, req)
+	}
 }

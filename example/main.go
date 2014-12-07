@@ -48,7 +48,7 @@ func main() {
 	web.UseResource(user)
 	web.NewResource(Role{})
 	web.NewResource(Language{})
-	web.AddToMux("/admin", mux)
+	web.MountTo("/admin", mux)
 
 	fmt.Println("listening on :8080")
 	http.ListenAndServe(":8080", mux)

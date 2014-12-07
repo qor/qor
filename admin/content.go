@@ -50,21 +50,21 @@ func (content *Content) ValueOf(value interface{}, meta *resource.Meta) interfac
 
 func (content *Content) NewResourcePath(value interface{}) string {
 	if res, ok := value.(*Resource); ok {
-		return path.Join(content.Admin.Prefix, res.Name, "new")
+		return path.Join(content.Admin.router.Prefix, res.Name, "new")
 	} else {
-		return path.Join(content.Admin.Prefix, content.Resource.Name, "new")
+		return path.Join(content.Admin.router.Prefix, content.Resource.Name, "new")
 	}
 }
 
 func (content *Content) UrlFor(value interface{}) string {
 	var url string
 	if admin, ok := value.(*Admin); ok {
-		url = admin.Prefix
+		url = admin.router.Prefix
 	} else if res, ok := value.(*Resource); ok {
-		url = path.Join(content.Admin.Prefix, res.Name)
+		url = path.Join(content.Admin.router.Prefix, res.Name)
 	} else {
 		primaryKey := content.Context.DB().NewScope(value).PrimaryKeyValue()
-		url = path.Join(content.Admin.Prefix, content.Resource.Name, fmt.Sprintf("%v", primaryKey))
+		url = path.Join(content.Admin.router.Prefix, content.Resource.Name, fmt.Sprintf("%v", primaryKey))
 	}
 	return url
 }

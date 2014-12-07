@@ -3,6 +3,7 @@ package admin
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/responder"
 	"github.com/qor/qor/roles"
@@ -100,8 +101,8 @@ func (admin *Admin) Delete(context *Context) {
 	res := admin.Resources[context.ResourceName]
 
 	if res.CallDeleter(res.NewStruct(), context.Context) == nil {
-		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.Name), http.StatusFound)
+		http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusFound)
 	} else {
-		http.Redirect(context.Writer, context.Request, path.Join(admin.Prefix, res.Name), http.StatusNotFound)
+		http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusNotFound)
 	}
 }
