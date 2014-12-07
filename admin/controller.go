@@ -23,6 +23,7 @@ func (admin *Admin) Index(context *Context) {
 	res.CallSearcher(result, context.Context)
 
 	responder.With("html", func() {
+		// TODO: initialize in Admin.ServeHttp?
 		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index"}
 		admin.Render("index", content, roles.Read)
 	}).With("json", func() {
