@@ -48,20 +48,20 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 	}
 }
 
-func (r *Resource) IndexAttrs(columns ...string) {
-	r.indexAttrs = columns
+func (res *Resource) IndexAttrs(columns ...string) {
+	res.indexAttrs = columns
 }
 
-func (r *Resource) NewAttrs(columns ...string) {
-	r.newAttrs = columns
+func (res *Resource) NewAttrs(columns ...string) {
+	res.newAttrs = columns
 }
 
-func (r *Resource) EditAttrs(columns ...string) {
-	r.editAttrs = columns
+func (res *Resource) EditAttrs(columns ...string) {
+	res.editAttrs = columns
 }
 
-func (r *Resource) ShowAttrs(columns ...string) {
-	r.showAttrs = columns
+func (res *Resource) ShowAttrs(columns ...string) {
+	res.showAttrs = columns
 }
 
 func (res *Resource) getMetas(attrsSlice ...[]string) []*resource.Meta {
