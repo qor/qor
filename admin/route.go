@@ -2,6 +2,8 @@ package admin
 
 import (
 	"net/http"
+	"path"
+	"regexp"
 	"strings"
 
 	"github.com/qor/qor"
@@ -9,60 +11,39 @@ import (
 )
 
 type Handle func(c *Context)
+type Handler struct {
+	Path   *regexp.Regexp
+	Handle Handle
+}
 
 type Router struct {
 	Prefix  string
-	gets    map[string]Handle
-	posts   map[string]Handle
-	deletes map[string]Handle
-	puts    map[string]Handle
+	routers map[string][]Handler
 }
 
 func newRouter() *Router {
-	return &Router{
-		gets:    map[string]Handle{},
-		posts:   map[string]Handle{},
-		deletes: map[string]Handle{},
-		puts:    map[string]Handle{},
-	}
-}
-
-// Possible path types
-// /admin/orders
-// /admin/orders/new
-// /admin/orders/123
-func (r *Router) parsePath(path string) (res, id string) {
-	parts := strings.Split(strings.TrimLeft(path, r.Prefix), "/")
-	// fmt.Printf("--> %+v\n", parts)
-	for _, part := range parts {
-		if part != "" && res == "" {
-			res = part
-			continue
-		}
-
-		if part != "" && id == "" {
-			id = part
-			break
-		}
-	}
-
-	return
+	return &Router{routers: map[string][]Handler{
+		"GET":    []Handler{},
+		"PUT":    []Handler{},
+		"POST":   []Handler{},
+		"DELETE": []Handler{},
+	}}
 }
 
 func (r *Router) Get(path string, handle Handle) {
-	r.gets[path] = handle
+	r.routers["GET"] = append(r.routers["GET"], Handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
 func (r *Router) Post(path string, handle Handle) {
-	r.posts[path] = handle
+	r.routers["POST"] = append(r.routers["POST"], Handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
 func (r *Router) Put(path string, handle Handle) {
-	r.puts[path] = handle
+	r.routers["PUT"] = append(r.routers["PUT"], Handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
 func (r *Router) Delete(path string, handle Handle) {
-	r.deletes[path] = handle
+	r.routers["DELETE"] = append(r.routers["DELETE"], Handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
 func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -75,14 +56,24 @@ func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context 
 	return &context
 }
 
-// TODO: to extend this api
 func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	prefix = "/" + strings.Trim(prefix, "/")
 	router := admin.router
-	router.Prefix = prefix + "/"
+	router.Prefix = prefix
 
-	mux.Handle(prefix, admin)        // /:prefix
-	mux.Handle(router.Prefix, admin) // /:prefix/:xxx
+	router.Get("^/$", admin.Dashboard)
+	router.Get("^$", admin.Dashboard)
+	router.Get("^/[^/]+/new$", admin.New)
+	router.Put("^/[^/]+/new$", admin.Create)
+	router.Post("^/[^/]+/new$", admin.Create)
+	router.Get("^/[^/]+/.*$", admin.Show)
+	router.Put("^/[^/]+/.*$", admin.Update)
+	router.Post("^/[^/]+/.*$", admin.Update)
+	router.Delete("^/[^/]+/.*$", admin.Delete)
+	router.Get("^/[^/]+$", admin.Index)
+
+	mux.Handle(prefix, admin)     // /:prefix
+	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
 }
 
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -92,60 +83,25 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		req.Method = strings.ToUpper(req.Form["_method"][0])
 	}
 
-	var (
-		router          = admin.router
-		context         = admin.NewContext(w, req)
-		builtin, custom Handle
-	)
+	var router = admin.router
+	var context = admin.NewContext(w, req)
 
-	context.ResourceName, context.ResourceID = router.parsePath(req.URL.Path)
-	// fmt.Printf("--> %+v\n", req.URL.Path)
-	// fmt.Printf("--> %+v\n", context.ResourceName, context.ResourceID)
-	if context.ResourceName == "" && context.ResourceID == "" {
-		builtin = admin.Dashboard
-	} else if context.ResourceID == "new" {
-		// /admin/:ressource/new
-		switch req.Method {
-		case "GET":
-			custom = router.gets["/"+context.ResourceName+"/new"]
-			builtin = admin.New
-		}
-	} else if context.ResourceName != "" && context.ResourceID == "" {
-		// /admin/:ressource
-		switch req.Method {
-		case "GET":
-			custom = router.gets["/"+context.ResourceName]
-			builtin = admin.Index
-		case "POST":
-			custom = router.posts["/"+context.ResourceName]
-			builtin = admin.Create
-		case "PUT":
-			custom = router.puts["/"+context.ResourceName+"/new"]
-			builtin = admin.Create
-		}
-	} else if context.ResourceName != "" && context.ResourceID != "" {
-		// /admin/:ressource/:id
-		switch req.Method {
-		case "GET":
-			custom = router.gets["/"+context.ResourceName+"/:id"]
-			builtin = admin.Show
-		case "POST":
-			custom = router.posts["/"+context.ResourceName+"/:id"]
-			builtin = admin.Update
-		case "PUT":
-			custom = router.puts["/"+context.ResourceName+"/:id"]
-			builtin = admin.Update
-		case "DELETE":
-			custom = router.deletes["/"+context.ResourceName+"/:id"]
-			builtin = admin.Delete
+	var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*/?$`))
+	var matches = pathMatch.FindStringSubmatch(req.URL.Path)
+	if len(matches) > 1 {
+		context.ResourceName = matches[1]
+		if len(matches) > 2 {
+			context.ResourceName = matches[2]
 		}
 	}
 
-	if custom != nil {
-		custom(context)
-	} else if builtin != nil {
-		builtin(context)
-	} else {
-		http.NotFound(w, req)
+	routers := router.routers[strings.ToUpper(req.Method)]
+	relativePath := strings.TrimPrefix(req.URL.Path, router.Prefix)
+	for _, handler := range routers {
+		if handler.Path.MatchString(relativePath) {
+			handler.Handle(context)
+			return
+		}
 	}
+	http.NotFound(w, req)
 }
