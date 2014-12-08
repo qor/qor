@@ -22,10 +22,9 @@ type Resource struct {
 	cachedMetas *map[string][]*resource.Meta
 }
 
-func (res *Resource) CallFinder(metaValues *resource.MetaValues, context *qor.Context) (result interface{}, err error) {
-	result = res.NewStruct()
+func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
 	if res.Finder != nil {
-		return res.Finder(metaValues, context)
+		return res.Finder(result, metaValues, context)
 	} else {
 		var primaryKey string
 		if metaValues == nil {
@@ -39,13 +38,13 @@ func (res *Resource) CallFinder(metaValues *resource.MetaValues, context *qor.Co
 				if destroy := metaValues.Get("_destroy"); destroy != nil {
 					if fmt.Sprintf("%v", destroy.Value) != "0" {
 						context.DB().Delete(result, primaryKey)
-						err = resource.ErrProcessorSkipLeft
+						return resource.ErrProcessorSkipLeft
 					}
 				}
 			}
-			err = context.DB().First(result, primaryKey).Error
+			return context.DB().First(result, primaryKey).Error
 		}
-		return result, err
+		return nil
 	}
 }
 

@@ -42,9 +42,9 @@ func NewResource(val interface{}) *Resource {
 	return res
 }
 
-func (res *Resource) CallFinder(metaValues *resource.MetaValues, ctx *qor.Context) (result interface{}, err error) {
+func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, ctx *qor.Context) (err error) {
 	if res.Finder != nil {
-		result, err = res.Finder(metaValues, ctx)
+		err = res.Finder(result, metaValues, ctx)
 		if err == resource.ErrProcessorRecordNotFound && res.AutoCreate {
 			err = nil
 		}
