@@ -91,7 +91,7 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if len(matches) > 1 {
 		context.ResourceName = matches[1]
 		if len(matches) > 2 {
-			context.ResourceName = matches[2]
+			context.ResourceID = matches[2]
 		}
 	}
 
