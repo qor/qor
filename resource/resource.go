@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/jinzhu/gorm"
@@ -40,7 +41,8 @@ func (res *Resource) CallSearcher(result interface{}, context *qor.Context) erro
 	if res.Searcher != nil {
 		return res.Searcher(result, context)
 	} else {
-		return context.DB().Find(result).Error
+		scope := gorm.Scope{Value: res.Value}
+		return context.DB().Order(fmt.Sprintf("%v DESC", scope.PrimaryKey())).Find(result).Error
 	}
 }
 
