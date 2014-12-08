@@ -48,7 +48,7 @@ func init() {
 
 func (content Content) getTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
 	paths := []string{}
-	for _, p := range []string{path.Join("resources", content.Context.ResourceName), path.Join("themes", "default"), "."} {
+	for _, p := range []string{content.Context.ResourceName, path.Join("themes", "default"), "."} {
 		for _, d := range viewDirs {
 			if isExistingDir(path.Join(d, p)) {
 				paths = append(paths, path.Join(d, p))
