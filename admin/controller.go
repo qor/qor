@@ -19,6 +19,11 @@ func (admin *Admin) Dashboard(context *Context) {
 
 func (admin *Admin) Index(context *Context) {
 	res := admin.Resources[context.ResourceName]
+	if res == nil {
+		http.NotFound(context.Writer, context.Request)
+		return
+	}
+
 	result := res.NewSlice()
 	res.CallSearcher(result, context.Context)
 
