@@ -2,24 +2,21 @@ package admin
 
 import (
 	"fmt"
-
-	"github.com/jinzhu/gorm"
-
 	"strings"
 
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 )
 
 type Resource struct {
-	Name string
-	resource.Resource
-	indexAttrs  []string
-	newAttrs    []string
-	editAttrs   []string
-	showAttrs   []string
-	cachedMetas *map[string][]*resource.Meta
+	resource.Resource // TODO: why not pointer?
+	indexAttrs        []string
+	newAttrs          []string
+	editAttrs         []string
+	showAttrs         []string
+	cachedMetas       *map[string][]*resource.Meta
 }
 
 func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {

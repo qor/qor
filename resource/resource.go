@@ -3,12 +3,14 @@ package resource
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 )
 
 type Resource struct {
+	Name       string
 	Value      interface{}
 	Metas      map[string]Metaor
 	Searcher   func(interface{}, *qor.Context) error
@@ -29,8 +31,15 @@ type Resourcer interface {
 	NewStruct() interface{}
 }
 
-func New(value interface{}) *Resource {
-	return &Resource{Value: value}
+// TODO: use a NewNamed method instead of a variant parameter
+// would be better and clearer
+func New(value interface{}, names ...string) *Resource {
+	name := strings.ToLower(reflect.Indirect(reflect.ValueOf(value)).Type().Name())
+	for _, n := range names {
+		name = n
+	}
+
+	return &Resource{Value: value, Name: name}
 }
 
 func (res *Resource) GetResource() *Resource {

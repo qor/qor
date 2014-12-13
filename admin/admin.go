@@ -1,12 +1,8 @@
 package admin
 
 import (
-	"strings"
-
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-
-	"reflect"
 )
 
 type Admin struct {
@@ -26,12 +22,8 @@ func New(config *qor.Config) *Admin {
 }
 
 func NewResource(value interface{}, names ...string) *Resource {
-	name := strings.ToLower(reflect.Indirect(reflect.ValueOf(value)).Type().Name())
-	for _, n := range names {
-		name = n
-	}
-
-	return &Resource{Name: name, Resource: resource.Resource{Value: value}, cachedMetas: &map[string][]*resource.Meta{}}
+	res := resource.New(value, names...)
+	return &Resource{Resource: *res, cachedMetas: &map[string][]*resource.Meta{}}
 }
 
 func (admin *Admin) NewResource(value interface{}, names ...string) *Resource {
