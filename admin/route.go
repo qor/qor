@@ -66,6 +66,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	router.Get("^/[^/]+/new$", admin.New)
 	router.Put("^/[^/]+/new$", admin.Create)
 	router.Post("^/[^/]+/new$", admin.Create)
+	router.Post("^/[^/]+$", admin.Create)
 	router.Get("^/[^/]+/.*$", admin.Show)
 	router.Put("^/[^/]+/.*$", admin.Update)
 	router.Post("^/[^/]+/.*$", admin.Update)
