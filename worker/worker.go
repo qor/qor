@@ -1,9 +1,11 @@
 package worker
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -12,10 +14,11 @@ import (
 )
 
 var (
-	jobDB      *gorm.DB
-	jobId      uint64
-	workerSets []*WorkerSet
-	queuers    = map[string]Queuer{}
+	jobDB         *gorm.DB
+	jobId         uint64
+	workerSets    []*WorkerSet
+	queuers       = map[string]Queuer{}
+	DefaultJobCli = strings.Join(os.Args[0])
 )
 
 func init() {
@@ -39,32 +42,33 @@ func Listen() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		// w.RunHandler(job)
-		for _, ws := range workerSets {
-			if ws.Name == job.WokerSetName {
-				for _, w := range ws.Workers {
-					if w.Name == job.WorkerName {
-						w.Run(&job)
-					}
-				}
-			}
-		}
-		fmt.Fprintf(os.Stderr, "unknown worker(%s:%s) in job(%s)\n", job.WokerSetName, job.WorkerName, job.Id)
-		os.Exit(1)
-	} else {
+		// // w.RunHandler(job)
 		// for _, ws := range workerSets {
-		// 	for _, w := range ws.Workers {
-		// 		go w.Queuer.Listen(w)
+		// 	if ws.Name == job.WokerSetName {
+		// 		for _, w := range ws.Workers {
+		// 			if w.Name == job.WorkerName {
+		// 				w.Run(&job)
+		// 			}
+		// 		}
 		// 	}
 		// }
+		// fmt.Fprintf(os.Stderr, "unknown worker(%s:%s) in job(%s)\n", job.WokerSetName, job.WorkerName, job.Id)
+		w, err := job.GetWorker()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		w.Run(job)
+	} else {
 		for _, queuer := range queuers {
 			go func() {
 				for {
-					job, err := queuer.Dequeue()
+					jobId, err := queuer.Dequeue()
 					if err != nil {
 						// TODO: log
 					} else {
-						go RunJob(job)
+						go RunJob(jobId)
 					}
 				}
 			}()
@@ -83,6 +87,7 @@ func NewWorkerSet(name string, a *admin.Admin) (ws *WorkerSet) {
 	a.GetRouter().Get("^/workers$", func(ctx *admin.Context) {})
 	// template register
 	// menu register
+	// Job resource register
 
 	return
 }
@@ -94,11 +99,6 @@ func (ws *WorkerSet) NewWorker(name string, handle func(job *Job) error, queuer 
 		Queuer: queuer,
 		set:    ws,
 	}
-	// w.Name = name
-	// w.Resource = res
-	// w.AllowSchedule()
-	// w.Handle = handle
-	// w.UseQueuer(queuer)
 
 	ws.Workers = append(ws.Workers, w)
 
@@ -106,15 +106,11 @@ func (ws *WorkerSet) NewWorker(name string, handle func(job *Job) error, queuer 
 }
 
 type Worker struct {
-	// *resource.Resource
 	Name   string
 	Queuer Queuer
-
 	Config *qor.Config
+	set    *WorkerSet
 
-	set *WorkerSet
-
-	// OnError   func(job *Job, err error)
 	Handle    func(job *Job) error
 	OnStart   func(job *Job) error
 	OnKill    func(job *Job) error
@@ -122,40 +118,12 @@ type Worker struct {
 	OnFailed  func(job *Job)
 }
 
-// func New(name string, res *resource.Resource) *Worker {
-// 	worker := &Worker{}
-// 	w.Name = name
-// 	// w.Resource = res
-// 	w.AllowSchedule()
-// 	return worker
-// }
-
-// func (w *Worker) AllowSchedule() {
-// 	// TODO: how to extend a new meta type
-// 	// w.RegisterMeta(&resource.Meta{Name: "Schedule", Type: "schedule"})
-// 	// w.RegisterMeta(&resource.Meta{Name: "StartAt", Type: "date"})
-// 	// w.RegisterMeta(&resource.Meta{Name: "Interval", Type: "int64"})
-// }
-
-// // TODO: to remove? what is this for?
-// func (w *Worker) AllMetas() []resource.Meta {
-// 	return []resource.Meta{}
-// }
-
 func (w *Worker) Run(job *Job) (err error) {
 	if w.OnStart != nil {
 		if err = w.OnStart(job); err != nil {
 			return
 		}
 	}
-
-	// if err == w.Queuer.Run(job); err != nil {
-	// 	if w.OnFailed != nil {
-	// 		w.OnFailed(job)
-	// 	}
-	// 	fmt.Fprintf(os.Stderr, err)
-	// 	os.Exit(1)
-	// }
 
 	if err = w.Handle(job); err != nil {
 		if w.OnFailed != nil {
@@ -170,6 +138,8 @@ func (w *Worker) Run(job *Job) (err error) {
 	return
 }
 
+var ErrJobRun = errors.New("job is already run")
+
 func (w *Worker) Kill(job *Job) (err error) {
 	if w.OnKill != nil {
 		if err = w.OnKill(job); err != nil {
@@ -179,26 +149,48 @@ func (w *Worker) Kill(job *Job) (err error) {
 		}
 	}
 
-	// if err = w.Queuer.Kill(job); err != nil {
-	// 	fmt.Fprintf(os.Stderr, err)
-	// 	os.Exit(1)
-	// }
+	switch job.Status {
+	case JobToRun:
+		err = w.Queuer.Purge(job)
+	case JobRunning:
+		// TODO
+	case JobRun:
+		return ErrJobRun
+	}
 
 	return
 }
 
 func (w *Worker) NewJob(interval int64, startAt time.Time) (job *Job, err error) {
+	// job = &Job{
+	// 	Interval:     interval,
+	// 	StartAt:      startAt,
+	// 	WokerSetName: w.set.Name,
+	// 	WorkerName:   w.Name,
+	// 	Cli:          DefaultJobCli,
+	// }
+	// if err = jobDB.Save(&job).Error; err != nil {
+	// 	return
+	// }
+
+	// err = w.Queuer.Enqueue(job)
+
+	return w.NewJobWithCli(interval, startAt, DefaultJobCli)
+}
+
+func (w *Worker) NewJobWithCli(interval int64, startAt time.Time, cli string) (job *Job, err error) {
 	job = &Job{
 		Interval:     interval,
 		StartAt:      startAt,
 		WokerSetName: w.set.Name,
 		WorkerName:   w.Name,
+		Cli:          DefaultJobCli,
 	}
 	if err = jobDB.Save(&job).Error; err != nil {
 		return
 	}
 
-	w.Queuer.Enqueue(job)
+	err = w.Queuer.Enqueue(job)
 
 	return
 }
