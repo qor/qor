@@ -9,11 +9,14 @@ import (
 	"time"
 )
 
-type Handle func(c *Context)
-type Handler struct {
-	Path   *regexp.Regexp
-	Handle Handle
-}
+type (
+	Handle func(c *Context)
+
+	Handler struct {
+		Path   *regexp.Regexp
+		Handle Handle
+	}
+)
 
 type Router struct {
 	Prefix  string
@@ -57,7 +60,9 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	router.Get("^/[^/]+/.*$", admin.Show)
 	router.Put("^/[^/]+/.*$", admin.Update)
 	router.Post("^/[^/]+/.*$", admin.Update)
+
 	router.Delete("^/[^/]+/.*$", admin.Delete)
+
 	router.Get("^/[^/]+$", admin.Index)
 
 	mux.Handle(prefix, admin)     // /:prefix

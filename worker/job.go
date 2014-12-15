@@ -1,9 +1,9 @@
 package worker
 
 import (
-	"github.com/qor/qor/resource"
-
 	"io"
+
+	"github.com/qor/qor/resource"
 )
 
 type Job struct {

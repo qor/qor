@@ -178,7 +178,6 @@ func (meta *Meta) UpdateMeta() {
 
 	scopeField, _ := scope.FieldByName(meta.Alias)
 
-	// TODO: also support nested fields (Phone.Num)?
 	if meta.Setter == nil {
 		meta.Setter = func(resource interface{}, metaValues *MetaValues, context *qor.Context) {
 			metaValue := metaValues.Get(meta.Name)

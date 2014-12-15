@@ -2,24 +2,24 @@ package worker
 
 import (
 	"bytes"
-
-	"github.com/qor/qor/resource"
-
 	"io"
 	"strings"
+
+	"github.com/qor/qor/resource"
 )
 
 type Adapter interface {
 	Enqueue(metaValues *resource.MetaValues) Job
 	Listen(worker *Worker)
-	GetProcessLog(*Job) io.Reader
-	LogWriter(*Job) io.Writer
-	Kill(*Job) bool
+	GetProcessLog(job *Job) io.Reader
+	LogWriter(job *Job) io.Writer
+	Kill(job *Job) bool
 }
 
-type SampleAdapter struct {
-}
+type SampleAdapter struct{}
 
+// StartAt
+// Interval
 func (SampleAdapter) Enqueue(metaValues *resource.MetaValues) Job {
 	// push to job queue
 	return Job{}

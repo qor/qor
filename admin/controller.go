@@ -3,12 +3,11 @@ package admin
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"path"
 	"strings"
 
 	"github.com/qor/qor/responder"
-
-	"net/http"
-	"path"
 )
 
 func (admin *Admin) Dashboard(context *Context) {
