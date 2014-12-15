@@ -32,6 +32,10 @@ func (admin *Admin) NewResource(value interface{}, names ...string) *Resource {
 	return res
 }
 
+func (admin *Admin) GetResource(name string) *Resource {
+	return admin.Resources[name]
+}
+
 func (admin *Admin) UseResource(res *Resource) {
 	admin.Resources[res.Name] = res
 }
