@@ -10,6 +10,8 @@ const (
 	CRUD
 )
 
+var All = map[string]PermissionMode{"Read": Read, "Update": Update, "Create": Create, "Delete": Delete, "CRUD": CRUD}
+
 type Permission struct {
 	role       *Role
 	allowRoles map[PermissionMode][]string

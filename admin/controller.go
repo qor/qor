@@ -13,7 +13,7 @@ import (
 )
 
 func (admin *Admin) Dashboard(context *Context) {
-	content := Content{Admin: admin, Context: context, Action: "dashboard"}
+	content := Content{Admin: admin, Context: context, Action: "dashboard", Permission: roles.All}
 	admin.Render("dashboard", content, roles.Read)
 }
 

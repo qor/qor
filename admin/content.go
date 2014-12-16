@@ -15,11 +15,12 @@ import (
 )
 
 type Content struct {
-	Admin    *Admin
-	Context  *Context
-	Resource *Resource
-	Result   interface{}
-	Action   string
+	Admin      *Admin
+	Context    *Context
+	Resource   *Resource
+	Result     interface{}
+	Action     string
+	Permission map[string]roles.PermissionMode
 }
 
 func (content *Content) AllowedMetas(modes ...roles.PermissionMode) func(reses ...*Resource) []*resource.Meta {
@@ -56,15 +57,16 @@ func (content *Content) NewResourcePath(value interface{}) string {
 	}
 }
 
-func (content *Content) UrlFor(value interface{}) string {
+func (content *Content) UrlFor(value interface{}, resources ...*Resource) string {
 	var url string
 	if admin, ok := value.(*Admin); ok {
 		url = admin.router.Prefix
-	} else if res, ok := value.(*Resource); ok {
-		url = path.Join(content.Admin.router.Prefix, res.Name)
+	} else if resource, ok := value.(*Resource); ok {
+		url = path.Join(content.Admin.router.Prefix, resource.Name)
 	} else {
 		primaryKey := content.Context.DB().NewScope(value).PrimaryKeyValue()
-		url = path.Join(content.Admin.router.Prefix, content.Resource.Name, fmt.Sprintf("%v", primaryKey))
+		name := strings.ToLower(reflect.Indirect(reflect.ValueOf(value)).Type().Name())
+		url = path.Join(content.Admin.router.Prefix, name, fmt.Sprintf("%v", primaryKey))
 	}
 	return url
 }
