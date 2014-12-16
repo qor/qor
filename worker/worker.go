@@ -125,7 +125,12 @@ func (w *Worker) Run(job *Job) (err error) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
-	logger := job.GetLogger()
+	logger, err := job.GetLogger()
+	if err != nil {
+		fmt.Println("can't get job logger")
+		return
+	}
+
 	fmt.Fprintf(logger, "to run job (%d) with pid (%d)", job.Id, job.PID)
 
 	if err = job.UpdateStatus(JobRunning); err != nil {

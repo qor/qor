@@ -36,6 +36,8 @@ type Job struct {
 	WorkerName   string
 	Status       string
 	PID          int
+
+	log *os.File
 }
 
 func (j *Job) GetWorker() (*Worker, error) {
@@ -78,21 +80,37 @@ func (j *Job) UpdateStatus(status string) (err error) {
 	old := j.Status
 	j.Status = JobRunning
 	if err = jobDB.Model(j).Update("status", j.Status).Error; err != nil {
-		fmt.Fprintf(j.GetLogger(), "can't update status from %s to %s: %s", old, j.Status, err)
+		logger, erro := j.GetLogger()
+		if erro == nil {
+			fmt.Fprintf(logger, "can't update status from %s to %s: %s", old, j.Status, err)
+		}
+
 		return
 	}
 
 	return
 }
 
-func (j *Job) GetLogger() (rw io.ReadWriter) {
+var JobLoggerDir = "/tmp"
+
+func (j *Job) GetLogger() (rw io.ReadWriter, err error) {
+	if j.log == nil {
+		path := fmt.Sprintf("%s/%s-%s-%d.log", JobLoggerDir, j.WokerSetName, j.WorkerName, j.Id)
+		j.log, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	}
+	rw = j.log
+
 	return
 }
 
 func (j *Job) SavePID() (err error) {
 	j.PID = os.Getpid()
 	if err = jobDB.Model(j).Update("pid", j.PID).Error; err != nil {
-		fmt.Fprintf(j.GetLogger(), "can't save pid for job %d", j.Id)
+		logger, erro := j.GetLogger()
+		if erro == nil {
+			fmt.Fprintf(logger, "can't save pid for job %d", j.Id)
+		}
+
 		return
 	}
 
