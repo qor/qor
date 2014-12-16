@@ -3,6 +3,7 @@ package worker
 import (
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -13,8 +14,10 @@ import (
 
 const (
 	// Job statuses
-	JobToRun   = "hold"
+	JobToRun   = "torun"
 	JobRunning = "running"
+	JobFailed  = "failed"
+	JobKilled  = "killed"
 	JobRun     = "done"
 )
 
@@ -28,19 +31,18 @@ type Job struct {
 	// zero time value to execute job immediately
 	StartAt time.Time
 
-	Cli string
-
+	Cli          string
 	WokerSetName string
 	WorkerName   string
-
-	Status string
+	Status       string
+	PID          int
 }
 
 func (j *Job) GetWorker() (*Worker, error) {
 	for _, ws := range workerSets {
-		if ws.Name == job.WokerSetName {
+		if ws.Name == j.WokerSetName {
 			for _, w := range ws.Workers {
-				if w.Name == job.WorkerName {
+				if w.Name == j.WorkerName {
 					// w.Run(&job)
 					return w, nil
 				}
@@ -48,23 +50,22 @@ func (j *Job) GetWorker() (*Worker, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("unknown worker(%s:%s) in job(%s)\n", job.WokerSetName, job.WorkerName, job.Id)
+	return nil, fmt.Errorf("unknown worker(%s:%s) in job(%s)\n", j.WokerSetName, j.WorkerName, j.Id)
 }
 
 func RunJob(jobId uint64) {
 	job := &Job{}
 	if err := jobDB.Find(job, jobId).Error; err != nil {
-		// TODO
+		fmt.Printf("job (%d) do not existed\n", jobId)
 	} else {
 		job.Run()
 	}
-
 }
 
 func (j *Job) Run() (err error) {
 	parts := strings.Split(j.Cli, " ")
 	name := parts[0]
-	args := []string{"-job-id", strconv.Itoa(j.Id)}
+	args := []string{"-job-id", strconv.FormatUint(j.Id, 10)}
 	if len(parts) > 1 {
 		args = append(args, parts[1:]...)
 	}
@@ -73,28 +74,27 @@ func (j *Job) Run() (err error) {
 	return
 }
 
-func (j *Job) Stop() (err error) {
+func (j *Job) UpdateStatus(status string) (err error) {
+	old := j.Status
+	j.Status = JobRunning
+	if err = jobDB.Model(j).Update("status", j.Status).Error; err != nil {
+		fmt.Fprintf(j.GetLogger(), "can't update status from %s to %s: %s", old, j.Status, err)
+		return
+	}
+
 	return
 }
 
-func (j *Job) GetLogger() io.ReadWriter {
-
+func (j *Job) GetLogger() (rw io.ReadWriter) {
+	return
 }
 
-// func (job *Job) AddErr(err error) {
-// 	job.Errors = append(job.Errors, err)
-// }
+func (j *Job) SavePID() (err error) {
+	j.PID = os.Getpid()
+	if err = jobDB.Model(j).Update("pid", j.PID).Error; err != nil {
+		fmt.Fprintf(j.GetLogger(), "can't save pid for job %d", j.Id)
+		return
+	}
 
-// func (job *Job) GetProcessLog() io.Reader {
-// 	return job.Worker.GetProcessLog(job)
-// }
-
-// func (job *Job) LogWriter() io.Writer {
-// 	return job.Worker.LogWriter(job)
-// }
-
-// func (job *Job) Kill() {
-// 	if job.Worker.Kill(job) {
-// 		job.Worker.OnKill(job)
-// 	}
-// }
+	return
+}

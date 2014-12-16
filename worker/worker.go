@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -14,11 +15,12 @@ import (
 )
 
 var (
-	jobDB         *gorm.DB
-	jobId         uint64
-	workerSets    []*WorkerSet
-	queuers       = map[string]Queuer{}
-	DefaultJobCli = strings.Join(os.Args[0])
+	jobDB            *gorm.DB
+	jobId            uint64
+	defaultWorkerSet = &WorkerSet{Name: "default"}
+	workerSets       = []*WorkerSet{defaultWorkerSet}
+	queuers          = map[string]Queuer{}
+	DefaultJobCli    = strings.Join(os.Args, " ")
 )
 
 func init() {
@@ -27,6 +29,16 @@ func init() {
 
 func SetJobDB(db *gorm.DB) {
 	jobDB = db
+}
+
+func NewWorker(name string, handle func(job *Job) error, queuer Queuer) (w *Worker) {
+	return defaultWorkerSet.NewWorker(name, handle, queuer)
+}
+
+func SetAdmin(admin *admin.Admin) {
+	ws := defaultWorkerSet.Workers
+	defaultWorkerSet = NewWorkerSet(defaultWorkerSet.Name, "/workers", "", admin)
+	defaultWorkerSet.Workers = ws
 }
 
 func RegisterQueuer(name string, queuer Queuer) {
@@ -42,31 +54,20 @@ func Listen() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		// // w.RunHandler(job)
-		// for _, ws := range workerSets {
-		// 	if ws.Name == job.WokerSetName {
-		// 		for _, w := range ws.Workers {
-		// 			if w.Name == job.WorkerName {
-		// 				w.Run(&job)
-		// 			}
-		// 		}
-		// 	}
-		// }
-		// fmt.Fprintf(os.Stderr, "unknown worker(%s:%s) in job(%s)\n", job.WokerSetName, job.WorkerName, job.Id)
 		w, err := job.GetWorker()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
-		w.Run(job)
+		w.Run(&job)
 	} else {
 		for _, queuer := range queuers {
 			go func() {
 				for {
 					jobId, err := queuer.Dequeue()
 					if err != nil {
-						// TODO: log
+						fmt.Println("qor.worker.dequeue.error:", err)
 					} else {
 						go RunJob(jobId)
 					}
@@ -81,10 +82,10 @@ type WorkerSet struct {
 	Workers []*Worker
 }
 
-func NewWorkerSet(name string, a *admin.Admin) (ws *WorkerSet) {
+func NewWorkerSet(name, router, tmplDir string, a *admin.Admin) (ws *WorkerSet) {
 	ws = &WorkerSet{Name: name}
 	workerSets = append(workerSets, ws)
-	a.GetRouter().Get("^/workers$", func(ctx *admin.Context) {})
+	a.GetRouter().Get(router, func(ctx *admin.Context) {})
 	// template register
 	// menu register
 	// Job resource register
@@ -118,22 +119,56 @@ type Worker struct {
 	OnFailed  func(job *Job)
 }
 
+// TODO: use docker
 func (w *Worker) Run(job *Job) (err error) {
+	if err = job.SavePID(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	logger := job.GetLogger()
+	fmt.Fprintf(logger, "to run job (%d) with pid (%d)", job.Id, job.PID)
+
+	if err = job.UpdateStatus(JobRunning); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+
 	if w.OnStart != nil {
 		if err = w.OnStart(job); err != nil {
-			return
+			logger.Write([]byte("worker.onstart: " + err.Error() + "\n"))
+
+			if err = job.UpdateStatus(JobFailed); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
 		}
 	}
 
 	if err = w.Handle(job); err != nil {
+		if err = job.UpdateStatus(JobFailed); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
 		if w.OnFailed != nil {
 			w.OnFailed(job)
 		}
+
+		logger.Write([]byte("worker.hanlde: " + err.Error() + "\n"))
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	} else if w.OnSuccess != nil {
+		if err = job.UpdateStatus(JobRun); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+
 		w.OnSuccess(job)
 	}
+
+	fmt.Fprintf(logger, "finish job (%d) with pid (%d)", job.Id, job.PID)
 
 	return
 }
@@ -143,9 +178,7 @@ var ErrJobRun = errors.New("job is already run")
 func (w *Worker) Kill(job *Job) (err error) {
 	if w.OnKill != nil {
 		if err = w.OnKill(job); err != nil {
-			// err = fmt.Fprintf(w.GetLogger(job), "worker.OnKill (%s): %s", w.Name, err)
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+			return
 		}
 	}
 
@@ -153,28 +186,29 @@ func (w *Worker) Kill(job *Job) (err error) {
 	case JobToRun:
 		err = w.Queuer.Purge(job)
 	case JobRunning:
-		// TODO
+		if job.PID == 0 {
+			return errors.New("pid is zero")
+		}
+
+		var process *os.Process
+		process, err = os.FindProcess(job.PID)
+		if err != nil {
+			return
+		}
+
+		err = process.Signal(syscall.SIGUSR1)
 	case JobRun:
 		return ErrJobRun
+	}
+
+	if err == nil {
+		err = job.UpdateStatus(JobKilled)
 	}
 
 	return
 }
 
 func (w *Worker) NewJob(interval int64, startAt time.Time) (job *Job, err error) {
-	// job = &Job{
-	// 	Interval:     interval,
-	// 	StartAt:      startAt,
-	// 	WokerSetName: w.set.Name,
-	// 	WorkerName:   w.Name,
-	// 	Cli:          DefaultJobCli,
-	// }
-	// if err = jobDB.Save(&job).Error; err != nil {
-	// 	return
-	// }
-
-	// err = w.Queuer.Enqueue(job)
-
 	return w.NewJobWithCli(interval, startAt, DefaultJobCli)
 }
 
@@ -194,16 +228,3 @@ func (w *Worker) NewJobWithCli(interval int64, startAt time.Time, cli string) (j
 
 	return
 }
-
-// func (w *Worker) UseQueuer(queuer Queuer) {
-// 	w.Queuer = queuer
-// }
-
-// func (w *Worker) Listen() {
-// 	flag.Parse()
-// 	if jobId != "" {
-// 		w.RunHandler(job)
-// 	} else {
-// 		w.Queuer.Listen(worker)
-// 	}
-// }
