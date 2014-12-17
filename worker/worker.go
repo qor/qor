@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -201,7 +200,8 @@ func (w *Worker) Kill(job *Job) (err error) {
 			return
 		}
 
-		err = process.Signal(syscall.SIGUSR1)
+		// err = process.Signal(syscall.SIGUSR1)
+		err = process.Kill()
 	case JobRun:
 		return ErrJobRun
 	}

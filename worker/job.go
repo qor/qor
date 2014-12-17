@@ -93,6 +93,7 @@ func (j *Job) UpdateStatus(status string) (err error) {
 
 var JobLoggerDir = "/tmp"
 
+// TODO: undone
 func (j *Job) GetLogger() (rw io.ReadWriter, err error) {
 	if j.log == nil {
 		path := fmt.Sprintf("%s/%s-%s-%d.log", JobLoggerDir, j.WokerSetName, j.WorkerName, j.Id)
