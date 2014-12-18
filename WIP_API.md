@@ -1,9 +1,12 @@
 Resource:
 
-    order.Search().Name("Name").Register(func (d *gorm.DB, App) *gorm.DB {
+    order.Search("Name", func (d *gorm.DB, App) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")
     }) //.Suggestion(func() {})
-    order.Filter()
+
+    order.Filter("name")
+    order.Filter("amount")
+    order.Filter(qor.Meta{Name: "name", Label: "Name", Collection: func() []string{ return ["12", "23"]}})
 
     order.Scope().Group("Name").Register("Cool", func (db *gorm.DB, context *qor.Context) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")
