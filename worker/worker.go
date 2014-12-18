@@ -231,5 +231,11 @@ func (w *Worker) NewJobWithCli(interval int64, startAt time.Time, cli string) (j
 
 	err = w.Queuer.Enqueue(job)
 
+	if job.QueueJobId != "" {
+		if err = jobDB.Save(&job).Error; err != nil {
+			return
+		}
+	}
+
 	return
 }

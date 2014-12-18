@@ -22,11 +22,12 @@ const (
 )
 
 type Job struct {
-	Id uint64
+	Id         uint64
+	QueueJobId string
 
 	// unit: minute
 	// 0 to run job only once
-	Interval int64
+	Interval uint64
 
 	// zero time value to execute job immediately
 	StartAt time.Time
