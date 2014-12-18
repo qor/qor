@@ -46,6 +46,25 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 	}
 }
 
+func (res *Resource) CallSearcher(result interface{}, context *qor.Context) error {
+	if res.Searcher != nil {
+		return res.Searcher(result, context)
+	} else {
+		scope := gorm.Scope{Value: res.Value}
+		scopes := strings.Split(context.Request.Form.Get("scopes"), "|")
+
+		db := context.DB().Order(fmt.Sprintf("%v DESC", scope.PrimaryKey()))
+		for _, name := range scopes {
+			scope := res.scopes[name]
+			if scope != nil {
+				db = scope(db, context)
+			}
+		}
+
+		return db.Find(result).Error
+	}
+}
+
 func (res *Resource) IndexAttrs(columns ...string) {
 	res.indexAttrs = columns
 }
