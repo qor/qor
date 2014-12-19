@@ -21,7 +21,9 @@ func (admin *Admin) NewSearcher(res *Resource) *Searcher {
 
 func (s *Searcher) Scope(names ...string) *Searcher {
 	for _, name := range names {
-		s.scopes = append(s.scopes, s.Resource.scopes[name])
+		if scope := s.Resource.scopes[name]; scope != nil {
+			s.scopes = append(s.scopes, scope)
+		}
 	}
 	return s
 }

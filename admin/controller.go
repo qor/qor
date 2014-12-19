@@ -24,10 +24,9 @@ func (admin *Admin) Index(context *Context) {
 		return
 	}
 
-	result, _ := admin.NewSearcher(res).FindAll(context.Context)
+	result, _ := admin.NewSearcher(res).FindAll(context)
 
 	responder.With("html", func() {
-		// TODO: initialize in Admin.ServeHttp?
 		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index"}
 		admin.Render("index", content, roles.Read)
 	}).With("json", func() {
@@ -38,8 +37,7 @@ func (admin *Admin) Index(context *Context) {
 
 func (admin *Admin) Show(context *Context) {
 	res := admin.Resources[context.ResourceName]
-	result := res.NewStruct()
-	res.CallFinder(result, nil, context.Context)
+	result, _ := admin.NewSearcher(res).FindOne(context)
 
 	responder.With("html", func() {
 		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "edit"}
@@ -88,8 +86,7 @@ func (admin *Admin) Create(context *Context) {
 
 func (admin *Admin) Update(context *Context) {
 	res := admin.Resources[context.ResourceName]
-	result := res.NewStruct()
-	if res.CallFinder(result, nil, context.Context) == nil {
+	if result, err := admin.NewSearcher(res).FindOne(context); err == nil {
 		if errs := admin.decode(result, res, context); len(errs) == 0 {
 			res.CallSaver(result, context.Context)
 			responder.With("html", func() {
