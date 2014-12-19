@@ -34,7 +34,7 @@ func (s *Searcher) Filter(name, query string) *Searcher {
 
 func (s *Searcher) ParseContext(context *qor.Context) {
 	// parse scopes
-	if context != nil {
+	if context != nil && context.Request != nil {
 		scopes := strings.Split(context.Request.Form.Get("scopes"), "|")
 		s.Scope(scopes...)
 	}
