@@ -141,7 +141,7 @@ func (meta *Meta) UpdateMeta() {
 				if f, ok := scope.FieldByName(alias); ok {
 					if field.Relationship != nil {
 						if f.Field.CanAddr() {
-							context.DB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
+							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
 						}
 					}
 					return f.Field.Interface()
@@ -201,9 +201,9 @@ func (meta *Meta) UpdateMeta() {
 					relationship = scopeField.Relationship.Kind
 				}
 				if relationship == "many_to_many" {
-					context.DB().Where(ToArray(value)).Find(field.Addr().Interface())
+					context.GetDB().Where(ToArray(value)).Find(field.Addr().Interface())
 					if !scope.PrimaryKeyZero() {
-						context.DB().Model(resource).Association(meta.Alias).Replace(field.Interface())
+						context.GetDB().Model(resource).Association(meta.Alias).Replace(field.Interface())
 					}
 				} else {
 					switch field.Kind() {
@@ -261,7 +261,7 @@ func getNestedModel(value interface{}, alias string, context *qor.Context) inter
 			submodel := model.FieldByName(field)
 			if key := submodel.FieldByName("id"); !key.IsValid() || key.Uint() == 0 {
 				if submodel.CanAddr() {
-					context.DB().Model(model.Interface()).Related(submodel.Addr().Interface())
+					context.GetDB().Model(model.Interface()).Related(submodel.Addr().Interface())
 					model = submodel
 				} else {
 					break

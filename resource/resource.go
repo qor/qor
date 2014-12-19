@@ -51,7 +51,7 @@ func (res *Resource) CallSearcher(result interface{}, context *qor.Context) erro
 		return res.Searcher(result, context)
 	} else {
 		scope := gorm.Scope{Value: res.Value}
-		return context.DB().Order(fmt.Sprintf("%v DESC", scope.PrimaryKey())).Find(result).Error
+		return context.GetDB().Order(fmt.Sprintf("%v DESC", scope.PrimaryKey())).Find(result).Error
 	}
 }
 
@@ -59,7 +59,7 @@ func (res *Resource) CallSaver(result interface{}, context *qor.Context) error {
 	if res.Saver != nil {
 		return res.Saver(result, context)
 	} else {
-		return context.DB().Save(result).Error
+		return context.GetDB().Save(result).Error
 	}
 }
 
@@ -67,7 +67,7 @@ func (res *Resource) CallDeleter(result interface{}, context *qor.Context) error
 	if res.Deleter != nil {
 		return res.Deleter(result, context)
 	} else {
-		db := context.DB().Delete(result, context.ResourceID)
+		db := context.GetDB().Delete(result, context.ResourceID)
 		if db.Error != nil {
 			return db.Error
 		} else if db.RowsAffected == 0 {
@@ -82,7 +82,7 @@ func (res *Resource) CallFinder(result interface{}, metaValues *MetaValues, cont
 		return res.Finder(result, metaValues, context)
 	} else {
 		if metaValues == nil {
-			return context.DB().First(result, context.ResourceID).Error
+			return context.GetDB().First(result, context.ResourceID).Error
 		}
 		return nil
 	}

@@ -64,7 +64,7 @@ func (content *Content) UrlFor(value interface{}, resources ...*Resource) string
 	} else if resource, ok := value.(*Resource); ok {
 		url = path.Join(content.Admin.router.Prefix, resource.Name)
 	} else {
-		primaryKey := content.Context.DB().NewScope(value).PrimaryKeyValue()
+		primaryKey := content.Context.GetDB().NewScope(value).PrimaryKeyValue()
 		name := strings.ToLower(reflect.Indirect(reflect.ValueOf(value)).Type().Name())
 		url = path.Join(content.Admin.router.Prefix, name, fmt.Sprintf("%v", primaryKey))
 	}

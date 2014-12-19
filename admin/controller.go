@@ -78,7 +78,7 @@ func (admin *Admin) Create(context *Context) {
 	if errs := admin.decode(result, res, context); len(errs) == 0 {
 		res.CallSaver(result, context.Context)
 		responder.With("html", func() {
-			primaryKey := fmt.Sprintf("%v", context.DB().NewScope(result).PrimaryKeyValue())
+			primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
 			http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
 		}).With("json", func() {
 			js, _ := json.Marshal(ConvertObjectToMap(context, result, res))

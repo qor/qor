@@ -35,12 +35,12 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 			if metaValues != nil {
 				if destroy := metaValues.Get("_destroy"); destroy != nil {
 					if fmt.Sprintf("%v", destroy.Value) != "0" {
-						context.DB().Delete(result, primaryKey)
+						context.GetDB().Delete(result, primaryKey)
 						return resource.ErrProcessorSkipLeft
 					}
 				}
 			}
-			return context.DB().First(result, primaryKey).Error
+			return context.GetDB().First(result, primaryKey).Error
 		}
 		return nil
 	}
@@ -53,7 +53,7 @@ func (res *Resource) CallSearcher(result interface{}, context *qor.Context) erro
 		scope := gorm.Scope{Value: res.Value}
 		scopes := strings.Split(context.Request.Form.Get("scopes"), "|")
 
-		db := context.DB().Order(fmt.Sprintf("%v DESC", scope.PrimaryKey()))
+		db := context.GetDB().Order(fmt.Sprintf("%v DESC", scope.PrimaryKey()))
 		for _, name := range scopes {
 			scope := res.scopes[name]
 			if scope != nil {
@@ -177,7 +177,7 @@ func (res *Resource) AllAttrs() []*resource.Meta {
 
 func (res *Resource) appendPrimaryKey(metas []*resource.Meta) []*resource.Meta {
 	primaryKeyMeta := &resource.Meta{Base: res, Name: "_id", Type: "hidden", Value: func(value interface{}, context *qor.Context) interface{} {
-		return context.DB().NewScope(value).PrimaryKeyValue()
+		return context.GetDB().NewScope(value).PrimaryKeyValue()
 	}}
 	primaryKeyMeta.UpdateMeta()
 
