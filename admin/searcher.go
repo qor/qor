@@ -37,6 +37,14 @@ func (s *Searcher) ParseContext(context *qor.Context) {
 	}
 }
 
+func (s *Searcher) callScopes(context *qor.Context) *gorm.DB {
+	db := context.GetDB()
+	for _, scope := range s.scopes {
+		db = scope(db, context)
+	}
+	context.SetDB(db)
+}
+
 func (s *Searcher) FindAll(result interface{}, context *qor.Context) error {
 	return s.Resource.CallSearcher(result, context)
 }

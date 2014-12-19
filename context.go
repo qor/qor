@@ -15,8 +15,17 @@ type Context struct {
 	ResourceID string
 	Config     *Config
 	Roles      []string
+	DB         *gorm.DB
 }
 
-func (context *Context) DB() *gorm.DB {
-	return context.Config.DB
+func (context *Context) GetDB() *gorm.DB {
+	if context.DB != nil {
+		return context.DB
+	} else {
+		return context.Config.DB
+	}
+}
+
+func (context *Context) SetDB(db *gorm.DB) {
+	context.DB = db
 }
