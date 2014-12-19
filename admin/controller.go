@@ -24,8 +24,7 @@ func (admin *Admin) Index(context *Context) {
 		return
 	}
 
-	result := res.NewSlice()
-	res.CallSearcher(result, context.Context)
+	result, _ := admin.NewSearcher(res).FindAll(context.Context)
 
 	responder.With("html", func() {
 		// TODO: initialize in Admin.ServeHttp?

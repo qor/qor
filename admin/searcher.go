@@ -48,10 +48,14 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	return context
 }
 
-func (s *Searcher) getContext(contexts ...*qor.Context) *qor.Context {
+func (s *Searcher) getContext(contexts []interface{}) *qor.Context {
 	var context *qor.Context
 	if len(contexts) > 0 {
-		context = contexts[0]
+		if value, ok := contexts[0].(*qor.Context); ok {
+			context = value
+		} else if value, ok := contexts[0].(*Context); ok {
+			context = value.Context
+		}
 	} else {
 		context = &qor.Context{DB: s.Admin.Config.DB}
 	}
@@ -59,16 +63,16 @@ func (s *Searcher) getContext(contexts ...*qor.Context) *qor.Context {
 	return context
 }
 
-func (s *Searcher) FindAll(contexts ...*qor.Context) (interface{}, error) {
-	context := s.getContext(contexts...)
+func (s *Searcher) FindAll(contexts ...interface{}) (interface{}, error) {
+	context := s.getContext(contexts)
 	result := s.Resource.NewSlice()
 	s.callScopes(context)
 	err := s.Resource.CallSearcher(result, context)
 	return result, err
 }
 
-func (s *Searcher) FindOne(contexts ...*qor.Context) (interface{}, error) {
-	context := s.getContext(contexts...)
+func (s *Searcher) FindOne(contexts ...interface{}) (interface{}, error) {
+	context := s.getContext(contexts)
 	result := s.Resource.NewStruct()
 	s.callScopes(context)
 	err := s.Resource.CallFinder(result, nil, context)
