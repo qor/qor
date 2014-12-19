@@ -13,19 +13,17 @@ import (
 )
 
 type BeanstalkdQueue struct {
-	addr string
-	// db    *gorm.DB
+	addr  string
 	Debug io.Writer
 }
 
-// type BeanstalkdJob struct {
-// 	Id              uint64
-// 	QorJobId        uint64
-// 	BeanstalkdJobId uint64
-// }
-
 func (bq *BeanstalkdQueue) newClient() (*gostalkc.Client, error) {
 	return gostalkc.DialTimeout(bq.addr, time.Minute)
+}
+
+// for test
+var parseInterval = func(interval uint64) string {
+	return strconv.FormatUint(interval*60, 10)
 }
 
 func (bq *BeanstalkdQueue) putJob(job *Job) (err error) {
@@ -36,24 +34,21 @@ func (bq *BeanstalkdQueue) putJob(job *Job) (err error) {
 
 	delay := uint64(job.StartAt.Sub(time.Now()).Seconds())
 	jobId := fmt.Sprintf("%d", job.Id)
-	interval := strconv.FormatUint(job.Interval*60, 10)
+	interval := parseInterval(job.Interval)
 	body := strings.Join([]string{jobId, interval}, ",")
 	queueJobId, _, err := client.Put(0, delay, 60, []byte(body))
 	if err != nil {
 		return
 	}
 
-	// err = bq.db.Save(&BeanstalkdJob{QorJobId: job.Id, BeanstalkdJobId: queueJobId}).Error
 	job.QueueJobId = fmt.Sprint(queueJobId)
 
 	return
 }
 
-func NewBeanstalkdQueue(addr string) (bq *BeanstalkdQueue, err error) {
+func NewBeanstalkdQueue(addr string) (bq *BeanstalkdQueue) {
 	bq = new(BeanstalkdQueue)
 	bq.addr = addr
-	// bq.db = db
-	// err = bq.db.AutoMigrate(&BeanstalkdJob{}).Error
 
 	return
 }
@@ -64,13 +59,13 @@ func (bq *BeanstalkdQueue) Enqueue(job *Job) (err error) {
 
 func (bq *BeanstalkdQueue) Dequeue() (jobId uint64, err error) {
 	for {
-		var workerConn *gostalkc.Client
-		workerConn, err = bq.newClient()
+		var client *gostalkc.Client
+		client, err = bq.newClient()
 		if err != nil {
 			return
 		}
-		if err = workerConn.Conn.SetDeadline(time.Now().Add(time.Minute * 5)); err != nil {
-			workerConn.Quit()
+		if err = client.Conn.SetDeadline(time.Now().Add(time.Minute * 5)); err != nil {
+			client.Quit()
 
 			if bq.Debug != nil {
 				bq.Debug.Write([]byte("beanstalkd: failed to set deadline"))
@@ -81,7 +76,7 @@ func (bq *BeanstalkdQueue) Dequeue() (jobId uint64, err error) {
 
 		var body []byte
 		var queueJobId uint64
-		queueJobId, body, err = workerConn.ReserveWithTimeout(300)
+		queueJobId, body, err = client.ReserveWithTimeout(300)
 		if err != nil {
 			if err.Error() == gostalkc.TIMED_OUT {
 				if bq.Debug != nil {
@@ -98,7 +93,7 @@ func (bq *BeanstalkdQueue) Dequeue() (jobId uint64, err error) {
 			continue
 		}
 
-		parts := bytes.Split(body, ",")
+		parts := bytes.Split(body, []byte(","))
 		jobId, err = strconv.ParseUint(string(parts[0]), 10, 0)
 		if err != nil {
 			return
@@ -109,7 +104,10 @@ func (bq *BeanstalkdQueue) Dequeue() (jobId uint64, err error) {
 		}
 
 		if interval := string(parts[1]); interval == "0" {
-			if err = workerConn.Delete(jobId); err != nil {
+			if err = client.Delete(queueJobId); err != nil {
+				if bq.Debug != nil {
+					fmt.Fprintln(bq.Debug, "beanstalkd: delete error", err)
+				}
 				return
 			}
 		} else {
@@ -118,13 +116,16 @@ func (bq *BeanstalkdQueue) Dequeue() (jobId uint64, err error) {
 			if err != nil {
 				return
 			}
-			_, err = workerConn.Release(queueJobId, 0, i)
+			_, err = client.Release(queueJobId, 0, i)
 			if err != nil {
+				if bq.Debug != nil {
+					fmt.Fprintln(bq.Debug, "beanstalkd: release error", err)
+				}
 				return
 			}
 		}
 
-		workerConn.Quit()
+		client.Quit()
 
 		return
 	}
@@ -133,7 +134,7 @@ func (bq *BeanstalkdQueue) Dequeue() (jobId uint64, err error) {
 }
 
 func (bq *BeanstalkdQueue) Purge(job *Job) (err error) {
-	workerConn, err := bq.newClient()
+	client, err := bq.newClient()
 	if err != nil {
 		return
 	}
@@ -142,7 +143,7 @@ func (bq *BeanstalkdQueue) Purge(job *Job) (err error) {
 		return
 	}
 
-	err = workerConn.Delete(jobId)
+	err = client.Delete(jobId)
 
 	return
 }

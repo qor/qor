@@ -213,11 +213,11 @@ func (w *Worker) Kill(job *Job) (err error) {
 	return
 }
 
-func (w *Worker) NewJob(interval int64, startAt time.Time) (job *Job, err error) {
+func (w *Worker) NewJob(interval uint64, startAt time.Time) (job *Job, err error) {
 	return w.NewJobWithCli(interval, startAt, DefaultJobCli)
 }
 
-func (w *Worker) NewJobWithCli(interval int64, startAt time.Time, cli string) (job *Job, err error) {
+func (w *Worker) NewJobWithCli(interval uint64, startAt time.Time, cli string) (job *Job, err error) {
 	job = &Job{
 		Interval:     interval,
 		StartAt:      startAt,

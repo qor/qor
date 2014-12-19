@@ -46,7 +46,6 @@ func (j *Job) GetWorker() (*Worker, error) {
 		if ws.Name == j.WokerSetName {
 			for _, w := range ws.Workers {
 				if w.Name == j.WorkerName {
-					// w.Run(&job)
 					return w, nil
 				}
 			}
