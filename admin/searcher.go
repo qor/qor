@@ -11,11 +11,12 @@ type scopeFunc func(db *gorm.DB, context *qor.Context) *gorm.DB
 
 type Searcher struct {
 	Resource *Resource
+	Admin    *Admin
 	scopes   []scopeFunc
 }
 
-func NewSearcher(res *Resource) *Searcher {
-	return &Searcher{Resource: res}
+func (admin *Admin) NewSearcher(res *Resource) *Searcher {
+	return &Searcher{Resource: res, Admin: admin}
 }
 
 func (s *Searcher) Scope(names ...string) *Searcher {
@@ -30,26 +31,46 @@ func (s *Searcher) Filter(name, query string) *Searcher {
 }
 
 func (s *Searcher) ParseContext(context *qor.Context) {
-	// scopes
+	// parse scopes
 	if context != nil {
 		scopes := strings.Split(context.Request.Form.Get("scopes"), "|")
 		s.Scope(scopes...)
 	}
 }
 
-func (s *Searcher) callScopes(context *qor.Context) {
+func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	s.ParseContext(context)
 	db := context.GetDB()
 	for _, scope := range s.scopes {
 		db = scope(db, context)
 	}
 	context.SetDB(db)
+	return context
 }
 
-func (s *Searcher) FindAll(result interface{}, context *qor.Context) error {
-	return s.Resource.CallSearcher(result, context)
+func (s *Searcher) getContext(contexts ...*qor.Context) *qor.Context {
+	var context *qor.Context
+	if len(contexts) > 0 {
+		context = contexts[0]
+	} else {
+		context = &qor.Context{DB: s.Admin.Config.DB}
+	}
+
+	return context
 }
 
-func (s *Searcher) FindOne(result interface{}, context *qor.Context) error {
-	return s.Resource.CallFinder(result, nil, context)
+func (s *Searcher) FindAll(contexts ...*qor.Context) (interface{}, error) {
+	context := s.getContext(contexts...)
+	result := s.Resource.NewSlice()
+	s.callScopes(context)
+	err := s.Resource.CallSearcher(result, context)
+	return result, err
+}
+
+func (s *Searcher) FindOne(contexts ...*qor.Context) (interface{}, error) {
+	context := s.getContext(contexts...)
+	result := s.Resource.NewStruct()
+	s.callScopes(context)
+	err := s.Resource.CallFinder(result, nil, context)
+	return result, err
 }
