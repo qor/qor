@@ -26,8 +26,11 @@ func init() {
 	flag.Uint64Var(&jobId, "job-id", 0, "qor job id")
 }
 
-func SetJobDB(db *gorm.DB) {
+// SetJobDB will run a auto migration for creating table jobs
+func SetJobDB(db *gorm.DB) (err error) {
 	jobDB = db
+	err = db.AutoMigrate(&Job{}).Error
+	return
 }
 
 func NewWorker(name string, handle func(job *Job) error, queuer Queuer) (w *Worker) {
@@ -118,7 +121,6 @@ type Worker struct {
 	OnFailed  func(job *Job)
 }
 
-// TODO: use docker
 func (w *Worker) Run(job *Job) (err error) {
 	if err = job.SavePID(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -200,7 +202,6 @@ func (w *Worker) Kill(job *Job) (err error) {
 			return
 		}
 
-		// err = process.Signal(syscall.SIGUSR1)
 		err = process.Kill()
 	case JobRun:
 		return ErrJobRun
