@@ -16,15 +16,15 @@ func main() {
 	mux := http.NewServeMux()
 
 	creditCard := admin.NewResource(CreditCard{})
-	creditCard.RegisterMeta(&resource.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
+	creditCard.Meta(&resource.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
 	user := admin.NewResource(User{})
 	user.IndexAttrs("fullname", "gender")
-	user.RegisterMeta(&resource.Meta{Name: "CreditCard", Resource: creditCard})
+	user.Meta(&resource.Meta{Name: "CreditCard", Resource: creditCard})
 
-	user.RegisterMeta(&resource.Meta{Name: "fullname", Alias: "name"})
-	user.RegisterMeta(&resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
-	user.RegisterMeta(&resource.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
+	user.Meta(&resource.Meta{Name: "fullname", Alias: "name"})
+	user.Meta(&resource.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
+	user.Meta(&resource.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if roles := []Role{}; !context.GetDB().Find(&roles).RecordNotFound() {
 				for _, role := range roles {
@@ -33,7 +33,7 @@ func main() {
 			}
 			return
 		}})
-	user.RegisterMeta(&resource.Meta{Name: "Languages", Type: "select_many",
+	user.Meta(&resource.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if languages := []Language{}; !context.GetDB().Find(&languages).RecordNotFound() {
 				for _, language := range languages {

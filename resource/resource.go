@@ -96,7 +96,7 @@ func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context
 	res.processors = append(res.processors, fc)
 }
 
-func (res *Resource) RegisterMeta(metaor Metaor) {
+func (res *Resource) Meta(metaor Metaor) {
 	if res.Metas == nil {
 		res.Metas = make(map[string]Metaor)
 	}

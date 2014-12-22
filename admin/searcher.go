@@ -12,7 +12,7 @@ type scopeFunc func(db *gorm.DB, context *qor.Context) *gorm.DB
 type Searcher struct {
 	Resource *Resource
 	Admin    *Admin
-	scopes   []scopeFunc
+	scopes   []*Scope
 }
 
 func (admin *Admin) NewSearcher(res *Resource) *Searcher {
@@ -44,7 +44,7 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	s.ParseContext(context)
 	db := context.GetDB()
 	for _, scope := range s.scopes {
-		db = scope(db, context)
+		db = scope.Handler(db, context)
 	}
 	context.SetDB(db)
 	return context

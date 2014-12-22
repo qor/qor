@@ -17,7 +17,7 @@ type Resource struct {
 	editAttrs         []string
 	showAttrs         []string
 	cachedMetas       *map[string][]*resource.Meta
-	scopes            map[string]func(db *gorm.DB, context *qor.Context) *gorm.DB
+	scopes            map[string]*Scope
 }
 
 func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
@@ -187,9 +187,9 @@ func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *Context, role
 	return metas
 }
 
-func (res *Resource) RegisterScope(name string, fc func(db *gorm.DB, context *qor.Context) *gorm.DB) {
+func (res *Resource) Scope(scope *Scope) {
 	if res.scopes == nil {
-		res.scopes = map[string]func(db *gorm.DB, context *qor.Context) *gorm.DB{}
+		res.scopes = map[string]*Scope{}
 	}
-	res.scopes[name] = fc
+	res.scopes[scope.Name] = scope
 }

@@ -17,7 +17,7 @@ func New(name string) *Worker {
 }
 
 func (worker *Worker) AllowSchedule() {
-	worker.RegisterMeta(&resource.Meta{Name: "Schedule", Type: "schedule"})
+	worker.Meta(&resource.Meta{Name: "Schedule", Type: "schedule"})
 }
 
 func (worker *Worker) AllMetas() []resource.Meta {
