@@ -52,7 +52,7 @@ func Listen() {
 
 	if jobId > 0 {
 		var job Job
-		if err := jobDB.Where("_id = ?", jobId).Find(&job).Error; err != nil {
+		if err := jobDB.Where("id = ?", jobId).Find(&job).Error; err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
