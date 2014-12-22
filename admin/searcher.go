@@ -21,7 +21,7 @@ func (admin *Admin) NewSearcher(res *Resource) *Searcher {
 
 func (s *Searcher) Scope(names ...string) *Searcher {
 	for _, name := range names {
-		if scope := s.Resource.scopes[name]; scope != nil {
+		if scope := s.Resource.scopes[name]; scope != nil && !scope.Default {
 			s.scopes = append(s.scopes, scope)
 		}
 	}
@@ -43,6 +43,15 @@ func (s *Searcher) ParseContext(context *qor.Context) {
 func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	s.ParseContext(context)
 	db := context.GetDB()
+
+	// call default scopes
+	for _, scope := range s.Resource.scopes {
+		if scope.Default {
+			db = scope.Handler(db, context)
+		}
+	}
+
+	// call scopes
 	for _, scope := range s.scopes {
 		db = scope.Handler(db, context)
 	}
