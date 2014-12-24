@@ -10,3 +10,7 @@ type Filter struct {
 	Operations []string
 	Handler    func(name string, value string, scope *gorm.DB, context *qor.Context) *gorm.DB
 }
+
+var DefaultHandler = func(name string, value string, scope *gorm.DB, context *qor.Context) *gorm.DB {
+	return scope
+}

@@ -40,23 +40,7 @@ func (s *Searcher) Filter(name, query string) *Searcher {
 
 var filterRegexp = regexp.MustCompile(`^filters\[(.*?)\]$`)
 
-func (s *Searcher) ParseContext(context *qor.Context) {
-	if context != nil && context.Request != nil {
-		// parse scopes
-		scopes := strings.Split(context.Request.Form.Get("scopes"), "|")
-		s.Scope(scopes...)
-
-		// parse filters
-		for key, value := range context.Request.Form {
-			if matches := filterRegexp.FindStringSubmatch(key); len(matches) > 0 {
-				s.Filter(matches[1], value[0])
-			}
-		}
-	}
-}
-
 func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
-	s.ParseContext(context)
 	db := context.GetDB()
 
 	// call default scopes
@@ -72,6 +56,16 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	}
 
 	// call filters
+	if s.filters != nil {
+		for key, value := range s.filters {
+			filter := s.Resource.filters[key]
+			if filter != nil && filter.Handler != nil {
+				db = filter.Handler(key, value, db, context)
+			} else {
+				db = DefaultHandler(key, value, db, context)
+			}
+		}
+	}
 	context.SetDB(db)
 	return context
 }
@@ -87,22 +81,40 @@ func (s *Searcher) getContext(contexts []interface{}) *qor.Context {
 	} else {
 		context = &qor.Context{DB: s.Admin.Config.DB}
 	}
+	return context
+}
+
+func (s *Searcher) parseContext(contexts []interface{}) *qor.Context {
+	var context = s.getContext(contexts)
+
+	if context != nil && context.Request != nil {
+		// parse scopes
+		scopes := strings.Split(context.Request.Form.Get("scopes"), "|")
+		s.Scope(scopes...)
+
+		// parse filters
+		for key, value := range context.Request.Form {
+			if matches := filterRegexp.FindStringSubmatch(key); len(matches) > 0 {
+				s.Filter(matches[1], value[0])
+			}
+		}
+	}
+
+	s.callScopes(context)
 
 	return context
 }
 
 func (s *Searcher) FindAll(contexts ...interface{}) (interface{}, error) {
-	context := s.getContext(contexts)
+	context := s.parseContext(contexts)
 	result := s.Resource.NewSlice()
-	s.callScopes(context)
 	err := s.Resource.CallSearcher(result, context)
 	return result, err
 }
 
 func (s *Searcher) FindOne(contexts ...interface{}) (interface{}, error) {
-	context := s.getContext(contexts)
+	context := s.parseContext(contexts)
 	result := s.Resource.NewStruct()
-	s.callScopes(context)
 	err := s.Resource.CallFinder(result, nil, context)
 	return result, err
 }

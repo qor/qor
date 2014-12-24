@@ -18,7 +18,7 @@ type Resource struct {
 	showAttrs         []string
 	cachedMetas       *map[string][]*resource.Meta
 	scopes            map[string]*Scope
-	filters           []*Filter
+	filters           map[string]*Filter
 }
 
 func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
@@ -197,7 +197,7 @@ func (res *Resource) Scope(scope *Scope) {
 
 func (res *Resource) Filter(filter *Filter) {
 	if res.filters == nil {
-		res.filters = []*Filter{}
+		res.filters = map[string]*Filter{}
 	}
-	res.filters = append(res.filters, filter)
+	res.filters[filter.Name] = filter
 }
