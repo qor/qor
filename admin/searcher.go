@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -32,11 +33,20 @@ func (s *Searcher) Filter(name, query string) *Searcher {
 	return s
 }
 
+var filterRegexp = regexp.MustCompile("^filters[(.*?)]$")
+
 func (s *Searcher) ParseContext(context *qor.Context) {
-	// parse scopes
 	if context != nil && context.Request != nil {
+		// parse scopes
 		scopes := strings.Split(context.Request.Form.Get("scopes"), "|")
 		s.Scope(scopes...)
+
+		// parse filters
+		for key, value := range context.Request.Form {
+			if matches := filterRegexp.FindAllString(key, -1); len(matches) > 0 {
+				s.Filter(matches[0], value[0])
+			}
+		}
 	}
 }
 
@@ -55,6 +65,8 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	for _, scope := range s.scopes {
 		db = scope.Handler(db, context)
 	}
+
+	// call filters
 	context.SetDB(db)
 	return context
 }
