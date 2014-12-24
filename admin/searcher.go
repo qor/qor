@@ -14,6 +14,7 @@ type Searcher struct {
 	Resource *Resource
 	Admin    *Admin
 	scopes   []*Scope
+	filters  map[string]string
 }
 
 func (admin *Admin) NewSearcher(res *Resource) *Searcher {
@@ -30,10 +31,14 @@ func (s *Searcher) Scope(names ...string) *Searcher {
 }
 
 func (s *Searcher) Filter(name, query string) *Searcher {
+	if s.filters == nil {
+		s.filters = map[string]string{}
+	}
+	s.filters[name] = query
 	return s
 }
 
-var filterRegexp = regexp.MustCompile("^filters[(.*?)]$")
+var filterRegexp = regexp.MustCompile(`^filters\[(.*?)\]$`)
 
 func (s *Searcher) ParseContext(context *qor.Context) {
 	if context != nil && context.Request != nil {
@@ -43,8 +48,8 @@ func (s *Searcher) ParseContext(context *qor.Context) {
 
 		// parse filters
 		for key, value := range context.Request.Form {
-			if matches := filterRegexp.FindAllString(key, -1); len(matches) > 0 {
-				s.Filter(matches[0], value[0])
+			if matches := filterRegexp.FindStringSubmatch(key); len(matches) > 0 {
+				s.Filter(matches[1], value[0])
 			}
 		}
 	}
