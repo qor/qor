@@ -16,7 +16,15 @@ import (
 var layouts = map[string]*template.Template{}
 var templates = map[string]*template.Template{}
 var tmplSuffix = regexp.MustCompile(`(\.tmpl)?$`)
-var viewDirs = []string{}
+var viewPaths = []string{}
+
+func RegisterViewPath(path string) error {
+	if isExistingDir(path) {
+		viewPaths = append(viewPaths, path)
+		return nil
+	}
+	return errors.New("path not found")
+}
 
 func isExistingDir(pth string) bool {
 	fi, err := os.Stat(pth)
@@ -34,22 +42,18 @@ func init() {
 	}
 
 	for _, dir := range []string{path.Join(Root, "app/views/qor"), path.Join(Root, "templates/qor")} {
-		if isExistingDir(dir) {
-			viewDirs = append(viewDirs, dir)
-		}
+		RegisterViewPath(dir)
 	}
 
 	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-		if dir := path.Join(gopath, "src/github.com/qor/qor/admin/templates"); isExistingDir(dir) {
-			viewDirs = append(viewDirs, dir)
-		}
+		RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/admin/templates"))
 	}
 }
 
 func (content Content) getTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
 	paths := []string{}
 	for _, p := range []string{content.Context.ResourceName, path.Join("themes", "default"), "."} {
-		for _, d := range viewDirs {
+		for _, d := range viewPaths {
 			if isExistingDir(path.Join(d, p)) {
 				paths = append(paths, path.Join(d, p))
 			}
