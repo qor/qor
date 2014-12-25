@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
+
+	"github.com/qor/qor/worker"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/resource"
-
-	"net/http"
 )
 
 func main() {
@@ -49,6 +50,12 @@ func main() {
 	web.NewResource(Role{})
 	web.NewResource(Language{})
 	web.MountTo("/admin", mux)
+
+	w := worker.New("Log every 10 seconds")
+
+	worker.Listen()
+
+	// go worker
 
 	fmt.Println("listening on :8080")
 	http.ListenAndServe(":8080", mux)

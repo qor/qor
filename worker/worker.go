@@ -37,9 +37,15 @@ func NewWorker(name string, handle func(job *Job) error, queuer Queuer) (w *Work
 	return defaultWorkerSet.NewWorker(name, handle, queuer)
 }
 
-func SetAdmin(admin *admin.Admin) {
+// TODO: UNDONE
+func SetAdmin(a *admin.Admin) {
 	ws := defaultWorkerSet.Workers
-	defaultWorkerSet = NewWorkerSet(defaultWorkerSet.Name, "/workers", "", admin)
+	// defaultWorkerSet = NewWorkerSet(defaultWorkerSet.Name, "/workers", "", admin)
+	admin.RegisterTemplates("github.com/qor/qor/worker/templates")
+	a.GetRouter().Get("/workers", func(c *admin.Context) {
+		content := &admin.Content{Context: c, Admin: a}
+		a.Render("worker/workers", content)
+	})
 	defaultWorkerSet.Workers = ws
 }
 
@@ -84,10 +90,11 @@ type WorkerSet struct {
 	Workers []*Worker
 }
 
-func NewWorkerSet(name, router, tmplDir string, a *admin.Admin) (ws *WorkerSet) {
+// TODO: UNDONE
+func NewWorkerSet(name, router, tmplDir string, a *admin.Admin, handle func(ctx *admin.Context)) (ws *WorkerSet) {
 	ws = &WorkerSet{Name: name}
 	workerSets = append(workerSets, ws)
-	a.GetRouter().Get(router, func(ctx *admin.Context) {})
+	a.GetRouter().Get(router, handle)
 	// template register
 	// menu register
 	// Job resource register

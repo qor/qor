@@ -17,6 +17,10 @@ type BeanstalkdQueue struct {
 	Debug io.Writer
 }
 
+func init() {
+	RegisterQueuer("beanstalkd", &BeanstalkdQueue{})
+}
+
 func (bq *BeanstalkdQueue) newClient() (*gostalkc.Client, error) {
 	return gostalkc.DialTimeout(bq.addr, time.Minute)
 }
