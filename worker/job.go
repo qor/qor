@@ -37,7 +37,10 @@ type Job struct {
 	Status     string
 	PID        int
 
-	// RunCounter uint64
+	RunCounter     uint64
+	FailCounter    uint64
+	SuccessCounter uint64
+	KillCounter    uint64
 
 	log *os.File
 }
@@ -75,6 +78,17 @@ func (j *Job) Run() (err error) {
 func (j *Job) UpdateStatus(status string) (err error) {
 	old := j.Status
 	j.Status = status
+	switch status {
+	case JobRunning:
+		j.RunCounter++
+	case JobFailed:
+		j.FailCounter++
+	case JobRun:
+		j.SuccessCounter++
+	case JobKilled:
+		j.KillCounter++
+	}
+
 	if err = jobDB.Save(j).Error; err != nil {
 		logger, erro := j.GetLogger()
 		if erro == nil {
