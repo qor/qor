@@ -116,7 +116,6 @@ func New(queuer Queuer, name string, handle func(job *Job) error) (w *Worker) {
 	}
 
 	workers[w.Name] = w
-
 	queuers[queuer.Name()] = queuer
 
 	return
@@ -127,8 +126,11 @@ type Worker struct {
 	Queuer Queuer
 	Config *qor.Config
 
-	Handle func(job *Job) error
-	OnKill func(job *Job) error
+	Handle    func(job *Job) error
+	OnKill    func(job *Job) error
+	OnStart   func(job *Job) error
+	OnSuccess func(job *Job)
+	OnFailed  func(job *Job)
 }
 
 func (w *Worker) Run(job *Job) (err error) {
@@ -142,18 +144,44 @@ func (w *Worker) Run(job *Job) (err error) {
 
 	fmt.Fprintf(logger, "run job (%d) with pid (%d)\n", job.Id, job.PID)
 
+	if w.OnStart != nil {
+		if err = w.OnStart(job); err != nil {
+			logger.Write([]byte("worker.onstart: " + err.Error() + "\n"))
+
+			if err = job.UpdateStatus(JobFailed); err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				os.Exit(1)
+			}
+
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	}
+
 	if err = job.UpdateStatus(JobRunning); err != nil {
 		fmt.Fprintf(logger, "error: %s\n", err)
 		return
 	}
 
 	if err = w.Handle(job); err != nil {
-		logger.Write([]byte("worker.hanlde: " + err.Error() + "\n"))
-
 		if err = job.UpdateStatus(JobFailed); err != nil {
-			fmt.Fprintf(logger, "error: %s\n", err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+
+		if w.OnFailed != nil {
+			w.OnFailed(job)
+		}
+
+		logger.Write([]byte("worker.hanlde: " + err.Error() + "\n"))
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	} else if w.OnSuccess != nil {
+		if err = job.UpdateStatus(JobRun); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+		}
+
+		w.OnSuccess(job)
 	}
 
 	if err = job.UpdateStatus(JobRun); err != nil {
