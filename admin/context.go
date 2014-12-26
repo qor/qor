@@ -1,13 +1,14 @@
 package admin
 
 import (
-	"github.com/qor/qor"
-
 	"net/http"
+
+	"github.com/qor/qor"
 )
 
 type Context struct {
 	*qor.Context
+	Admin        *Admin
 	ResourceName string
 	Writer       http.ResponseWriter
 }

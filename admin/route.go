@@ -48,11 +48,12 @@ func (r *Router) Delete(path string, handle Handle) {
 
 func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	var currentUser *qor.CurrentUser
-	context := Context{Context: &qor.Context{Config: admin.Config, Request: r}, Writer: w}
+	context := Context{Context: &qor.Context{Config: admin.Config, Request: r}, Writer: w, Admin: admin}
 	if admin.auth != nil {
 		currentUser = admin.auth.GetCurrentUser(&context)
 	}
 	context.Roles = roles.MatchedRoles(r, currentUser)
+
 	return &context
 }
 
