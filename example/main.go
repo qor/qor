@@ -78,7 +78,7 @@ func initWorkers(web *admin.Admin) {
 
 	bq := worker.NewBeanstalkdQueue("beanstalkd", "localhost:11300")
 	var counter int
-	w := worker.NewWorker(bq, "Log every 10 seconds", func(job *worker.Job) (err error) {
+	w := worker.New(bq, "Log every 10 seconds", func(job *worker.Job) (err error) {
 		counter++
 		log, err := job.GetLogger()
 		if err != nil {

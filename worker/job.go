@@ -32,29 +32,23 @@ type Job struct {
 	// zero time value to execute job immediately
 	StartAt time.Time
 
-	Cli          string
-	WokerSetName string
-	WorkerName   string
-	Status       string
-	PID          int
+	Cli        string
+	WorkerName string
+	Status     string
+	PID        int
 
 	// RunCounter uint64
 
 	log *os.File
 }
 
-func (j *Job) GetWorker() (*Worker, error) {
-	for _, ws := range workerSets {
-		if ws.Name == j.WokerSetName {
-			for _, w := range ws.Workers {
-				if w.Name == j.WorkerName {
-					return w, nil
-				}
-			}
-		}
+func (j *Job) GetWorker() (w *Worker, err error) {
+	var ok bool
+	if w, ok = workers[j.WorkerName]; !ok {
+		err = fmt.Errorf("unknown worker: %s\n", j.WorkerName)
 	}
 
-	return nil, fmt.Errorf("unknown worker(%s:%s) in job(%s)\n", j.WokerSetName, j.WorkerName, j.Id)
+	return
 }
 
 func RunJob(jobId uint64) {
@@ -98,7 +92,7 @@ var JobLoggerDir = "/tmp"
 // TODO: undone
 func (j *Job) GetLogger() (rw io.ReadWriter, err error) {
 	if j.log == nil {
-		path := fmt.Sprintf("%s/%s-%s-%d.log", JobLoggerDir, j.WokerSetName, j.WorkerName, j.Id)
+		path := fmt.Sprintf("%s/%s-%d.log", JobLoggerDir, j.WorkerName, j.Id)
 		j.log, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	}
 	rw = j.log
@@ -119,3 +113,8 @@ func (j *Job) SavePID() (err error) {
 
 	return
 }
+
+func (j *Job) Stop() (err error) { return }
+
+// func (j *Job) Kill() (err error)  { return }
+func (j *Job) Start() (err error) { return }

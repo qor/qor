@@ -15,12 +15,11 @@ import (
 )
 
 var (
-	jobDB            *gorm.DB
-	jobId            uint64
-	defaultWorkerSet = &WorkerSet{Name: "qor"}
-	workerSets       = []*WorkerSet{defaultWorkerSet}
-	queuers          = map[string]Queuer{}
-	DefaultJobCli    = strings.Join(os.Args, " ")
+	jobDB         *gorm.DB
+	jobId         uint64
+	workers       = map[string]*Worker{}
+	queuers       = map[string]Queuer{}
+	DefaultJobCli = strings.Join(os.Args, " ")
 )
 
 func init() {
@@ -39,22 +38,20 @@ func SetJobDB(db *gorm.DB) (err error) {
 	return
 }
 
-func NewWorker(queuer Queuer, name string, handle func(job *Job) error) (w *Worker) {
-	return defaultWorkerSet.NewWorker(queuer, name, handle)
-}
-
 // TODO: UNDONE
 func SetAdmin(a *admin.Admin) {
-	ws := defaultWorkerSet.Workers
-	a.NewResource(&Job{})
+	// ws := defaultWorkerSet.Workers
+	job := a.NewResource(&Job{})
+	job.IndexAttrs("Id", "QueueJobId", "Interval", "StartAt", "Cli", "WokerSetName", "WorkerName", "Status", "PID")
 
 	// defaultWorkerSet = NewWorkerSet(defaultWorkerSet.Name, "/workers", "", admin)
-	admin.RegisterViewPath(os.Getenv("GOPATH") + "/src/github.com/qor/qor/worker/templates")
-	a.GetRouter().Get("/workers", func(c *admin.Context) {
-		content := admin.Content{Context: c, Admin: a}
-		a.Render("workers", content)
-	})
-	defaultWorkerSet.Workers = ws
+	// admin.RegisterViewPath(os.Getenv("GOPATH") + "/src/github.com/qor/qor/worker/templates")
+	// a.GetRouter().Get("/workers", func(c *admin.Context) {
+	// 	content := admin.Content{Context: c, Admin: a}
+	// 	a.Render("workers", content)
+	// })
+
+	// defaultWorkerSet.Workers = ws
 }
 
 // Listen will parse an flag named as "job-id". If the job-id is zero, it
@@ -111,32 +108,14 @@ func Listen() {
 	}
 }
 
-type WorkerSet struct {
-	Name    string
-	Workers []*Worker
-}
-
-// TODO: UNDONE
-func NewWorkerSet(name, router, tmplDir string, a *admin.Admin, handle func(ctx *admin.Context)) (ws *WorkerSet) {
-	ws = &WorkerSet{Name: name}
-	workerSets = append(workerSets, ws)
-	a.GetRouter().Get(router, handle)
-	// template register
-	// menu register
-	// Job resource register
-
-	return
-}
-
-func (ws *WorkerSet) NewWorker(queuer Queuer, name string, handle func(job *Job) error) (w *Worker) {
+func New(queuer Queuer, name string, handle func(job *Job) error) (w *Worker) {
 	w = &Worker{
 		Name:   name,
 		Handle: handle,
 		Queuer: queuer,
-		set:    ws,
 	}
 
-	ws.Workers = append(ws.Workers, w)
+	workers[w.Name] = w
 
 	queuers[queuer.Name()] = queuer
 
@@ -147,7 +126,6 @@ type Worker struct {
 	Name   string
 	Queuer Queuer
 	Config *qor.Config
-	set    *WorkerSet
 
 	Handle func(job *Job) error
 	OnKill func(job *Job) error
@@ -229,11 +207,10 @@ func (w *Worker) NewJob(interval uint64, startAt time.Time) (job *Job, err error
 
 func (w *Worker) NewJobWithCli(interval uint64, startAt time.Time, cli string) (job *Job, err error) {
 	job = &Job{
-		Interval:     interval,
-		StartAt:      startAt,
-		WokerSetName: w.set.Name,
-		WorkerName:   w.Name,
-		Cli:          cli,
+		Interval:   interval,
+		StartAt:    startAt,
+		WorkerName: w.Name,
+		Cli:        cli,
 	}
 	if err = jobDB.Save(job).Error; err != nil {
 		return
