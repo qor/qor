@@ -1,22 +1,27 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/qor/qor/worker"
-
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/resource"
+	"github.com/qor/qor/worker"
 )
 
-func main() {
-	mux := http.NewServeMux()
+var runWorker bool
 
+func init() {
+	flag.BoolVar(&runWorker, "run-worker", false, "run example beanstalkd worker")
+	flag.Parse()
+}
+
+func main() {
 	creditCard := admin.NewResource(CreditCard{})
 	creditCard.Meta(&resource.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
@@ -53,18 +58,23 @@ func main() {
 	web.UseResource(user)
 	web.NewResource(Role{})
 	web.NewResource(Language{})
-	web.MountTo("/admin", mux)
 
-	initWorkers()
+	if runWorker {
+		initWorkers(web)
+	}
 
 	fmt.Println("listening on :8080")
+	mux := http.NewServeMux()
+	web.MountTo("/admin", mux)
 	http.ListenAndServe(":8080", mux)
 }
 
-func initWorkers() {
+func initWorkers(web *admin.Admin) {
 	if err := worker.SetJobDB(&db); err != nil {
 		panic(err)
 	}
+
+	worker.SetAdmin(web)
 
 	bq := worker.NewBeanstalkdQueue("beanstalkd", "localhost:11300")
 	var counter int
@@ -89,4 +99,5 @@ func initWorkers() {
 	if err != nil {
 		panic(err)
 	}
+	_ = job
 }
