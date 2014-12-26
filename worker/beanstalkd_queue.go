@@ -13,12 +13,17 @@ import (
 )
 
 type BeanstalkdQueue struct {
+	name  string
 	addr  string
 	Debug io.Writer
 }
 
-func init() {
-	RegisterQueuer("beanstalkd", &BeanstalkdQueue{})
+func NewBeanstalkdQueue(name, addr string) (bq *BeanstalkdQueue) {
+	bq = new(BeanstalkdQueue)
+	bq.name = name
+	bq.addr = addr
+
+	return
 }
 
 func (bq *BeanstalkdQueue) newClient() (*gostalkc.Client, error) {
@@ -50,11 +55,8 @@ func (bq *BeanstalkdQueue) putJob(job *Job) (err error) {
 	return
 }
 
-func NewBeanstalkdQueue(addr string) (bq *BeanstalkdQueue) {
-	bq = new(BeanstalkdQueue)
-	bq.addr = addr
-
-	return
+func (bq *BeanstalkdQueue) Name() string {
+	return bq.name
 }
 
 func (bq *BeanstalkdQueue) Enqueue(job *Job) (err error) {

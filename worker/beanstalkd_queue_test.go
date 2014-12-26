@@ -9,7 +9,7 @@ import (
 )
 
 func TestBeanstalkdQueue(t *testing.T) {
-	queue := NewBeanstalkdQueue("localhost:11300")
+	queue := NewBeanstalkdQueue("beanstalkd-test", "localhost:11300")
 	client, _ := queue.newClient()
 	{
 		job := &Job{

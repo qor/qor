@@ -102,7 +102,7 @@ func NewWorkerSet(name, router, tmplDir string, a *admin.Admin, handle func(ctx 
 	return
 }
 
-func (ws *WorkerSet) NewWorker(name string, handle func(job *Job) error, queuer Queuer) (w *Worker) {
+func (ws *WorkerSet) NewWorker(queuer Queuer, name string, handle func(job *Job) error) (w *Worker) {
 	w = &Worker{
 		Name:   name,
 		Handle: handle,
@@ -111,6 +111,8 @@ func (ws *WorkerSet) NewWorker(name string, handle func(job *Job) error, queuer 
 	}
 
 	ws.Workers = append(ws.Workers, w)
+
+	queuers[queuer.Name()] = queuer
 
 	return
 }
