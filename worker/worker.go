@@ -151,9 +151,6 @@ type Worker struct {
 
 	Handle func(job *Job) error
 	OnKill func(job *Job) error
-	// OnStart   func(job *Job) error
-	// OnSuccess func(job *Job)
-	// OnFailed  func(job *Job)
 }
 
 func (w *Worker) Run(job *Job) (err error) {
@@ -172,20 +169,6 @@ func (w *Worker) Run(job *Job) (err error) {
 		return
 	}
 
-	// if w.OnStart != nil {
-	// 	if err = w.OnStart(job); err != nil {
-	// 		logger.Write([]byte("worker.onstart: " + err.Error() + "\n"))
-
-	// 		if err = job.UpdateStatus(JobFailed); err != nil {
-	// 			fmt.Fprintf(logger, "error: %s\n", err)
-	// 			os.Exit(1)
-	// 		}
-
-	// 		fmt.Fprintf(logger, "error: %s\n", err)
-	// 		os.Exit(1)
-	// 	}
-	// }
-
 	if err = w.Handle(job); err != nil {
 		logger.Write([]byte("worker.hanlde: " + err.Error() + "\n"))
 
@@ -193,17 +176,6 @@ func (w *Worker) Run(job *Job) (err error) {
 			fmt.Fprintf(logger, "error: %s\n", err)
 			os.Exit(1)
 		}
-
-		// if w.OnFailed != nil {
-		// 	w.OnFailed(job)
-		// }
-
-		// } else if w.OnSuccess != nil {
-		// 	if err = job.UpdateStatus(JobRun); err != nil {
-		// 		fmt.Fprintf(logger, "error: %s\n", err)
-		// 	}
-
-		// 	w.OnSuccess(job)
 	}
 
 	if err = job.UpdateStatus(JobRun); err != nil {
