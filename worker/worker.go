@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -16,7 +17,7 @@ import (
 var (
 	jobDB            *gorm.DB
 	jobId            uint64
-	defaultWorkerSet = &WorkerSet{Name: "default"}
+	defaultWorkerSet = &WorkerSet{Name: "qor"}
 	workerSets       = []*WorkerSet{defaultWorkerSet}
 	queuers          = map[string]Queuer{}
 	DefaultJobCli    = strings.Join(os.Args, " ")
@@ -28,31 +29,39 @@ func init() {
 
 // SetJobDB will run a auto migration for creating table jobs
 func SetJobDB(db *gorm.DB) (err error) {
-	jobDB = db
 	err = db.AutoMigrate(&Job{}).Error
+	if err != nil {
+		return
+	}
+
+	jobDB = db
+
 	return
 }
 
-func NewWorker(name string, handle func(job *Job) error, queuer Queuer) (w *Worker) {
-	return defaultWorkerSet.NewWorker(name, handle, queuer)
+func NewWorker(queuer Queuer, name string, handle func(job *Job) error) (w *Worker) {
+	return defaultWorkerSet.NewWorker(queuer, name, handle)
 }
 
 // TODO: UNDONE
 func SetAdmin(a *admin.Admin) {
 	ws := defaultWorkerSet.Workers
+	a.NewResource(&Job{})
+
 	// defaultWorkerSet = NewWorkerSet(defaultWorkerSet.Name, "/workers", "", admin)
-	admin.RegisterTemplates("github.com/qor/qor/worker/templates")
+	admin.RegisterViewPath(os.Getenv("GOPATH") + "/src/github.com/qor/qor/worker/templates")
 	a.GetRouter().Get("/workers", func(c *admin.Context) {
-		content := &admin.Content{Context: c, Admin: a}
-		a.Render("worker/workers", content)
+		content := admin.Content{Context: c, Admin: a}
+		a.Render("workers", content)
 	})
 	defaultWorkerSet.Workers = ws
 }
 
-func RegisterQueuer(name string, queuer Queuer) {
-	queuers[name] = queuer
-}
-
+// Listen will parse an flag named as "job-id". If the job-id is zero, it
+// will run as queue listen server. Otherwise, it will run a specific job
+// and terminate the process after the job is run.
+//
+// It must be executed before http.ListenAndServer
 func Listen() {
 	flag.Parse()
 
@@ -62,18 +71,35 @@ func Listen() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-		w, err := job.GetWorker()
-		if err != nil {
+
+		var logger io.Writer
+		var err error
+		if logger, err = job.GetLogger(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintln(logger, err)
 			os.Exit(1)
 		}
 
-		w.Run(&job)
+		var w *Worker
+		if w, err = job.GetWorker(); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintln(logger, err)
+			os.Exit(1)
+		}
+
+		if err = w.Run(&job); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintln(logger, err)
+			os.Exit(1)
+		}
+
+		os.Exit(0)
 	} else {
 		for _, queuer := range queuers {
 			go func() {
 				for {
 					jobId, err := queuer.Dequeue()
+					fmt.Println("dequeue job", jobId)
 					if err != nil {
 						fmt.Println("qor.worker.dequeue.error:", err)
 					} else {
@@ -123,67 +149,69 @@ type Worker struct {
 	Config *qor.Config
 	set    *WorkerSet
 
-	Handle    func(job *Job) error
-	OnStart   func(job *Job) error
-	OnKill    func(job *Job) error
-	OnSuccess func(job *Job)
-	OnFailed  func(job *Job)
+	Handle func(job *Job) error
+	OnKill func(job *Job) error
+	// OnStart   func(job *Job) error
+	// OnSuccess func(job *Job)
+	// OnFailed  func(job *Job)
 }
 
 func (w *Worker) Run(job *Job) (err error) {
 	if err = job.SavePID(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		return
 	}
 	logger, err := job.GetLogger()
 	if err != nil {
-		fmt.Println("can't get job logger")
 		return
 	}
 
-	fmt.Fprintf(logger, "to run job (%d) with pid (%d)", job.Id, job.PID)
+	fmt.Fprintf(logger, "run job (%d) with pid (%d)\n", job.Id, job.PID)
 
 	if err = job.UpdateStatus(JobRunning); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		fmt.Fprintf(logger, "error: %s\n", err)
+		return
 	}
 
-	if w.OnStart != nil {
-		if err = w.OnStart(job); err != nil {
-			logger.Write([]byte("worker.onstart: " + err.Error() + "\n"))
+	// if w.OnStart != nil {
+	// 	if err = w.OnStart(job); err != nil {
+	// 		logger.Write([]byte("worker.onstart: " + err.Error() + "\n"))
 
-			if err = job.UpdateStatus(JobFailed); err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(1)
-			}
+	// 		if err = job.UpdateStatus(JobFailed); err != nil {
+	// 			fmt.Fprintf(logger, "error: %s\n", err)
+	// 			os.Exit(1)
+	// 		}
 
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-	}
+	// 		fmt.Fprintf(logger, "error: %s\n", err)
+	// 		os.Exit(1)
+	// 	}
+	// }
 
 	if err = w.Handle(job); err != nil {
+		logger.Write([]byte("worker.hanlde: " + err.Error() + "\n"))
+
 		if err = job.UpdateStatus(JobFailed); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintf(logger, "error: %s\n", err)
 			os.Exit(1)
 		}
 
-		if w.OnFailed != nil {
-			w.OnFailed(job)
-		}
+		// if w.OnFailed != nil {
+		// 	w.OnFailed(job)
+		// }
 
-		logger.Write([]byte("worker.hanlde: " + err.Error() + "\n"))
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	} else if w.OnSuccess != nil {
-		if err = job.UpdateStatus(JobRun); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-		}
+		// } else if w.OnSuccess != nil {
+		// 	if err = job.UpdateStatus(JobRun); err != nil {
+		// 		fmt.Fprintf(logger, "error: %s\n", err)
+		// 	}
 
-		w.OnSuccess(job)
+		// 	w.OnSuccess(job)
 	}
 
-	fmt.Fprintf(logger, "finish job (%d) with pid (%d)", job.Id, job.PID)
+	if err = job.UpdateStatus(JobRun); err != nil {
+		fmt.Fprintf(logger, "error: %s\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Fprintf(logger, "finish job (%d) with pid (%d)\n", job.Id, job.PID)
 
 	return
 }
@@ -233,16 +261,16 @@ func (w *Worker) NewJobWithCli(interval uint64, startAt time.Time, cli string) (
 		StartAt:      startAt,
 		WokerSetName: w.set.Name,
 		WorkerName:   w.Name,
-		Cli:          DefaultJobCli,
+		Cli:          cli,
 	}
-	if err = jobDB.Save(&job).Error; err != nil {
+	if err = jobDB.Save(job).Error; err != nil {
 		return
 	}
 
 	err = w.Queuer.Enqueue(job)
 
 	if job.QueueJobId != "" {
-		if err = jobDB.Save(&job).Error; err != nil {
+		if err = jobDB.Save(job).Error; err != nil {
 			return
 		}
 	}

@@ -38,6 +38,8 @@ type Job struct {
 	Status       string
 	PID          int
 
+	// RunCounter uint64
+
 	log *os.File
 }
 
@@ -78,11 +80,11 @@ func (j *Job) Run() (err error) {
 
 func (j *Job) UpdateStatus(status string) (err error) {
 	old := j.Status
-	j.Status = JobRunning
-	if err = jobDB.Model(j).Update("status", j.Status).Error; err != nil {
+	j.Status = status
+	if err = jobDB.Save(j).Error; err != nil {
 		logger, erro := j.GetLogger()
 		if erro == nil {
-			fmt.Fprintf(logger, "can't update status from %s to %s: %s", old, j.Status, err)
+			fmt.Fprintf(logger, "can't update status from %s to %s: %s\n", old, j.Status, err)
 		}
 
 		return
@@ -106,10 +108,10 @@ func (j *Job) GetLogger() (rw io.ReadWriter, err error) {
 
 func (j *Job) SavePID() (err error) {
 	j.PID = os.Getpid()
-	if err = jobDB.Model(j).Update("pid", j.PID).Error; err != nil {
+	if err = jobDB.Save(j).Error; err != nil {
 		logger, erro := j.GetLogger()
 		if erro == nil {
-			fmt.Fprintf(logger, "can't save pid for job %d", j.Id)
+			fmt.Fprintf(logger, "can't save pid for job %d\n", j.Id)
 		}
 
 		return
