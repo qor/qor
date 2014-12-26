@@ -42,16 +42,13 @@ func SetJobDB(db *gorm.DB) (err error) {
 func SetAdmin(a *admin.Admin) {
 	// ws := defaultWorkerSet.Workers
 	job := a.NewResource(&Job{})
-	job.IndexAttrs("Id", "QueueJobId", "Interval", "StartAt", "Cli", "WokerSetName", "WorkerName", "Status", "PID")
+	job.IndexAttrs("Id", "QueueJobId", "Interval", "StartAt", "Cli", "WorkerName", "Status", "PID", "RunCounter", "FailCounter", "SuccessCounter", "KillCounter")
 
-	// defaultWorkerSet = NewWorkerSet(defaultWorkerSet.Name, "/workers", "", admin)
 	// admin.RegisterViewPath(os.Getenv("GOPATH") + "/src/github.com/qor/qor/worker/templates")
 	// a.GetRouter().Get("/workers", func(c *admin.Context) {
 	// 	content := admin.Content{Context: c, Admin: a}
 	// 	a.Render("workers", content)
 	// })
-
-	// defaultWorkerSet.Workers = ws
 }
 
 // Listen will parse an flag named as "job-id". If the job-id is zero, it
