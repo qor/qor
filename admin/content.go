@@ -28,8 +28,9 @@ func (content *Content) Admin() *Admin {
 }
 
 func (content *Content) Render(name string) string {
-	var tmpl = template.New(name + ".tmpl").Funcs(content.funcMap())
 	var err error
+	var tmpl = template.New(name + ".tmpl").Funcs(content.funcMap())
+
 	if tmpl, err = content.getTemplate(tmpl, name+".tmpl"); err == nil {
 		var result = bytes.NewBufferString("")
 		if err := tmpl.Execute(result, content); err != nil {
@@ -37,6 +38,7 @@ func (content *Content) Render(name string) string {
 		}
 		return result.String()
 	}
+
 	return ""
 }
 
@@ -46,6 +48,8 @@ func (content *Content) Execute(name string) {
 	cacheKey := path.Join(content.Context.ResourceName, name)
 	if t, ok := templates[cacheKey]; !ok || true {
 		tmpl, _ = content.getTemplate(tmpl, "layout.tmpl")
+		tmpl = tmpl.Funcs(content.funcMap())
+
 		for _, name := range []string{"header", "footer"} {
 			if tmpl.Lookup(name) == nil {
 				tmpl, _ = content.getTemplate(tmpl, name+".tmpl")
