@@ -47,7 +47,10 @@ func (content *Content) Execute(name string) {
 	}
 
 	content.Content = content.Render(name)
-	tmpl.Execute(content.Context.Writer, content)
+
+	if err := tmpl.Execute(content.Context.Writer, content); err != nil {
+		fmt.Println(err)
+	}
 }
 
 func (content *Content) RenderIndex() string {
