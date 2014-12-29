@@ -27,7 +27,10 @@ func (admin *Admin) Index(context *Context) {
 
 	responder.With("html", func() {
 		content := Content{Context: context, Resource: res, Result: result}
-		admin.Render("index", content)
+		content.Execute("index")
+
+		// get index page -> render -> .Body
+		// render layout
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)

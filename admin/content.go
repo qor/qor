@@ -15,6 +15,7 @@ import (
 )
 
 type Content struct {
+	Content    string
 	Context    *Context
 	Resource   *Resource
 	Result     interface{}
@@ -24,6 +25,33 @@ type Content struct {
 
 func (content *Content) Admin() *Admin {
 	return content.Context.Admin
+}
+
+func (content *Content) Render(name string) string {
+	return "hello world"
+}
+
+func (content *Content) Execute(name string) {
+	var tmpl *template.Template
+
+	cacheKey := path.Join(content.Context.ResourceName, name)
+	if t, ok := templates[cacheKey]; !ok || true {
+		tmpl, _ = content.getTemplate(tmpl, "layout.tmpl")
+		for _, name := range []string{"header", "footer"} {
+			if tmpl.Lookup(name) == nil {
+				tmpl, _ = content.getTemplate(tmpl, name+".tmpl")
+			}
+		}
+	} else {
+		tmpl = t
+	}
+
+	content.Content = content.Render(name)
+	tmpl.Execute(content.Context.Writer, content)
+}
+
+func (content *Content) RenderIndex() string {
+	return ""
 }
 
 func (content *Content) AllowedMetas(modes ...roles.PermissionMode) func(reses ...*Resource) []*resource.Meta {
