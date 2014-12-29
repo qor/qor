@@ -13,7 +13,7 @@ import (
 
 func (admin *Admin) Dashboard(context *Context) {
 	content := Content{Context: context}
-	admin.Render("dashboard", content)
+	content.Execute("dashboard")
 }
 
 func (admin *Admin) Index(context *Context) {
@@ -28,9 +28,6 @@ func (admin *Admin) Index(context *Context) {
 	responder.With("html", func() {
 		content := Content{Context: context, Resource: res, Result: result}
 		content.Execute("index")
-
-		// get index page -> render -> .Body
-		// render layout
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)
@@ -43,7 +40,7 @@ func (admin *Admin) Show(context *Context) {
 
 	responder.With("html", func() {
 		content := Content{Context: context, Resource: res, Result: result}
-		admin.Render("show", content)
+		content.Execute("show")
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)
@@ -53,7 +50,7 @@ func (admin *Admin) Show(context *Context) {
 func (admin *Admin) New(context *Context) {
 	resource := admin.Resources[context.ResourceName]
 	content := Content{Context: context, Resource: resource}
-	admin.Render("new", content)
+	content.Execute("new")
 }
 
 func (admin *Admin) decode(result interface{}, res *Resource, context *Context) (errs []error) {
