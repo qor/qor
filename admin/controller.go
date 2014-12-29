@@ -6,15 +6,14 @@ import (
 
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/responder"
-	"github.com/qor/qor/roles"
 
 	"net/http"
 	"path"
 )
 
 func (admin *Admin) Dashboard(context *Context) {
-	content := Content{Admin: admin, Context: context, Action: "dashboard", Permission: roles.All}
-	admin.Render("dashboard", content, roles.Read)
+	content := Content{Context: context}
+	admin.Render("dashboard", content)
 }
 
 func (admin *Admin) Index(context *Context) {
@@ -27,8 +26,8 @@ func (admin *Admin) Index(context *Context) {
 	result, _ := admin.NewSearcher(res).FindAll(context)
 
 	responder.With("html", func() {
-		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "index"}
-		admin.Render("index", content, roles.Read)
+		content := Content{Context: context, Resource: res, Result: result}
+		admin.Render("index", content)
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)
@@ -40,8 +39,8 @@ func (admin *Admin) Show(context *Context) {
 	result, _ := admin.NewSearcher(res).FindOne(context)
 
 	responder.With("html", func() {
-		content := Content{Admin: admin, Context: context, Resource: res, Result: result, Action: "edit"}
-		admin.Render("show", content, roles.Read, roles.Update)
+		content := Content{Context: context, Resource: res, Result: result}
+		admin.Render("show", content)
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)
@@ -50,8 +49,8 @@ func (admin *Admin) Show(context *Context) {
 
 func (admin *Admin) New(context *Context) {
 	resource := admin.Resources[context.ResourceName]
-	content := Content{Admin: admin, Context: context, Resource: resource, Action: "new"}
-	admin.Render("new", content, roles.Create)
+	content := Content{Context: context, Resource: resource}
+	admin.Render("new", content)
 }
 
 func (admin *Admin) decode(result interface{}, res *Resource, context *Context) (errs []error) {
