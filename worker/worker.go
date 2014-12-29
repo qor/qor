@@ -5,9 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/qor/qor/resource"
+
+	"github.com/qor/qor/roles"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -40,15 +45,44 @@ func SetJobDB(db *gorm.DB) (err error) {
 
 // TODO: UNDONE
 func SetAdmin(a *admin.Admin) {
-	// ws := defaultWorkerSet.Workers
 	job := a.NewResource(&Job{})
 	job.IndexAttrs("Id", "QueueJobId", "Interval", "StartAt", "Cli", "WorkerName", "Status", "PID", "RunCounter", "FailCounter", "SuccessCounter", "KillCounter")
+	job.NewAttrs("Interval", "StartAt", "WorkerName")
 
-	// admin.RegisterViewPath(os.Getenv("GOPATH") + "/src/github.com/qor/qor/worker/templates")
-	// a.GetRouter().Get("/workers", func(c *admin.Context) {
-	// 	content := admin.Content{Context: c, Admin: a}
-	// 	a.Render("workers", content)
-	// })
+	job.Meta(&resource.Meta{Name: "WorkerName", Type: "select_one", Collection: func(interface{}, *qor.Context) [][]string {
+		var keys [][]string
+		for k, _ := range workers {
+			keys = append(keys, []string{k, k})
+		}
+		return keys
+	}})
+
+	admin.RegisterViewPath(os.Getenv("GOPATH") + "/src/github.com/qor/qor/worker/templates")
+	a.GetRouter().Get("/job/new", newJobPage)
+	a.GetRouter().Get("/job/switch_worker", switchWorker)
+}
+
+func newJobPage(c *admin.Context) {
+	var res *admin.Resource
+	for _, w := range workers {
+		res = w.resource
+		break
+	}
+	content := admin.Content{Context: c, Admin: c.Admin, Resource: res, Action: "new"}
+	c.Admin.Render("new", content, roles.Create)
+}
+
+func switchWorker(c *admin.Context) {
+	wname := c.Request.FormValue("name")
+	w, ok := workers[wname]
+	if !ok {
+		c.Writer.WriteHeader(http.StatusBadRequest)
+		c.Writer.Write([]byte("worker does not exist"))
+		return
+	}
+
+	content := admin.Content{Context: c, Admin: c.Admin, Resource: w.resource, Action: "new"}
+	c.Admin.Render("worker", content, roles.Create)
 }
 
 // Listen will parse an flag named as "job-id". If the job-id is zero, it
@@ -123,11 +157,17 @@ type Worker struct {
 	Queuer Queuer
 	Config *qor.Config
 
+	resource *admin.Resource
+
 	Handle    func(job *Job) error
 	OnKill    func(job *Job) error
 	OnStart   func(job *Job) error
 	OnSuccess func(job *Job)
 	OnFailed  func(job *Job)
+}
+
+func (w *Worker) ExtraInput(res *admin.Resource) {
+	w.resource = res
 }
 
 func (w *Worker) Run(job *Job) (err error) {

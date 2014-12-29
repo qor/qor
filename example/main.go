@@ -92,6 +92,9 @@ func initWorkers(web *admin.Admin) {
 		return
 	})
 
+	extraInput := admin.NewResource(&Language{})
+	w.ExtraInput(extraInput)
+
 	// must be executed before http.ListenAndServer
 	worker.Listen()
 

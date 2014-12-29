@@ -42,6 +42,8 @@ type Job struct {
 	SuccessCounter uint64
 	KillCounter    uint64
 
+	ExtraInput []byte
+
 	log *os.File
 }
 

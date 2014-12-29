@@ -1,0 +1,8 @@
+{{define "content"}}
+<form action="{{url_for .Resource}}" method="POST" enctype="multipart/form-data">
+  {{$job := index .Admin.Resources "job"}}
+  {{render_form $job (allowed_metas $job)}}
+  {{render_form .Result (allowed_metas .Resource)}}
+  <input value="Save" type="submit"/>
+</form>
+{{end}}
