@@ -28,7 +28,16 @@ func (content *Content) Admin() *Admin {
 }
 
 func (content *Content) Render(name string) string {
-	return "hello world"
+	var tmpl = template.New(name + ".tmpl").Funcs(content.funcMap())
+	var err error
+	if tmpl, err = content.getTemplate(tmpl, name+".tmpl"); err == nil {
+		var result = bytes.NewBufferString("")
+		if err := tmpl.Execute(result, content); err != nil {
+			fmt.Println(err)
+		}
+		return result.String()
+	}
+	return ""
 }
 
 func (content *Content) Execute(name string) {
@@ -47,7 +56,6 @@ func (content *Content) Execute(name string) {
 	}
 
 	content.Content = content.Render(name)
-
 	if err := tmpl.Execute(content.Context.Writer, content); err != nil {
 		fmt.Println(err)
 	}
