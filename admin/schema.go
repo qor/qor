@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-type resourcer interface {
+type Resourcer interface {
 	AllAttrs() []*resource.Meta
 }
 
-func ConvertMapToMetaValues(values map[string]interface{}, res resourcer) (metaValues *resource.MetaValues) {
+func ConvertMapToMetaValues(values map[string]interface{}, res Resourcer) (metaValues *resource.MetaValues) {
 	metas := make(map[string]resource.Metaor)
 	if res != nil {
 		for _, attr := range res.AllAttrs() {
@@ -28,9 +28,9 @@ func ConvertMapToMetaValues(values map[string]interface{}, res resourcer) (metaV
 			metaValue := &resource.MetaValue{Name: key, Value: str, Meta: meta}
 			metaValues.Values = append(metaValues.Values, metaValue)
 		} else {
-			var res resourcer
+			var res Resourcer
 			if meta != nil && meta.GetMeta() != nil && meta.GetMeta().Resource != nil {
-				res, _ = meta.GetMeta().Resource.(resourcer)
+				res, _ = meta.GetMeta().Resource.(Resourcer)
 			}
 
 			if vs, ok := value.(map[string]interface{}); ok {
