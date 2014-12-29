@@ -1,10 +1,12 @@
 package admin
 
 import (
+	"log"
 	"net/http"
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/roles"
@@ -79,6 +81,14 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 }
 
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	defer func() func() {
+		begin := time.Now()
+		log.Printf("Start [%s] %s\n", req.Method, req.RequestURI)
+		return func() {
+			log.Printf("Finish [%s] %s Took %.2fs\n", req.Method, req.RequestURI, time.Now().Sub(begin).Seconds())
+		}
+	}()()
+
 	// 128 MB
 	req.ParseMultipartForm(32 << 22)
 	if len(req.Form["_method"]) > 0 {
