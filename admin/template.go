@@ -110,5 +110,6 @@ func (admin *Admin) RenderError(err error, code int, c *Context) {
 		Body: string(bytes.Replace(stacks, []byte("\n"), []byte("<br>"), -1)),
 	}
 	c.Writer.WriteHeader(data.Code)
-	admin.Render("error", Content{Admin: admin, Context: c, Result: data})
+	content := Content{Context: c, Result: data}
+	content.Execute("error")
 }
