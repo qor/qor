@@ -15,12 +15,15 @@ import (
 )
 
 type Content struct {
-	Admin      *Admin
 	Context    *Context
 	Resource   *Resource
 	Result     interface{}
 	Action     string
 	Permission map[string]roles.PermissionMode
+}
+
+func (content *Content) Admin() *Admin {
+	return content.Context.Admin
 }
 
 func (content *Content) AllowedMetas(modes ...roles.PermissionMode) func(reses ...*Resource) []*resource.Meta {
@@ -51,9 +54,9 @@ func (content *Content) ValueOf(value interface{}, meta *resource.Meta) interfac
 
 func (content *Content) NewResourcePath(value interface{}) string {
 	if res, ok := value.(*Resource); ok {
-		return path.Join(content.Admin.router.Prefix, res.Name, "new")
+		return path.Join(content.Admin().router.Prefix, res.Name, "new")
 	} else {
-		return path.Join(content.Admin.router.Prefix, content.Resource.Name, "new")
+		return path.Join(content.Admin().router.Prefix, content.Resource.Name, "new")
 	}
 }
 
@@ -62,11 +65,11 @@ func (content *Content) UrlFor(value interface{}, resources ...*Resource) string
 	if admin, ok := value.(*Admin); ok {
 		url = admin.router.Prefix
 	} else if resource, ok := value.(*Resource); ok {
-		url = path.Join(content.Admin.router.Prefix, resource.Name)
+		url = path.Join(content.Admin().router.Prefix, resource.Name)
 	} else {
 		primaryKey := content.Context.GetDB().NewScope(value).PrimaryKeyValue()
 		name := strings.ToLower(reflect.Indirect(reflect.ValueOf(value)).Type().Name())
-		url = path.Join(content.Admin.router.Prefix, name, fmt.Sprintf("%v", primaryKey))
+		url = path.Join(content.Admin().router.Prefix, name, fmt.Sprintf("%v", primaryKey))
 	}
 	return url
 }
