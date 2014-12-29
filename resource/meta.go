@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
 	"github.com/qor/qor"
@@ -52,7 +53,7 @@ func (meta *Meta) UpdateMeta() {
 		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
 	} else {
 		if meta.Label == "" {
-			meta.Label = strings.Title(meta.Name)
+			meta.Label = HumanizeString(meta.Name)
 		}
 		if meta.Alias == "" {
 			meta.Alias = meta.Name
@@ -369,4 +370,21 @@ func ToFloat(value interface{}) float64 {
 	} else {
 		panic("failed to parsefloat")
 	}
+}
+
+// HumanizeString will split a string by uppercase character
+// and capitablize the first character in the string
+// e.g.
+// 	FieldName -> Field Name
+func HumanizeString(label string) string {
+	var new []rune
+	for _, l := range label {
+		if rune('A') <= l && l <= rune('Z') {
+			new = append(new, rune(' '), rune(l))
+		} else {
+			new = append(new, rune(l))
+		}
+	}
+
+	return strings.Title(string(new))
 }
