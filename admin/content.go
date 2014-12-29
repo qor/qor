@@ -15,12 +15,58 @@ import (
 )
 
 type Content struct {
-	Admin      *Admin
+	Content    string
 	Context    *Context
 	Resource   *Resource
 	Result     interface{}
 	Action     string
 	Permission map[string]roles.PermissionMode
+}
+
+func (content *Content) Admin() *Admin {
+	return content.Context.Admin
+}
+
+func (content *Content) Render(name string) string {
+	var err error
+	var tmpl = template.New(name + ".tmpl").Funcs(content.funcMap())
+
+	if tmpl, err = content.getTemplate(tmpl, name+".tmpl"); err == nil {
+		var result = bytes.NewBufferString("")
+		if err := tmpl.Execute(result, content); err != nil {
+			fmt.Println(err)
+		}
+		return result.String()
+	}
+
+	return ""
+}
+
+func (content *Content) Execute(name string) {
+	var tmpl *template.Template
+
+	cacheKey := path.Join(content.Context.ResourceName, name)
+	if t, ok := templates[cacheKey]; !ok || true {
+		tmpl, _ = content.getTemplate(tmpl, "layout.tmpl")
+		tmpl = tmpl.Funcs(content.funcMap())
+
+		for _, name := range []string{"header", "footer"} {
+			if tmpl.Lookup(name) == nil {
+				tmpl, _ = content.getTemplate(tmpl, name+".tmpl")
+			}
+		}
+	} else {
+		tmpl = t
+	}
+
+	content.Content = content.Render(name)
+	if err := tmpl.Execute(content.Context.Writer, content); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func (content *Content) RenderIndex() string {
+	return ""
 }
 
 func (content *Content) AllowedMetas(modes ...roles.PermissionMode) func(reses ...*Resource) []*resource.Meta {
@@ -51,9 +97,9 @@ func (content *Content) ValueOf(value interface{}, meta *resource.Meta) interfac
 
 func (content *Content) NewResourcePath(value interface{}) string {
 	if res, ok := value.(*Resource); ok {
-		return path.Join(content.Admin.router.Prefix, res.Name, "new")
+		return path.Join(content.Admin().router.Prefix, res.Name, "new")
 	} else {
-		return path.Join(content.Admin.router.Prefix, content.Resource.Name, "new")
+		return path.Join(content.Admin().router.Prefix, content.Resource.Name, "new")
 	}
 }
 
@@ -62,11 +108,11 @@ func (content *Content) UrlFor(value interface{}, resources ...*Resource) string
 	if admin, ok := value.(*Admin); ok {
 		url = admin.router.Prefix
 	} else if resource, ok := value.(*Resource); ok {
-		url = path.Join(content.Admin.router.Prefix, resource.Name)
+		url = path.Join(content.Admin().router.Prefix, resource.Name)
 	} else {
 		primaryKey := content.Context.GetDB().NewScope(value).PrimaryKeyValue()
 		name := strings.ToLower(reflect.Indirect(reflect.ValueOf(value)).Type().Name())
-		url = path.Join(content.Admin.router.Prefix, name, fmt.Sprintf("%v", primaryKey))
+		url = path.Join(content.Admin().router.Prefix, name, fmt.Sprintf("%v", primaryKey))
 	}
 	return url
 }
