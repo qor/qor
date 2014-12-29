@@ -1,0 +1,14 @@
+{{define "content"}}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ERROR</title>
+</head>
+<body>
+  <h1>Error: {{.Result.Code}}</h1>
+  <article>
+    {{.Result.Body}}
+  </article>
+</body>
+</html>
+{{end}}

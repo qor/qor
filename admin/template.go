@@ -1,11 +1,13 @@
 package admin
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"path"
 	"regexp"
+	"runtime/debug"
 	"strings"
 
 	"github.com/qor/qor/roles"
@@ -96,4 +98,17 @@ func (admin *Admin) Render(str string, content Content, modes ...roles.Permissio
 	if err := tmpl.Execute(content.Context.Writer, content); err != nil {
 		fmt.Println(err)
 	}
+}
+
+func (admin *Admin) RenderError(err error, code int, c *Context) {
+	stacks := append([]byte(err.Error()+"\n"), debug.Stack()...)
+	data := struct {
+		Code int
+		Body string
+	}{
+		Code: code,
+		Body: string(bytes.Replace(stacks, []byte("\n"), []byte("<br>"), -1)),
+	}
+	c.Writer.WriteHeader(data.Code)
+	admin.Render("error", Content{Admin: admin, Context: c, Result: data})
 }
