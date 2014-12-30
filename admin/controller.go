@@ -12,8 +12,7 @@ import (
 )
 
 func (admin *Admin) Dashboard(context *Context) {
-	content := Content{Context: context}
-	content.Execute("dashboard")
+	context.Execute("dashboard", nil)
 }
 
 func (admin *Admin) Index(context *Context) {
@@ -26,8 +25,7 @@ func (admin *Admin) Index(context *Context) {
 	result, _ := admin.NewSearcher(res).FindAll(context)
 
 	responder.With("html", func() {
-		content := Content{Context: context, Resource: res, Result: result}
-		content.Execute("index")
+		context.Execute("index", result)
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)
@@ -39,8 +37,7 @@ func (admin *Admin) Show(context *Context) {
 	result, _ := admin.NewSearcher(res).FindOne(context)
 
 	responder.With("html", func() {
-		content := Content{Context: context, Resource: res, Result: result}
-		content.Execute("show")
+		context.Execute("show", result)
 	}).With("json", func() {
 		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
 		context.Writer.Write(js)
@@ -48,9 +45,7 @@ func (admin *Admin) Show(context *Context) {
 }
 
 func (admin *Admin) New(context *Context) {
-	res := admin.GetResource(context.Name)
-	content := Content{Context: context, Resource: res}
-	content.Execute("new")
+	context.Execute("new", nil)
 }
 
 func (admin *Admin) decode(result interface{}, res *Resource, context *Context) (errs []error) {

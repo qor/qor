@@ -113,7 +113,7 @@ func (content *Content) RenderMeta(writer *bytes.Buffer, meta *resource.Meta, va
 
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
 
-	if tmpl, err := content.findTemplate(tmpl, fmt.Sprintf("forms/%v.tmpl", meta.Type)); err == nil {
+	if tmpl, err := content.Context.findTemplate(tmpl, fmt.Sprintf("forms/%v.tmpl", meta.Type)); err == nil {
 		data := map[string]interface{}{}
 		data["InputId"] = strings.Join(prefix, "")
 		data["Label"] = meta.Label

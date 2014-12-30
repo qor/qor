@@ -5,7 +5,7 @@ import (
 	"runtime/debug"
 )
 
-func (admin *Admin) RenderError(err error, code int, c *Context) {
+func (admin *Admin) RenderError(err error, code int, context *Context) {
 	stacks := append([]byte(err.Error()+"\n"), debug.Stack()...)
 	data := struct {
 		Code int
@@ -14,7 +14,6 @@ func (admin *Admin) RenderError(err error, code int, c *Context) {
 		Code: code,
 		Body: string(bytes.Replace(stacks, []byte("\n"), []byte("<br>"), -1)),
 	}
-	c.Writer.WriteHeader(data.Code)
-	content := Content{Context: c, Result: data}
-	content.Execute("error")
+	context.Writer.WriteHeader(data.Code)
+	context.Execute("error", data)
 }

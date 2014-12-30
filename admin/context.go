@@ -10,6 +10,7 @@ import (
 	"text/template"
 
 	"github.com/qor/qor"
+	"github.com/qor/qor/resource"
 )
 
 type Context struct {
@@ -72,7 +73,7 @@ func (context *Context) Render(name string) string {
 	return ""
 }
 
-func (context *Context) Execute(name string) {
+func (context *Context) Execute(name string, result interface{}) {
 	var tmpl *template.Template
 
 	cacheKey := path.Join(context.Name, name)
@@ -89,9 +90,15 @@ func (context *Context) Execute(name string) {
 	}
 
 	context.Content = context.Render(name)
+	context.Result = result
 	if err := tmpl.Execute(context.Writer, context); err != nil {
 		fmt.Println(err)
 	}
+}
+
+// Function Maps
+func (context *Context) ValueOf(value interface{}, meta *resource.Meta) interface{} {
+	return meta.Value(value, context.Context)
 }
 
 // context.NewSearcher().FindAll
