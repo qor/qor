@@ -108,8 +108,8 @@ func (context *Context) Execute(name string, result interface{}) {
 		tmpl = t
 	}
 
-	context.Content = context.Render(name)
 	context.Result = result
+	context.Content = context.Render(name)
 	if err := tmpl.Execute(context.Writer, context); err != nil {
 		fmt.Println(err)
 	}
