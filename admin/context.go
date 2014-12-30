@@ -27,16 +27,6 @@ type Context struct {
 	Content  string
 }
 
-func (context *Context) New(name ...string) *Context {
-	clone := &Context{Context: context.Context, Admin: context.Admin, Writer: context.Writer, Result: context.Result}
-	if len(name) > 0 {
-		clone.SetResource(context.Admin.GetResource(name[0]))
-	} else {
-		clone.SetResource(context.Resource)
-	}
-	return clone
-}
-
 // Resource
 func (context *Context) ResourceName() string {
 	if context.Resource == nil {
@@ -49,6 +39,16 @@ func (context *Context) SetResource(res *Resource) *Context {
 	context.Resource = res
 	context.Searcher = &Searcher{Context: context}
 	return context
+}
+
+func (context *Context) NewResource(name ...string) *Context {
+	clone := &Context{Context: context.Context, Admin: context.Admin, Writer: context.Writer, Result: context.Result}
+	if len(name) > 0 {
+		clone.SetResource(context.Admin.GetResource(name[0]))
+	} else {
+		clone.SetResource(context.Resource)
+	}
+	return clone
 }
 
 // Template
@@ -247,5 +247,6 @@ func (context *Context) funcMap(modes ...roles.PermissionMode) template.FuncMap 
 		"link_to":           context.LinkTo,
 		"render_form":       context.RenderForm,
 		"has_primary_key":   context.HasPrimaryKey,
+		"NewResource":       context.NewResource,
 	}
 }
