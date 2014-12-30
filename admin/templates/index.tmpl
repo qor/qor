@@ -1,13 +1,12 @@
 <article class="article clearfix" id="orders">
   <section class="section filter-wrapper">
-    
   </section>
   
   <section class="section table-wrapper">
   <table class="table">
     <thead>
       <tr>
-        {{range $meta := allowed_metas .Resource}}
+        {{range $meta := IndexMetas}}
           <th>{{$meta.Label}}</th>
         {{end}}
       </tr>
@@ -17,7 +16,7 @@
 
       {{range $resource := .Result}}
         <tr>
-          {{range $index, $meta := allowed_metas}}
+          {{range $index, $meta := IndexMetas}}
             {{$text := .ValueOf $resource $meta}}
             <td>
               {{if $index}}

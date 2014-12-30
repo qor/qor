@@ -10,13 +10,13 @@ import (
 )
 
 type Resourcer interface {
-	AllAttrs() []*resource.Meta
+	AllMetas() []*resource.Meta
 }
 
 func ConvertMapToMetaValues(values map[string]interface{}, res Resourcer) (metaValues *resource.MetaValues) {
 	metas := make(map[string]resource.Metaor)
 	if res != nil {
-		for _, attr := range res.AllAttrs() {
+		for _, attr := range res.AllMetas() {
 			metas[attr.Name] = attr
 		}
 	}
@@ -68,7 +68,7 @@ func ConvertFormToMetaValues(context *Context, prefix string, res *Resource) (me
 	convertedMap := make(map[string]bool)
 	metas := make(map[string]resource.Metaor)
 	if res != nil {
-		for _, attr := range res.AllAttrs() {
+		for _, attr := range res.AllMetas() {
 			metas[attr.Name] = attr
 		}
 	}

@@ -160,7 +160,7 @@ func (res *Resource) ShowMetas() []*resource.Meta {
 	})
 }
 
-func (res *Resource) AllAttrs() []*resource.Meta {
+func (res *Resource) AllMetas() []*resource.Meta {
 	return res.getCachedMetas("all_metas", func() []*resource.Meta {
 		return res.appendPrimaryKey(res.getMetas())
 	})

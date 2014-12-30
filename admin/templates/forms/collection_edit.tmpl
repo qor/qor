@@ -3,11 +3,11 @@
 {{if .Value}}
     {{range $index, $value := .Value }}
       <fieldset>
-          {{render_form $value (allowed_metas $meta.Resource) $index}}
+          {{render_form $value (EditMetas $meta.Resource) $index}}
       </fieldset>
     {{end}}
 {{end}}
 
 <fieldset>
-  {{render_form $meta.Resource.GetResource.Value (allowed_metas $meta.Resource) (len .Value)}}
+  {{render_form $meta.Resource.GetResource.Value (NewMetas $meta.Resource) (len .Value)}}
 </fieldset>

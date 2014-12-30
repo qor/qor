@@ -1,5 +1,5 @@
 {{$result := .Result}}
 <form action="{{url_for .Resource}}" method="POST" enctype="multipart/form-data">
-  {{render_form .Result (allowed_metas .Resource)}}
+  {{render_form .Result NewMetas}}
   <input value="Save" type="submit"/>
 </form>

@@ -227,20 +227,36 @@ func (context *Context) HasPrimaryKey(value interface{}, primaryKey interface{})
 	return false
 }
 
-func (context *Context) AllowedMetas(modes ...roles.PermissionMode) func(reses ...*Resource) []*resource.Meta {
-	return func(reses ...*Resource) []*resource.Meta {
-		var res = context.Resource
-		if len(reses) > 0 {
-			res = reses[0]
-		}
+func (context *Context) getResource(resources ...*Resource) *Resource {
+	return context.Resource
+}
 
-		return res.AllowedMetas(res.IndexMetas(), context, modes...)
-	}
+func (context *Context) AllMetas(resources ...*Resource) []*resource.Meta {
+	return context.getResource(resources...).AllMetas()
+}
+
+func (context *Context) IndexMetas(resources ...*Resource) []*resource.Meta {
+	res := context.getResource(resources...)
+	return res.AllowedMetas(res.IndexMetas(), context, roles.Read)
+}
+
+func (context *Context) EditMetas(resources ...*Resource) []*resource.Meta {
+	res := context.getResource(resources...)
+	return res.AllowedMetas(res.EditMetas(), context, roles.Update)
+}
+
+func (context *Context) ShowMetas(resources ...*Resource) []*resource.Meta {
+	res := context.getResource(resources...)
+	return res.AllowedMetas(res.ShowMetas(), context, roles.Read)
+}
+
+func (context *Context) NewMetas(resources ...*Resource) []*resource.Meta {
+	res := context.getResource(resources...)
+	return res.AllowedMetas(res.NewMetas(), context, roles.Create)
 }
 
 func (context *Context) funcMap(modes ...roles.PermissionMode) template.FuncMap {
 	return template.FuncMap{
-		"allowed_metas":     context.AllowedMetas(modes...),
 		"value_of":          context.ValueOf,
 		"url_for":           context.UrlFor,
 		"new_resource_path": context.NewResourcePath,
@@ -248,5 +264,10 @@ func (context *Context) funcMap(modes ...roles.PermissionMode) template.FuncMap 
 		"render_form":       context.RenderForm,
 		"has_primary_key":   context.HasPrimaryKey,
 		"NewResource":       context.NewResource,
+		"AllMetas":          context.AllMetas, // Resource Metas
+		"IndexMetas":        context.IndexMetas,
+		"EditMetas":         context.EditMetas,
+		"ShowMetas":         context.ShowMetas,
+		"NewMetas":          context.NewMetas,
 	}
 }
