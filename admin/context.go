@@ -38,7 +38,7 @@ func (context *Context) ResourceName() string {
 // Resource
 func (context *Context) SetResource(res *Resource) *Context {
 	context.Resource = res
-	context.Searcher = &Searcher{Resource: res, Admin: context.Admin}
+	context.Searcher = &Searcher{Context: context}
 	return context
 }
 

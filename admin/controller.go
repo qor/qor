@@ -16,30 +16,26 @@ func (admin *Admin) Dashboard(context *Context) {
 }
 
 func (admin *Admin) Index(context *Context) {
-	res := admin.GetResource(context.Name)
-	if res == nil {
+	if result, err := context.FindAll(); err == nil {
+		responder.With("html", func() {
+			context.Execute("index", result)
+		}).With("json", func() {
+			js, _ := json.Marshal(ConvertObjectToMap(context, result, context.Resource))
+			context.Writer.Write(js)
+		}).Respond(context.Writer, context.Request)
+	} else {
+		fmt.Println(err)
 		http.NotFound(context.Writer, context.Request)
-		return
 	}
-
-	result, _ := admin.NewSearcher(res).FindAll(context)
-
-	responder.With("html", func() {
-		context.Execute("index", result)
-	}).With("json", func() {
-		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
-		context.Writer.Write(js)
-	}).Respond(context.Writer, context.Request)
 }
 
 func (admin *Admin) Show(context *Context) {
-	res := admin.GetResource(context.Name)
-	result, _ := admin.NewSearcher(res).FindOne(context)
+	result, _ := context.FindOne()
 
 	responder.With("html", func() {
 		context.Execute("show", result)
 	}).With("json", func() {
-		js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
+		js, _ := json.Marshal(ConvertObjectToMap(context, result, context.Resource))
 		context.Writer.Write(js)
 	}).Respond(context.Writer, context.Request)
 }
@@ -79,14 +75,13 @@ func (admin *Admin) Create(context *Context) {
 }
 
 func (admin *Admin) Update(context *Context) {
-	res := admin.GetResource(context.Name)
-	if result, err := admin.NewSearcher(res).FindOne(context); err == nil {
-		if errs := admin.decode(result, res, context); len(errs) == 0 {
-			res.CallSaver(result, context.Context)
+	if result, err := context.FindOne(); err == nil {
+		if errs := admin.decode(result, context.Resource, context); len(errs) == 0 {
+			context.Resource.CallSaver(result, context.Context)
 			responder.With("html", func() {
 				http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 			}).With("json", func() {
-				js, _ := json.Marshal(ConvertObjectToMap(context, result, res))
+				js, _ := json.Marshal(ConvertObjectToMap(context, result, context.Resource))
 				context.Writer.Write(js)
 			}).Respond(context.Writer, context.Request)
 		}

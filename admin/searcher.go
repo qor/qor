@@ -11,14 +11,9 @@ import (
 type scopeFunc func(db *gorm.DB, context *qor.Context) *gorm.DB
 
 type Searcher struct {
-	Resource *Resource
-	Admin    *Admin
-	scopes   []*Scope
-	filters  map[string]string
-}
-
-func (admin *Admin) NewSearcher(res *Resource) *Searcher {
-	return &Searcher{Resource: res, Admin: admin}
+	*Context
+	scopes  []*Scope
+	filters map[string]string
 }
 
 func (s *Searcher) Scope(names ...string) *Searcher {
@@ -70,22 +65,12 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	return context
 }
 
-func (s *Searcher) getContext(contexts []interface{}) *qor.Context {
-	var context *qor.Context
-	if len(contexts) > 0 {
-		if value, ok := contexts[0].(*qor.Context); ok {
-			context = value
-		} else if value, ok := contexts[0].(*Context); ok {
-			context = value.Context
-		}
-	} else {
-		context = &qor.Context{DB: s.Admin.Config.DB}
-	}
-	return context
+func (s *Searcher) getContext() *qor.Context {
+	return s.Context.Context
 }
 
-func (s *Searcher) parseContext(contexts []interface{}) *qor.Context {
-	var context = s.getContext(contexts)
+func (s *Searcher) parseContext() *qor.Context {
+	var context = s.getContext()
 
 	if context != nil && context.Request != nil {
 		// parse scopes
@@ -105,15 +90,15 @@ func (s *Searcher) parseContext(contexts []interface{}) *qor.Context {
 	return context
 }
 
-func (s *Searcher) FindAll(contexts ...interface{}) (interface{}, error) {
-	context := s.parseContext(contexts)
+func (s *Searcher) FindAll() (interface{}, error) {
+	context := s.parseContext()
 	result := s.Resource.NewSlice()
 	err := s.Resource.CallSearcher(result, context)
 	return result, err
 }
 
-func (s *Searcher) FindOne(contexts ...interface{}) (interface{}, error) {
-	context := s.parseContext(contexts)
+func (s *Searcher) FindOne() (interface{}, error) {
+	context := s.parseContext()
 	result := s.Resource.NewStruct()
 	err := s.Resource.CallFinder(result, nil, context)
 	return result, err
