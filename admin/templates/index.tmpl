@@ -6,7 +6,7 @@
   <table class="table">
     <thead>
       <tr>
-        {{range $meta := IndexMetas}}
+        {{range $meta := index_metas}}
           <th>{{$meta.Label}}</th>
         {{end}}
       </tr>
@@ -16,13 +16,13 @@
 
       {{range $resource := .Result}}
         <tr>
-          {{range $index, $meta := IndexMetas}}
-            {{$text := .ValueOf $resource $meta}}
+          {{range $index, $meta := index_metas}}
+            {{$text := value_of $resource $meta}}
             <td>
               {{if $index}}
                 {{$text}}
               {{else}}
-                {{.LinkTo $text $resource}}
+                {{link_to $text $resource}}
               {{end}}
             </td>
           {{end}}

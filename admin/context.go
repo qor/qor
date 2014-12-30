@@ -263,11 +263,11 @@ func (context *Context) funcMap(modes ...roles.PermissionMode) template.FuncMap 
 		"link_to":           context.LinkTo,
 		"render_form":       context.RenderForm,
 		"has_primary_key":   context.HasPrimaryKey,
-		"NewResource":       context.NewResource,
-		"AllMetas":          context.AllMetas, // Resource Metas
-		"IndexMetas":        context.IndexMetas,
-		"EditMetas":         context.EditMetas,
-		"ShowMetas":         context.ShowMetas,
-		"NewMetas":          context.NewMetas,
+		"new_resource":      context.NewResource,
+		"all_metas":         context.AllMetas, // Resource Metas
+		"index_metas":       context.IndexMetas,
+		"edit_metas":        context.EditMetas,
+		"show_metas":        context.ShowMetas,
+		"new_metas":         context.NewMetas,
 	}
 }
