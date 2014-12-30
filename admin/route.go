@@ -87,7 +87,7 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*/?$`))
 	var matches = pathMatch.FindStringSubmatch(req.URL.Path)
 	if len(matches) > 1 {
-		context.ResourceName = matches[1]
+		context.Resource = admin.GetResource(matches[1])
 		if len(matches) > 2 {
 			context.ResourceID = matches[2]
 		}

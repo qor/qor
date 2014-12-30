@@ -17,7 +17,7 @@ func (admin *Admin) Dashboard(context *Context) {
 }
 
 func (admin *Admin) Index(context *Context) {
-	res := admin.Resources[context.ResourceName]
+	res := admin.GetResource(context.Name)
 	if res == nil {
 		http.NotFound(context.Writer, context.Request)
 		return
@@ -35,27 +35,7 @@ func (admin *Admin) Index(context *Context) {
 }
 
 func (admin *Admin) Show(context *Context) {
-	// resuls = admin.GetResource(context.ResourceName).FindAll
-	// resuls = admin.GetResource(context.ResourceName).FindOne
-
-	// context.NewSearcher().FindAll
-	// context.NewSearcher().FindOne
-
-	//// Controller
-	// results := context.FindAll
-	// result := context.FindOne
-	// context.Execute("show", result)
-	// context.Render("show", result)
-	//// VIEW
-	// results := GetResource("order").FindAll
-	// GetResource("order").Render "index", result
-	// admin.GetResource("order")
-
-	// $order := admin.NewContext(request, writer).GetResource("order").Scope("today").FindAll
-	// admin.NewContext(request, writer).GetResource("order").Render("index", $order)
-	// admin.NewContext(request, writer).Render("dashboard")
-
-	res := admin.Resources[context.ResourceName]
+	res := admin.GetResource(context.Name)
 	result, _ := admin.NewSearcher(res).FindOne(context)
 
 	responder.With("html", func() {
@@ -68,8 +48,8 @@ func (admin *Admin) Show(context *Context) {
 }
 
 func (admin *Admin) New(context *Context) {
-	resource := admin.Resources[context.ResourceName]
-	content := Content{Context: context, Resource: resource}
+	res := admin.GetResource(context.Name)
+	content := Content{Context: context, Resource: res}
 	content.Execute("new")
 }
 
@@ -89,7 +69,7 @@ func (admin *Admin) decode(result interface{}, res *Resource, context *Context) 
 }
 
 func (admin *Admin) Create(context *Context) {
-	res := admin.Resources[context.ResourceName]
+	res := admin.GetResource(context.Name)
 	result := res.NewStruct()
 	if errs := admin.decode(result, res, context); len(errs) == 0 {
 		res.CallSaver(result, context.Context)
@@ -104,7 +84,7 @@ func (admin *Admin) Create(context *Context) {
 }
 
 func (admin *Admin) Update(context *Context) {
-	res := admin.Resources[context.ResourceName]
+	res := admin.GetResource(context.Name)
 	if result, err := admin.NewSearcher(res).FindOne(context); err == nil {
 		if errs := admin.decode(result, res, context); len(errs) == 0 {
 			res.CallSaver(result, context.Context)
@@ -119,7 +99,7 @@ func (admin *Admin) Update(context *Context) {
 }
 
 func (admin *Admin) Delete(context *Context) {
-	res := admin.Resources[context.ResourceName]
+	res := admin.GetResource(context.Name)
 
 	if res.CallDeleter(res.NewStruct(), context.Context) == nil {
 		http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusFound)

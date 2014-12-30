@@ -2,9 +2,7 @@ package admin
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
-	"os"
 	"path"
 	"reflect"
 	"strings"
@@ -27,66 +25,6 @@ type Content struct {
 
 func (content *Content) Admin() *Admin {
 	return content.Context.Admin
-}
-
-func (content Content) findTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
-	paths := []string{}
-	for _, p := range []string{content.Context.ResourceName, path.Join("themes", "default"), "."} {
-		for _, d := range viewPaths {
-			if isExistingDir(path.Join(d, p)) {
-				paths = append(paths, path.Join(d, p))
-			}
-		}
-	}
-
-	for _, p := range paths {
-		if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
-			if tmpl, err = tmpl.ParseFiles(path.Join(p, layout)); err != nil {
-				fmt.Println(err)
-			} else {
-				return tmpl, nil
-			}
-		}
-	}
-	return tmpl, errors.New("template not found")
-}
-
-func (content *Content) Render(name string) string {
-	var err error
-	var tmpl = template.New(name + ".tmpl").Funcs(content.funcMap())
-
-	if tmpl, err = content.findTemplate(tmpl, name+".tmpl"); err == nil {
-		var result = bytes.NewBufferString("")
-		if err := tmpl.Execute(result, content); err != nil {
-			fmt.Println(err)
-		}
-		return result.String()
-	}
-
-	return ""
-}
-
-func (content *Content) Execute(name string) {
-	var tmpl *template.Template
-
-	cacheKey := path.Join(content.Context.ResourceName, name)
-	if t, ok := templates[cacheKey]; !ok || true {
-		tmpl, _ = content.findTemplate(tmpl, "layout.tmpl")
-		tmpl = tmpl.Funcs(content.funcMap())
-
-		for _, name := range []string{"header", "footer"} {
-			if tmpl.Lookup(name) == nil {
-				tmpl, _ = content.findTemplate(tmpl, name+".tmpl")
-			}
-		}
-	} else {
-		tmpl = t
-	}
-
-	content.Content = content.Render(name)
-	if err := tmpl.Execute(content.Context.Writer, content); err != nil {
-		fmt.Println(err)
-	}
 }
 
 func (content *Content) AllowedMetas(modes ...roles.PermissionMode) func(reses ...*Resource) []*resource.Meta {
