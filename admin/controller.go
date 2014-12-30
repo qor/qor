@@ -60,7 +60,7 @@ func (admin *Admin) decode(result interface{}, res *Resource, context *Context) 
 }
 
 func (admin *Admin) Create(context *Context) {
-	res := admin.GetResource(context.Name)
+	res := admin.GetResource(context.ResourceName())
 	result := res.NewStruct()
 	if errs := admin.decode(result, res, context); len(errs) == 0 {
 		res.CallSaver(result, context.Context)
@@ -89,7 +89,7 @@ func (admin *Admin) Update(context *Context) {
 }
 
 func (admin *Admin) Delete(context *Context) {
-	res := admin.GetResource(context.Name)
+	res := admin.GetResource(context.ResourceName())
 
 	if res.CallDeleter(res.NewStruct(), context.Context) == nil {
 		http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusFound)

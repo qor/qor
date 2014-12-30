@@ -19,12 +19,12 @@ import (
 
 type Context struct {
 	*qor.Context
-	*Resource
 	*Searcher
-	Admin   *Admin
-	Writer  http.ResponseWriter
-	Result  interface{}
-	Content string
+	Resource *Resource
+	Admin    *Admin
+	Writer   http.ResponseWriter
+	Result   interface{}
+	Content  string
 }
 
 func (context *Context) ResourceName() string {
@@ -35,15 +35,20 @@ func (context *Context) ResourceName() string {
 	}
 }
 
+func (context *Context) Clone(name ...string) *Context {
+	clone := &Context{Context: context.Context, Admin: context.Admin, Writer: context.Writer, Result: context.Result}
+	if len(name) > 0 {
+		clone.SetResource(context.Admin.GetResource(name[0]))
+	} else {
+		clone.SetResource(context.Resource)
+	}
+	return clone
+}
+
 // Resource
 func (context *Context) SetResource(res *Resource) *Context {
 	context.Resource = res
 	context.Searcher = &Searcher{Context: context}
-	return context
-}
-
-func (context *Context) GetResource(name string) *Context {
-	context.SetResource(context.Admin.GetResource(name))
 	return context
 }
 
@@ -70,9 +75,10 @@ func (context *Context) findTemplate(tmpl *template.Template, layout string) (*t
 	return tmpl, errors.New("template not found")
 }
 
-func (context *Context) Render(name string) string {
+func (context *Context) Render(name string, result interface{}) string {
 	var err error
 	var tmpl = template.New(name + ".tmpl").Funcs(context.funcMap())
+	context.Result = result
 
 	if tmpl, err = context.findTemplate(tmpl, name+".tmpl"); err == nil {
 		var result = bytes.NewBufferString("")
@@ -108,8 +114,7 @@ func (context *Context) Execute(name string, result interface{}) {
 		tmpl = t
 	}
 
-	context.Result = result
-	context.Content = context.Render(name)
+	context.Content = context.Render(name, result)
 	if err := tmpl.Execute(context.Writer, context); err != nil {
 		fmt.Println(err)
 	}
