@@ -27,6 +27,14 @@ type Context struct {
 	Content string
 }
 
+func (context *Context) ResourceName() string {
+	if context.Resource == nil {
+		return ""
+	} else {
+		return context.Resource.Name
+	}
+}
+
 // Resource
 func (context *Context) SetResource(res *Resource) *Context {
 	context.Resource = res
@@ -42,7 +50,7 @@ func (context *Context) GetResource(name string) *Context {
 // Template
 func (context *Context) findTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
 	paths := []string{}
-	for _, p := range []string{context.Name, path.Join("themes", "default"), "."} {
+	for _, p := range []string{context.ResourceName(), path.Join("themes", "default"), "."} {
 		for _, d := range viewPaths {
 			if isExistingDir(path.Join(d, p)) {
 				paths = append(paths, path.Join(d, p))
@@ -64,7 +72,7 @@ func (context *Context) findTemplate(tmpl *template.Template, layout string) (*t
 
 func (context *Context) Render(name string) string {
 	var err error
-	var tmpl = template.New(name + ".tmpl")
+	var tmpl = template.New(name + ".tmpl").Funcs(context.funcMap())
 
 	if tmpl, err = context.findTemplate(tmpl, name+".tmpl"); err == nil {
 		var result = bytes.NewBufferString("")
@@ -79,10 +87,17 @@ func (context *Context) Render(name string) string {
 
 func (context *Context) Execute(name string, result interface{}) {
 	var tmpl *template.Template
+	var cacheKey string
 
-	cacheKey := path.Join(context.Name, name)
+	if context.Resource != nil {
+		cacheKey = path.Join(context.ResourceName(), name)
+	} else {
+		cacheKey = name
+	}
+
 	if t, ok := templates[cacheKey]; !ok || true {
 		tmpl, _ = context.findTemplate(tmpl, "layout.tmpl")
+		tmpl = tmpl.Funcs(context.funcMap())
 
 		for _, name := range []string{"header", "footer"} {
 			if tmpl.Lookup(name) == nil {
