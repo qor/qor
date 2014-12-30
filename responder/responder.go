@@ -30,6 +30,13 @@ func (rep *Responder) Respond(writer http.ResponseWriter, request *http.Request)
 		format = "json"
 	}
 
+	for _, str := range strings.Split(request.Header.Get("Accept"), ",") {
+		if str == "application/json" {
+			format = "json"
+			break
+		}
+	}
+
 	if fc, ok := rep.responds[format]; ok {
 		fc()
 		return

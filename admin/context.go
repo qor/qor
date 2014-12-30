@@ -168,7 +168,7 @@ func (context *Context) renderForm(result *bytes.Buffer, value interface{}, meta
 func (context *Context) RenderMeta(writer *bytes.Buffer, meta *resource.Meta, value interface{}, prefix []string) {
 	prefix = append(prefix, meta.Name)
 
-	funcsMap := context.funcMap(roles.Read, roles.Update)
+	funcsMap := context.funcMap()
 	funcsMap["render_form"] = func(value interface{}, metas []*resource.Meta, index ...int) string {
 		var result = bytes.NewBufferString("")
 		newPrefix := append([]string{}, prefix...)
@@ -255,7 +255,7 @@ func (context *Context) NewMetas(resources ...*Resource) []*resource.Meta {
 	return res.AllowedMetas(res.NewMetas(), context, roles.Create)
 }
 
-func (context *Context) funcMap(modes ...roles.PermissionMode) template.FuncMap {
+func (context *Context) funcMap() template.FuncMap {
 	return template.FuncMap{
 		"value_of":          context.ValueOf,
 		"url_for":           context.UrlFor,
