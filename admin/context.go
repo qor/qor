@@ -27,15 +27,7 @@ type Context struct {
 	Content  string
 }
 
-func (context *Context) ResourceName() string {
-	if context.Resource == nil {
-		return ""
-	} else {
-		return context.Resource.Name
-	}
-}
-
-func (context *Context) Clone(name ...string) *Context {
+func (context *Context) New(name ...string) *Context {
 	clone := &Context{Context: context.Context, Admin: context.Admin, Writer: context.Writer, Result: context.Result}
 	if len(name) > 0 {
 		clone.SetResource(context.Admin.GetResource(name[0]))
@@ -46,6 +38,13 @@ func (context *Context) Clone(name ...string) *Context {
 }
 
 // Resource
+func (context *Context) ResourceName() string {
+	if context.Resource == nil {
+		return ""
+	}
+	return context.Resource.Name
+}
+
 func (context *Context) SetResource(res *Resource) *Context {
 	context.Resource = res
 	context.Searcher = &Searcher{Context: context}
@@ -250,20 +249,3 @@ func (context *Context) funcMap(modes ...roles.PermissionMode) template.FuncMap 
 		"has_primary_key":   context.HasPrimaryKey,
 	}
 }
-
-// context.NewSearcher().FindAll
-// context.NewSearcher().FindOne
-
-//// Controller
-// results := context.FindAll
-// result := context.FindOne
-// context.Execute("show", result)
-// context.Render("show", result)
-//// VIEW
-// results := GetResource("order").FindAll
-// GetResource("order").Render "index", result
-// admin.GetResource("order")
-
-// $order := admin.NewContext(request, writer).GetResource("order").Scope("today").FindAll
-// admin.NewContext(request, writer).GetResource("order").Render("index", $order)
-// admin.NewContext(request, writer).Render("dashboard")
