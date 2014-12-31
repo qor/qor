@@ -71,9 +71,9 @@ func TestMeta(t *testing.T) {
 	db.Create(userModel)
 
 	user := New(&User{})
-	user.RegisterMeta(&Meta{Name: "Profile.Name"})
-	user.RegisterMeta(&Meta{Name: "Profile.Sex"})
-	user.RegisterMeta(&Meta{Name: "Profile.Phone.Num"})
+	user.Meta(&Meta{Name: "Profile.Name"})
+	user.Meta(&Meta{Name: "Profile.Sex"})
+	user.Meta(&Meta{Name: "Profile.Phone.Num"})
 
 	userModel.Profile = Profile{}
 	phoneNumMeta := user.Metas["Profile.Phone.Num"].(*Meta)

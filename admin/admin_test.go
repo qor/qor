@@ -57,7 +57,7 @@ func init() {
 
 	admin := admin.New(&qor.Config{DB: &db})
 	user := admin.NewResource(User{})
-	user.RegisterMeta(&resource.Meta{Name: "Languages", Type: "select_many",
+	user.Meta(&resource.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if languages := []Language{}; !context.GetDB().Find(&languages).RecordNotFound() {
 				for _, language := range languages {
