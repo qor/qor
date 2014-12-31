@@ -44,7 +44,7 @@ func (admin *Admin) New(context *Context) {
 	context.Execute("new", nil)
 }
 
-func (admin *Admin) decode(result interface{}, res *Resource, context *Context) (errs []error) {
+func (res *Resource) Decode(context *Context, result interface{}) (errs []error) {
 	responder.With("html", func() {
 		errs = resource.DecodeToResource(res, result, ConvertFormToMetaValues(context, "QorResource.", res), context.Context).Start()
 	}).With("json", func() {
@@ -62,7 +62,7 @@ func (admin *Admin) decode(result interface{}, res *Resource, context *Context) 
 func (admin *Admin) Create(context *Context) {
 	res := admin.GetResource(context.ResourceName())
 	result := res.NewStruct()
-	if errs := admin.decode(result, res, context); len(errs) == 0 {
+	if errs := res.Decode(context, result); len(errs) == 0 {
 		res.CallSaver(result, context.Context)
 		responder.With("html", func() {
 			primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
@@ -76,7 +76,7 @@ func (admin *Admin) Create(context *Context) {
 
 func (admin *Admin) Update(context *Context) {
 	if result, err := context.FindOne(); err == nil {
-		if errs := admin.decode(result, context.Resource, context); len(errs) == 0 {
+		if errs := context.Resource.Decode(context, result); len(errs) == 0 {
 			context.Resource.CallSaver(result, context.Context)
 			responder.With("html", func() {
 				http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
