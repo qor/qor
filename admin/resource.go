@@ -108,8 +108,9 @@ func (res *Resource) getMetas(attrsSlice ...[]string) []*resource.Meta {
 		if meta, ok := res.Metas[attr]; ok {
 			metas = append(metas, meta.GetMeta())
 		} else {
+			// fix hide for foreign key
 			if strings.HasSuffix(attr, "Id") {
-				continue
+				// continue
 			}
 
 			var _meta resource.Meta
