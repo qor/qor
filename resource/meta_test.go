@@ -92,12 +92,18 @@ func TestMeta(t *testing.T) {
 	}
 
 	profileNameMeta := user.Metas["Profile.Name"].(*Meta)
+	profileSexMeta := user.Metas["Profile.Sex"].(*Meta)
 	mvs := &MetaValues{
 		Values: []*MetaValue{
 			&MetaValue{
 				Name:  "Profile.Name",
 				Value: "Qor III",
 				Meta:  profileNameMeta,
+			},
+			&MetaValue{
+				Name:  "Profile.Sex",
+				Value: "Male",
+				Meta:  profileSexMeta,
 			},
 			&MetaValue{
 				Name:  "Profile.Phone.Num",
@@ -110,8 +116,12 @@ func TestMeta(t *testing.T) {
 	if userModel.Profile.Name != mvs.Values[0].Value {
 		t.Errorf("Profile.Name: expect %q got %q", mvs.Values[0].Value, userModel.Profile.Name)
 	}
+	profileSexMeta.Setter(userModel, mvs, &qor.Context{Config: &qor.Config{DB: &db}})
+	if userModel.Profile.Sex != mvs.Values[1].Value {
+		t.Errorf("Profile.Sex: expect %q got %q", mvs.Values[1].Value, userModel.Profile.Sex)
+	}
 	phoneNumMeta.Setter(userModel, mvs, &qor.Context{Config: &qor.Config{DB: &db}})
-	if userModel.Profile.Phone.Num != mvs.Values[1].Value {
-		t.Errorf("Profile.Phone.Num: expect %q got %q", mvs.Values[1].Value, userModel.Profile.Phone.Num)
+	if userModel.Profile.Phone.Num != mvs.Values[2].Value {
+		t.Errorf("Profile.Phone.Num: expect %q got %q", mvs.Values[2].Value, userModel.Profile.Phone.Num)
 	}
 }
