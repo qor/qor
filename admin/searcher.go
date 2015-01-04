@@ -66,7 +66,7 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 }
 
 func (s *Searcher) getContext() *qor.Context {
-	return s.Context.Context
+	return s.Context.Context.New()
 }
 
 func (s *Searcher) parseContext() *qor.Context {

@@ -18,6 +18,15 @@ type Context struct {
 	DB         *gorm.DB
 }
 
+func (context *Context) New() *Context {
+	return &Context{
+		Request:    context.Request,
+		ResourceID: context.ResourceID,
+		Config:     context.Config,
+		DB:         context.DB,
+	}
+}
+
 func (context *Context) GetDB() *gorm.DB {
 	if context.DB != nil {
 		return context.DB
