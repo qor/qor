@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/responder"
 
 	"net/http"
@@ -44,25 +43,10 @@ func (admin *Admin) New(context *Context) {
 	context.Execute("new", nil)
 }
 
-func (res *Resource) Decode(context *Context, result interface{}) (errs []error) {
-	responder.With("html", func() {
-		errs = resource.DecodeToResource(res, result, ConvertFormToMetaValues(context, "QorResource.", res), context.Context).Start()
-	}).With("json", func() {
-		decoder := json.NewDecoder(context.Request.Body)
-		values := map[string]interface{}{}
-		if err := decoder.Decode(&values); err == nil {
-			errs = resource.DecodeToResource(res, result, ConvertMapToMetaValues(values, res), context.Context).Start()
-		} else {
-			errs = append(errs, err)
-		}
-	}).Respond(context.Writer, context.Request)
-	return errs
-}
-
 func (admin *Admin) Create(context *Context) {
 	res := admin.GetResource(context.ResourceName())
 	result := res.NewStruct()
-	if errs := res.Decode(context, result); len(errs) == 0 {
+	if errs := res.Decode(context.Context, result); len(errs) == 0 {
 		res.CallSaver(result, context.Context)
 		responder.With("html", func() {
 			primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
@@ -76,7 +60,7 @@ func (admin *Admin) Create(context *Context) {
 
 func (admin *Admin) Update(context *Context) {
 	if result, err := context.FindOne(); err == nil {
-		if errs := context.Resource.Decode(context, result); len(errs) == 0 {
+		if errs := context.Resource.Decode(context.Context, result); len(errs) == 0 {
 			context.Resource.CallSaver(result, context.Context)
 			responder.With("html", func() {
 				http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
