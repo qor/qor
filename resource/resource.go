@@ -126,3 +126,54 @@ func (res *Resource) NewSlice() interface{} {
 func (res *Resource) NewStruct() interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
 }
+
+func (res *Resource) GetMetas(_attrs ...[]string) []*Meta {
+	var attrs []string
+	for _, value := range _attrs {
+		if value != nil {
+			attrs = value
+			break
+		}
+	}
+
+	if attrs == nil {
+		scope := &gorm.Scope{Value: res.Value}
+		attrs = []string{}
+		fields := scope.Fields()
+
+		includedMeta := map[string]bool{}
+		for _, meta := range res.Metas {
+			meta := meta.GetMeta()
+			if _, ok := fields[meta.Name]; !ok {
+				includedMeta[meta.Alias] = true
+				attrs = append(attrs, meta.Name)
+			}
+		}
+
+		for _, field := range fields {
+			if _, ok := includedMeta[field.Name]; ok {
+				continue
+			}
+			attrs = append(attrs, field.Name)
+		}
+	}
+
+	metas := []*Meta{}
+	for _, attr := range attrs {
+		if meta, ok := res.Metas[attr]; ok {
+			metas = append(metas, meta.GetMeta())
+		} else {
+			// fix hide for foreign key
+			if strings.HasSuffix(attr, "Id") {
+				// continue
+			}
+
+			var _meta Meta
+			_meta = Meta{Name: attr, Base: res}
+			_meta.UpdateMeta()
+			metas = append(metas, &_meta)
+		}
+	}
+
+	return metas
+}

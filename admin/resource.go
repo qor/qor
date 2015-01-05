@@ -2,7 +2,6 @@ package admin
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -72,57 +71,6 @@ func (res *Resource) ShowAttrs(columns ...string) {
 	res.showAttrs = columns
 }
 
-func (res *Resource) getMetas(attrsSlice ...[]string) []*resource.Meta {
-	var attrs []string
-	for _, value := range attrsSlice {
-		if value != nil {
-			attrs = value
-			break
-		}
-	}
-
-	if attrs == nil {
-		scope := &gorm.Scope{Value: res.Value}
-		attrs = []string{}
-		fields := scope.Fields()
-
-		includedMeta := map[string]bool{}
-		for _, meta := range res.Metas {
-			meta := meta.GetMeta()
-			if _, ok := fields[meta.Name]; !ok {
-				includedMeta[meta.Alias] = true
-				attrs = append(attrs, meta.Name)
-			}
-		}
-
-		for _, field := range fields {
-			if _, ok := includedMeta[field.Name]; ok {
-				continue
-			}
-			attrs = append(attrs, field.Name)
-		}
-	}
-
-	metas := []*resource.Meta{}
-	for _, attr := range attrs {
-		if meta, ok := res.Metas[attr]; ok {
-			metas = append(metas, meta.GetMeta())
-		} else {
-			// fix hide for foreign key
-			if strings.HasSuffix(attr, "Id") {
-				// continue
-			}
-
-			var _meta resource.Meta
-			_meta = resource.Meta{Name: attr, Base: res}
-			_meta.UpdateMeta()
-			metas = append(metas, &_meta)
-		}
-	}
-
-	return metas
-}
-
 func (res *Resource) getCachedMetas(cacheKey string, fc func() []*resource.Meta) []*resource.Meta {
 	if res.cachedMetas == nil {
 		res.cachedMetas = &map[string][]*resource.Meta{}
@@ -139,31 +87,31 @@ func (res *Resource) getCachedMetas(cacheKey string, fc func() []*resource.Meta)
 
 func (res *Resource) IndexMetas() []*resource.Meta {
 	return res.getCachedMetas("index_metas", func() []*resource.Meta {
-		return res.getMetas(res.indexAttrs, res.showAttrs)
+		return res.GetMetas(res.indexAttrs, res.showAttrs)
 	})
 }
 
 func (res *Resource) NewMetas() []*resource.Meta {
 	return res.getCachedMetas("new_metas", func() []*resource.Meta {
-		return res.getMetas(res.newAttrs, res.editAttrs)
+		return res.GetMetas(res.newAttrs, res.editAttrs)
 	})
 }
 
 func (res *Resource) EditMetas() []*resource.Meta {
 	return res.getCachedMetas("edit_metas", func() []*resource.Meta {
-		return res.appendPrimaryKey(res.getMetas(res.editAttrs))
+		return res.appendPrimaryKey(res.GetMetas(res.editAttrs))
 	})
 }
 
 func (res *Resource) ShowMetas() []*resource.Meta {
 	return res.getCachedMetas("show_metas", func() []*resource.Meta {
-		return res.getMetas(res.showAttrs, res.editAttrs)
+		return res.GetMetas(res.showAttrs, res.editAttrs)
 	})
 }
 
 func (res *Resource) AllMetas() []*resource.Meta {
 	return res.getCachedMetas("all_metas", func() []*resource.Meta {
-		return res.appendPrimaryKey(res.getMetas())
+		return res.appendPrimaryKey(res.GetMetas())
 	})
 }
 
