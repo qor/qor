@@ -11,6 +11,7 @@ import (
 
 type Resource struct {
 	Name       string
+	primaryKey string
 	Value      interface{}
 	Metas      map[string]Metaor
 	Searcher   func(interface{}, *qor.Context) error
@@ -46,12 +47,19 @@ func (res *Resource) GetResource() *Resource {
 	return res
 }
 
+func (res *Resource) PrimaryKey() string {
+	if res.primaryKey == "" {
+		scope := gorm.Scope{Value: res.Value}
+		res.primaryKey = scope.PrimaryKey()
+	}
+	return res.primaryKey
+}
+
 func (res *Resource) CallSearcher(result interface{}, context *qor.Context) error {
 	if res.Searcher != nil {
 		return res.Searcher(result, context)
 	} else {
-		scope := gorm.Scope{Value: res.Value}
-		return context.GetDB().Order(fmt.Sprintf("%v DESC", scope.PrimaryKey())).Find(result).Error
+		return context.GetDB().Order(fmt.Sprintf("%v DESC", res.PrimaryKey())).Find(result).Error
 	}
 }
 

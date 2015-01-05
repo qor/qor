@@ -28,7 +28,7 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 		var primaryKey string
 		if metaValues == nil {
 			primaryKey = context.ResourceID
-		} else if id := metaValues.Get("_id"); id != nil {
+		} else if id := metaValues.Get(res.PrimaryKey()); id != nil {
 			primaryKey = resource.ToString(id.Value)
 		}
 
@@ -168,7 +168,7 @@ func (res *Resource) AllMetas() []*resource.Meta {
 }
 
 func (res *Resource) appendPrimaryKey(metas []*resource.Meta) []*resource.Meta {
-	primaryKeyMeta := &resource.Meta{Base: res, Name: "_id", Type: "hidden", Value: func(value interface{}, context *qor.Context) interface{} {
+	primaryKeyMeta := &resource.Meta{Base: res, Name: res.PrimaryKey(), Type: "hidden", Value: func(value interface{}, context *qor.Context) interface{} {
 		return context.GetDB().NewScope(value).PrimaryKeyValue()
 	}}
 	primaryKeyMeta.UpdateMeta()
