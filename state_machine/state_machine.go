@@ -45,14 +45,15 @@ type StateMachine struct {
 	states map[string]*stateMachine
 }
 
-type action func(value interface{}, tx *gorm.DB) error
+type Handle func(value interface{}, tx *gorm.DB) error
+
 type stateMachine struct {
 	Name         string
 	StateMachine *StateMachine
-	befores      []action
-	afters       []action
-	enters       []action
-	exits        []action
+	befores      []Handle
+	afters       []Handle
+	enters       []Handle
+	exits        []Handle
 }
 
 func (sm *StateMachine) New(name string) *stateMachine {
@@ -103,22 +104,22 @@ func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
 	}
 }
 
-func (sm *stateMachine) Before(fc action) *stateMachine {
+func (sm *stateMachine) Before(fc Handle) *stateMachine {
 	sm.befores = append(sm.befores, fc)
 	return sm
 }
 
-func (sm *stateMachine) After(fc action) *stateMachine {
+func (sm *stateMachine) After(fc Handle) *stateMachine {
 	sm.afters = append(sm.afters, fc)
 	return sm
 }
 
-func (sm *stateMachine) Enter(fc action) *stateMachine {
+func (sm *stateMachine) Enter(fc Handle) *stateMachine {
 	sm.enters = append(sm.enters, fc)
 	return sm
 }
 
-func (sm *stateMachine) Exit(fc action) *stateMachine {
+func (sm *stateMachine) Exit(fc Handle) *stateMachine {
 	sm.exits = append(sm.exits, fc)
 	return sm
 }
