@@ -1,6 +1,7 @@
 package state_machine
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -20,6 +21,7 @@ type StateChangeLog struct {
 
 type Stater interface {
 	SetState(name string)
+	GetState() string
 }
 
 type State struct {
@@ -31,11 +33,16 @@ func (state *State) SetState(name string) {
 	state.State = name
 }
 
+func (state *State) GetState() string {
+	return state.State
+}
+
 func New(value interface{}) *StateMachine {
 	return &StateMachine{}
 }
 
 type StateMachine struct {
+	states map[string]*stateMachine
 }
 
 type action func(value interface{}, tx *gorm.DB) error
@@ -49,17 +56,51 @@ type stateMachine struct {
 }
 
 func (sm *StateMachine) New(name string) *stateMachine {
-	return &stateMachine{Name: name, StateMachine: sm}
+	state := &stateMachine{Name: name, StateMachine: sm}
+	sm.states[name] = state
+	return state
 }
 
 func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
-	value.SetState(name)
-	scope := &gorm.Scope{Value: value}
-	tableName := scope.TableName()
-	primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
-	log := StateChangeLog{ReferTable: tableName, ReferId: primaryKey, State: name}
-	tx.New().Save(&log)
-	return nil
+	if state := sm.states[name]; state != nil {
+		newTx := tx.New()
+		scope := &gorm.Scope{Value: value}
+		for _, before := range state.befores {
+			if err := before(value, newTx); err != nil {
+				return err
+			}
+		}
+
+		oldState := value.GetState()
+		if oldState := sm.states[oldState]; oldState != nil {
+			for _, exit := range state.exits {
+				if err := exit(value, newTx); err != nil {
+					return err
+				}
+			}
+		}
+
+		value.SetState(name)
+
+		for _, enter := range state.enters {
+			if err := enter(value, newTx); err != nil {
+				return err
+			}
+		}
+
+		for _, after := range state.afters {
+			if err := after(value, newTx); err != nil {
+				return err
+			}
+		}
+
+		tableName := scope.TableName()
+		primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
+		log := StateChangeLog{ReferTable: tableName, ReferId: primaryKey, State: name}
+		return newTx.Save(&log).Error
+	} else {
+		return errors.New("state not found")
+	}
 }
 
 func (sm *stateMachine) Before(fc action) *stateMachine {
@@ -81,8 +122,3 @@ func (sm *stateMachine) Exit(fc action) *stateMachine {
 	sm.exits = append(sm.exits, fc)
 	return sm
 }
-
-// orderState.New("finish").Before().After().Do().From("ready").To("paid")
-// orderState.To("finish", &order)
-// order.SetState("finish")
-// order.NewStateLog("finish", tableName, Id, notes)
