@@ -38,7 +38,7 @@ func (state *State) GetState() string {
 }
 
 func New(value interface{}) *StateMachine {
-	return &StateMachine{}
+	return &StateMachine{states: map[string]*stateMachine{}}
 }
 
 type StateMachine struct {
