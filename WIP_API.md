@@ -112,3 +112,31 @@ Layout:
     }
 
     layout.Render(name)
+
+StateMachine
+  type StateChangeLog struct {
+    Id         uint64
+    ReferTable string
+    ReferId    string
+    State      string
+    Note       string
+    CreatedAt  time.Time
+    UpdatedAt  time.Time
+    DeletedAt  time.Time
+  }
+
+  type StateMachine struct {
+    State string
+    StateChangeLogs []StateChangeLog
+  }
+
+  type Order struct {
+    StateMachine // SetState
+  }
+
+  orderState := state.New(&Order{})
+  orderState.New("finish").Before().After().Do().From("ready").To("paid")
+
+  orderState.To("finish", &order)
+    order.SetState("finish")
+    order.NewStateLog("finish", tableName, Id, notes)
