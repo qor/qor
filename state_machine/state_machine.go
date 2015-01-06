@@ -38,26 +38,25 @@ func (state *State) GetState() string {
 }
 
 func New(value interface{}) *StateMachine {
-	return &StateMachine{states: map[string]*stateMachine{}}
+	return &StateMachine{states: map[string]*Event{}}
 }
 
 type StateMachine struct {
-	states map[string]*stateMachine
+	states map[string]*Event
 }
 
 type Handle func(value interface{}, tx *gorm.DB) error
 
-type stateMachine struct {
-	Name         string
-	StateMachine *StateMachine
-	befores      []Handle
-	afters       []Handle
-	enters       []Handle
-	exits        []Handle
+type Event struct {
+	Name    string
+	befores []Handle
+	afters  []Handle
+	enters  []Handle
+	exits   []Handle
 }
 
-func (sm *StateMachine) New(name string) *stateMachine {
-	state := &stateMachine{Name: name, StateMachine: sm}
+func (sm *StateMachine) New(name string) *Event {
+	state := &Event{Name: name}
 	sm.states[name] = state
 	return state
 }
@@ -104,22 +103,22 @@ func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
 	}
 }
 
-func (sm *stateMachine) Before(fc Handle) *stateMachine {
+func (sm *Event) Before(fc Handle) *Event {
 	sm.befores = append(sm.befores, fc)
 	return sm
 }
 
-func (sm *stateMachine) After(fc Handle) *stateMachine {
+func (sm *Event) After(fc Handle) *Event {
 	sm.afters = append(sm.afters, fc)
 	return sm
 }
 
-func (sm *stateMachine) Enter(fc Handle) *stateMachine {
+func (sm *Event) Enter(fc Handle) *Event {
 	sm.enters = append(sm.enters, fc)
 	return sm
 }
 
-func (sm *stateMachine) Exit(fc Handle) *stateMachine {
+func (sm *Event) Exit(fc Handle) *Event {
 	sm.exits = append(sm.exits, fc)
 	return sm
 }
