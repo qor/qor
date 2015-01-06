@@ -19,7 +19,7 @@ func (admin *Admin) Index(context *Context) {
 		responder.With("html", func() {
 			context.Execute("index", result)
 		}).With("json", func() {
-			js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context.Context, result))
+			js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context, result))
 			context.Writer.Write(js)
 		}).Respond(context.Writer, context.Request)
 	} else {
@@ -34,7 +34,7 @@ func (admin *Admin) Show(context *Context) {
 	responder.With("html", func() {
 		context.Execute("show", result)
 	}).With("json", func() {
-		js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context.Context, result))
+		js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context, result))
 		context.Writer.Write(js)
 	}).Respond(context.Writer, context.Request)
 }
@@ -46,13 +46,13 @@ func (admin *Admin) New(context *Context) {
 func (admin *Admin) Create(context *Context) {
 	res := admin.GetResource(context.ResourceName())
 	result := res.NewStruct()
-	if errs := res.Decode(context.Context, result); len(errs) == 0 {
+	if errs := res.Decode(context, result); len(errs) == 0 {
 		res.CallSaver(result, context.Context)
 		responder.With("html", func() {
 			primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
 			http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
 		}).With("json", func() {
-			js, _ := json.Marshal(res.ConvertObjectToMap(context.Context, result))
+			js, _ := json.Marshal(res.ConvertObjectToMap(context, result))
 			context.Writer.Write(js)
 		}).Respond(context.Writer, context.Request)
 	}
@@ -60,12 +60,12 @@ func (admin *Admin) Create(context *Context) {
 
 func (admin *Admin) Update(context *Context) {
 	if result, err := context.FindOne(); err == nil {
-		if errs := context.Resource.Decode(context.Context, result); len(errs) == 0 {
+		if errs := context.Resource.Decode(context, result); len(errs) == 0 {
 			context.Resource.CallSaver(result, context.Context)
 			responder.With("html", func() {
 				http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 			}).With("json", func() {
-				js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context.Context, result))
+				js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context, result))
 				context.Writer.Write(js)
 			}).Respond(context.Writer, context.Request)
 		}
