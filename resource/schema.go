@@ -11,6 +11,10 @@ import (
 	"github.com/qor/qor/roles"
 )
 
+type Contextor interface {
+	GetContext() *qor.Context
+}
+
 func (res *Resource) ConvertMapToMetaValues(values map[string]interface{}) (metaValues *MetaValues) {
 	metas := make(map[string]Metaor)
 	if res != nil {
@@ -61,7 +65,8 @@ func (res *Resource) ConvertMapToMetaValues(values map[string]interface{}) (meta
 	return
 }
 
-func (res *Resource) ConvertFormToMetaValues(context *qor.Context, prefix string) (metaValues *MetaValues) {
+func (res *Resource) ConvertFormToMetaValues(contextor Contextor, prefix string) (metaValues *MetaValues) {
+	context := contextor.GetContext()
 	request := context.Request
 	convertedMap := make(map[string]bool)
 	metas := make(map[string]Metaor)
@@ -106,7 +111,8 @@ func (res *Resource) ConvertFormToMetaValues(context *qor.Context, prefix string
 	return
 }
 
-func (res *Resource) ConvertObjectToMap(context *qor.Context, object interface{}) interface{} {
+func (res *Resource) ConvertObjectToMap(contextor Contextor, object interface{}) interface{} {
+	context := contextor.GetContext()
 	reflectValue := reflect.Indirect(reflect.ValueOf(object))
 	switch reflectValue.Kind() {
 	case reflect.Slice:
@@ -134,7 +140,8 @@ func (res *Resource) ConvertObjectToMap(context *qor.Context, object interface{}
 	}
 }
 
-func (res *Resource) Decode(context *qor.Context, result interface{}) (errs []error) {
+func (res *Resource) Decode(contextor Contextor, result interface{}) (errs []error) {
+	context := contextor.GetContext()
 	responder.With("html", func() {
 		errs = DecodeToResource(res, result, res.ConvertFormToMetaValues(context, "QorResource."), context).Start()
 	}).With("json", func() {
