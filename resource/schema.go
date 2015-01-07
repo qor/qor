@@ -120,7 +120,7 @@ func (res *Resource) ConvertObjectToMap(contextor Contextor, object interface{})
 		len := reflectValue.Len()
 		values := []interface{}{}
 		for i := 0; i < len; i++ {
-			values = append(values, res.ConvertObjectToMap(context, reflectValue.Index(i).Interface()))
+			values = append(values, res.ConvertObjectToMap(context, reflectValue.Index(i).Addr().Interface()))
 		}
 		return values
 	case reflect.Struct:

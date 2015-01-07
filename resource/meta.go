@@ -144,7 +144,7 @@ func (meta *Meta) UpdateMeta() {
 							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
 						}
 					}
-					return f.Field.Interface()
+					return f.Field.Addr().Interface()
 				}
 
 				return ""
@@ -261,7 +261,7 @@ func getNestedModel(value interface{}, alias string, context *qor.Context) inter
 			submodel := model.FieldByName(field)
 			if key := submodel.FieldByName("Id"); !key.IsValid() || key.Uint() == 0 {
 				if submodel.CanAddr() {
-					context.GetDB().Model(model.Interface()).Related(submodel.Addr().Interface())
+					context.GetDB().Model(model.Addr().Interface()).Related(submodel.Addr().Interface())
 					model = submodel
 				} else {
 					break
