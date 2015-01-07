@@ -2,6 +2,7 @@ package resource
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
@@ -136,7 +137,7 @@ func (res *Resource) ConvertObjectToMap(contextor Contextor, object interface{})
 		}
 		return values
 	default:
-		panic("can't convert object to map")
+		panic(fmt.Sprintf("Can't convert %v (%v) to map", object, reflectValue.Kind()))
 	}
 }
 
