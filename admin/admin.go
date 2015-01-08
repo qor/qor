@@ -26,7 +26,13 @@ func New(config *qor.Config) *Admin {
 
 func NewResource(value interface{}, names ...string) *Resource {
 	res := resource.New(value, names...)
-	return &Resource{Resource: *res, cachedMetas: &map[string][]*resource.Meta{}}
+	return &Resource{
+		Resource:    *res,
+		cachedMetas: &map[string][]*resource.Meta{},
+		scopes:      map[string]*Scope{},
+		filters:     map[string]*Filter{},
+		actions:     map[string]*Action{},
+	}
 }
 
 func (admin *Admin) NewResource(value interface{}, names ...string) *Resource {

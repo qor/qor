@@ -3,6 +3,7 @@ package admin
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/qor/qor/responder"
 
@@ -79,5 +80,14 @@ func (admin *Admin) Delete(context *Context) {
 		http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusFound)
 	} else {
 		http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusNotFound)
+	}
+}
+
+func (admin *Admin) Action(context *Context) {
+	name := strings.Split(context.Request.URL.Path, "/")[3]
+	if action := context.Resource.actions[name]; action != nil {
+		ids := context.Request.Form.Get("ids")
+		scope := context.DB.Where(ids)
+		action.Handle(scope, context.Context)
 	}
 }

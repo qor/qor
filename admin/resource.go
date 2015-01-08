@@ -139,22 +139,13 @@ func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *Context, role
 }
 
 func (res *Resource) Scope(scope *Scope) {
-	if res.scopes == nil {
-		res.scopes = map[string]*Scope{}
-	}
 	res.scopes[scope.Name] = scope
 }
 
 func (res *Resource) Filter(filter *Filter) {
-	if res.filters == nil {
-		res.filters = map[string]*Filter{}
-	}
 	res.filters[filter.Name] = filter
 }
 
 func (res *Resource) Action(action *Action) {
-	if res.actions == nil {
-		res.actions = map[string]*Action{}
-	}
 	res.actions[action.Name] = action
 }
