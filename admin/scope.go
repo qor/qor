@@ -8,6 +8,6 @@ import (
 type Scope struct {
 	Name    string
 	Label   string
-	Handler func(*gorm.DB, *qor.Context) *gorm.DB
+	Handle  func(*gorm.DB, *qor.Context) *gorm.DB
 	Default bool
 }
