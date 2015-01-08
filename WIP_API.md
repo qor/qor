@@ -135,7 +135,8 @@ StateMachine
   }
 
   orderState := state.New(&Order{})
-  orderState.New("finish").Before().After().Do().From("ready").To("paid")
+
+  orderState.New("finish").Before().After().Do().Enter(Handle, "checkout", "paid").Enter(Handle, "paypal_paid").Exit(Handle, "hello")
 
   orderState.To("finish", &order)
     order.SetState("finish")
