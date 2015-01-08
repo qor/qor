@@ -84,10 +84,20 @@ func (admin *Admin) Delete(context *Context) {
 }
 
 func (admin *Admin) Action(context *Context) {
+	var err error
 	name := strings.Split(context.Request.URL.Path, "/")[3]
 	if action := context.Resource.actions[name]; action != nil {
 		ids := context.Request.Form.Get("ids")
 		scope := context.DB.Where(ids)
-		action.Handle(scope, context.Context)
+		err = action.Handle(scope, context.Context)
 	}
+	responder.With("html", func() {
+		http.Redirect(context.Writer, context.Request, context.Request.Referer(), http.StatusFound)
+	}).With("json", func() {
+		if err == nil {
+			context.Writer.Write([]byte("OK"))
+		} else {
+			context.Writer.Write([]byte(err.Error()))
+		}
+	}).Respond(context.Writer, context.Request)
 }
