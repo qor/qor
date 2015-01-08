@@ -12,6 +12,16 @@ import (
 	"github.com/qor/qor/roles"
 )
 
+func GetAddrValue(value reflect.Value) interface{} {
+	if value.Kind() == reflect.Ptr {
+		return value.Interface()
+	} else if value.CanAddr() {
+		return value.Addr().Interface()
+	} else {
+		return value.Interface()
+	}
+}
+
 type Contextor interface {
 	GetContext() *qor.Context
 }
@@ -120,7 +130,7 @@ func (res *Resource) ConvertObjectToMap(contextor Contextor, object interface{})
 		len := reflectValue.Len()
 		values := []interface{}{}
 		for i := 0; i < len; i++ {
-			values = append(values, res.ConvertObjectToMap(context, reflectValue.Index(i).Addr().Interface()))
+			values = append(values, res.ConvertObjectToMap(context, GetAddrValue(reflectValue.Index(i))))
 		}
 		return values
 	case reflect.Struct:
@@ -137,7 +147,7 @@ func (res *Resource) ConvertObjectToMap(contextor Contextor, object interface{})
 		}
 		return values
 	default:
-		panic(fmt.Sprintf("Can't convert %v (%v) to map", object, reflectValue.Kind()))
+		panic(fmt.Sprintf("Can't convert %v (%v) to map", reflectValue, reflectValue.Kind()))
 	}
 }
 
