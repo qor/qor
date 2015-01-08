@@ -140,3 +140,20 @@ StateMachine
   orderState.To("finish", &order)
     order.SetState("finish")
     order.NewStateLog("finish", tableName, Id, notes)
+
+Action
+
+    type Action struct {
+      Name string "update_name"
+      Metas []string
+
+      Handle func(scope gorm.DB, context qor.context) error
+      Single bool
+    }
+
+    order := admin.NewResource(Order{})
+    order.Action(action)
+
+    /admin/order/action
+    /admin/order/action/confirm?ids=[1,2,3]
+    /admin/order/action/confirm?ids=[1]
