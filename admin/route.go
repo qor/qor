@@ -53,7 +53,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	router.Get("^/?$", admin.Dashboard)
 	router.Get("^/[^/]+/new$", admin.New)
 	router.Post("^/[^/]+$", admin.Create)
-	router.Get("^/[^/]+/[^/]+/action/[^/]+(\\?.*)?$", admin.Action)
+	router.Get("^/[^/]+/action/[^/]+(\\?.*)?$", admin.Action)
 	router.Get("^/[^/]+/.*$", admin.Show)
 	router.Put("^/[^/]+/.*$", admin.Update)
 	router.Post("^/[^/]+/.*$", admin.Update)
@@ -82,7 +82,7 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var router = admin.router
 	var context = admin.NewContext(w, req)
 
-	var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*/?$`))
+	var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*`))
 	var matches = pathMatch.FindStringSubmatch(req.URL.Path)
 	if len(matches) > 1 {
 		context.SetResource(admin.GetResource(matches[1]))
