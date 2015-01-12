@@ -332,7 +332,7 @@ func ToInt(value interface{}) int64 {
 	} else if result == "" {
 		return 0
 	} else {
-		panic("failed to parseint")
+		panic("failed to parse int: " + result)
 	}
 }
 
@@ -351,7 +351,7 @@ func ToUint(value interface{}) uint64 {
 	} else if result == "" {
 		return 0
 	} else {
-		panic("failed to parseuint")
+		panic("failed to parse uint: " + result)
 	}
 }
 
@@ -370,7 +370,7 @@ func ToFloat(value interface{}) float64 {
 	} else if result == "" {
 		return 0
 	} else {
-		panic("failed to parsefloat")
+		panic("failed to parse float: " + result)
 	}
 }
 
