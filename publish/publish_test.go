@@ -21,9 +21,9 @@ func init() {
 	pbprod = pb.ProductionMode()
 
 	for _, table := range []string{"products", "products_draft", "colors"} {
-		pb.Exec(fmt.Sprintf("drop table %v", table))
+		pbprod.Exec(fmt.Sprintf("drop table %v", table))
 	}
-	pb.AutoMigrate(&Product{}, &Color{})
+	pbprod.AutoMigrate(&Product{}, &Color{})
 	pb.AutoMigrateDrafts()
 }
 

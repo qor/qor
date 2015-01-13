@@ -53,18 +53,18 @@ func (resolver *Resolver) AddDependency(dependency *Dependency) {
 func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []string) {
 	// new slice
 	value := reflect.New(dependency.Type)
-	fromScope := resolver.DB.NewScope(value.Addr().Interface())
+	fromScope := resolver.DB.DB.NewScope(value.Addr().Interface())
 	for _, field := range fromScope.Fields() {
 		if relationship := field.Relationship; relationship != nil {
 			toType := field.Field.Type()
-			toScope := resolver.DB.NewScope(reflect.New(toType).Interface())
+			toScope := resolver.DB.DB.NewScope(reflect.New(toType).Interface())
 			var dependencyKeys []string
 			var rows *sql.Rows
 			var err error
 
 			if relationship.Kind == "belongs_to" || relationship.Kind == "has_many" {
 				sql := fmt.Sprintf("%v IN (?) and publish_status = ?", relationship.ForeignKey)
-				rows, err = resolver.DB.Select(toScope.PrimaryKey()).Where(sql, primaryKeys, DIRTY).Rows()
+				rows, err = resolver.DB.DB.Select(toScope.PrimaryKey()).Where(sql, primaryKeys, DIRTY).Rows()
 			} else if relationship.Kind == "has_one" {
 				fromTable := fromScope.TableName()
 				fromPrimaryKey := fromScope.PrimaryKey()
@@ -74,7 +74,7 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 				sql := fmt.Sprintf("%v.%v IN (select %v.%v from %v where %v.%v IN (?)) and %v.publish_status = ?",
 					toTable, toPrimaryKey, fromTable, relationship.ForeignKey, fromTable, fromTable, fromPrimaryKey, toTable)
 
-				rows, err = resolver.DB.Select(toTable+"."+toPrimaryKey).Where(sql, primaryKeys, DIRTY).Rows()
+				rows, err = resolver.DB.DB.Select(toTable+"."+toPrimaryKey).Where(sql, primaryKeys, DIRTY).Rows()
 			} else if relationship.Kind == "many_to_many" {
 			}
 
@@ -98,7 +98,7 @@ func (resolver *Resolver) Publish() {
 		var supportedModels []string
 		var reflectType = modelType(record)
 
-		if value, ok := resolver.DB.Get("publish:support_models"); ok {
+		if value, ok := resolver.DB.DB.Get("publish:support_models"); ok {
 			supportedModels = value.([]string)
 		}
 
@@ -139,6 +139,6 @@ func (resolver *Resolver) Publish() {
 			toTable, strings.Join(insertColumns, " ,"), strings.Join(selectColumns, " ,"),
 			fromTable, fromTable, fromPrimaryKey)
 
-		resolver.DB.Exec(sql, dependency.PrimaryKeys)
+		resolver.DB.DB.Exec(sql, dependency.PrimaryKeys)
 	}
 }

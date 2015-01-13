@@ -17,7 +17,7 @@ type Publish struct {
 }
 
 type DB struct {
-	*gorm.DB
+	DB              *gorm.DB
 	SupportedModels []interface{}
 }
 
@@ -68,22 +68,22 @@ func (db *DB) Support(models ...interface{}) {
 	for _, model := range db.SupportedModels {
 		supportedModels = append(supportedModels, modelType(model).String())
 	}
-	db.InstantSet("publish:support_models", supportedModels)
+	db.DB.InstantSet("publish:support_models", supportedModels)
 }
 
 func (db *DB) AutoMigrateDrafts() {
 	for _, value := range db.SupportedModels {
 		table := (&gorm.Scope{Value: value}).TableName()
-		db.Table(DraftTableName(table)).AutoMigrate(value)
+		db.DB.Table(DraftTableName(table)).AutoMigrate(value)
 	}
 }
 
 func (db *DB) ProductionMode() *gorm.DB {
-	return db.Set("qor_publish:draft_mode", false)
+	return db.DB.Set("qor_publish:draft_mode", false)
 }
 
 func (db *DB) DraftMode() *gorm.DB {
-	return db.Set("qor_publish:draft_mode", true)
+	return db.DB.Set("qor_publish:draft_mode", true)
 }
 
 func (db *DB) NewResolver(records ...interface{}) *Resolver {

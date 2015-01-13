@@ -14,11 +14,11 @@ func TestCreateStructFromDraft(t *testing.T) {
 		t.Errorf("record should be found in draft db")
 	}
 
-	if pb.Table("colors").First(&Color{}, "name = ?", name).Error != nil {
+	if pbprod.Table("colors").First(&Color{}, "name = ?", name).Error != nil {
 		t.Errorf("color should be saved")
 	}
 
-	if pb.Table("colors_draft").First(&Color{}, "name = ?", name).Error == nil {
+	if pbprod.Table("colors_draft").First(&Color{}, "name = ?", name).Error == nil {
 		t.Errorf("no colors_draft table")
 	}
 
@@ -50,7 +50,7 @@ func TestCreateStructFromProduction(t *testing.T) {
 		t.Errorf("record should be found in draft db")
 	}
 
-	if pb.Table("colors").First(&Color{}, "name = ?", name).Error != nil {
+	if pbprod.Table("colors").First(&Color{}, "name = ?", name).Error != nil {
 		t.Errorf("color should be saved")
 	}
 
