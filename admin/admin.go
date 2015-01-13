@@ -1,8 +1,8 @@
 package admin
 
 import (
-	"html/template"
 	"net/http"
+	"text/template"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
