@@ -1,8 +1,29 @@
 package publish
 
-import "github.com/qor/qor/admin"
+import (
+	"strings"
+
+	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
+)
 
 func (db *DB) PreviewAction(context *admin.Context) {
+	draftDB := db.DraftMode()
+	drafts := make(map[string]interface{})
+	for _, model := range db.SupportedModels {
+		var res *resource.Resource
+		var name = modelType(model).Name()
+
+		if r := context.Admin.GetResource(strings.ToLower(name)); r != nil {
+			res = &r.Resource
+		} else {
+			res = resource.New(model)
+		}
+
+		results := res.NewSlice()
+		draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results)
+		drafts[name] = results
+	}
 }
 
 func (db *DB) PublishAction(context *admin.Context) {
