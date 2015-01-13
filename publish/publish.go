@@ -30,9 +30,7 @@ func modelType(value interface{}) reflect.Type {
 	return reflectValue.Type()
 }
 
-func Open(driver, source string) (*DB, error) {
-	db, err := gorm.Open(driver, source)
-
+func New(db *gorm.DB) *DB {
 	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production_after_create", SyncToProductionAfterCreate)
@@ -47,7 +45,7 @@ func Open(driver, source string) (*DB, error) {
 		Register("publish:sync_to_production", SyncToProductionAfterUpdate)
 
 	db.Callback().Query().Before("gorm:query").Register("publish:set_table_in_draft_mode", SetTableAndPublishStatus(false))
-	return &DB{DB: &db}, err
+	return &DB{DB: db}
 }
 
 func DraftTableName(table string) string {
