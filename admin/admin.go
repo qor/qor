@@ -20,6 +20,7 @@ type Admin struct {
 func New(config *qor.Config) *Admin {
 	admin := Admin{
 		Resources: map[string]*Resource{},
+		funcMaps:  make(template.FuncMap),
 		Config:    config,
 		router:    newRouter(),
 	}
