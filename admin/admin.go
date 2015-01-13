@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"html/template"
 	"net/http"
 
 	"github.com/qor/qor"
@@ -13,6 +14,7 @@ type Admin struct {
 	Resources map[string]*Resource
 	auth      Auth
 	router    *Router
+	funcMaps  template.FuncMap
 }
 
 func New(config *qor.Config) *Admin {
@@ -66,4 +68,8 @@ func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context 
 	context.Roles = roles.MatchedRoles(r, currentUser)
 
 	return &context
+}
+
+func (admin *Admin) RegisterFuncMap(name string, fc interface{}) {
+	admin.funcMaps[name] = fc
 }

@@ -256,7 +256,7 @@ func (context *Context) NewMetas(resources ...*Resource) []*resource.Meta {
 }
 
 func (context *Context) funcMap() template.FuncMap {
-	return template.FuncMap{
+	funcMap := template.FuncMap{
 		"value_of":          context.ValueOf,
 		"url_for":           context.UrlFor,
 		"new_resource_path": context.NewResourcePath,
@@ -270,4 +270,8 @@ func (context *Context) funcMap() template.FuncMap {
 		"show_metas":        context.ShowMetas,
 		"new_metas":         context.NewMetas,
 	}
+	for key, value := range context.Admin.funcMaps {
+		funcMap[key] = value
+	}
+	return funcMap
 }
