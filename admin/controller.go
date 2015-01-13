@@ -88,7 +88,7 @@ func (admin *Admin) Action(context *Context) {
 	name := strings.Split(context.Request.URL.Path, "/")[4]
 	if action := context.Resource.actions[name]; action != nil {
 		ids := context.Request.Form.Get("ids")
-		scope := context.GetDB().Where(ids)
+		scope := context.GetDB().Where(fmt.Sprintf("%v IN (?)", context.Resource.PrimaryKey()), ids)
 		err = action.Handle(scope, context.Context)
 	}
 
