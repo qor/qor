@@ -38,9 +38,17 @@ func NewResource(value interface{}, names ...string) *Resource {
 	}
 }
 
+type Injector interface {
+	InjectQorAdmin(*Admin)
+}
+
 func (admin *Admin) NewResource(value interface{}, names ...string) *Resource {
 	res := NewResource(value, names...)
 	admin.Resources[res.Name] = res
+
+	if injector, ok := value.(Injector); ok {
+		injector.InjectQorAdmin(admin)
+	}
 	return res
 }
 
