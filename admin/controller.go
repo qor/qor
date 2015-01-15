@@ -24,7 +24,6 @@ func (admin *Admin) Index(context *Context) {
 			context.Writer.Write(js)
 		}).Respond(context.Writer, context.Request)
 	} else {
-		fmt.Println(err)
 		http.NotFound(context.Writer, context.Request)
 	}
 }
@@ -76,11 +75,19 @@ func (admin *Admin) Update(context *Context) {
 func (admin *Admin) Delete(context *Context) {
 	res := admin.GetResource(context.ResourceName())
 
-	if res.CallDeleter(res.NewStruct(), context.Context) == nil {
-		http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusFound)
-	} else {
-		http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusNotFound)
-	}
+	responder.With("html", func() {
+		if res.CallDeleter(res.NewStruct(), context.Context) == nil {
+			http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusFound)
+		} else {
+			http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusNotFound)
+		}
+	}).With("json", func() {
+		if res.CallDeleter(res.NewStruct(), context.Context) == nil {
+			context.Writer.WriteHeader(http.StatusOK)
+		} else {
+			context.Writer.WriteHeader(http.StatusNotFound)
+		}
+	}).Respond(context.Writer, context.Request)
 }
 
 func (admin *Admin) Action(context *Context) {
