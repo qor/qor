@@ -3,7 +3,6 @@ package admin
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
@@ -51,8 +50,7 @@ func (res *Resource) CallSearcher(result interface{}, context *qor.Context) erro
 	if res.Searcher != nil {
 		return res.Searcher(result, context)
 	} else {
-		scope := gorm.Scope{Value: res.Value}
-		return context.GetDB().Order(fmt.Sprintf("%v DESC", scope.PrimaryKey())).Find(result).Error
+		return context.GetDB().Set("gorm:order_by_primary_key", "ASC").Find(result).Error
 	}
 }
 
