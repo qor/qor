@@ -24,6 +24,7 @@ func (db *DB) PreviewAction(context *admin.Context) {
 		draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results)
 		drafts[name] = results
 	}
+	context.Execute("publish/drafts", drafts)
 }
 
 func (db *DB) PublishAction(context *admin.Context) {

@@ -21,12 +21,12 @@ func init() {
 		Root = root
 	}
 
-	for _, dir := range []string{path.Join(Root, "app/views/qor"), path.Join(Root, "templates/qor")} {
+	for _, dir := range []string{path.Join(Root, "app/views/qor")} {
 		RegisterViewPath(dir)
 	}
 
 	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-		RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/admin/templates"))
+		RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/admin/views"))
 	}
 }
 
