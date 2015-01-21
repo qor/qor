@@ -6,3 +6,4 @@ type Queuer interface {
 	Purge(job *Job) (err error)
 	Dequeue() (jobId uint64, err error)
 }
+

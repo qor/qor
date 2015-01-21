@@ -5,14 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/qor/qor/resource"
-
-	"github.com/qor/qor/roles"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -63,26 +60,26 @@ func SetAdmin(a *admin.Admin) {
 }
 
 func newJobPage(c *admin.Context) {
-	var res *admin.Resource
-	for _, w := range workers {
-		res = w.resource
-		break
-	}
-	content := admin.Content{Context: c, Admin: c.Admin, Resource: res, Action: "new"}
-	c.Admin.Render("new", content, roles.Create)
+	// var res *admin.Resource
+	// for _, w := range workers {
+	// 	res = w.resource
+	// 	break
+	// }
+	// content := admin.Content{Context: c, Admin: c.Admin, Resource: res, Action: "new"}
+	// c.Admin.Render("new", content, roles.Create)
 }
 
 func switchWorker(c *admin.Context) {
-	wname := c.Request.FormValue("name")
-	w, ok := workers[wname]
-	if !ok {
-		c.Writer.WriteHeader(http.StatusBadRequest)
-		c.Writer.Write([]byte("worker does not exist"))
-		return
-	}
+	// wname := c.Request.FormValue("name")
+	// w, ok := workers[wname]
+	// if !ok {
+	// 	c.Writer.WriteHeader(http.StatusBadRequest)
+	// 	c.Writer.Write([]byte("worker does not exist"))
+	// 	return
+	// }
 
-	content := admin.Content{Context: c, Admin: c.Admin, Resource: w.resource, Action: "new"}
-	c.Admin.Render("worker", content, roles.Create)
+	// content := admin.Content{Context: c, Admin: c.Admin, Resource: w.resource, Action: "new"}
+	// c.Admin.Render("worker", content, roles.Create)
 }
 
 // Listen will parse an flag named as "job-id". If the job-id is zero, it
