@@ -6,20 +6,19 @@ import (
 	"strings"
 
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/resource"
 )
 
 func (db *DB) PreviewAction(context *admin.Context) {
 	draftDB := db.DraftMode()
-	drafts := make(map[*resource.Resource]interface{})
+	drafts := make(map[*admin.Resource]interface{})
 	for _, model := range db.SupportedModels {
-		var res *resource.Resource
+		var res *admin.Resource
 		var name = modelType(model).Name()
 
 		if r := context.Admin.GetResource(strings.ToLower(name)); r != nil {
-			res = &r.Resource
+			res = r
 		} else {
-			res = resource.New(model)
+			res = admin.NewResource(model)
 		}
 
 		results := res.NewSlice()

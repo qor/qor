@@ -1,7 +1,40 @@
-<article class="article clearfix" id="orders">
-{{range $res, $record := .Result}}
-<section>
-  {{$res.Name}}
-</section>
-{{end}}
+<style>
+.drafts {
+  margin-top: 20px;
+}
+</style>
+
+<article class="drafts clearfix">
+  {{range $res, $records := .Result}}
+  <section>
+    {{$res.Name}}
+    <table class="table">
+      <thead>
+        <tr>
+          {{range $meta := (index_metas $res)}}
+          <th>{{$meta.Label}}</th>
+          {{end}}
+        </tr>
+      </thead>
+
+      <tbody>
+
+        {{range $record := $records}}
+        <tr>
+          {{range $index, $meta := index_metas $res}}
+          {{$text := value_of $record $meta}}
+          <td>
+            {{if $index}}
+            {{$text}}
+            {{else}}
+            {{link_to $text $record}}
+            {{end}}
+          </td>
+          {{end}}
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </section>
+  {{end}}
 </article>

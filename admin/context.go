@@ -229,6 +229,9 @@ func (context *Context) HasPrimaryKey(value interface{}, primaryKey interface{})
 }
 
 func (context *Context) getResource(resources ...*Resource) *Resource {
+	for _, res := range resources {
+		return res
+	}
 	return context.Resource
 }
 
