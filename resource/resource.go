@@ -35,7 +35,7 @@ type Resourcer interface {
 // TODO: use a NewNamed method instead of a variant parameter
 // would be better and clearer
 func New(value interface{}, names ...string) *Resource {
-	name := strings.ToLower(reflect.Indirect(reflect.ValueOf(value)).Type().Name())
+	name := reflect.Indirect(reflect.ValueOf(value)).Type().Name()
 	for _, n := range names {
 		name = n
 	}

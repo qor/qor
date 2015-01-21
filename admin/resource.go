@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -18,6 +19,10 @@ type Resource struct {
 	scopes            map[string]*Scope
 	filters           map[string]*Filter
 	actions           map[string]*Action
+}
+
+func (res *Resource) ToParam() string {
+	return strings.ToLower(res.Name)
 }
 
 func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {

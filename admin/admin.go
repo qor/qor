@@ -44,7 +44,7 @@ type Injector interface {
 
 func (admin *Admin) NewResource(value interface{}, names ...string) *Resource {
 	res := NewResource(value, names...)
-	admin.Resources[res.Name] = res
+	admin.Resources[res.ToParam()] = res
 
 	if injector, ok := value.(Injector); ok {
 		injector.InjectQorAdmin(admin)

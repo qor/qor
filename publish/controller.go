@@ -1,6 +1,8 @@
 package publish
 
 import (
+	"os"
+	"path"
 	"strings"
 
 	"github.com/qor/qor/admin"
@@ -9,7 +11,7 @@ import (
 
 func (db *DB) PreviewAction(context *admin.Context) {
 	draftDB := db.DraftMode()
-	drafts := make(map[string]interface{})
+	drafts := make(map[*resource.Resource]interface{})
 	for _, model := range db.SupportedModels {
 		var res *resource.Resource
 		var name = modelType(model).Name()
@@ -22,7 +24,7 @@ func (db *DB) PreviewAction(context *admin.Context) {
 
 		results := res.NewSlice()
 		draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results)
-		drafts[name] = results
+		drafts[res] = results
 	}
 	context.Execute("publish/drafts", drafts)
 }
@@ -30,8 +32,12 @@ func (db *DB) PreviewAction(context *admin.Context) {
 func (db *DB) PublishAction(context *admin.Context) {
 }
 
-func (db *DB) InjectQorAdmin(admin *admin.Admin) {
-	router := admin.GetRouter()
+func (db *DB) InjectQorAdmin(web *admin.Admin) {
+	router := web.GetRouter()
 	router.Get("/publish", db.PreviewAction)
 	router.Post("/publish", db.PublishAction)
+
+	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))
+	}
 }

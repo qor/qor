@@ -44,7 +44,7 @@ func (admin *Admin) New(context *Context) {
 }
 
 func (admin *Admin) Create(context *Context) {
-	res := admin.GetResource(context.ResourceName())
+	res := admin.GetResource(context.ResourcePath())
 	result := res.NewStruct()
 	if errs := res.Decode(context, result); len(errs) == 0 {
 		res.CallSaver(result, context.Context)
@@ -73,7 +73,7 @@ func (admin *Admin) Update(context *Context) {
 }
 
 func (admin *Admin) Delete(context *Context) {
-	res := admin.GetResource(context.ResourceName())
+	res := admin.GetResource(context.ResourcePath())
 
 	responder.With("html", func() {
 		if res.CallDeleter(res.NewStruct(), context.Context) == nil {

@@ -28,11 +28,11 @@ type Context struct {
 }
 
 // Resource
-func (context *Context) ResourceName() string {
+func (context *Context) ResourcePath() string {
 	if context.Resource == nil {
 		return ""
 	}
-	return context.Resource.Name
+	return context.Resource.ToParam()
 }
 
 func (context *Context) SetResource(res *Resource) *Context {
@@ -54,7 +54,7 @@ func (context *Context) NewResource(name ...string) *Context {
 // Template
 func (context *Context) findTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
 	paths := []string{}
-	for _, p := range []string{context.ResourceName(), path.Join("themes", "default"), "."} {
+	for _, p := range []string{context.ResourcePath(), path.Join("themes", "default"), "."} {
 		for _, d := range viewPaths {
 			if isExistingDir(path.Join(d, p)) {
 				paths = append(paths, path.Join(d, p))
@@ -76,7 +76,8 @@ func (context *Context) findTemplate(tmpl *template.Template, layout string) (*t
 
 func (context *Context) Render(name string, result interface{}) string {
 	var err error
-	var tmpl = template.New(name + ".tmpl").Funcs(context.funcMap())
+	names := strings.Split(name, "/")
+	tmpl := template.New(names[len(names)-1] + ".tmpl").Funcs(context.funcMap())
 	context.Result = result
 
 	if tmpl, err = context.findTemplate(tmpl, name+".tmpl"); err == nil {
@@ -95,7 +96,7 @@ func (context *Context) Execute(name string, result interface{}) {
 	var cacheKey string
 
 	if context.Resource != nil {
-		cacheKey = path.Join(context.ResourceName(), name)
+		cacheKey = path.Join(context.ResourcePath(), name)
 	} else {
 		cacheKey = name
 	}
@@ -137,10 +138,10 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 	if admin, ok := value.(*Admin); ok {
 		url = admin.router.Prefix
 	} else if resource, ok := value.(*Resource); ok {
-		url = path.Join(context.Admin.router.Prefix, resource.Name)
+		url = path.Join(context.Admin.router.Prefix, resource.ToParam())
 	} else {
 		primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
-		name := strings.ToLower(reflect.Indirect(reflect.ValueOf(value)).Type().Name())
+		name := NewResource(value).ToParam()
 		url = path.Join(context.Admin.router.Prefix, name, fmt.Sprintf("%v", primaryKey))
 	}
 	return url
