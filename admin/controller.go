@@ -108,3 +108,6 @@ func (admin *Admin) Action(context *Context) {
 		}
 	}).Respond(context.Writer, context.Request)
 }
+
+func (admin *Admin) Asset(context *Context) {
+}

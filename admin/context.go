@@ -259,6 +259,16 @@ func (context *Context) NewMetas(resources ...*Resource) []*resource.Meta {
 	return res.AllowedMetas(res.NewMetas(), context, roles.Create)
 }
 
+func (context *Context) JavaScriptTag(name string) string {
+	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "javascripts", name+".js")
+	return fmt.Sprintf(`<script src="%s"></script>`, name)
+}
+
+func (context *Context) StyleSheetTag(name string) string {
+	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "stylesheets", name+".css")
+	return fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s"%s>`, name)
+}
+
 func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"value_of":          context.ValueOf,
@@ -273,6 +283,8 @@ func (context *Context) funcMap() template.FuncMap {
 		"edit_metas":        context.EditMetas,
 		"show_metas":        context.ShowMetas,
 		"new_metas":         context.NewMetas,
+		"javascript_tag":    context.JavaScriptTag,
+		"stylesheet_tag":    context.StyleSheetTag,
 	}
 	for key, value := range context.Admin.funcMaps {
 		funcMap[key] = value
