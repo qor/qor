@@ -2,15 +2,28 @@
 .drafts {
   margin-top: 20px;
 }
+
+table {
+  width: 100%;
+}
+
+  table td, table th {
+    height: 2em;
+  }
+
+  .drafts section {
+    width: 70%;
+    margin: 30px auto;
+  }
 </style>
 
 <article class="drafts clearfix">
   {{range $res, $records := .Result}}
   <section>
-    {{$res.Name}}
     <table class="table">
       <thead>
         <tr>
+          <th>{{$res.Name}}</th>
           {{range $meta := (index_metas $res)}}
           <th>{{$meta.Label}}</th>
           {{end}}
@@ -21,14 +34,13 @@
 
         {{range $record := $records}}
         <tr>
+          <td>
+            View
+          </td>
           {{range $index, $meta := index_metas $res}}
           {{$text := value_of $record $meta}}
           <td>
-            {{if $index}}
             {{$text}}
-            {{else}}
-            {{link_to $text $record}}
-            {{end}}
           </td>
           {{end}}
         </tr>
