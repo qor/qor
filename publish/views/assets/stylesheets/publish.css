@@ -1,17 +1,31 @@
 .drafts {
-  margin-top: 20px;
+  width: 70%;
+  margin: 0 auto;
 }
 
 table {
   width: 100%;
 }
 
-  table td, table th {
-    height: 2em;
-  }
+.drafts section {
+  margin: 20px 0;
+  clear: both;
+}
 
-  .drafts section {
-    width: 70%;
-    margin: 30px auto;
-  }
+table td, table th {
+  height: 2em;
+}
 
+/* Publish Buttons */
+.publish-buttons {
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #FAFAFA;
+  border: 1px solid #EEE;
+  box-shadow: 1px 1px 1px #888888;
+}
+
+.publish-buttons button {
+  font-weight: 700;
+  margin: 0;
+}

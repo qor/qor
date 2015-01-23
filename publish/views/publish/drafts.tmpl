@@ -4,6 +4,12 @@
 {{stylesheet_tag "publish"}}
 
 <article class="drafts clearfix">
+  <div class="publish-buttons right">
+    <button class="button alert radius tiny">DISCARD</button>
+    <button class="button success radius tiny">PUBLISH</button>
+  </div>
+  <h2 class="left">Drafts</h2>
+
   {{range $res, $records := .Result}}
   <section>
     <table class="table">
