@@ -110,4 +110,10 @@ func (admin *Admin) Action(context *Context) {
 }
 
 func (admin *Admin) Asset(context *Context) {
+	file := strings.TrimPrefix(context.Request.URL.Path, context.Admin.GetRouter().Prefix)
+	if filename, err := context.findFile(file); err == nil {
+		http.ServeFile(context.Writer, context.Request, filename)
+	} else {
+		http.NotFound(context.Writer, context.Request)
+	}
 }

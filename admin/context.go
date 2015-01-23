@@ -52,6 +52,25 @@ func (context *Context) NewResource(name ...string) *Context {
 }
 
 // Template
+func (context *Context) findFile(layout string) (string, error) {
+	paths := []string{}
+	for _, p := range []string{context.ResourcePath(), path.Join("themes", "default"), "."} {
+		for _, d := range viewPaths {
+			if isExistingDir(path.Join(d, p)) {
+				paths = append(paths, path.Join(d, p))
+			}
+		}
+	}
+
+	for _, p := range paths {
+		fmt.Println(path.Join(p, layout))
+		if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
+			return path.Join(p, layout), nil
+		}
+	}
+	return "", errors.New("file not found")
+}
+
 func (context *Context) findTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
 	paths := []string{}
 	for _, p := range []string{context.ResourcePath(), path.Join("themes", "default"), "."} {

@@ -53,6 +53,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	router := admin.router
 	router.Prefix = prefix
 
+	router.Get("^/assets/.*$", admin.Asset)
 	router.Get("^/?$", admin.Dashboard)
 	router.Get("^/[^/]+/new$", admin.New)
 	router.Post("^/[^/]+$", admin.Create)
