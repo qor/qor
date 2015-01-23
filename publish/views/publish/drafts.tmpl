@@ -25,7 +25,7 @@
 
       <tbody>
         {{range $record := $records}}
-        {{$key := (printf "%s_%v" $res.ToParam (primary_key_of $record))}}
+        {{$key := (printf "%s__%v" $res.ToParam (primary_key_of $record))}}
         <tr id={{$key}} class="draft-item">
           <td>
             <input type="checkbox" name="checked_ids[]" value="{{$key}}"/>

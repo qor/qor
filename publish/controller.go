@@ -8,7 +8,11 @@ import (
 	"github.com/qor/qor/admin"
 )
 
-func (db *DB) PreviewAction(context *admin.Context) {
+type PublishController struct {
+	*DB
+}
+
+func (db *PublishController) Preview(context *admin.Context) {
 	draftDB := db.DraftMode()
 	drafts := make(map[*admin.Resource]interface{})
 	for _, model := range db.SupportedModels {
@@ -28,13 +32,28 @@ func (db *DB) PreviewAction(context *admin.Context) {
 	context.Execute("publish/drafts", drafts)
 }
 
-func (db *DB) PublishAction(context *admin.Context) {
+func (db *PublishController) Diff(context *admin.Context) {
+	resourceID := strings.Split(context.Request.URL.Path, "/")[4]
+	params := strings.Split(resourceID, "__")
+	name, id := params[0], params[1]
+	res := context.Admin.GetResource(name)
+
+	draft := res.NewStruct()
+	db.DraftMode().First(draft, id)
+
+	production := res.NewStruct()
+	db.ProductionMode().First(production, id)
+}
+
+func (db *PublishController) Publish(context *admin.Context) {
 }
 
 func (db *DB) InjectQorAdmin(web *admin.Admin) {
+	controller := PublishController{db}
 	router := web.GetRouter()
-	router.Get("^/publish", db.PreviewAction)
-	router.Post("^/publish", db.PublishAction)
+	router.Get("^/publish/diff/", controller.Diff)
+	router.Get("^/publish", controller.Preview)
+	router.Post("^/publish", controller.Publish)
 
 	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))
