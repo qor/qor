@@ -1,5 +1,6 @@
 {{javascript_tag "foundation.min"}}
 {{stylesheet_tag "foundation.min"}}
+{{stylesheet_tag "font-awesome.min"}}
 {{javascript_tag "publish"}}
 {{stylesheet_tag "publish"}}
 
@@ -23,11 +24,10 @@
       </thead>
 
       <tbody>
-
         {{range $record := $records}}
         <tr>
           <td>
-            View
+            <input type="checkbox" name="checked_ids[]"/>
           </td>
           {{range $index, $meta := index_metas $res}}
           {{$text := value_of $record $meta}}
