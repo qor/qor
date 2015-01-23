@@ -1,6 +1,7 @@
 package publish
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -43,6 +44,10 @@ func (db *PublishController) Diff(context *admin.Context) {
 
 	production := res.NewStruct()
 	db.ProductionMode().First(production, id)
+
+	results := map[string]interface{}{"Production": production, "Draft": draft}
+
+	fmt.Fprintf(context.Writer, context.Render("publish/diff", results))
 }
 
 func (db *PublishController) Publish(context *admin.Context) {
