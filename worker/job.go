@@ -21,7 +21,7 @@ const (
 	JobRun     = "done"
 )
 
-type Job struct {
+type QorJob struct {
 	Id         uint64
 	QueueJobId string
 
@@ -34,6 +34,7 @@ type Job struct {
 
 	Cli        string
 	WorkerName string
+	JobName    string
 	Status     string
 	PID        int
 
@@ -47,17 +48,20 @@ type Job struct {
 	log *os.File
 }
 
-func (j *Job) GetWorker() (w *Worker, err error) {
-	var ok bool
-	if w, ok = workers[j.WorkerName]; !ok {
-		err = fmt.Errorf("unknown worker: %s\n", j.WorkerName)
+func (qj *QorJob) GetWorker() (j *Job, err error) {
+	if w, ok := workers[qj.WorkerName]; ok {
+		j = w.jobs[qj.JobName]
+	}
+
+	if j == nil {
+		err = fmt.Errorf("unknown job: %s:%s\n", qj.WorkerName, qj.JobName)
 	}
 
 	return
 }
 
 func RunJob(jobId uint64) {
-	job := &Job{}
+	job := &QorJob{}
 	if err := jobDB.Find(job, jobId).Error; err != nil {
 		fmt.Printf("job (%d) do not existed\n", jobId)
 	} else {
@@ -65,7 +69,7 @@ func RunJob(jobId uint64) {
 	}
 }
 
-func (j *Job) Run() (err error) {
+func (j *QorJob) Run() (err error) {
 	parts := strings.Split(j.Cli, " ")
 	name := parts[0]
 	args := []string{"-job-id", strconv.FormatUint(j.Id, 10)}
@@ -77,7 +81,7 @@ func (j *Job) Run() (err error) {
 	return
 }
 
-func (j *Job) UpdateStatus(status string) (err error) {
+func (j *QorJob) UpdateStatus(status string) (err error) {
 	old := j.Status
 	j.Status = status
 	switch status {
@@ -106,9 +110,9 @@ func (j *Job) UpdateStatus(status string) (err error) {
 var JobLoggerDir = "/tmp"
 
 // TODO: undone
-func (j *Job) GetLogger() (rw io.ReadWriter, err error) {
+func (j *QorJob) GetLogger() (rw io.ReadWriter, err error) {
 	if j.log == nil {
-		path := fmt.Sprintf("%s/%s-%d.log", JobLoggerDir, j.WorkerName, j.Id)
+		path := fmt.Sprintf("%s/%s-%d.log", JobLoggerDir, j.WorkerName, j.JobName, j.Id)
 		j.log, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	}
 	rw = j.log
@@ -116,7 +120,7 @@ func (j *Job) GetLogger() (rw io.ReadWriter, err error) {
 	return
 }
 
-func (j *Job) SavePID() (err error) {
+func (j *QorJob) SavePID() (err error) {
 	j.PID = os.Getpid()
 	if err = jobDB.Save(j).Error; err != nil {
 		logger, erro := j.GetLogger()
@@ -130,7 +134,7 @@ func (j *Job) SavePID() (err error) {
 	return
 }
 
-func (j *Job) Stop() (err error) { return }
+func (j *QorJob) Stop() (err error) { return }
 
-// func (j *Job) Kill() (err error)  { return }
-func (j *Job) Start() (err error) { return }
+// func (j *QorJob) Kill() (err error)  { return }
+func (j *QorJob) Start() (err error) { return }

@@ -35,7 +35,7 @@ var parseInterval = func(interval uint64) string {
 	return strconv.FormatUint(interval*60, 10)
 }
 
-func (bq *BeanstalkdQueue) putJob(job *Job) (err error) {
+func (bq *BeanstalkdQueue) putJob(job *QorJob) (err error) {
 	client, err := bq.newClient()
 	if err != nil {
 		return
@@ -59,7 +59,7 @@ func (bq *BeanstalkdQueue) Name() string {
 	return bq.name
 }
 
-func (bq *BeanstalkdQueue) Enqueue(job *Job) (err error) {
+func (bq *BeanstalkdQueue) Enqueue(job *QorJob) (err error) {
 	return bq.putJob(job)
 }
 
@@ -139,7 +139,7 @@ func (bq *BeanstalkdQueue) Dequeue() (jobId uint64, err error) {
 	return
 }
 
-func (bq *BeanstalkdQueue) Purge(job *Job) (err error) {
+func (bq *BeanstalkdQueue) Purge(job *QorJob) (err error) {
 	client, err := bq.newClient()
 	if err != nil {
 		return

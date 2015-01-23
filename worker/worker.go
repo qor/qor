@@ -5,11 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
+	"path"
 	"strings"
+	"sync"
 	"time"
-
-	"github.com/qor/qor/resource"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -17,8 +18,9 @@ import (
 )
 
 var (
-	jobDB         *gorm.DB
-	jobId         uint64
+	jobDB *gorm.DB
+	jobId uint64
+	// workers       = map[string]*Job{}
 	workers       = map[string]*Worker{}
 	queuers       = map[string]Queuer{}
 	DefaultJobCli = strings.Join(os.Args, " ")
@@ -30,7 +32,7 @@ func init() {
 
 // SetJobDB will run a auto migration for creating table jobs
 func SetJobDB(db *gorm.DB) (err error) {
-	err = db.AutoMigrate(&Job{}).Error
+	err = db.AutoMigrate(&QorJob{}).Error
 	if err != nil {
 		return
 	}
@@ -40,36 +42,77 @@ func SetJobDB(db *gorm.DB) (err error) {
 	return
 }
 
+type Worker struct {
+	Name string
+	jobs map[string]*Job
+}
+
+func New(name string) *Worker {
+	w := &Worker{Name: name, jobs: map[string]*Job{}}
+	workers[name] = w
+	return w
+}
+
+var viewInject sync.Once
+
 // TODO: UNDONE
-func SetAdmin(a *admin.Admin) {
-	job := a.NewResource(&Job{})
+func (w *Worker) InjectQorAdmin(a *admin.Admin) {
+	job := a.NewResource(&QorJob{})
 	job.IndexAttrs("Id", "QueueJobId", "Interval", "StartAt", "Cli", "WorkerName", "Status", "PID", "RunCounter", "FailCounter", "SuccessCounter", "KillCounter")
 	job.NewAttrs("Interval", "StartAt", "WorkerName")
 
-	job.Meta(&resource.Meta{Name: "WorkerName", Type: "select_one", Collection: func(interface{}, *qor.Context) [][]string {
-		var keys [][]string
-		for k, _ := range workers {
-			keys = append(keys, []string{k, k})
-		}
-		return keys
-	}})
+	// job.Meta(&resource.Meta{Name: "WorkerName", Type: "select_one", Collection: func(interface{}, *qor.Context) [][]string {
+	// 	var keys [][]string
+	// 	for k, _ := range w.jobs {
+	// 		keys = append(keys, []string{k, k})
+	// 	}
+	// 	return keys
+	// }})
 
-	admin.RegisterViewPath(os.Getenv("GOPATH") + "/src/github.com/qor/qor/worker/templates")
-	a.GetRouter().Get("/job/new", newJobPage)
-	a.GetRouter().Get("/job/switch_worker", switchWorker)
+	viewInject.Do(func() {
+		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/worker/views"))
+		}
+	})
+
+	a.GetRouter().Get("/"+w.Name, w.indexPage)
+	a.GetRouter().Get("/"+w.Name+"/job/new", w.newJobPage)
+	a.GetRouter().Get("/"+w.Name+"/job/switch_worker", w.switchWorker)
 }
 
-func newJobPage(c *admin.Context) {
-	// var res *admin.Resource
-	// for _, w := range workers {
-	// 	res = w.resource
-	// 	break
-	// }
+func (w *Worker) AllJobs() (jobs []string) {
+	for k, _ := range w.jobs {
+		jobs = append(jobs, k)
+	}
+
+	return
+}
+
+func (w *Worker) indexPage(c *admin.Context) {
+	var qorJobs []QorJob
+	if err := jobDB.Where("worker_name = ?", w.Name).Find(&qorJobs).Error; err != nil {
+		c.Admin.RenderError(err, http.StatusInternalServerError, c)
+		return
+	}
+
+	c.Execute("job/new", struct {
+		Jobs    []string
+		QorJobs []QorJob
+	}{Jobs: w.AllJobs(), QorJobs: qorJobs})
+}
+
+func (w *Worker) newJobPage(c *admin.Context) {
+	var res *admin.Resource
+	for _, j := range w.jobs {
+		res = j.resource
+		break
+	}
 	// content := admin.Content{Context: c, Admin: c.Admin, Resource: res, Action: "new"}
 	// c.Admin.Render("new", content, roles.Create)
+	c.Execute("new", res)
 }
 
-func switchWorker(c *admin.Context) {
+func (w *Worker) switchWorker(c *admin.Context) {
 	// wname := c.Request.FormValue("name")
 	// w, ok := workers[wname]
 	// if !ok {
@@ -91,7 +134,7 @@ func Listen() {
 	flag.Parse()
 
 	if jobId > 0 {
-		var job Job
+		var job QorJob
 		if err := jobDB.Where("id = ?", jobId).Find(&job).Error; err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
@@ -105,7 +148,7 @@ func Listen() {
 			os.Exit(1)
 		}
 
-		var w *Worker
+		var w *Job
 		if w, err = job.GetWorker(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			fmt.Fprintln(logger, err)
@@ -136,38 +179,38 @@ func Listen() {
 	}
 }
 
-func New(queuer Queuer, name string, handle func(job *Job) error) (w *Worker) {
-	w = &Worker{
+func (w Worker) NewJob(queuer Queuer, name string, handle func(job *QorJob) error) (j *Job) {
+	j = &Job{
 		Name:   name,
 		Handle: handle,
 		Queuer: queuer,
 	}
 
-	workers[w.Name] = w
+	w.jobs[j.Name] = j
 	queuers[queuer.Name()] = queuer
 
 	return
 }
 
-type Worker struct {
+type Job struct {
 	Name   string
 	Queuer Queuer
 	Config *qor.Config
 
 	resource *admin.Resource
 
-	Handle    func(job *Job) error
-	OnKill    func(job *Job) error
-	OnStart   func(job *Job) error
-	OnSuccess func(job *Job)
-	OnFailed  func(job *Job)
+	Handle    func(job *QorJob) error
+	OnKill    func(job *QorJob) error
+	OnStart   func(job *QorJob) error
+	OnSuccess func(job *QorJob)
+	OnFailed  func(job *QorJob)
 }
 
-func (w *Worker) ExtraInput(res *admin.Resource) {
+func (w *Job) ExtraInput(res *admin.Resource) {
 	w.resource = res
 }
 
-func (w *Worker) Run(job *Job) (err error) {
+func (w *Job) Run(job *QorJob) (err error) {
 	if err = job.SavePID(); err != nil {
 		return
 	}
@@ -230,7 +273,7 @@ func (w *Worker) Run(job *Job) (err error) {
 
 var ErrJobRun = errors.New("job is already run")
 
-func (w *Worker) Kill(job *Job) (err error) {
+func (w *Job) Kill(job *QorJob) (err error) {
 	if w.OnKill != nil {
 		if err = w.OnKill(job); err != nil {
 			return
@@ -263,12 +306,12 @@ func (w *Worker) Kill(job *Job) (err error) {
 	return
 }
 
-func (w *Worker) NewJob(interval uint64, startAt time.Time) (job *Job, err error) {
+func (w *Job) NewJob(interval uint64, startAt time.Time) (job *QorJob, err error) {
 	return w.NewJobWithCli(interval, startAt, DefaultJobCli)
 }
 
-func (w *Worker) NewJobWithCli(interval uint64, startAt time.Time, cli string) (job *Job, err error) {
-	job = &Job{
+func (w *Job) NewJobWithCli(interval uint64, startAt time.Time, cli string) (job *QorJob, err error) {
+	job = &QorJob{
 		Interval:   interval,
 		StartAt:    startAt,
 		WorkerName: w.Name,
