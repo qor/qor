@@ -63,7 +63,6 @@ func (context *Context) findFile(layout string) (string, error) {
 	}
 
 	for _, p := range paths {
-		fmt.Println(path.Join(p, layout))
 		if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
 			return path.Join(p, layout), nil
 		}
