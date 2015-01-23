@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/worker"
 )
 
 var runWorker bool
@@ -70,37 +68,37 @@ func main() {
 }
 
 func initWorkers(web *admin.Admin) {
-	if err := worker.SetJobDB(&db); err != nil {
-		panic(err)
-	}
+	// if err := worker.SetJobDB(&db); err != nil {
+	// 	panic(err)
+	// }
 
-	worker.SetAdmin(web)
+	// worker.SetAdmin(web)
 
-	bq := worker.NewBeanstalkdQueue("beanstalkd", "localhost:11300")
-	var counter int
-	w := worker.New(bq, "Log every 10 seconds", func(job *worker.Job) (err error) {
-		counter++
-		log, err := job.GetLogger()
-		if err != nil {
-			return
-		}
+	// bq := worker.NewBeanstalkdQueue("beanstalkd", "localhost:11300")
+	// var counter int
+	// w := worker.New(bq, "Log every 10 seconds", func(job *worker.Job) (err error) {
+	// 	counter++
+	// 	log, err := job.GetLogger()
+	// 	if err != nil {
+	// 		return
+	// 	}
 
-		_, err = log.Write([]byte(strconv.Itoa(counter) + "\n"))
+	// 	_, err = log.Write([]byte(strconv.Itoa(counter) + "\n"))
 
-		time.Sleep(time.Minute * 5)
+	// 	time.Sleep(time.Minute * 5)
 
-		return
-	})
+	// 	return
+	// })
 
-	extraInput := admin.NewResource(&Language{})
-	w.ExtraInput(extraInput)
+	// extraInput := admin.NewResource(&Language{})
+	// w.ExtraInput(extraInput)
 
-	// must be executed before http.ListenAndServer
-	worker.Listen()
+	// // must be executed before http.ListenAndServer
+	// worker.Listen()
 
-	job, err := w.NewJob(1, time.Now())
-	if err != nil {
-		panic(err)
-	}
-	_ = job
+	// job, err := w.NewJob(1, time.Now())
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// _ = job
 }
