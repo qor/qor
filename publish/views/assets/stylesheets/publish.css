@@ -10,6 +10,11 @@
   color: #555;
 }
 
+.drafts section {
+  margin: 20px 0;
+  clear: both;
+}
+
 table {
   width: 100%;
 }
@@ -19,13 +24,13 @@ table input[type="checkbox"] {
   vertical-align: center;
 }
 
-.drafts section {
-  margin: 20px 0;
-  clear: both;
+table th {
+  height: 2em;
 }
 
-table td, table th {
+table td {
   height: 2em;
+  cursor: pointer;
 }
 
 /* Publish Buttons */

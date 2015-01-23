@@ -139,6 +139,10 @@ func (context *Context) Execute(name string, result interface{}) {
 }
 
 // Function Maps
+func (context *Context) PrimaryKeyOf(value interface{}) interface{} {
+	return context.GetDB().NewScope(value).PrimaryKeyValue()
+}
+
 func (context *Context) ValueOf(value interface{}, meta *resource.Meta) interface{} {
 	return meta.Value(value, context.Context)
 }
@@ -289,6 +293,7 @@ func (context *Context) StyleSheetTag(name string) string {
 
 func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
+		"primary_key_of":    context.PrimaryKeyOf,
 		"value_of":          context.ValueOf,
 		"url_for":           context.UrlFor,
 		"new_resource_path": context.NewResourcePath,
