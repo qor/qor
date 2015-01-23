@@ -3,6 +3,13 @@
   margin: 0 auto;
 }
 
+.drafts h2.title {
+  margin: 25px 5px;
+  font-size: 1.5em;
+  font-weight: 700;
+  color: #555;
+}
+
 table {
   width: 100%;
 }
