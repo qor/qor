@@ -1,22 +1,25 @@
-<div class="reveal-modal" data-reveal>
-  <a class="close-reveal-modal">&#215;</a>
-  <table>
-    <tr>
-      <td>Column</td>
-      <td>Production</td>
-      <td>Draft</td>
-    </tr>
+<a class="close-reveal-modal">&#215;</a>
 
+<table>
+  <thead>
     <tr>
-      {{$production := .Result.Production}}
-      {{$draft := .Result.Draft}}
-      {{range $meta := index_metas .Result.Resource}}
+      <th>Column</th>
+      <th>Live</th>
+      <th>Draft</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {{$production := .Result.Production}}
+    {{$draft := .Result.Draft}}
+    {{range $meta := index_metas .Result.Resource}}
+    {{$production_value := value_of $production $meta}}
+    {{$draft_value := value_of $draft $meta}}
+    <tr {{if not (equal $production_value $draft_value)}}class="diff"{{end}}>
       <td>{{$meta.Label}}</td>
-      {{$production_value := value_of $production $meta}}
-      {{$draft_value := value_of $draft $meta}}
       <td>{{$production_value}}</td>
       <td>{{$draft_value}}</td>
-      {{end}}
     </tr>
-  </table>
-</div>
+    {{end}}
+  </tbody>
+</table>

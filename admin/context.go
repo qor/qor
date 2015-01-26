@@ -291,6 +291,10 @@ func (context *Context) StyleSheetTag(name string) string {
 	return fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s"%s>`, name)
 }
 
+func Equal(a, b interface{}) bool {
+	return reflect.DeepEqual(a, b)
+}
+
 func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"primary_key_of":    context.PrimaryKeyOf,
@@ -308,6 +312,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"new_metas":         context.NewMetas,
 		"javascript_tag":    context.JavaScriptTag,
 		"stylesheet_tag":    context.StyleSheetTag,
+		"equal":             Equal,
 	}
 	for key, value := range context.Admin.funcMaps {
 		funcMap[key] = value
