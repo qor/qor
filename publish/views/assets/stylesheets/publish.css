@@ -33,13 +33,19 @@ table td {
   cursor: pointer;
 }
 
+/* Diff Table */
 .reveal-modal-box .close-reveal-modal {
   top: -0.5rem;
   right: 0.6rem;
 }
 
 .reveal-modal-box table th {
+  border: 1px solid white;
   font-weight: 700;
+}
+
+.reveal-modal-box table td {
+  border: 1px solid white;
 }
 
 .reveal-modal-box table tr.diff {

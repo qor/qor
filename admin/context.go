@@ -143,6 +143,10 @@ func (context *Context) PrimaryKeyOf(value interface{}) interface{} {
 	return context.GetDB().NewScope(value).PrimaryKeyValue()
 }
 
+func (context *Context) NewRecord(value interface{}) interface{} {
+	return context.GetDB().NewRecord(value)
+}
+
 func (context *Context) ValueOf(value interface{}, meta *resource.Meta) interface{} {
 	return meta.Value(value, context.Context)
 }
@@ -298,6 +302,7 @@ func Equal(a, b interface{}) bool {
 func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"primary_key_of":    context.PrimaryKeyOf,
+		"is_new_record":     context.NewRecord,
 		"value_of":          context.ValueOf,
 		"url_for":           context.UrlFor,
 		"new_resource_path": context.NewResourcePath,
