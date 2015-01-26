@@ -51,6 +51,15 @@ func (db *PublishController) Diff(context *admin.Context) {
 }
 
 func (db *PublishController) Publish(context *admin.Context) {
+	request := context.Request
+	fmt.Println(request.Form.Get("checked_ids[]"))
+	fmt.Println(request.Form["checked_ids[]"])
+
+	if request.Form.Get("publish_type") == "publish" {
+		// db.DB.Publish()
+	} else if request.Form.Get("publish_type") == "discard" {
+
+	}
 }
 
 func (db *DB) InjectQorAdmin(web *admin.Admin) {

@@ -4,11 +4,11 @@
 {{javascript_tag "publish"}}
 {{stylesheet_tag "publish"}}
 
-<article class="drafts clearfix">
+<form action="" class="drafts clearfix" method="POST">
   <h2 class="title left">DRAFTS</h2>
   <div class="publish-buttons right">
-    <button class="button alert radius tiny">DISCARD</button>
-    <button class="button success radius tiny">PUBLISH</button>
+    <button type="submit" name="publish_type" value="discard" class="button alert radius tiny">DISCARD</button>
+    <button type="submit" name="publish_type" value="publish" class="button success radius tiny">PUBLISH</button>
   </div>
 
   {{range $res, $records := .Result}}
@@ -42,7 +42,7 @@
     </table>
   </section>
   {{end}}
-</article>
+</form>
 
 <div class="reveal-modal-box reveal-modal" data-reveal>
 </div>
