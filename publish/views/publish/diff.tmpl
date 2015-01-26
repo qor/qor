@@ -17,8 +17,9 @@
     {{range $meta := index_metas .Result.Resource}}
     {{$draft_value := value_of $draft $meta}}
     {{$production_value := value_of $production $meta}}
+    {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}
 
-    <tr {{if not (equal $production_value $draft_value)}}class="diff"{{end}}>
+    <tr {{if $diff}}class="diff"{{end}}>
       <td>{{$meta.Label}}</td>
       {{if $has_production}}
       <td>{{$production_value}}</td>
