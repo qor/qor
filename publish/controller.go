@@ -45,7 +45,7 @@ func (db *PublishController) Diff(context *admin.Context) {
 	production := res.NewStruct()
 	db.ProductionMode().First(production, id)
 
-	results := map[string]interface{}{"Production": production, "Draft": draft}
+	results := map[string]interface{}{"Production": production, "Draft": draft, "Resource": res}
 
 	fmt.Fprintf(context.Writer, context.Render("publish/diff", results))
 }

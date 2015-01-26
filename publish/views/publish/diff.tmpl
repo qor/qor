@@ -1,2 +1,22 @@
-{{.Result.Production}}
-{{.Result.Draft}}
+<div class="reveal-modal" data-reveal>
+  <a class="close-reveal-modal">&#215;</a>
+  <table>
+    <tr>
+      <td>Column</td>
+      <td>Production</td>
+      <td>Draft</td>
+    </tr>
+
+    <tr>
+      {{$production := .Result.Production}}
+      {{$draft := .Result.Draft}}
+      {{range $meta := index_metas .Result.Resource}}
+      <td>{{$meta.Label}}</td>
+      {{$production_value := value_of $production $meta}}
+      {{$draft_value := value_of $draft $meta}}
+      <td>{{$production_value}}</td>
+      <td>{{$draft_value}}</td>
+      {{end}}
+    </tr>
+  </table>
+</div>
