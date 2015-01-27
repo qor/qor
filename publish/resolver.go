@@ -144,9 +144,12 @@ func (resolver *Resolver) Publish() {
 			productionTable, productionTable, productionScope.PrimaryKey())
 		resolver.DB.DB.Exec(deleteSql, dependency.PrimaryKeys)
 
-		sql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v from %v where %v.%v in (?);",
+		publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (?)",
 			productionTable, strings.Join(insertColumns, " ,"), strings.Join(selectColumns, " ,"),
 			draftTable, draftTable, productionPrimaryKey)
-		resolver.DB.DB.Exec(sql, dependency.PrimaryKeys)
+		resolver.DB.DB.Exec(publishSql, dependency.PrimaryKeys)
+
+		updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v.%v IN (?)", draftTable, draftTable, productionPrimaryKey)
+		resolver.DB.DB.Exec(updateStateSql, PUBLISHED, dependency.PrimaryKeys)
 	}
 }
