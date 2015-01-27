@@ -2,7 +2,6 @@ package publish
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/jinzhu/gorm"
 )
@@ -11,15 +10,7 @@ func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
 	return func(scope *gorm.Scope) {
 		if draftMode, ok := scope.Get("qor_publish:draft_mode"); force || ok {
 			if isDraft, ok := draftMode.(bool); force || ok && isDraft {
-				data := scope.IndirectValue()
-				if data.Kind() == reflect.Slice {
-					elem := data.Type().Elem()
-					if elem.Kind() == reflect.Ptr {
-						elem = elem.Elem()
-					}
-					data = reflect.New(elem).Elem()
-				}
-				currentModel := data.Type().String()
+				currentModel := modelType(scope.IndirectValue().Interface()).String()
 
 				var supportedModels []string
 				if value, ok := scope.Get("publish:support_models"); ok {
@@ -76,7 +67,8 @@ func Delete(scope *gorm.Scope) {
 	if !scope.HasError() {
 		_, supportedModel := scope.InstanceGet("publish:supported_model")
 		isDraftMode, ok := scope.Get("qor_publish:draft_mode")
-		if supportedModel && ok && isDraftMode.(bool) {
+
+		if supportedModel && (ok && isDraftMode.(bool)) {
 			scope.Raw(
 				fmt.Sprintf("UPDATE %v SET deleted_at=%v, publish_status=%v %v",
 					scope.QuotedTableName(),

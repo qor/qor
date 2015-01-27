@@ -23,8 +23,13 @@ type DB struct {
 
 func modelType(value interface{}) reflect.Type {
 	reflectValue := reflect.Indirect(reflect.ValueOf(value))
+
 	if reflectValue.Kind() == reflect.Slice {
-		reflectValue = reflectValue.Elem()
+		typ := reflectValue.Type().Elem()
+		if typ.Kind() == reflect.Ptr {
+			typ = typ.Elem()
+		}
+		return typ
 	}
 
 	return reflectValue.Type()

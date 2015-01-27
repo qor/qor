@@ -106,7 +106,6 @@ func (resolver *Resolver) Publish() {
 			scope := &gorm.Scope{Value: record}
 			dependency := Dependency{Type: reflectType, PrimaryKeys: []string{fmt.Sprintf("%v", scope.PrimaryKeyValue())}}
 			resolver.AddDependency(&dependency)
-			break
 		}
 	}
 
@@ -116,8 +115,6 @@ func (resolver *Resolver) Publish() {
 		productionTable := productionScope.TableName()
 		productionPrimaryKey := productionScope.PrimaryKey()
 		draftTable := DraftTableName(productionTable)
-
-		resolver.DB.ProductionMode().Unscoped().Delete(value.Interface(), dependency.PrimaryKeys)
 
 		var columns []string
 		for _, field := range productionScope.Fields() {
@@ -136,10 +133,13 @@ func (resolver *Resolver) Publish() {
 			selectColumns = append(selectColumns, fmt.Sprintf("%v.%v", draftTable, column))
 		}
 
+		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (?);",
+			productionTable, productionTable, productionScope.PrimaryKey())
+		resolver.DB.DB.Exec(deleteSql, dependency.PrimaryKeys)
+
 		sql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v from %v where %v.%v in (?);",
 			productionTable, strings.Join(insertColumns, " ,"), strings.Join(selectColumns, " ,"),
 			draftTable, draftTable, productionPrimaryKey)
-
 		resolver.DB.DB.Exec(sql, dependency.PrimaryKeys)
 	}
 }
