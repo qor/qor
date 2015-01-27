@@ -28,7 +28,7 @@ table th {
   height: 2em;
 }
 
-table td {
+table td:not(.selector) {
   height: 2em;
   cursor: pointer;
 }
