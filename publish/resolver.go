@@ -1,7 +1,6 @@
 package publish
 
 import (
-	"database/sql"
 	"fmt"
 	"reflect"
 	"strings"
@@ -51,20 +50,19 @@ func (resolver *Resolver) AddDependency(dependency *Dependency) {
 }
 
 func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []string) {
-	// new slice
 	value := reflect.New(dependency.Type)
 	fromScope := resolver.DB.DB.NewScope(value.Interface())
+
+	draftDB := resolver.DB.DraftMode().Unscoped()
 	for _, field := range fromScope.Fields() {
 		if relationship := field.Relationship; relationship != nil {
-			toType := field.Field.Type()
-			toScope := resolver.DB.DB.NewScope(reflect.New(toType).Interface())
-			var dependencyKeys []string
-			var rows *sql.Rows
-			var err error
+			toType := modelType(field.Field.Interface())
+			toScope := draftDB.NewScope(reflect.New(toType).Interface())
+			var dependencyKeys []interface{}
 
 			if relationship.Kind == "belongs_to" || relationship.Kind == "has_many" {
 				sql := fmt.Sprintf("%v IN (?) and publish_status = ?", gorm.ToSnake(relationship.ForeignKey))
-				rows, err = resolver.DB.DB.Select(toScope.PrimaryKey()).Where(sql, primaryKeys, DIRTY).Rows()
+				draftDB.Model(toScope.Value).Select(toScope.PrimaryKey()).Where(sql, primaryKeys, DIRTY).Scan(&dependencyKeys)
 			} else if relationship.Kind == "has_one" {
 				fromTable := fromScope.TableName()
 				fromPrimaryKey := fromScope.PrimaryKey()
@@ -74,19 +72,17 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 				sql := fmt.Sprintf("%v.%v IN (select %v.%v from %v where %v.%v IN (?)) and %v.publish_status = ?",
 					toTable, toPrimaryKey, fromTable, relationship.ForeignKey, fromTable, fromTable, fromPrimaryKey, toTable)
 
-				rows, err = resolver.DB.DB.Select(toTable+"."+toPrimaryKey).Where(sql, primaryKeys, DIRTY).Rows()
+				draftDB.Model(toScope.Value).Select(toTable+"."+toPrimaryKey).Where(sql, primaryKeys, DIRTY).Find(&dependencyKeys)
 			} else if relationship.Kind == "many_to_many" {
 			}
 
-			if rows != nil && err == nil {
-				for rows.Next() {
-					var primaryKey interface{}
-					rows.Scan(primaryKey)
-					dependencyKeys = append(dependencyKeys, fmt.Sprintf("%v", primaryKey))
-				}
-			}
 			if len(dependencyKeys) > 0 {
-				dependency := Dependency{Type: toType, PrimaryKeys: dependencyKeys}
+				var primaryKeys []string
+				for _, dependencyKey := range dependencyKeys {
+					primaryKeys = append(primaryKeys, fmt.Sprintf("%v", dependencyKey))
+				}
+
+				dependency := Dependency{Type: toType, PrimaryKeys: primaryKeys}
 				resolver.AddDependency(&dependency)
 			}
 		}
