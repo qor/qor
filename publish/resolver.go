@@ -1,6 +1,7 @@
 package publish
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"strings"
@@ -26,6 +27,17 @@ func IncludeValue(value string, values []string) bool {
 		}
 	}
 	return false
+}
+
+func (resolver *Resolver) SupportModel(model interface{}) bool {
+	var supportedModels []string
+	var reflectType = modelType(model)
+
+	if value, ok := resolver.DB.DB.Get("publish:support_models"); ok {
+		supportedModels = value.([]string)
+	}
+
+	return IncludeValue(reflectType.String(), supportedModels)
 }
 
 func (resolver *Resolver) AddDependency(dependency *Dependency) {
@@ -56,34 +68,40 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 	draftDB := resolver.DB.DraftMode().Unscoped()
 	for _, field := range fromScope.Fields() {
 		if relationship := field.Relationship; relationship != nil {
-			toType := modelType(field.Field.Interface())
-			toScope := draftDB.NewScope(reflect.New(toType).Interface())
-			var dependencyKeys []interface{}
+			if resolver.SupportModel(field.Field.Interface()) {
+				toType := modelType(field.Field.Interface())
+				toScope := draftDB.NewScope(reflect.New(toType).Interface())
+				draftTable := DraftTableName(toScope.TableName())
+				var dependencyKeys []string
+				var rows *sql.Rows
+				var err error
 
-			if relationship.Kind == "belongs_to" || relationship.Kind == "has_many" {
-				sql := fmt.Sprintf("%v IN (?) and publish_status = ?", gorm.ToSnake(relationship.ForeignKey))
-				draftDB.Model(toScope.Value).Select(toScope.PrimaryKey()).Where(sql, primaryKeys, DIRTY).Scan(&dependencyKeys)
-			} else if relationship.Kind == "has_one" {
-				fromTable := fromScope.TableName()
-				fromPrimaryKey := fromScope.PrimaryKey()
-				toTable := toScope.TableName()
-				toPrimaryKey := toScope.PrimaryKey()
+				if relationship.Kind == "belongs_to" || relationship.Kind == "has_many" {
+					sql := fmt.Sprintf("%v IN (?) and publish_status = ?", gorm.ToSnake(relationship.ForeignKey))
+					rows, err = draftDB.Table(draftTable).Select(toScope.PrimaryKey()).Where(sql, primaryKeys, DIRTY).Rows()
+				} else if relationship.Kind == "has_one" {
+					fromTable := fromScope.TableName()
+					fromPrimaryKey := fromScope.PrimaryKey()
+					toTable := toScope.TableName()
+					toPrimaryKey := toScope.PrimaryKey()
 
-				sql := fmt.Sprintf("%v.%v IN (select %v.%v from %v where %v.%v IN (?)) and %v.publish_status = ?",
-					toTable, toPrimaryKey, fromTable, relationship.ForeignKey, fromTable, fromTable, fromPrimaryKey, toTable)
+					sql := fmt.Sprintf("%v.%v IN (select %v.%v from %v where %v.%v IN (?)) and %v.publish_status = ?",
+						toTable, toPrimaryKey, fromTable, relationship.ForeignKey, fromTable, fromTable, fromPrimaryKey, toTable)
 
-				draftDB.Model(toScope.Value).Select(toTable+"."+toPrimaryKey).Where(sql, primaryKeys, DIRTY).Find(&dependencyKeys)
-			} else if relationship.Kind == "many_to_many" {
-			}
-
-			if len(dependencyKeys) > 0 {
-				var primaryKeys []string
-				for _, dependencyKey := range dependencyKeys {
-					primaryKeys = append(primaryKeys, fmt.Sprintf("%v", dependencyKey))
+					rows, err = draftDB.Table(draftTable).Select(toTable+"."+toPrimaryKey).Where(sql, primaryKeys, DIRTY).Rows()
+				} else if relationship.Kind == "many_to_many" {
 				}
 
-				dependency := Dependency{Type: toType, PrimaryKeys: primaryKeys}
-				resolver.AddDependency(&dependency)
+				if rows != nil && err == nil {
+					for rows.Next() {
+						var primaryKey interface{}
+						rows.Scan(&primaryKey)
+						dependencyKeys = append(dependencyKeys, fmt.Sprintf("%v", primaryKey))
+					}
+
+					dependency := Dependency{Type: toType, PrimaryKeys: dependencyKeys}
+					resolver.AddDependency(&dependency)
+				}
 			}
 		}
 	}
@@ -91,16 +109,9 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 
 func (resolver *Resolver) Publish() {
 	for _, record := range resolver.Records {
-		var supportedModels []string
-		var reflectType = modelType(record)
-
-		if value, ok := resolver.DB.DB.Get("publish:support_models"); ok {
-			supportedModels = value.([]string)
-		}
-
-		if IncludeValue(reflectType.String(), supportedModels) {
+		if resolver.SupportModel(record) {
 			scope := &gorm.Scope{Value: record}
-			dependency := Dependency{Type: reflectType, PrimaryKeys: []string{fmt.Sprintf("%v", scope.PrimaryKeyValue())}}
+			dependency := Dependency{Type: modelType(record), PrimaryKeys: []string{fmt.Sprintf("%v", scope.PrimaryKeyValue())}}
 			resolver.AddDependency(&dependency)
 		}
 	}
