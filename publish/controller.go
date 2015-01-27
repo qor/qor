@@ -2,6 +2,7 @@ package publish
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"path"
 	"reflect"
@@ -77,8 +78,9 @@ func (db *PublishController) Publish(context *admin.Context) {
 			}
 		}
 		db.DB.Publish(records...)
+		http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 	} else if request.Form.Get("publish_type") == "discard" {
-
+		fmt.Fprint(context.Writer, "not supported yet")
 	}
 }
 
