@@ -87,9 +87,9 @@ func (db *DB) DraftMode() *gorm.DB {
 }
 
 func (db *DB) NewResolver(records ...interface{}) *Resolver {
-	return &Resolver{Records: records, DB: db}
+	return &Resolver{Records: records, DB: db, Dependencies: map[string]*Dependency{}}
 }
 
 func (db *DB) Publish(records ...interface{}) {
-	db.NewResolver(records).Publish()
+	db.NewResolver(records...).Publish()
 }

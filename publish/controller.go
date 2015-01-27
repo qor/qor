@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 
 	"github.com/qor/qor/admin"
@@ -40,10 +41,10 @@ func (db *PublishController) Diff(context *admin.Context) {
 	res := context.Admin.GetResource(name)
 
 	draft := res.NewStruct()
-	db.DraftMode().First(draft, id)
+	db.DraftMode().Unscoped().First(draft, id)
 
 	production := res.NewStruct()
-	db.ProductionMode().First(production, id)
+	db.ProductionMode().Unscoped().First(production, id)
 
 	results := map[string]interface{}{"Production": production, "Draft": draft, "Resource": res}
 
@@ -51,12 +52,31 @@ func (db *PublishController) Diff(context *admin.Context) {
 }
 
 func (db *PublishController) Publish(context *admin.Context) {
-	request := context.Request
-	fmt.Println(request.Form.Get("checked_ids[]"))
-	fmt.Println(request.Form["checked_ids[]"])
+	var request = context.Request
+	var ids = request.Form["checked_ids[]"]
 
 	if request.Form.Get("publish_type") == "publish" {
-		// db.DB.Publish()
+		var records = []interface{}{}
+		var values = map[string][]string{}
+
+		for _, id := range ids {
+			if keys := strings.Split(id, "__"); len(keys) == 2 {
+				name, id := keys[0], keys[1]
+				values[name] = append(values[name], id)
+			}
+		}
+
+		for name, value := range values {
+			res := context.Admin.GetResource(name)
+			results := res.NewSlice()
+			if db.DraftMode().Unscoped().Find(results, fmt.Sprintf("%v IN (?)", res.PrimaryKey()), value).Error == nil {
+				resultValues := reflect.Indirect(reflect.ValueOf(results))
+				for i := 0; i < resultValues.Len(); i++ {
+					records = append(records, resultValues.Index(i).Interface())
+				}
+			}
+		}
+		db.DB.Publish(records...)
 	} else if request.Form.Get("publish_type") == "discard" {
 
 	}
