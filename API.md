@@ -1,4 +1,15 @@
-Resource:
+Admin:
+
+    Admin := admin.New(&qor.Config{DB: db})
+    order := Admin.AddResource(&order{}, Menu{})
+    order.IndexAttrs("Id", "Amount", "Email")
+    order.Meta(&admin.Meta{Name: name, Value: func(), Setter: func()})
+    order.Scope(&admin.Scope{Name: name, Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {}})
+    order.Filter(&admin.Filter{Name: name, Handle: func(string, string, *gorm.DB, *qor.Context) *gorm.DB})
+    order.Action(&admin.Action{Name: name, Handle: func(scope *gorm.DB, context *qor.Context) error {}})
+
+    router := Admin.GetRouter()
+    router.Get("/admin", func())
 
     order.Search("Name", func (d *gorm.DB, App) *gorm.DB {
       return d.Where("pay_mode_sign = ?", "C")
