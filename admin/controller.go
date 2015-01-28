@@ -76,9 +76,9 @@ func (admin *Admin) Delete(context *Context) {
 
 	responder.With("html", func() {
 		if res.CallDeleter(res.NewStruct(), context.Context) == nil {
-			http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusFound)
+			http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.ToParam()), http.StatusFound)
 		} else {
-			http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.Name), http.StatusNotFound)
+			http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.ToParam()), http.StatusNotFound)
 		}
 	}).With("json", func() {
 		if res.CallDeleter(res.NewStruct(), context.Context) == nil {

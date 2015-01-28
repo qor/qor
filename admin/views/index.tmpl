@@ -1,7 +1,9 @@
+<p>{{link_to "New" (new_resource_path .Resource)}}</p>
+
 <article class="article clearfix" id="orders">
   <section class="section filter-wrapper">
   </section>
-  
+
   <section class="section table-wrapper">
   <table class="table">
     <thead>
@@ -27,14 +29,16 @@
             </td>
           {{end}}
 
-          <!-- <form action="{{url_for $resource}}" method="POST" style="display:inline">
-            <input name="_method" value="DELETE" type="hidden">
-            <input value="DELETE" type="submit"/>
-          </form> -->
+          <td>
+            <form action="{{url_for $resource}}" method="POST" style="display:inline">
+              <input name="_method" value="DELETE" type="hidden">
+              <input value="DELETE" type="submit"/>
+            </form>
+          </td>
         </tr>
-      {{end}}
+        {{end}}
     </tbody>
   </table>
-  </section>
+</section>
 
 </article>

@@ -154,9 +154,9 @@ func (context *Context) ValueOf(value interface{}, meta *resource.Meta) interfac
 
 func (context *Context) NewResourcePath(value interface{}) string {
 	if res, ok := value.(*Resource); ok {
-		return path.Join(context.Admin.router.Prefix, res.Name, "new")
+		return path.Join(context.Admin.router.Prefix, res.ToParam(), "new")
 	} else {
-		return path.Join(context.Admin.router.Prefix, context.Resource.Name, "new")
+		return path.Join(context.Admin.router.Prefix, context.Resource.ToParam(), "new")
 	}
 }
 
@@ -175,6 +175,7 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 }
 
 func (context *Context) LinkTo(text interface{}, link interface{}) string {
+	text = reflect.Indirect(reflect.ValueOf(text)).Interface()
 	if linkStr, ok := link.(string); ok {
 		return fmt.Sprintf(`<a href="%v">%v</a>`, linkStr, text)
 	}
