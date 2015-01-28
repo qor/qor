@@ -57,7 +57,7 @@ func (admin *Admin) GetResource(name string) *Resource {
 }
 
 func (admin *Admin) UseResource(res *Resource) {
-	admin.Resources[res.Name] = res
+	admin.Resources[res.ToParam()] = res
 }
 
 func (admin *Admin) SetAuth(auth Auth) {

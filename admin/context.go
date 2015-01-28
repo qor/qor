@@ -120,12 +120,13 @@ func (context *Context) Execute(name string, result interface{}) {
 	}
 
 	if t, ok := templates[cacheKey]; !ok || true {
-		tmpl, _ = context.findTemplate(tmpl, "layout.tmpl")
-		tmpl = tmpl.Funcs(context.funcMap())
-
-		for _, name := range []string{"header", "footer"} {
-			if tmpl.Lookup(name) == nil {
-				tmpl, _ = context.findTemplate(tmpl, name+".tmpl")
+		var err error
+		tmpl = template.New("layout.tmpl").Funcs(context.funcMap())
+		if tmpl, err = context.findTemplate(tmpl, "layout.tmpl"); err == nil {
+			for _, name := range []string{"header", "footer"} {
+				if tmpl.Lookup(name) == nil {
+					tmpl, _ = context.findTemplate(tmpl, name+".tmpl")
+				}
 			}
 		}
 	} else {
