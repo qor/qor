@@ -3,7 +3,6 @@ package resource
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -158,18 +157,20 @@ func (res *Resource) GetMetas(_attrs ...[]string) []*Meta {
 		}
 	}
 
+	primaryKey := res.PrimaryKey()
+
 	metas := []*Meta{}
 	for _, attr := range attrs {
 		if meta, ok := res.Metas[attr]; ok {
 			metas = append(metas, meta.GetMeta())
 		} else {
-			// fix hide for foreign key
-			if strings.HasSuffix(attr, "Id") {
-				// continue
-			}
-
 			var _meta Meta
 			_meta = Meta{Name: attr, Base: res}
+
+			if attr == primaryKey {
+				_meta.Type = "hidden"
+			}
+
 			_meta.UpdateMeta()
 			metas = append(metas, &_meta)
 		}

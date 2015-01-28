@@ -103,7 +103,7 @@ func (res *Resource) NewMetas() []*resource.Meta {
 
 func (res *Resource) EditMetas() []*resource.Meta {
 	return res.getCachedMetas("edit_metas", func() []*resource.Meta {
-		return res.appendPrimaryKey(res.GetMetas(res.editAttrs))
+		return res.GetMetas(res.editAttrs)
 	})
 }
 
@@ -115,17 +115,8 @@ func (res *Resource) ShowMetas() []*resource.Meta {
 
 func (res *Resource) AllMetas() []*resource.Meta {
 	return res.getCachedMetas("all_metas", func() []*resource.Meta {
-		return res.appendPrimaryKey(res.GetMetas())
+		return res.GetMetas()
 	})
-}
-
-func (res *Resource) appendPrimaryKey(metas []*resource.Meta) []*resource.Meta {
-	primaryKeyMeta := &resource.Meta{Base: res, Name: res.PrimaryKey(), Type: "hidden", Value: func(value interface{}, context *qor.Context) interface{} {
-		return context.GetDB().NewScope(value).PrimaryKeyValue()
-	}}
-	primaryKeyMeta.UpdateMeta()
-
-	return append(metas, primaryKeyMeta)
 }
 
 func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *Context, roles ...roles.PermissionMode) []*resource.Meta {
