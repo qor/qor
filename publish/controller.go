@@ -29,8 +29,9 @@ func (db *PublishController) Preview(context *admin.Context) {
 		}
 
 		results := res.NewSlice()
-		draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results)
-		drafts[res] = results
+		if draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
+			drafts[res] = results
+		}
 	}
 	context.Execute("publish/drafts", drafts)
 }
