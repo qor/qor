@@ -24,18 +24,18 @@ type Stater interface {
 	GetState() string
 }
 
-type State struct {
-	State           string
-	StateChangeLogs []StateChangeLog
-}
+// type State struct {
+// 	State           string
+// 	StateChangeLogs []StateChangeLog
+// }
 
-func (state *State) SetState(name string) {
-	state.State = name
-}
+// func (state *State) SetState(name string) {
+// 	state.State = name
+// }
 
-func (state *State) GetState() string {
-	return state.State
-}
+// func (state *State) GetState() string {
+// 	return state.State
+// }
 
 func New(value interface{}) *StateMachine {
 	return &StateMachine{states: map[string]*Event{}}
