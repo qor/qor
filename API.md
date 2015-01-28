@@ -1,79 +1,53 @@
 Admin:
 
-    Admin := admin.New(&qor.Config{DB: db})
-    order := Admin.AddResource(&order{}, Menu{})
+    Admin := admin.New(db *gorm.DB)
+
+    order := Admin.NewResource(&order{}, admin.Config{Name: string, Menus: []string, Invisible: bool, Permission})
     order.IndexAttrs("Id", "Amount", "Email")
+    order.Finder()
+    order.Deleter()
     order.Meta(&admin.Meta{Name: name, Value: func(), Setter: func()})
     order.Scope(&admin.Scope{Name: name, Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {}})
     order.Filter(&admin.Filter{Name: name, Handle: func(string, string, *gorm.DB, *qor.Context) *gorm.DB})
-    order.Action(&admin.Action{Name: name, Handle: func(scope *gorm.DB, context *qor.Context) error {}})
+    order.Action(&admin.Action{Name: name, Handle: func(scope *gorm.DB, context *qor.Context) error {}, Inline, Metas})
+
+    Admin.GetResource(name string) *Resource
+    Admin.SetAuth(Auth{GetCurrentUser, Login, Logout})
 
     router := Admin.GetRouter()
     router.Get("/admin", func())
 
-    order.Search("Name", func (d *gorm.DB, App) *gorm.DB {
-      return d.Where("pay_mode_sign = ?", "C")
-    }) //.Suggestion(func() {})
-
-    order.Filter("name")
-    order.Filter("amount")
-    order.Filter(qor.Meta{Name: "name", Label: "Name", Collection: func() []string{ return ["12", "23"]}})
-
-    order.Scope().Group("Name").Register("Cool", func (db *gorm.DB, context *qor.Context) *gorm.DB {
-      return d.Where("pay_mode_sign = ?", "C")
-    })
-
-    order.BulkEdit().UpdateAttrs("name", "md_week", "gender", "categories")
-    order.BulkEdit().Register("name", func(gorm.DB, App) {
-      "xxx"
-    })
-
-    order.Action().Register("name", func() {db, App} {}).If(func(interface{}, App) {} bool)
-    order.Download().Register("name", Downloader())
+    Admin.MountTo(prefix string, mux *http.ServeMux)
+    Admin.RegisterFuncMap(name string, fc interface{})
 
 Publish:
 
-    create data in production -> save in draft db first. (always use the id from draft db)
-    Review before publish, diff in popup
+    Publish := publish.New(db *gorm.DB)
+    Publish.AddModel(&Order{}, publish.Config{Permission: permission, IgnoredAttrs: []string, Finder:{}})
+    Publish.DraftDB()
+    Publish.ProductionDB()
+    Publish.Publish(records...)
 
-    type Product struct {
-       Title     string
-       ColorCode string
-       Price     float64
-       Ext       string
-       PublishAt time.Time
-       Image     MediaLibrary `media_library:"path:/system/:table_name/:id/:filename;"`
-    }
+    Admin.AddResource(Publish) -> router
 
-    Product{Title: "product A", Image: os.Open("xxxx")}
-    db.Save(&product)
+Worker:
 
-    db, err := publish.Open("sqlite", "/tmp/qor.db")
-    user := db.NewResource(&Product{})
-    user.InstantPublishAttrs("title", "color_code", "price", "colorA", "colorB")
-    user.IgnoredAttrs("ext")
+    Worker = worker.New()
+    Worker.SetQueue()
+    job := Worker.NewJob("name", qor.Config{Handle: , OnKill: , Queue: , Permission: })
+    job.Meta(admin.Meta{})
 
-    /system_draft/products/xxx.png
-    /system/products/xxx.png
+    worker.Run(jobId) -> QorJob (file system render MetaValues) -> Worker -> job
+    job.Run(QorJob)
 
-    publish.GetDependencies(objects...)
-    for _, object := range objects {
-      get relations
-      get many to many relations
-    }
-    publish.Publish(struct...) // insert into products_draft (name, color_id) select name, color_id from products;
+    Admin.AddResource(Worker) -> router -> jobs -> metas -> POST -> QorJob (meta values -> file system)
 
-Mail: (TBD)
+Exchange:
 
-Form:
-
-    qor.RegisterMetaType("name", qor.Meta{Setter: xxx, Template: xxx, Value: xxx, Collection: xxx, InputHTML: xxx})
-
-L10n
-
-    locale = l18n.Locale("zh-CN")
-    locale.Scope("scope").T("key")
-    locale.Params(map[string]string).T("missing", "default value", "another default")
+    Exchange := exchange.New()
+    Exchange.Meta{exchange.Meta{Name: , Value:, Setter: }}
+    Exchange.Import(file, logger, context)
+    Exchange.Export(records, writer, logger, context)
 
 Localization:
 
@@ -87,6 +61,12 @@ Localization:
       ProductId int64
       LanguageCode string
     }
+
+L10n
+
+    locale = l18n.Locale("zh-CN")
+    locale.Scope("scope").T("key")
+    locale.Params(map[string]string).T("missing", "default value", "another default")
 
 Layout:
 
@@ -152,20 +132,3 @@ StateMachine
   orderState.To("finish", &order)
     order.SetState("finish")
     order.NewStateLog("finish", tableName, Id, notes)
-
-Action
-
-    type Action struct {
-      Name string "update_name"
-      Metas []string
-
-      Handle func(scope gorm.DB, context qor.context) error
-      Single bool
-    }
-
-    order := admin.NewResource(Order{})
-    order.Action(action)
-
-    /admin/order/action
-    /admin/order/action/confirm?ids=[1,2,3]
-    /admin/order/action/confirm?ids=[1]
