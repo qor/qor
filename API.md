@@ -2,7 +2,7 @@ Admin:
 
     Admin := admin.New(db *gorm.DB)
 
-    order := Admin.NewResource(&order{}, admin.Config{Name: string, Menus: []string, Invisible: bool, Permission})
+    order := Admin.AddResource(&order{}, admin.Config{Name: string, Menus: []string, Invisible: bool, Permission})
     order.IndexAttrs("Id", "Amount", "Email")
     order.Finder()
     order.Deleter()
@@ -23,7 +23,7 @@ Admin:
 Publish:
 
     Publish := publish.New(db *gorm.DB)
-    Publish.AddModel(&Order{}, publish.Config{Permission: permission, IgnoredAttrs: []string, Finder:{}})
+    Publish.AddModel(&Order{}, publish.Config{Permission: permission, IgnoredAttrs: []string, Resource: admin.Resource}) // -> default scope, permission
     Publish.DraftDB()
     Publish.ProductionDB()
     Publish.Publish(records...)
@@ -34,7 +34,7 @@ Worker:
 
     Worker = worker.New()
     Worker.SetQueue()
-    job := Worker.NewJob("name", qor.Config{Handle: , OnKill: , Queue: , Permission: })
+    job := Worker.AddJob("name", qor.Config{Handle: , OnKill: , Queue: , Permission: })
     job.Meta(admin.Meta{})
 
     worker.Run(jobId) -> QorJob (file system render MetaValues) -> Worker -> job
