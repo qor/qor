@@ -34,7 +34,7 @@ type Meta struct {
 
 type Metaor interface {
 	GetMeta() *Meta
-	GetMetas() []*Meta
+	GetMetas() []Metaor
 	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
 

@@ -23,6 +23,7 @@ type Resource struct {
 
 type Resourcer interface {
 	GetResource() *Resource
+	GetMetaors() []Metaor
 	CallSearcher(interface{}, *qor.Context) error
 	CallFinder(interface{}, *MetaValues, *qor.Context) error
 	CallSaver(interface{}, *qor.Context) error
