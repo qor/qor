@@ -10,6 +10,7 @@ import (
 )
 
 type Resource struct {
+	Value      interface{}
 	Metas      []*Meta
 	actions    []*Action
 	scopes     map[string]*Scope

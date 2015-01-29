@@ -6,7 +6,7 @@ import (
 )
 
 func (res *Resource) Action(action *Action) {
-	res.actions[action.Name] = action
+	res.actions = append(res.actions, action)
 }
 
 type Action struct {

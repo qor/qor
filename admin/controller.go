@@ -10,11 +10,15 @@ import (
 	"github.com/qor/qor/responder"
 )
 
-func (admin *Admin) Dashboard(context *Context) {
+type AdminController struct {
+	*Admin
+}
+
+func (ac *AdminController) Dashboard(context *Context) {
 	context.Execute("dashboard", nil)
 }
 
-func (admin *Admin) Index(context *Context) {
+func (ac *AdminController) Index(context *Context) {
 	if result, err := context.FindAll(); err == nil {
 		responder.With("html", func() {
 			context.Execute("index", result)
@@ -27,7 +31,7 @@ func (admin *Admin) Index(context *Context) {
 	}
 }
 
-func (admin *Admin) Show(context *Context) {
+func (ac *AdminController) Show(context *Context) {
 	result, _ := context.FindOne()
 
 	responder.With("html", func() {
@@ -38,12 +42,12 @@ func (admin *Admin) Show(context *Context) {
 	}).Respond(context.Writer, context.Request)
 }
 
-func (admin *Admin) New(context *Context) {
+func (ac *AdminController) New(context *Context) {
 	context.Execute("new", nil)
 }
 
-func (admin *Admin) Create(context *Context) {
-	res := admin.GetResource(context.ResourcePath())
+func (ac *AdminController) Create(context *Context) {
+	res := ac.GetResource(context.ResourcePath())
 	result := res.NewStruct()
 	if errs := res.Decode(context, result); len(errs) == 0 {
 		res.CallSaver(result, context.Context)
@@ -57,7 +61,7 @@ func (admin *Admin) Create(context *Context) {
 	}
 }
 
-func (admin *Admin) Update(context *Context) {
+func (ac *AdminController) Update(context *Context) {
 	if result, err := context.FindOne(); err == nil {
 		if errs := context.Resource.Decode(context, result); len(errs) == 0 {
 			context.Resource.CallSaver(result, context.Context)
@@ -71,14 +75,14 @@ func (admin *Admin) Update(context *Context) {
 	}
 }
 
-func (admin *Admin) Delete(context *Context) {
-	res := admin.GetResource(context.ResourcePath())
+func (ac *AdminController) Delete(context *Context) {
+	res := ac.GetResource(context.ResourcePath())
 
 	responder.With("html", func() {
 		if res.CallDeleter(res.NewStruct(), context.Context) == nil {
-			http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.ToParam()), http.StatusFound)
+			http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), http.StatusFound)
 		} else {
-			http.Redirect(context.Writer, context.Request, path.Join(admin.router.Prefix, res.ToParam()), http.StatusNotFound)
+			http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), http.StatusNotFound)
 		}
 	}).With("json", func() {
 		if res.CallDeleter(res.NewStruct(), context.Context) == nil {
@@ -89,7 +93,7 @@ func (admin *Admin) Delete(context *Context) {
 	}).Respond(context.Writer, context.Request)
 }
 
-func (admin *Admin) Action(context *Context) {
+func (ac *AdminController) Action(context *Context) {
 	var err error
 	name := strings.Split(context.Request.URL.Path, "/")[4]
 	if action := context.Resource.actions[name]; action != nil {
@@ -109,8 +113,8 @@ func (admin *Admin) Action(context *Context) {
 	}).Respond(context.Writer, context.Request)
 }
 
-func (admin *Admin) Asset(context *Context) {
-	file := strings.TrimPrefix(context.Request.URL.Path, context.Admin.GetRouter().Prefix)
+func (ac *AdminController) Asset(context *Context) {
+	file := strings.TrimPrefix(context.Request.URL.Path, ac.GetRouter().Prefix)
 	if filename, err := context.findFile(file); err == nil {
 		http.ServeFile(context.Writer, context.Request, filename)
 	} else {

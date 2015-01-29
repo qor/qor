@@ -53,18 +53,17 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	router := admin.router
 	router.Prefix = prefix
 
-	router.Get("^/assets/.*$", admin.Asset)
-	router.Get("^/?$", admin.Dashboard)
-	router.Get("^/[^/]+/new$", admin.New)
-	router.Post("^/[^/]+$", admin.Create)
-	router.Post("^/[^/]+/action/[^/]+(\\?.*)?$", admin.Action)
-	router.Get("^/[^/]+/.*$", admin.Show)
-	router.Put("^/[^/]+/.*$", admin.Update)
-	router.Post("^/[^/]+/.*$", admin.Update)
-
-	router.Delete("^/[^/]+/.*$", admin.Delete)
-
-	router.Get("^/[^/]+$", admin.Index)
+	controller := AdminController{admin}
+	router.Get("^/assets/.*$", controller.Asset)
+	router.Get("^/?$", controller.Dashboard)
+	router.Get("^/[^/]+/new$", controller.New)
+	router.Post("^/[^/]+$", controller.Create)
+	router.Post("^/[^/]+/action/[^/]+(\\?.*)?$", controller.Action)
+	router.Get("^/[^/]+/.*$", controller.Show)
+	router.Put("^/[^/]+/.*$", controller.Update)
+	router.Post("^/[^/]+/.*$", controller.Update)
+	router.Delete("^/[^/]+/.*$", controller.Delete)
+	router.Get("^/[^/]+$", controller.Index)
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
