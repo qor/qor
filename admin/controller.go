@@ -26,38 +26,6 @@ func (ac *AdminController) Index(context *Context) {
 			js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context, result))
 			context.Writer.Write(js)
 		}).Respond(context.Writer, context.Request)
-	} else {
-		http.NotFound(context.Writer, context.Request)
-	}
-}
-
-func (ac *AdminController) Show(context *Context) {
-	result, _ := context.FindOne()
-
-	responder.With("html", func() {
-		context.Execute("show", result)
-	}).With("json", func() {
-		js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context, result))
-		context.Writer.Write(js)
-	}).Respond(context.Writer, context.Request)
-}
-
-func (ac *AdminController) New(context *Context) {
-	context.Execute("new", nil)
-}
-
-func (ac *AdminController) Create(context *Context) {
-	res := ac.GetResource(context.ResourcePath())
-	result := res.NewStruct()
-	if errs := res.Decode(context, result); len(errs) == 0 {
-		res.CallSaver(result, context.Context)
-		responder.With("html", func() {
-			primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
-			http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
-		}).With("json", func() {
-			js, _ := json.Marshal(res.ConvertObjectToMap(context, result))
-			context.Writer.Write(js)
-		}).Respond(context.Writer, context.Request)
 	}
 }
 
