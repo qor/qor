@@ -11,7 +11,7 @@ import (
 
 type Admin struct {
 	Config    *qor.Config
-	Resources map[string]*Resource
+	Resources []*Resource
 	auth      Auth
 	router    *Router
 	funcMaps  template.FuncMap
@@ -19,10 +19,9 @@ type Admin struct {
 
 func New(config *qor.Config) *Admin {
 	admin := Admin{
-		Resources: map[string]*Resource{},
-		funcMaps:  make(template.FuncMap),
-		Config:    config,
-		router:    newRouter(),
+		funcMaps: make(template.FuncMap),
+		Config:   config,
+		router:   newRouter(),
 	}
 	return &admin
 }

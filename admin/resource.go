@@ -10,15 +10,14 @@ import (
 )
 
 type Resource struct {
-	resource.Resource // TODO: why not pointer?
-	indexAttrs        []string
-	newAttrs          []string
-	editAttrs         []string
-	showAttrs         []string
-	cachedMetas       *map[string][]*resource.Meta
-	scopes            map[string]*Scope
-	filters           map[string]*Filter
-	actions           map[string]*Action
+	Metas      []*Meta
+	actions    []*Action
+	scopes     map[string]*Scope
+	filters    map[string]*Filter
+	indexAttrs []string
+	newAttrs   []string
+	editAttrs  []string
+	showAttrs  []string
 }
 
 func (res *Resource) ToParam() string {
@@ -130,16 +129,4 @@ func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *Context, role
 		}
 	}
 	return metas
-}
-
-func (res *Resource) Scope(scope *Scope) {
-	res.scopes[scope.Name] = scope
-}
-
-func (res *Resource) Filter(filter *Filter) {
-	res.filters[filter.Name] = filter
-}
-
-func (res *Resource) Action(action *Action) {
-	res.actions[action.Name] = action
 }

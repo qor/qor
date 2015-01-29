@@ -8,6 +8,10 @@ import (
 	"github.com/qor/qor"
 )
 
+func (res *Resource) Filter(filter *Filter) {
+	res.filters[filter.Name] = filter
+}
+
 type Filter struct {
 	Name       string
 	Operations []string
