@@ -9,8 +9,16 @@ import (
 	"github.com/qor/qor/roles"
 )
 
+type Config struct {
+	Name       string
+	Menus      []string
+	Invisible  bool
+	Permission *roles.Permission
+}
+
 type Resource struct {
 	Value      interface{}
+	Config     *Config
 	Metas      []*Meta
 	actions    []*Action
 	scopes     map[string]*Scope
