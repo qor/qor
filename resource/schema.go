@@ -123,7 +123,7 @@ func Decode(contextor qor.Contextor, result interface{}, res Resourcer) (errs []
 	return errs
 }
 
-func GetAddrValue(value reflect.Value) interface{} {
+func getAddrValue(value reflect.Value) interface{} {
 	if value.Kind() == reflect.Ptr {
 		return value.Interface()
 	} else if value.CanAddr() {
@@ -141,7 +141,7 @@ func ConvertObjectToMap(contextor qor.Contextor, metaors []Metaor, object interf
 	case reflect.Slice:
 		values := []interface{}{}
 		for i := 0; i < reflectValue.Len(); i++ {
-			values = append(values, ConvertObjectToMap(context, metaors, GetAddrValue(reflectValue.Index(i))))
+			values = append(values, ConvertObjectToMap(context, metaors, getAddrValue(reflectValue.Index(i))))
 		}
 		return values
 	case reflect.Struct:

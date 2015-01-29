@@ -17,9 +17,10 @@ type Config struct {
 }
 
 type Resource struct {
+	Name       string
 	Value      interface{}
 	Config     *Config
-	Metas      []*Meta
+	Metas      []resource.Metaor
 	actions    []*Action
 	scopes     map[string]*Scope
 	filters    map[string]*Filter
@@ -29,8 +30,16 @@ type Resource struct {
 	showAttrs  []string
 }
 
-func (res *Resource) ToParam() string {
+func (res Resource) ToParam() string {
 	return strings.ToLower(res.Name)
+}
+
+func (res Resource) ConvertObjectToMap(context qor.Contextor, value interface{}) string {
+	return resources.ConvertObjectToMap(context, value, res.Metas)
+}
+
+func (res Resource) Decode(contextor qor.Contextor, result interface{}) (errs []error) {
+	return resources.Decode(contextor, value, res)
 }
 
 func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
@@ -64,6 +73,14 @@ func (res *Resource) CallSearcher(result interface{}, context *qor.Context) erro
 		return res.Searcher(result, context)
 	} else {
 		return context.GetDB().Set("gorm:order_by_primary_key", "ASC").Find(result).Error
+	}
+}
+
+func (res *Resource) CallSaver(result interface{}, context *qor.Context) error {
+	if res.Saver != nil {
+		return res.Saver(result, context)
+	} else {
+		return context.GetDB().Save(result).Error
 	}
 }
 

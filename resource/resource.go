@@ -12,7 +12,7 @@ type Resource struct {
 	Name       string
 	primaryKey string
 	Value      interface{}
-	Metas      map[string]Metaor
+	Metas      []Metaor
 	Searcher   func(interface{}, *qor.Context) error
 	Finder     func(interface{}, *MetaValues, *qor.Context) error
 	Saver      func(interface{}, *qor.Context) error
@@ -30,6 +30,10 @@ type Resourcer interface {
 	CallDeleter(interface{}, *qor.Context) error
 	NewSlice() interface{}
 	NewStruct() interface{}
+}
+
+func (r Resource) GetMetaors() []Metaor {
+	return r.Metas
 }
 
 // TODO: use a NewNamed method instead of a variant parameter
@@ -105,14 +109,10 @@ func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context
 }
 
 func (res *Resource) Meta(metaor Metaor) {
-	if res.Metas == nil {
-		res.Metas = make(map[string]Metaor)
-	}
-
 	meta := metaor.GetMeta()
 	meta.Base = res
 	meta.UpdateMeta()
-	res.Metas[meta.Name] = metaor
+	res.Metas = append(res.Metas, metaor)
 }
 
 func (res *Resource) NewSlice() interface{} {
@@ -158,24 +158,26 @@ func (res *Resource) GetMetas(_attrs ...[]string) []*Meta {
 		}
 	}
 
-	primaryKey := res.PrimaryKey()
+	// primaryKey := res.PrimaryKey()
 
 	metas := []*Meta{}
-	for _, attr := range attrs {
-		if meta, ok := res.Metas[attr]; ok {
-			metas = append(metas, meta.GetMeta())
-		} else {
-			var _meta Meta
-			_meta = Meta{Name: attr, Base: res}
-
-			if attr == primaryKey {
-				_meta.Type = "hidden"
-			}
-
-			_meta.UpdateMeta()
-			metas = append(metas, &_meta)
-		}
-	}
+	// for _, attr := range attrs {
+	// 	for _, meta := range res.GetMetas() {
+	// if meta, ok := res.Metas[attr]; ok {
+	// 	metas = append(metas, meta.GetMeta())
+	// } else {
+	// 	var _meta Meta
+	// 	_meta = Meta{Name: attr, Base: res}
+	//
+	// 	if attr == primaryKey {
+	// 		_meta.Type = "hidden"
+	// 	}
+	//
+	// 	_meta.UpdateMeta()
+	// 	metas = append(metas, &_meta)
+	// }
+	// 	}
+	// }
 
 	return metas
 }

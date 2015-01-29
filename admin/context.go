@@ -168,7 +168,7 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 		url = path.Join(context.Admin.router.Prefix, resource.ToParam())
 	} else {
 		primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
-		name := NewResource(value).ToParam()
+		name := Resource{Value: value}.ToParam()
 		url = path.Join(context.Admin.router.Prefix, name, fmt.Sprintf("%v", primaryKey))
 	}
 	return url
