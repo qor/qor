@@ -19,18 +19,12 @@ func (db *PublishController) Preview(context *admin.Context) {
 	draftDB := db.DraftMode()
 	drafts := make(map[*admin.Resource]interface{})
 	for _, model := range db.SupportedModels {
-		var res *admin.Resource
 		var name = modelType(model).Name()
-
-		if r := context.Admin.GetResource(strings.ToLower(name)); r != nil {
-			res = r
-		} else {
-			res = admin.NewResource(model)
-		}
-
-		results := res.NewSlice()
-		if draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
-			drafts[res] = results
+		if res := context.Admin.GetResource(strings.ToLower(name)); res != nil {
+			results := res.NewSlice()
+			if draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
+				drafts[res] = results
+			}
 		}
 	}
 	context.Execute("publish/drafts", drafts)
