@@ -20,6 +20,7 @@ import (
 
 type Meta struct {
 	Base          Resourcer
+	Metas         []Metaor
 	Name          string
 	Alias         string
 	Type          string
@@ -40,6 +41,10 @@ type Metaor interface {
 
 func (meta *Meta) GetMeta() *Meta {
 	return meta
+}
+
+func (meta *Meta) GetMetas() []Metaor {
+	return meta.Metas
 }
 
 func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {

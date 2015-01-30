@@ -72,7 +72,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
 }
 
-func (admin *Admin) newContext(w http.ResponseWriter, r *http.Request) *Context {
+func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	var currentUser *qor.CurrentUser
 	context := Context{Context: &qor.Context{Config: admin.Config, Request: r}, Writer: w, Admin: admin}
 	if admin.auth != nil {
@@ -99,7 +99,7 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var router = admin.router
-	var context = admin.newContext(w, req)
+	var context = admin.NewContext(w, req)
 
 	var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*`))
 	var matches = pathMatch.FindStringSubmatch(req.URL.Path)

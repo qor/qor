@@ -29,7 +29,11 @@ func New(config *qor.Config) *Admin {
 }
 
 func (admin *Admin) NewResource(value interface{}, names ...string) *Resource {
-	res := &Resource{Resource: resource.New(value)}
+	res := &Resource{
+		Resource: resource.New(value),
+		scopes:   map[string]*Scope{},
+		filters:  map[string]*Filter{},
+	}
 	admin.resources = append(admin.resources, res)
 
 	if injector, ok := value.(Injector); ok {
