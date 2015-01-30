@@ -11,7 +11,7 @@ import (
 )
 
 type Resource struct {
-	*resource.Resource
+	resource.Resource
 	Config      *Config
 	Metas       []*Meta
 	actions     []*Action
