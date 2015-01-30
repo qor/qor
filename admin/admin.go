@@ -28,7 +28,7 @@ func New(config *qor.Config) *Admin {
 	return &admin
 }
 
-func (admin *Admin) NewResource(value interface{}, config *Config) *Resource {
+func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 	res := &Resource{
 		Resource:    resource.New(value),
 		Config:      config,

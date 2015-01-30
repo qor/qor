@@ -10,15 +10,15 @@ import (
 	"github.com/qor/qor/responder"
 )
 
-type AdminController struct {
+type controller struct {
 	*Admin
 }
 
-func (ac *AdminController) Dashboard(context *Context) {
+func (ac *controller) Dashboard(context *Context) {
 	context.Execute("dashboard", nil)
 }
 
-func (ac *AdminController) Index(context *Context) {
+func (ac *controller) Index(context *Context) {
 	if result, err := context.FindAll(); err == nil {
 		responder.With("html", func() {
 			context.Execute("index", result)
@@ -31,7 +31,7 @@ func (ac *AdminController) Index(context *Context) {
 	}
 }
 
-func (ac *AdminController) Show(context *Context) {
+func (ac *controller) Show(context *Context) {
 	result, _ := context.FindOne()
 
 	responder.With("html", func() {
@@ -42,11 +42,11 @@ func (ac *AdminController) Show(context *Context) {
 	}).Respond(context.Writer, context.Request)
 }
 
-func (ac *AdminController) New(context *Context) {
+func (ac *controller) New(context *Context) {
 	context.Execute("new", nil)
 }
 
-func (ac *AdminController) Create(context *Context) {
+func (ac *controller) Create(context *Context) {
 	res := ac.GetResource(context.ResourcePath())
 	result := res.NewStruct()
 	if errs := res.Decode(context, result); len(errs) == 0 {
@@ -61,7 +61,7 @@ func (ac *AdminController) Create(context *Context) {
 	}
 }
 
-func (ac *AdminController) Update(context *Context) {
+func (ac *controller) Update(context *Context) {
 	if result, err := context.FindOne(); err == nil {
 		if errs := context.Resource.Decode(context, result); len(errs) == 0 {
 			context.Resource.CallSaver(result, context.Context)
@@ -75,7 +75,7 @@ func (ac *AdminController) Update(context *Context) {
 	}
 }
 
-func (ac *AdminController) Delete(context *Context) {
+func (ac *controller) Delete(context *Context) {
 	res := ac.GetResource(context.ResourcePath())
 
 	responder.With("html", func() {
@@ -93,7 +93,7 @@ func (ac *AdminController) Delete(context *Context) {
 	}).Respond(context.Writer, context.Request)
 }
 
-func (ac *AdminController) Action(context *Context) {
+func (ac *controller) Action(context *Context) {
 	var err error
 	name := strings.Split(context.Request.URL.Path, "/")[4]
 
@@ -116,7 +116,7 @@ func (ac *AdminController) Action(context *Context) {
 	}).Respond(context.Writer, context.Request)
 }
 
-func (ac *AdminController) Asset(context *Context) {
+func (ac *controller) Asset(context *Context) {
 	file := strings.TrimPrefix(context.Request.URL.Path, ac.GetRouter().Prefix)
 	if filename, err := context.findFile(file); err == nil {
 		http.ServeFile(context.Writer, context.Request, filename)
