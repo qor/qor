@@ -32,8 +32,6 @@ type Resourcer interface {
 	NewStruct() interface{}
 }
 
-// TODO: use a NewNamed method instead of a variant parameter
-// would be better and clearer
 func New(value interface{}, names ...string) *Resource {
 	name := reflect.Indirect(reflect.ValueOf(value)).Type().Name()
 	for _, n := range names {
@@ -106,6 +104,7 @@ func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context
 
 func (res *Resource) Meta(metaor Metaor) {
 	meta := metaor.GetMeta()
+	meta.Base = res
 	meta.UpdateMeta()
 	res.Metas = append(res.Metas, metaor)
 }
@@ -120,4 +119,8 @@ func (res *Resource) NewSlice() interface{} {
 
 func (res *Resource) NewStruct() interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
+}
+
+func (res *Resource) GetMetas(...[]string) []Metaor {
+	panic("not defined")
 }

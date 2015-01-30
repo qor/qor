@@ -7,9 +7,7 @@ import (
 )
 
 type Meta struct {
-	*resource.Meta
-	Base       resource.Resourcer
-	Name       string
+	resource.Meta
 	Label      string
 	Type       string
 	Valuer     func(interface{}, *qor.Context) interface{}

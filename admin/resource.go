@@ -156,11 +156,13 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 		}
 
 		if meta == nil {
-			meta = &Meta{Name: attr, Base: res}
+			meta = &Meta{}
+			meta.Name = attr
+			meta.Base = res
 			if attr == primaryKey {
 				meta.Type = "hidden"
 			}
-			meta.GetMeta().UpdateMeta()
+			meta.UpdateMeta()
 		}
 
 		metas = append(metas, meta)
