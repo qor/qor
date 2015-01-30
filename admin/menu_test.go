@@ -7,34 +7,34 @@ import (
 	"github.com/qor/qor/resource"
 )
 
-func TestAddMenu(t *testing.T) {
+func TestMenu(t *testing.T) {
 	var menus []*Menu
 	res1 := &Resource{
-		Resource: &resource.Resource{Name: "res1"},
+		Resource: resource.Resource{Name: "res1"},
 		Config:   &Config{Menu: []string{"menu1"}},
 	}
 	res2 := &Resource{
-		Resource: &resource.Resource{Name: "res2"},
+		Resource: resource.Resource{Name: "res2"},
 		Config:   &Config{Menu: []string{"menu1"}},
 	}
 	res3 := &Resource{
-		Resource: &resource.Resource{Name: "res3"},
+		Resource: resource.Resource{Name: "res3"},
 		Config:   &Config{Menu: []string{"menu1", "menu1-1"}},
 	}
 	res4 := &Resource{
-		Resource: &resource.Resource{Name: "res4"},
+		Resource: resource.Resource{Name: "res4"},
 		Config:   &Config{Menu: []string{"menu2"}},
 	}
 	res5 := &Resource{
-		Resource: &resource.Resource{Name: "res5"},
+		Resource: resource.Resource{Name: "res5"},
 		Config:   &Config{},
 	}
 	res6 := &Resource{
-		Resource: &resource.Resource{Name: "res6"},
+		Resource: resource.Resource{Name: "res6"},
 		Config:   &Config{Menu: []string{"menu1", "menu1-2"}},
 	}
 	res7 := &Resource{
-		Resource: &resource.Resource{Name: "res7"},
+		Resource: resource.Resource{Name: "res7"},
 		Config:   &Config{Menu: []string{"menu1", "menu1-1", "menu1-1-1"}},
 	}
 
@@ -81,6 +81,13 @@ func TestAddMenu(t *testing.T) {
 	}
 
 	if !isEqual(expect, menus) {
-		t.Errorf("expect %s got %s", expect, menus)
+		t.Errorf("add menu errors: expect %s got %s", expect, menus)
+	}
+
+	menu := getMenu(menus, "res6")
+	if menu == nil {
+		t.Error("failed to get menu")
+	} else if menu.Name != "res6" {
+		t.Error("failed to get correct menu")
 	}
 }
