@@ -26,6 +26,8 @@ type Resource struct {
 }
 
 func (res *Resource) Meta(meta *Meta) {
+	meta.base = res
+	meta.updateMeta()
 	res.Metas = append(res.Metas, meta)
 }
 
@@ -162,6 +164,7 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 		if meta == nil {
 			meta = &Meta{}
 			meta.Name = attr
+			meta.base = res
 			if attr == primaryKey {
 				meta.Type = "hidden"
 			}
