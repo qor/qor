@@ -17,29 +17,29 @@ type Config struct {
 }
 
 type Resource struct {
-	Name       string
-	Value      interface{}
-	Config     *Config
-	Metas      []resource.Metaor
-	actions    []*Action
-	scopes     map[string]*Scope
-	filters    map[string]*Filter
-	indexAttrs []string
-	newAttrs   []string
-	editAttrs  []string
-	showAttrs  []string
+	*resource.Resource
+	Config      *Config
+	Metas       []resource.Metaor
+	actions     []*Action
+	scopes      map[string]*Scope
+	filters     map[string]*Filter
+	indexAttrs  []string
+	newAttrs    []string
+	editAttrs   []string
+	showAttrs   []string
+	cachedMetas *map[string][]*resource.Meta
 }
 
 func (res Resource) ToParam() string {
 	return strings.ToLower(res.Name)
 }
 
-func (res Resource) ConvertObjectToMap(context qor.Contextor, value interface{}) string {
-	return resources.ConvertObjectToMap(context, value, res.Metas)
+func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}) interface{} {
+	return resource.ConvertObjectToMap(context, value, res.Metas)
 }
 
-func (res Resource) Decode(contextor qor.Contextor, result interface{}) (errs []error) {
-	return resources.Decode(contextor, value, res)
+func (res *Resource) Decode(contextor qor.Contextor, value interface{}) (errs []error) {
+	return resource.Decode(contextor, value, res)
 }
 
 func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {

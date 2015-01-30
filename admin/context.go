@@ -164,11 +164,11 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 	var url string
 	if admin, ok := value.(*Admin); ok {
 		url = admin.router.Prefix
-	} else if resource, ok := value.(*Resource); ok {
-		url = path.Join(context.Admin.router.Prefix, resource.ToParam())
+	} else if res, ok := value.(*Resource); ok {
+		url = path.Join(context.Admin.router.Prefix, res.ToParam())
 	} else {
 		primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
-		name := Resource{Value: value}.ToParam()
+		name := Resource{Resource: resource.New(value)}.ToParam()
 		url = path.Join(context.Admin.router.Prefix, name, fmt.Sprintf("%v", primaryKey))
 	}
 	return url

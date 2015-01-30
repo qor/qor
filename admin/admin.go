@@ -4,6 +4,7 @@ import (
 	"text/template"
 
 	"github.com/qor/qor"
+	"github.com/qor/qor/resource"
 )
 
 type Admin struct {
@@ -28,7 +29,7 @@ func New(config *qor.Config) *Admin {
 }
 
 func (admin *Admin) NewResource(value interface{}, names ...string) *Resource {
-	res := &Resource{Value: value}
+	res := &Resource{Resource: resource.New(value)}
 	admin.resources = append(admin.resources, res)
 
 	if injector, ok := value.(Injector); ok {

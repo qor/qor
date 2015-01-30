@@ -7,6 +7,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/qor/qor"
+	"github.com/qor/qor/roles"
 )
 
 type (
@@ -53,7 +56,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	router := admin.router
 	router.Prefix = prefix
 
-	controller := AdminController{admin}
+	controller := &AdminController{admin}
 	router.Get("^/assets/.*$", controller.Asset)
 	router.Get("^/?$", controller.Dashboard)
 	router.Get("^/[^/]+/new$", controller.New)
@@ -67,6 +70,17 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
+}
+
+func (admin *Admin) newContext(w http.ResponseWriter, r *http.Request) *Context {
+	var currentUser *qor.CurrentUser
+	context := Context{Context: &qor.Context{Config: admin.Config, Request: r}, Writer: w, Admin: admin}
+	if admin.auth != nil {
+		currentUser = admin.auth.GetCurrentUser(&context)
+	}
+	context.Roles = roles.MatchedRoles(r, currentUser)
+
+	return &context
 }
 
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -85,7 +99,7 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var router = admin.router
-	var context = admin.NewContext(w, req)
+	var context = admin.newContext(w, req)
 
 	var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*`))
 	var matches = pathMatch.FindStringSubmatch(req.URL.Path)

@@ -133,7 +133,7 @@ func getAddrValue(value reflect.Value) interface{} {
 	}
 }
 
-func ConvertObjectToMap(contextor qor.Contextor, metaors []Metaor, object interface{}) interface{} {
+func ConvertObjectToMap(contextor qor.Contextor, object interface{}, metaors []Metaor) interface{} {
 	context := contextor.GetContext()
 	reflectValue := reflect.Indirect(reflect.ValueOf(object))
 
@@ -141,7 +141,7 @@ func ConvertObjectToMap(contextor qor.Contextor, metaors []Metaor, object interf
 	case reflect.Slice:
 		values := []interface{}{}
 		for i := 0; i < reflectValue.Len(); i++ {
-			values = append(values, ConvertObjectToMap(context, metaors, getAddrValue(reflectValue.Index(i))))
+			values = append(values, ConvertObjectToMap(context, getAddrValue(reflectValue.Index(i)), metaors))
 		}
 		return values
 	case reflect.Struct:
@@ -151,7 +151,7 @@ func ConvertObjectToMap(contextor qor.Contextor, metaors []Metaor, object interf
 				meta := metaor.GetMeta()
 				value := meta.Value(object, context)
 				if len(metaor.GetMetas()) > 0 {
-					value = ConvertObjectToMap(context, metaor.GetMetas(), value)
+					value = ConvertObjectToMap(context, value, metaor.GetMetas())
 				}
 				values[meta.Name] = value
 			}
