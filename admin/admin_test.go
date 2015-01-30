@@ -56,7 +56,7 @@ func init() {
 	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Language{})
 
 	admin := admin.New(&qor.Config{DB: &db})
-	user := admin.NewResource(User{}, nil)
+	user := admin.AddResource(User{}, nil)
 	user.Meta(&resource.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if languages := []Language{}; !context.GetDB().Find(&languages).RecordNotFound() {
