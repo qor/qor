@@ -13,6 +13,8 @@ type Admin struct {
 	auth      Auth
 	router    *Router
 	funcMaps  template.FuncMap
+
+	menus []*Menu
 }
 
 type Injector interface {
@@ -37,6 +39,12 @@ func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 		filters:     map[string]*Filter{},
 	}
 	admin.resources = append(admin.resources, res)
+
+	if config != nil && len(config.Menu) > 0 {
+		admin.menus = appendMenu(admin.menus, config.Menu, res)
+	} else {
+		admin.AddMenu(&Menu{Name: res.Name, params: res.ToParam()})
+	}
 
 	if injector, ok := value.(Injector); ok {
 		injector.InjectQorAdmin(admin)

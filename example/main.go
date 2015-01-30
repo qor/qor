@@ -20,10 +20,15 @@ func init() {
 }
 
 func main() {
-	creditCard := admin.NewResource(&CreditCard{})
+	config := qor.Config{DB: &db}
+	web := admin.New(&config)
+
+	web.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})
+
+	creditCard := web.AddResource(&CreditCard{}, &admin.Config{Menu: []string{"Resources"}})
 	creditCard.Meta(&resource.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
-	user := admin.NewResource(&User{})
+	user := web.AddResource(&User{}, &admin.Config{Menu: []string{"Resources"}})
 	user.IndexAttrs("fullname", "gender")
 	user.Meta(&resource.Meta{Name: "CreditCard", Resource: creditCard})
 	user.Meta(&resource.Meta{Name: "fullname", Alias: "name"})
@@ -50,12 +55,9 @@ func main() {
 		},
 	})
 
-	config := qor.Config{DB: &db}
-
-	web := admin.New(&config)
-	web.UseResource(user)
-	web.NewResource(&Role{})
-	web.NewResource(&Language{})
+	// web.UseResource(user)
+	// web.AddResource(&Role{}, nil)
+	web.AddResource(&Language{}, &admin.Config{Menu: []string{"Resources"}})
 
 	fmt.Println("listening on :8080")
 	mux := http.NewServeMux()

@@ -287,11 +287,6 @@ func (context *Context) NewMetas(resources ...*Resource) []*Meta {
 	return res.AllowedMetas(res.NewMetas(), context, roles.Create)
 }
 
-func (context *Context) Menus() []Menu {
-	// TODO
-	return []Menu{}
-}
-
 func (context *Context) JavaScriptTag(name string) string {
 	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "javascripts", name+".js")
 	return fmt.Sprintf(`<script src="%s"></script>`, name)
@@ -308,7 +303,8 @@ func Equal(a, b interface{}) bool {
 
 func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
-		"menus":             context.Menus,
+		"menus":             context.Admin.GetMenus,
+		"render":            context.Render,
 		"primary_key_of":    context.PrimaryKeyOf,
 		"is_new_record":     context.NewRecord,
 		"value_of":          context.ValueOf,

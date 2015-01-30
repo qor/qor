@@ -4,7 +4,7 @@ import "github.com/qor/qor/roles"
 
 type Config struct {
 	Name       string
-	Menus      []string
+	Menu       []string
 	Invisible  bool
 	Permission *roles.Permission
 }

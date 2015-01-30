@@ -70,6 +70,8 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
+
+	admin.linkMenus()
 }
 
 func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {

@@ -1,18 +1,5 @@
 {{define "header"}}
 <header style="margin-bottom:20px">
-  <ul class="menus">
-    {{range menus}}
-    <li class="menu">
-      {{link_to .Text .Link}}
-      {{if .Menus}}
-      <ul>
-        {{range .Menus}}
-        <li>{{link_to .Text .Link}}</li>
-        {{end}}
-      </ul>
-      {{end}}
-    </li>
-    {{end}}
-  </ul>
+  {{render "menus" menus}}
 </header>
 {{end}}
