@@ -8,7 +8,6 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/resource"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -55,9 +54,9 @@ func init() {
 	db.DropTable(&Language{})
 	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Language{})
 
-	admin := admin.New(&qor.Config{DB: &db})
-	user := admin.AddResource(User{}, nil)
-	user.Meta(&resource.Meta{Name: "Languages", Type: "select_many",
+	Admin := admin.New(&qor.Config{DB: &db})
+	user := Admin.AddResource(User{}, nil)
+	user.Meta(&admin.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if languages := []Language{}; !context.GetDB().Find(&languages).RecordNotFound() {
 				for _, language := range languages {
@@ -67,7 +66,7 @@ func init() {
 			return
 		}})
 
-	admin.MountTo("/admin", mux)
+	Admin.MountTo("/admin", mux)
 
 	server = httptest.NewServer(mux)
 }

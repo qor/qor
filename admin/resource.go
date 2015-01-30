@@ -13,6 +13,7 @@ import (
 type Resource struct {
 	resource.Resource
 	Config      *Config
+	Value       interface{}
 	Metas       []*Meta
 	actions     []*Action
 	scopes      map[string]*Scope
@@ -22,6 +23,10 @@ type Resource struct {
 	editAttrs   []string
 	showAttrs   []string
 	cachedMetas *map[string][]*Meta
+}
+
+func (res *Resource) Meta(meta *Meta) {
+	res.Metas = append(res.Metas, meta)
 }
 
 func (res Resource) ToParam() string {
@@ -44,7 +49,7 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 		if metaValues == nil {
 			primaryKey = context.ResourceID
 		} else if id := metaValues.Get(res.PrimaryKey()); id != nil {
-			primaryKey = resource.ToString(id.Value)
+			primaryKey = ToString(id.Value)
 		}
 
 		if primaryKey != "" {
@@ -128,7 +133,6 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 		includedMeta := map[string]bool{}
 		for _, meta := range res.Metas {
-			meta := meta.GetMeta()
 			if _, ok := fields[meta.Name]; !ok {
 				includedMeta[meta.Alias] = true
 				attrs = append(attrs, meta.Name)
@@ -149,7 +153,7 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 	for _, attr := range attrs {
 		var meta *Meta
 		for _, m := range res.Metas {
-			if m.GetMeta().Name == attr {
+			if m.GetName() == attr {
 				meta = m
 				break
 			}
@@ -158,11 +162,10 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 		if meta == nil {
 			meta = &Meta{}
 			meta.Name = attr
-			meta.Base = res
 			if attr == primaryKey {
 				meta.Type = "hidden"
 			}
-			meta.UpdateMeta()
+			meta.updateMeta()
 		}
 
 		metas = append(metas, meta)

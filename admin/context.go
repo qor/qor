@@ -148,8 +148,8 @@ func (context *Context) NewRecord(value interface{}) interface{} {
 	return context.GetDB().NewRecord(value)
 }
 
-func (context *Context) ValueOf(value interface{}, meta *resource.Meta) interface{} {
-	return meta.Value(value, context.Context)
+func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
+	return meta.Valuer(value, context.Context)
 }
 
 func (context *Context) NewResourcePath(value interface{}) string {
@@ -182,23 +182,23 @@ func (context *Context) LinkTo(text interface{}, link interface{}) string {
 	return fmt.Sprintf(`<a href="%v">%v</a>`, context.UrlFor(link), text)
 }
 
-func (context *Context) RenderForm(value interface{}, metas []*resource.Meta) string {
+func (context *Context) RenderForm(value interface{}, metas []*Meta) string {
 	var result = bytes.NewBufferString("")
 	context.renderForm(result, value, metas, []string{"QorResource"})
 	return result.String()
 }
 
-func (context *Context) renderForm(result *bytes.Buffer, value interface{}, metas []*resource.Meta, prefix []string) {
+func (context *Context) renderForm(result *bytes.Buffer, value interface{}, metas []*Meta, prefix []string) {
 	for _, meta := range metas {
 		context.RenderMeta(result, meta, value, prefix)
 	}
 }
 
-func (context *Context) RenderMeta(writer *bytes.Buffer, meta *resource.Meta, value interface{}, prefix []string) {
+func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value interface{}, prefix []string) {
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := context.funcMap()
-	funcsMap["render_form"] = func(value interface{}, metas []*resource.Meta, index ...int) string {
+	funcsMap["render_form"] = func(value interface{}, metas []*Meta, index ...int) string {
 		var result = bytes.NewBufferString("")
 		newPrefix := append([]string{}, prefix...)
 
@@ -218,7 +218,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *resource.Meta, va
 		data["InputId"] = strings.Join(prefix, "")
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
-		data["Value"] = meta.Value(value, context.Context)
+		data["Value"] = meta.Valuer(value, context.Context)
 		if meta.GetCollection != nil {
 			data["CollectionValue"] = meta.GetCollection(value, context.Context)
 		}

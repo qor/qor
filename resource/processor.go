@@ -70,20 +70,20 @@ func (processor *processor) decode() (errors []error) {
 			continue
 		}
 
-		meta := metaValue.Meta.GetMeta()
 		if metaValue.MetaValues == nil {
-			if setter := metaValue.Meta.GetMeta().Setter; setter != nil {
+			if setter := metaValue.Meta.GetSetter(); setter != nil {
 				setter(processor.Result, processor.MetaValues, processor.Context)
 			}
 			continue
 		}
 
-		res := meta.GetMeta().Resource
+		meta := metaValue.Meta
+		res := metaValue.Meta.GetResource()
 		if res == nil {
 			continue
 		}
 
-		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.Alias)
+		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetAlias())
 		if field.Kind() == reflect.Struct {
 			association := field.Addr().Interface()
 			DecodeToResource(res, association, metaValue.MetaValues, processor.Context).Start()

@@ -18,7 +18,7 @@ func convertMapToMetaValues(values map[string]interface{}, metaors []Metaor) (*M
 	metaValues := &MetaValues{}
 	metaorMap := make(map[string]Metaor)
 	for _, metaor := range metaors {
-		metaorMap[metaor.GetMeta().Name] = metaor
+		metaorMap[metaor.GetName()] = metaor
 	}
 
 	for key, value := range values {
@@ -67,7 +67,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 	metaValues := &MetaValues{}
 	metaorMap := make(map[string]Metaor)
 	for _, metaor := range metaors {
-		metaorMap[metaor.GetMeta().Name] = metaor
+		metaorMap[metaor.GetName()] = metaor
 	}
 
 	convertedNextLevel := make(map[string]bool)
@@ -148,12 +148,11 @@ func ConvertObjectToMap(contextor qor.Contextor, object interface{}, metaors []M
 		values := map[string]interface{}{}
 		for _, metaor := range metaors {
 			if metaor.HasPermission(roles.Read, context) {
-				meta := metaor.GetMeta()
-				value := meta.Value(object, context)
+				value := metaor.GetValuer()(object, context)
 				if len(metaor.GetMetas()) > 0 {
 					value = ConvertObjectToMap(context, value, metaor.GetMetas())
 				}
-				values[meta.Name] = value
+				values[metaor.GetName()] = value
 			}
 		}
 		return values

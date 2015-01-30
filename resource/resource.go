@@ -12,7 +12,6 @@ type Resource struct {
 	Name       string
 	primaryKey string
 	Value      interface{}
-	Metas      []Metaor
 	Searcher   func(interface{}, *qor.Context) error
 	Finder     func(interface{}, *MetaValues, *qor.Context) error
 	Saver      func(interface{}, *qor.Context) error
@@ -100,13 +99,6 @@ func (res *Resource) AddValidator(fc func(interface{}, *MetaValues, *qor.Context
 
 func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context) error) {
 	res.processors = append(res.processors, fc)
-}
-
-func (res *Resource) Meta(metaor Metaor) {
-	meta := metaor.GetMeta()
-	meta.Base = res
-	meta.UpdateMeta()
-	res.Metas = append(res.Metas, metaor)
 }
 
 func (res *Resource) NewSlice() interface{} {
