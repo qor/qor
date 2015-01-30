@@ -7,6 +7,8 @@ import (
 )
 
 type Meta struct {
+	*resource.Meta
+	Base       resource.Resourcer
 	Name       string
 	Label      string
 	Type       string

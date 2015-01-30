@@ -32,7 +32,7 @@ func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 	res := &Resource{
 		Resource:    resource.New(value),
 		Config:      config,
-		cachedMetas: &map[string][]*resource.Meta{},
+		cachedMetas: &map[string][]*Meta{},
 		scopes:      map[string]*Scope{},
 		filters:     map[string]*Filter{},
 	}

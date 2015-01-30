@@ -263,26 +263,26 @@ func (context *Context) getResource(resources ...*Resource) *Resource {
 	return context.Resource
 }
 
-func (context *Context) AllMetas(resources ...*Resource) []*resource.Meta {
+func (context *Context) AllMetas(resources ...*Resource) []*Meta {
 	return context.getResource(resources...).AllMetas()
 }
 
-func (context *Context) IndexMetas(resources ...*Resource) []*resource.Meta {
+func (context *Context) IndexMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
 	return res.AllowedMetas(res.IndexMetas(), context, roles.Read)
 }
 
-func (context *Context) EditMetas(resources ...*Resource) []*resource.Meta {
+func (context *Context) EditMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
 	return res.AllowedMetas(res.EditMetas(), context, roles.Update)
 }
 
-func (context *Context) ShowMetas(resources ...*Resource) []*resource.Meta {
+func (context *Context) ShowMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
 	return res.AllowedMetas(res.ShowMetas(), context, roles.Read)
 }
 
-func (context *Context) NewMetas(resources ...*Resource) []*resource.Meta {
+func (context *Context) NewMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
 	return res.AllowedMetas(res.NewMetas(), context, roles.Create)
 }

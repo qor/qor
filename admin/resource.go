@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
@@ -12,7 +13,7 @@ import (
 type Resource struct {
 	*resource.Resource
 	Config      *Config
-	Metas       []resource.Metaor
+	Metas       []*Meta
 	actions     []*Action
 	scopes      map[string]*Scope
 	filters     map[string]*Filter
@@ -20,7 +21,7 @@ type Resource struct {
 	newAttrs    []string
 	editAttrs   []string
 	showAttrs   []string
-	cachedMetas *map[string][]*resource.Meta
+	cachedMetas *map[string][]*Meta
 }
 
 func (res Resource) ToParam() string {
@@ -28,7 +29,7 @@ func (res Resource) ToParam() string {
 }
 
 func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}) interface{} {
-	return resource.ConvertObjectToMap(context, value, res.Metas)
+	return resource.ConvertObjectToMap(context, value, res.GetMetas())
 }
 
 func (res *Resource) Decode(contextor qor.Contextor, value interface{}) (errs []error) {
@@ -93,52 +94,113 @@ func (res *Resource) ShowAttrs(columns ...string) {
 	res.showAttrs = columns
 }
 
-func (res *Resource) getCachedMetas(cacheKey string, fc func() []*resource.Meta) []*resource.Meta {
+func (res *Resource) getCachedMetas(cacheKey string, fc func() []resource.Metaor) []*Meta {
 	if res.cachedMetas == nil {
-		res.cachedMetas = &map[string][]*resource.Meta{}
+		res.cachedMetas = &map[string][]*Meta{}
 	}
 
 	if values, ok := (*res.cachedMetas)[cacheKey]; ok {
 		return values
 	} else {
-		values = fc()
-		(*res.cachedMetas)[cacheKey] = values
-		return values
+		values := fc()
+		var metas []*Meta
+		for _, value := range values {
+			metas = append(metas, value.(*Meta))
+		}
+		(*res.cachedMetas)[cacheKey] = metas
+		return metas
 	}
 }
 
-func (res *Resource) IndexMetas() []*resource.Meta {
-	return res.getCachedMetas("index_metas", func() []*resource.Meta {
+func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
+	var attrs []string
+	for _, value := range _attrs {
+		if value != nil {
+			attrs = value
+			break
+		}
+	}
+
+	if attrs == nil {
+		scope := &gorm.Scope{Value: res.Value}
+		attrs = []string{}
+		fields := scope.Fields()
+
+		includedMeta := map[string]bool{}
+		for _, meta := range res.Metas {
+			meta := meta.GetMeta()
+			if _, ok := fields[meta.Name]; !ok {
+				includedMeta[meta.Alias] = true
+				attrs = append(attrs, meta.Name)
+			}
+		}
+
+		for _, field := range fields {
+			if _, ok := includedMeta[field.Name]; ok {
+				continue
+			}
+			attrs = append(attrs, field.Name)
+		}
+	}
+
+	primaryKey := res.PrimaryKey()
+
+	metas := []resource.Metaor{}
+	for _, attr := range attrs {
+		var meta *Meta
+		for _, m := range res.Metas {
+			if m.GetMeta().Name == attr {
+				meta = m
+				break
+			}
+		}
+
+		if meta == nil {
+			meta = &Meta{Name: attr, Base: res}
+			if attr == primaryKey {
+				meta.Type = "hidden"
+			}
+			meta.GetMeta().UpdateMeta()
+		}
+
+		metas = append(metas, meta)
+	}
+
+	return metas
+}
+
+func (res *Resource) IndexMetas() []*Meta {
+	return res.getCachedMetas("index_metas", func() []resource.Metaor {
 		return res.GetMetas(res.indexAttrs, res.showAttrs)
 	})
 }
 
-func (res *Resource) NewMetas() []*resource.Meta {
-	return res.getCachedMetas("new_metas", func() []*resource.Meta {
+func (res *Resource) NewMetas() []*Meta {
+	return res.getCachedMetas("new_metas", func() []resource.Metaor {
 		return res.GetMetas(res.newAttrs, res.editAttrs)
 	})
 }
 
-func (res *Resource) EditMetas() []*resource.Meta {
-	return res.getCachedMetas("edit_metas", func() []*resource.Meta {
+func (res *Resource) EditMetas() []*Meta {
+	return res.getCachedMetas("edit_metas", func() []resource.Metaor {
 		return res.GetMetas(res.editAttrs)
 	})
 }
 
-func (res *Resource) ShowMetas() []*resource.Meta {
-	return res.getCachedMetas("show_metas", func() []*resource.Meta {
+func (res *Resource) ShowMetas() []*Meta {
+	return res.getCachedMetas("show_metas", func() []resource.Metaor {
 		return res.GetMetas(res.showAttrs, res.editAttrs)
 	})
 }
 
-func (res *Resource) AllMetas() []*resource.Meta {
-	return res.getCachedMetas("all_metas", func() []*resource.Meta {
+func (res *Resource) AllMetas() []*Meta {
+	return res.getCachedMetas("all_metas", func() []resource.Metaor {
 		return res.GetMetas()
 	})
 }
 
-func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *Context, roles ...roles.PermissionMode) []*resource.Meta {
-	var metas = []*resource.Meta{}
+func (res *Resource) AllowedMetas(attrs []*Meta, context *Context, roles ...roles.PermissionMode) []*Meta {
+	var metas = []*Meta{}
 	for _, meta := range attrs {
 		for _, role := range roles {
 			if meta.HasPermission(role, context.Context) {

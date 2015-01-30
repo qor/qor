@@ -23,17 +23,13 @@ type Resource struct {
 
 type Resourcer interface {
 	GetResource() *Resource
-	GetMetaors() []Metaor
+	GetMetas(...[]string) []Metaor
 	CallSearcher(interface{}, *qor.Context) error
 	CallFinder(interface{}, *MetaValues, *qor.Context) error
 	CallSaver(interface{}, *qor.Context) error
 	CallDeleter(interface{}, *qor.Context) error
 	NewSlice() interface{}
 	NewStruct() interface{}
-}
-
-func (r Resource) GetMetaors() []Metaor {
-	return r.Metas
 }
 
 // TODO: use a NewNamed method instead of a variant parameter
@@ -110,7 +106,6 @@ func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context
 
 func (res *Resource) Meta(metaor Metaor) {
 	meta := metaor.GetMeta()
-	meta.Base = res
 	meta.UpdateMeta()
 	res.Metas = append(res.Metas, metaor)
 }
@@ -125,59 +120,4 @@ func (res *Resource) NewSlice() interface{} {
 
 func (res *Resource) NewStruct() interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
-}
-
-func (res *Resource) GetMetas(_attrs ...[]string) []*Meta {
-	var attrs []string
-	for _, value := range _attrs {
-		if value != nil {
-			attrs = value
-			break
-		}
-	}
-
-	if attrs == nil {
-		scope := &gorm.Scope{Value: res.Value}
-		attrs = []string{}
-		fields := scope.Fields()
-
-		includedMeta := map[string]bool{}
-		for _, meta := range res.Metas {
-			meta := meta.GetMeta()
-			if _, ok := fields[meta.Name]; !ok {
-				includedMeta[meta.Alias] = true
-				attrs = append(attrs, meta.Name)
-			}
-		}
-
-		for _, field := range fields {
-			if _, ok := includedMeta[field.Name]; ok {
-				continue
-			}
-			attrs = append(attrs, field.Name)
-		}
-	}
-
-	// primaryKey := res.PrimaryKey()
-
-	metas := []*Meta{}
-	// for _, attr := range attrs {
-	// 	for _, meta := range res.GetMetas() {
-	// if meta, ok := res.Metas[attr]; ok {
-	// 	metas = append(metas, meta.GetMeta())
-	// } else {
-	// 	var _meta Meta
-	// 	_meta = Meta{Name: attr, Base: res}
-	//
-	// 	if attr == primaryKey {
-	// 		_meta.Type = "hidden"
-	// 	}
-	//
-	// 	_meta.UpdateMeta()
-	// 	metas = append(metas, &_meta)
-	// }
-	// 	}
-	// }
-
-	return metas
 }

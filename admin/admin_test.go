@@ -48,7 +48,7 @@ var db gorm.DB
 func init() {
 	mux := http.NewServeMux()
 	db, _ = gorm.Open("sqlite3", "/tmp/qor_test.db")
-	// db.LogMode(true)
+	db.LogMode(true)
 	db.DropTable(&User{})
 	db.DropTable(&CreditCard{})
 	db.DropTable(&Address{})
