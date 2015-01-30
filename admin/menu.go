@@ -1,10 +1,6 @@
 package admin
 
-import (
-	"path"
-
-	"github.com/bom-d-van/goutils/printutils"
-)
+import "path"
 
 type Menu struct {
 	Name   string
@@ -14,7 +10,6 @@ type Menu struct {
 }
 
 func (admin Admin) GetMenus() []*Menu {
-	printutils.PrettyPrint(admin.menus)
 	return admin.menus
 }
 
