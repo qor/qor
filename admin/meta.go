@@ -44,7 +44,13 @@ func (meta *Meta) GetAlias() string {
 }
 
 func (meta *Meta) GetMetas() []resource.Metaor {
-	return meta.Metas
+	if len(meta.Metas) > 0 {
+		return meta.Metas
+	} else if meta.Resource == nil {
+		return []resource.Metaor{}
+	} else {
+		return meta.Resource.GetMetas()
+	}
 }
 
 func (meta *Meta) GetResource() resource.Resourcer {
@@ -158,7 +164,11 @@ func (meta *Meta) updateMeta() {
 							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
 						}
 					}
-					return f.Field.Addr().Interface()
+					if f.Field.CanAddr() {
+						return f.Field.Addr().Interface()
+					} else {
+						return f.Field.Interface()
+					}
 				}
 
 				return ""
