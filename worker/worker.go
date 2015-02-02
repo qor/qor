@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -42,86 +40,15 @@ func SetJobDB(db *gorm.DB) (err error) {
 }
 
 type Worker struct {
-	Name string
-	jobs map[string]*Job
+	Name  string
+	admin *admin.Admin
+	jobs  map[string]*Job
 }
 
 func New(name string) *Worker {
 	w := &Worker{Name: name, jobs: map[string]*Job{}}
 	workers[name] = w
 	return w
-}
-
-var viewInject sync.Once
-
-// TODO: UNDONE
-func (w *Worker) InjectQorAdmin(a *admin.Admin) {
-	// job := a.NewResource(&QorJob{})
-	// job.IndexAttrs("Id", "QueueJobId", "Interval", "StartAt", "Cli", "WorkerName", "Status", "PID", "RunCounter", "FailCounter", "SuccessCounter", "KillCounter")
-	// job.NewAttrs("Interval", "StartAt", "WorkerName")
-
-	// job.Meta(&resource.Meta{Name: "WorkerName", Type: "select_one", Collection: func(interface{}, *qor.Context) [][]string {
-	// 	var keys [][]string
-	// 	for k, _ := range w.jobs {
-	// 		keys = append(keys, []string{k, k})
-	// 	}
-	// 	return keys
-	// }})
-
-	viewInject.Do(func() {
-		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/worker/views"))
-		}
-	})
-
-	a.GetRouter().Get("/"+w.Name, w.indexPage)
-	a.GetRouter().Get("/"+w.Name+"/job/new", w.newJobPage)
-	a.GetRouter().Get("/"+w.Name+"/job/switch_worker", w.switchWorker)
-}
-
-func (w *Worker) AllJobs() (jobs []string) {
-	for k, _ := range w.jobs {
-		jobs = append(jobs, k)
-	}
-
-	return
-}
-
-func (w *Worker) indexPage(c *admin.Context) {
-	var qorJobs []QorJob
-	if err := jobDB.Where("worker_name = ?", w.Name).Find(&qorJobs).Error; err != nil {
-		// c.Admin.RenderError(err, http.StatusInternalServerError, c)
-		return
-	}
-
-	c.Execute("job/new", struct {
-		Jobs    []string
-		QorJobs []QorJob
-	}{Jobs: w.AllJobs(), QorJobs: qorJobs})
-}
-
-func (w *Worker) newJobPage(c *admin.Context) {
-	var res *admin.Resource
-	for _, j := range w.jobs {
-		res = j.resource
-		break
-	}
-	// content := admin.Content{Context: c, Admin: c.Admin, Resource: res, Action: "new"}
-	// c.Admin.Render("new", content, roles.Create)
-	c.Execute("new", res)
-}
-
-func (w *Worker) switchWorker(c *admin.Context) {
-	// wname := c.Request.FormValue("name")
-	// w, ok := workers[wname]
-	// if !ok {
-	// 	c.Writer.WriteHeader(http.StatusBadRequest)
-	// 	c.Writer.Write([]byte("worker does not exist"))
-	// 	return
-	// }
-
-	// content := admin.Content{Context: c, Admin: c.Admin, Resource: w.resource, Action: "new"}
-	// c.Admin.Render("worker", content, roles.Create)
 }
 
 // Listen will parse an flag named as "job-id". If the job-id is zero, it
@@ -178,11 +105,15 @@ func Listen() {
 	}
 }
 
-func (w Worker) NewJob(queuer Queuer, name string, handle func(job *QorJob) error) (j *Job) {
+func (w *Worker) NewJob(queuer Queuer, name string, handle func(job *QorJob) error) (j *Job) {
 	j = &Job{
 		Name:   name,
 		Handle: handle,
 		Queuer: queuer,
+	}
+
+	if w.admin != nil {
+		j.initResource(w)
 	}
 
 	w.jobs[j.Name] = j
@@ -330,3 +261,27 @@ func (j *Job) NewJobWithCli(interval uint64, startAt time.Time, cli string) (job
 
 	return
 }
+
+func (j *Job) initResource(w *Worker) {
+	qorjob := w.admin.AddResource(&QorJob{}, &admin.Config{Name: j.Name + "-QorJob", Invisible: true})
+	// qorjob.IndexAttrs("Id", "QueueJobId", "Interval", "StartAt", "Cli", "WorkerName", "Status", "PID", "RunCounter", "FailCounter", "SuccessCounter", "KillCounter")
+	qorjob.NewAttrs("Interval", "StartAt", "WorkerName")
+
+	// qorjob.Meta(&admin.Meta{Name: "WorkerName", Type: "select_one", Collection: func(interface{}, *qor.Context) [][]string {
+	// 	var keys [][]string
+	// 	for k, _ := range w.jobs {
+	// 		keys = append(keys, []string{k, k})
+	// 	}
+	// 	return keys
+	// }})
+
+	j.resource = qorjob
+}
+
+func (w *Worker) ResourceName() string {
+	return w.Name
+}
+
+// func (w *Worker) ResourceParam() string {
+// 	return strings.ToLower(strings.Replace(w.Name, " ", "_", -1))
+// }
