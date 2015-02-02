@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -57,9 +56,9 @@ var viewInject sync.Once
 
 // TODO: UNDONE
 func (w *Worker) InjectQorAdmin(a *admin.Admin) {
-	job := a.NewResource(&QorJob{})
-	job.IndexAttrs("Id", "QueueJobId", "Interval", "StartAt", "Cli", "WorkerName", "Status", "PID", "RunCounter", "FailCounter", "SuccessCounter", "KillCounter")
-	job.NewAttrs("Interval", "StartAt", "WorkerName")
+	// job := a.NewResource(&QorJob{})
+	// job.IndexAttrs("Id", "QueueJobId", "Interval", "StartAt", "Cli", "WorkerName", "Status", "PID", "RunCounter", "FailCounter", "SuccessCounter", "KillCounter")
+	// job.NewAttrs("Interval", "StartAt", "WorkerName")
 
 	// job.Meta(&resource.Meta{Name: "WorkerName", Type: "select_one", Collection: func(interface{}, *qor.Context) [][]string {
 	// 	var keys [][]string
@@ -91,7 +90,7 @@ func (w *Worker) AllJobs() (jobs []string) {
 func (w *Worker) indexPage(c *admin.Context) {
 	var qorJobs []QorJob
 	if err := jobDB.Where("worker_name = ?", w.Name).Find(&qorJobs).Error; err != nil {
-		c.Admin.RenderError(err, http.StatusInternalServerError, c)
+		// c.Admin.RenderError(err, http.StatusInternalServerError, c)
 		return
 	}
 
@@ -148,14 +147,14 @@ func Listen() {
 			os.Exit(1)
 		}
 
-		var w *Job
-		if w, err = job.GetWorker(); err != nil {
+		var j *Job
+		if j, err = job.GetWorker(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			fmt.Fprintln(logger, err)
 			os.Exit(1)
 		}
 
-		if err = w.Run(&job); err != nil {
+		if err = j.Run(&job); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			fmt.Fprintln(logger, err)
 			os.Exit(1)
@@ -206,11 +205,11 @@ type Job struct {
 	OnFailed  func(job *QorJob)
 }
 
-func (w *Job) ExtraInput(res *admin.Resource) {
-	w.resource = res
+func (j *Job) ExtraInput(res *admin.Resource) {
+	j.resource = res
 }
 
-func (w *Job) Run(job *QorJob) (err error) {
+func (j *Job) Run(job *QorJob) (err error) {
 	if err = job.SavePID(); err != nil {
 		return
 	}
@@ -221,8 +220,8 @@ func (w *Job) Run(job *QorJob) (err error) {
 
 	fmt.Fprintf(logger, "run job (%d) with pid (%d)\n", job.Id, job.PID)
 
-	if w.OnStart != nil {
-		if err = w.OnStart(job); err != nil {
+	if j.OnStart != nil {
+		if err = j.OnStart(job); err != nil {
 			logger.Write([]byte("worker.onstart: " + err.Error() + "\n"))
 
 			if err = job.UpdateStatus(JobFailed); err != nil {
@@ -240,25 +239,25 @@ func (w *Job) Run(job *QorJob) (err error) {
 		return
 	}
 
-	if err = w.Handle(job); err != nil {
+	if err = j.Handle(job); err != nil {
 		if err = job.UpdateStatus(JobFailed); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
-		if w.OnFailed != nil {
-			w.OnFailed(job)
+		if j.OnFailed != nil {
+			j.OnFailed(job)
 		}
 
 		logger.Write([]byte("worker.hanlde: " + err.Error() + "\n"))
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
-	} else if w.OnSuccess != nil {
+	} else if j.OnSuccess != nil {
 		if err = job.UpdateStatus(JobRun); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
 
-		w.OnSuccess(job)
+		j.OnSuccess(job)
 	}
 
 	if err = job.UpdateStatus(JobRun); err != nil {
@@ -273,16 +272,16 @@ func (w *Job) Run(job *QorJob) (err error) {
 
 var ErrJobRun = errors.New("job is already run")
 
-func (w *Job) Kill(job *QorJob) (err error) {
-	if w.OnKill != nil {
-		if err = w.OnKill(job); err != nil {
+func (j *Job) Kill(job *QorJob) (err error) {
+	if j.OnKill != nil {
+		if err = j.OnKill(job); err != nil {
 			return
 		}
 	}
 
 	switch job.Status {
 	case JobToRun:
-		err = w.Queuer.Purge(job)
+		err = j.Queuer.Purge(job)
 	case JobRunning:
 		if job.PID == 0 {
 			return errors.New("pid is zero")
@@ -306,22 +305,22 @@ func (w *Job) Kill(job *QorJob) (err error) {
 	return
 }
 
-func (w *Job) NewJob(interval uint64, startAt time.Time) (job *QorJob, err error) {
-	return w.NewJobWithCli(interval, startAt, DefaultJobCli)
+func (j *Job) NewJob(interval uint64, startAt time.Time) (job *QorJob, err error) {
+	return j.NewJobWithCli(interval, startAt, DefaultJobCli)
 }
 
-func (w *Job) NewJobWithCli(interval uint64, startAt time.Time, cli string) (job *QorJob, err error) {
+func (j *Job) NewJobWithCli(interval uint64, startAt time.Time, cli string) (job *QorJob, err error) {
 	job = &QorJob{
 		Interval:   interval,
 		StartAt:    startAt,
-		WorkerName: w.Name,
+		WorkerName: j.Name,
 		Cli:        cli,
 	}
 	if err = jobDB.Save(job).Error; err != nil {
 		return
 	}
 
-	err = w.Queuer.Enqueue(job)
+	err = j.Queuer.Enqueue(job)
 
 	if job.QueueJobId != "" {
 		if err = jobDB.Save(job).Error; err != nil {
