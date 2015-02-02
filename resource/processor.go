@@ -66,18 +66,18 @@ func (processor *processor) decode() (errors []error) {
 	}
 
 	for _, metaValue := range processor.MetaValues.Values {
-		if metaValue.Meta == nil {
+		meta := metaValue.Meta
+		if meta == nil {
 			continue
 		}
 
 		if metaValue.MetaValues == nil {
-			if setter := metaValue.Meta.GetSetter(); setter != nil {
+			if setter := meta.GetSetter(); setter != nil {
 				setter(processor.Result, processor.MetaValues, processor.Context)
 			}
 			continue
 		}
 
-		meta := metaValue.Meta
 		res := metaValue.Meta.GetResource()
 		if res == nil {
 			continue

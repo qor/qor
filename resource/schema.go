@@ -32,15 +32,16 @@ func convertMapToMetaValues(values map[string]interface{}, metaors []Metaor) (*M
 			}
 		case []interface{}:
 			for _, r := range result {
-				var metaValue *MetaValue
 				if mr, ok := r.(map[string]interface{}); ok {
 					if children, err := convertMapToMetaValues(mr, metaor.GetMetas()); err == nil {
-						metaValue = &MetaValue{Name: key, Meta: metaor, MetaValues: children}
+						metaValue := &MetaValue{Name: key, Meta: metaor, MetaValues: children}
+						metaValues.Values = append(metaValues.Values, metaValue)
 					}
 				} else {
-					metaValue = &MetaValue{Name: key, Value: r, Meta: metaor}
+					metaValue := &MetaValue{Name: key, Value: result, Meta: metaor}
+					metaValues.Values = append(metaValues.Values, metaValue)
+					break
 				}
-				metaValues.Values = append(metaValues.Values, metaValue)
 			}
 		default:
 			metaValue = &MetaValue{Name: key, Value: value, Meta: metaor}

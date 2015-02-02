@@ -313,16 +313,15 @@ func parseNestedField(value reflect.Value, name string) (reflect.Value, string) 
 }
 
 func ToArray(value interface{}) (values []string) {
-	if v, ok := value.([]string); ok {
-		return v
-	} else if v, ok := value.(string); ok {
-		return []string{v}
-	} else if vs, ok := value.([]interface{}); ok {
-		for _, v := range vs {
+	switch value := value.(type) {
+	case []string:
+		values = value
+	case []interface{}:
+		for _, v := range value {
 			values = append(values, fmt.Sprintf("%v", v))
 		}
-	} else {
-		panic(value)
+	default:
+		values = []string{fmt.Sprintf("%v", value)}
 	}
 	return
 }
