@@ -50,7 +50,7 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 		var primaryKey string
 		if metaValues == nil {
 			primaryKey = context.ResourceID
-		} else if id := metaValues.Get(res.PrimaryKey()); id != nil {
+		} else if id := metaValues.Get(res.PrimaryFieldName()); id != nil {
 			primaryKey = ToString(id.Value)
 		}
 
@@ -149,7 +149,7 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 		}
 	}
 
-	primaryKey := res.PrimaryKey()
+	primaryKey := res.PrimaryFieldName()
 
 	metas := []resource.Metaor{}
 	for _, attr := range attrs {

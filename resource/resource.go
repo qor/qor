@@ -9,15 +9,15 @@ import (
 )
 
 type Resource struct {
-	Name       string
-	primaryKey string
-	Value      interface{}
-	Searcher   func(interface{}, *qor.Context) error
-	Finder     func(interface{}, *MetaValues, *qor.Context) error
-	Saver      func(interface{}, *qor.Context) error
-	Deleter    func(interface{}, *qor.Context) error
-	validators []func(interface{}, *MetaValues, *qor.Context) error
-	processors []func(interface{}, *MetaValues, *qor.Context) error
+	Name         string
+	primaryField *gorm.Field
+	Value        interface{}
+	Searcher     func(interface{}, *qor.Context) error
+	Finder       func(interface{}, *MetaValues, *qor.Context) error
+	Saver        func(interface{}, *qor.Context) error
+	Deleter      func(interface{}, *qor.Context) error
+	validators   []func(interface{}, *MetaValues, *qor.Context) error
+	processors   []func(interface{}, *MetaValues, *qor.Context) error
 }
 
 type Resourcer interface {
@@ -44,19 +44,27 @@ func (res *Resource) GetResource() *Resource {
 	return res
 }
 
-func (res *Resource) PrimaryKey() string {
-	if res.primaryKey == "" {
+func (res *Resource) PrimaryField() *gorm.Field {
+	if res.primaryField == nil {
 		scope := gorm.Scope{Value: res.Value}
-		res.primaryKey = scope.PrimaryKey()
+		res.primaryField = scope.PrimaryKeyField()
 	}
-	return res.primaryKey
+	return res.primaryField
+}
+
+func (res *Resource) PrimaryFieldName() (name string) {
+	field := res.PrimaryField()
+	if field != nil {
+		name = field.Name
+	}
+	return
 }
 
 func (res *Resource) CallSearcher(result interface{}, context *qor.Context) error {
 	if res.Searcher != nil {
 		return res.Searcher(result, context)
 	} else {
-		return context.GetDB().Order(fmt.Sprintf("%v DESC", res.PrimaryKey())).Find(result).Error
+		return context.GetDB().Order(fmt.Sprintf("%v DESC", res.PrimaryField().DBName)).Find(result).Error
 	}
 }
 

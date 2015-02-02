@@ -1,10 +1,11 @@
 package admin_test
 
 import (
-	_ "github.com/mattn/go-sqlite3"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	_ "github.com/mattn/go-sqlite3"
 
 	"testing"
 )
@@ -38,7 +39,7 @@ func TestUpdateHasOneRecord(t *testing.T) {
 	form := url.Values{
 		"QorResource.Name":              {user.Name + "_new"},
 		"QorResource.Role":              {"admin"},
-		"QorResource.CreditCard._id":    {strconv.Itoa(user.CreditCard.Id)},
+		"QorResource.CreditCard.Id":     {strconv.Itoa(user.CreditCard.Id)},
 		"QorResource.CreditCard.Number": {"1234567890"},
 		"QorResource.CreditCard.Issuer": {"UnionPay"},
 	}
@@ -73,11 +74,11 @@ func TestUpdateHasManyRecord(t *testing.T) {
 	form := url.Values{
 		"QorResource.Name":                  {user.Name},
 		"QorResource.Role":                  {"admin"},
-		"QorResource.Addresses[0]._id":      {strconv.Itoa(user.Addresses[0].Id)},
+		"QorResource.Addresses[0].Id":       {strconv.Itoa(user.Addresses[0].Id)},
 		"QorResource.Addresses[0].Address1": {"address 1.1 new"},
-		"QorResource.Addresses[1]._id":      {strconv.Itoa(user.Addresses[1].Id)},
+		"QorResource.Addresses[1].Id":       {strconv.Itoa(user.Addresses[1].Id)},
 		"QorResource.Addresses[1].Address1": {"address 2.1 new"},
-		"QorResource.Addresses[2]._id":      {strconv.Itoa(user.Addresses[2].Id)},
+		"QorResource.Addresses[2].Id":       {strconv.Itoa(user.Addresses[2].Id)},
 		"QorResource.Addresses[2]._destroy": {"1"},
 		"QorResource.Addresses[2].Address1": {"address 3.1"},
 		"QorResource.Addresses[3].Address1": {"address 4.1"},
@@ -123,7 +124,7 @@ func TestDestroyEmbeddedHasOneRecord(t *testing.T) {
 	form := url.Values{
 		"QorResource.Name":                {user.Name + "_new"},
 		"QorResource.Role":                {"admin"},
-		"QorResource.CreditCard._id":      {strconv.Itoa(user.CreditCard.Id)},
+		"QorResource.CreditCard.Id":       {strconv.Itoa(user.CreditCard.Id)},
 		"QorResource.CreditCard._destroy": {"1"},
 		"QorResource.CreditCard.Number":   {"1234567890"},
 		"QorResource.CreditCard.Issuer":   {"UnionPay"},

@@ -100,7 +100,7 @@ func (ac *controller) Action(context *Context) {
 	for _, action := range context.Resource.actions {
 		if action.Name == name {
 			ids := context.Request.Form.Get("ids")
-			scope := context.GetDB().Where(fmt.Sprintf("%v IN (?)", context.Resource.PrimaryKey()), ids)
+			scope := context.GetDB().Where(fmt.Sprintf("%v IN (?)", context.Resource.PrimaryField().DBName), ids)
 			err = action.Handle(scope, context.Context)
 		}
 	}

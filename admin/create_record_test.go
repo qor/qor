@@ -88,7 +88,7 @@ func TestCreateHasManyRecord(t *testing.T) {
 		"QorResource.Role":                  {"admin"},
 		"QorResource.Addresses[0].Address1": {"address_1"},
 		"QorResource.Addresses[1].Address1": {"address_2"},
-		"QorResource.Addresses[2]._id":      {"0"},
+		"QorResource.Addresses[2].Id":       {"0"},
 		"QorResource.Addresses[2].Address1": {""},
 	}
 
