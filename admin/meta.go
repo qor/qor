@@ -78,7 +78,7 @@ func (meta *Meta) updateMeta() {
 	}
 
 	if meta.Label == "" {
-		meta.Label = utils.Humanize(meta.Name)
+		meta.Label = utils.HumanizeString(meta.Name)
 	}
 
 	if meta.Alias == "" {
