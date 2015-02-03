@@ -33,7 +33,6 @@ func New(config *qor.Config) *Admin {
 func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 	res := &Resource{
 		Resource:    *resource.New(value),
-		Value:       value,
 		Config:      config,
 		cachedMetas: &map[string][]*Meta{},
 		scopes:      map[string]*Scope{},

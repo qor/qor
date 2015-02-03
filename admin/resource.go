@@ -13,7 +13,6 @@ import (
 type Resource struct {
 	resource.Resource
 	Config      *Config
-	Value       interface{}
 	Metas       []*Meta
 	actions     []*Action
 	scopes      map[string]*Scope

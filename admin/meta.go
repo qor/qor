@@ -138,12 +138,13 @@ func (meta *Meta) updateMeta() {
 		if hasColumn && (field.Relationship != nil) {
 			var result interface{}
 			if valueType == "struct" {
-				result = reflect.New(reflect.Indirect(field.Field).Type()).Interface()
+				result = reflect.New(field.Field.Type()).Interface()
 			} else if valueType == "slice" {
-				result = reflect.New(reflect.Indirect(field.Field).Type().Elem()).Interface()
+				result = reflect.New(field.Field.Type().Elem()).Interface()
 			}
-
-			meta.Resource = &Resource{Value: result}
+			newRes := &Resource{}
+			newRes.Value = result
+			meta.Resource = newRes
 		}
 	}
 
