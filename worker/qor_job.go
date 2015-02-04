@@ -38,6 +38,8 @@ type QorJob struct {
 	Status     string
 	PID        int
 
+	By string
+
 	RunCounter     uint64
 	FailCounter    uint64
 	SuccessCounter uint64
@@ -45,19 +47,31 @@ type QorJob struct {
 
 	ExtraInput []byte
 
+	UpdatedAt time.Time
+	CreatedAt time.Time
+	DeletedAt time.Time
+
 	log *os.File
 }
 
-func (qj *QorJob) GetWorker() (j *Job, err error) {
+func (qj *QorJob) GetWorker() *Worker {
 	if w, ok := workers[qj.WorkerName]; ok {
-		j = w.jobs[qj.JobName]
+		return w
 	}
 
-	if j == nil {
-		err = fmt.Errorf("unknown job: %s:%s\n", qj.WorkerName, qj.JobName)
+	return nil
+}
+
+func (qj *QorJob) GetJob() *Job {
+	if w, ok := workers[qj.WorkerName]; ok {
+		return w.jobs[qj.JobName]
 	}
 
-	return
+	// if j == nil {
+	// 	err = fmt.Errorf("unknown job: %s:%s\n", qj.WorkerName, qj.JobName)
+	// }
+
+	return nil
 }
 
 func RunJob(jobId uint64) {

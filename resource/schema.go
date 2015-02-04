@@ -64,6 +64,11 @@ func ConvertJSONToMetaValues(reader io.Reader, metaors []Metaor) (*MetaValues, e
 	}
 }
 
+var (
+	isCurrentLevel = regexp.MustCompile("^[^.]+$")
+	isNextLevel    = regexp.MustCompile(`^(([^.\[\]]+)(\[\d+\])?)(?:\.([^.]+)+)$`)
+)
+
 func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix string) (*MetaValues, error) {
 	metaValues := &MetaValues{}
 	metaorMap := make(map[string]Metaor)
@@ -76,8 +81,6 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 		if strings.HasPrefix(key, prefix) {
 			var metaValue *MetaValue
 			key = strings.TrimPrefix(key, prefix)
-			isCurrentLevel := regexp.MustCompile("^[^.]+$")
-			isNextLevel := regexp.MustCompile(`^(([^.\[\]]+)(\[\d+\])?)(?:\.([^.]+)+)$`)
 
 			if matches := isCurrentLevel.FindStringSubmatch(key); len(matches) > 0 {
 				name := matches[0]
@@ -101,7 +104,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 
 	if request.MultipartForm != nil {
 		// for key, header := range request.MultipartForm.File {
-		// xxxxx
+		// 	xxxxx
 		// }
 	}
 	return metaValues, nil

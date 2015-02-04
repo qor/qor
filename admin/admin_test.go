@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -39,10 +40,38 @@ type User struct {
 	CreditCardId int64
 	Addresses    []Address
 	Languages    []Language `gorm:"many2many:user_languages;"`
+
+	Profile Profile
 }
 
-var server *httptest.Server
-var db gorm.DB
+type Profile struct {
+	Id        uint64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt time.Time
+
+	UserId uint64
+	Name   string
+	Sex    string
+
+	Phone Phone
+}
+
+type Phone struct {
+	Id        uint64
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt time.Time
+
+	ProfileId uint64
+	Num       string
+}
+
+var (
+	server *httptest.Server
+	db     gorm.DB
+	Admin  *admin.Admin
+)
 
 func init() {
 	mux := http.NewServeMux()
@@ -52,9 +81,11 @@ func init() {
 	db.DropTable(&CreditCard{})
 	db.DropTable(&Address{})
 	db.DropTable(&Language{})
-	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Language{})
+	db.DropTable(&Profile{})
+	db.DropTable(&Phone{})
+	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Language{}, &Profile{}, &Phone{})
 
-	Admin := admin.New(&qor.Config{DB: &db})
+	Admin = admin.New(&qor.Config{DB: &db})
 	user := Admin.AddResource(User{}, nil)
 	user.Meta(&admin.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {

@@ -2,12 +2,12 @@ package admin
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
+	"github.com/qor/qor/utils"
 )
 
 type Resource struct {
@@ -31,7 +31,7 @@ func (res *Resource) Meta(meta *Meta) {
 }
 
 func (res Resource) ToParam() string {
-	return strings.ToLower(res.Name)
+	return utils.ToParamString(res.Name)
 }
 
 func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}) interface{} {

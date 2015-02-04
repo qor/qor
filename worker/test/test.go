@@ -10,6 +10,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/worker"
 )
 
@@ -35,11 +36,11 @@ func main() {
 
 	bq := worker.NewBeanstalkdQueue("beanstalkd", "localhost:11300")
 	var counter int
-	publishWorker := worker.New("publish_jobs")
+	publishWorker := worker.New("Publish Jobs")
 
-	web.NewResource(publishWorker, publishWorker.Name)
+	web.AddResource(publishWorker, nil)
 
-	publishWorker.NewJob(bq, "publish products", func(job *worker.QorJob) (err error) {
+	job := publishWorker.NewJob(bq, "publish products", func(job *worker.QorJob) (err error) {
 		log, err := job.GetLogger()
 		if err != nil {
 			return
@@ -51,12 +52,36 @@ func main() {
 		return
 	})
 
+	// job.Meta(&admin.Meta{
+	// 	Name: "File",
+	// 	Type: "file",
+	// 	Valuer: func(interface{}, *qor.Context) interface{} {
+	// 		return nil
+	// 	},
+	// 	Setter: func(resource interface{}, metaValues *resource.MetaValues, context *qor.Context) {
+	// 		return
+	// 	},
+	// })
+	job.Meta(&admin.Meta{
+		Name: "Message",
+		Type: "string",
+		Valuer: func(interface{}, *qor.Context) interface{} {
+			return nil
+		},
+		Setter: func(resource interface{}, metaValues *resource.MetaValues, context *qor.Context) {
+			return
+		},
+	})
+
+	publishWorker.NewJob(bq, "send mail magazines", nil)
+
 	// extraInput := admin.NewResource(&Language{})
 	// w.ExtraInput(extraInput)
 
-	worker.Listen()
+	// worker.Listen()
 
-	// if _, err := w.NewJob(1, time.Now()); err != nil {
+	_ = job
+	// if _, err := job.NewQorJob(1, time.Now()); err != nil {
 	// 	panic(err)
 	// }
 

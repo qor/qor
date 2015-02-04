@@ -21,6 +21,10 @@ type Injector interface {
 	InjectQorAdmin(*Admin)
 }
 
+type ResourceNamer interface {
+	ResourceName() string
+}
+
 func New(config *qor.Config) *Admin {
 	admin := Admin{
 		funcMaps: make(template.FuncMap),
@@ -38,13 +42,33 @@ func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 		scopes:      map[string]*Scope{},
 		filters:     map[string]*Filter{},
 	}
-	admin.resources = append(admin.resources, res)
 
-	if config != nil && len(config.Menu) > 0 {
-		admin.menus = appendMenu(admin.menus, config.Menu, res)
-	} else {
+	var noName, noMenu bool
+	if config != nil {
+		if config.Name != "" {
+			noName = true
+			res.Name = config.Name
+		}
+
+		if config.Invisible {
+			noMenu = true
+		} else {
+			if len(config.Menu) > 0 {
+				noMenu = true
+				admin.menus = appendMenu(admin.menus, config.Menu, res)
+			}
+		}
+	}
+	if !noName {
+		if namer, ok := value.(ResourceNamer); ok {
+			res.Name = namer.ResourceName()
+		}
+	}
+	if !noMenu {
 		admin.AddMenu(&Menu{Name: res.Name, params: res.ToParam()})
 	}
+
+	admin.resources = append(admin.resources, res)
 
 	if injector, ok := value.(Injector); ok {
 		injector.InjectQorAdmin(admin)
