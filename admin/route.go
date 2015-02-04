@@ -7,6 +7,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/qor/qor"
+	"github.com/qor/qor/roles"
 )
 
 type (
@@ -53,21 +56,33 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	router := admin.router
 	router.Prefix = prefix
 
-	router.Get("^/assets/.*$", admin.Asset)
-	router.Get("^/?$", admin.Dashboard)
-	router.Get("^/[^/]+/new$", admin.New)
-	router.Post("^/[^/]+$", admin.Create)
-	router.Post("^/[^/]+/action/[^/]+(\\?.*)?$", admin.Action)
-	router.Get("^/[^/]+/.*$", admin.Show)
-	router.Put("^/[^/]+/.*$", admin.Update)
-	router.Post("^/[^/]+/.*$", admin.Update)
-
-	router.Delete("^/[^/]+/.*$", admin.Delete)
-
-	router.Get("^/[^/]+$", admin.Index)
+	controller := &controller{admin}
+	router.Get("^/assets/.*$", controller.Asset)
+	router.Get("^/?$", controller.Dashboard)
+	router.Get("^/[^/]+/new$", controller.New)
+	router.Post("^/[^/]+$", controller.Create)
+	router.Post("^/[^/]+/action/[^/]+(\\?.*)?$", controller.Action)
+	router.Get("^/[^/]+/.*$", controller.Show)
+	router.Put("^/[^/]+/.*$", controller.Update)
+	router.Post("^/[^/]+/.*$", controller.Update)
+	router.Delete("^/[^/]+/.*$", controller.Delete)
+	router.Get("^/[^/]+$", controller.Index)
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
+
+	admin.linkMenus()
+}
+
+func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
+	var currentUser *qor.CurrentUser
+	context := Context{Context: &qor.Context{Config: admin.Config, Request: r}, Writer: w, Admin: admin}
+	if admin.auth != nil {
+		currentUser = admin.auth.GetCurrentUser(&context)
+	}
+	context.Roles = roles.MatchedRoles(r, currentUser)
+
+	return &context
 }
 
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {

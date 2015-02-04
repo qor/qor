@@ -5,8 +5,7 @@ type MetaValue struct {
 	Value      interface{}
 	MetaValues *MetaValues
 	Meta       Metaor
-
-	error error
+	error      error
 }
 
 type MetaValues struct {

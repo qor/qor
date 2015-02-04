@@ -9,20 +9,20 @@ import (
 )
 
 type Resource struct {
-	Name       string
-	primaryKey string
-	Value      interface{}
-	Metas      map[string]Metaor
-	Searcher   func(interface{}, *qor.Context) error
-	Finder     func(interface{}, *MetaValues, *qor.Context) error
-	Saver      func(interface{}, *qor.Context) error
-	Deleter    func(interface{}, *qor.Context) error
-	validators []func(interface{}, *MetaValues, *qor.Context) error
-	processors []func(interface{}, *MetaValues, *qor.Context) error
+	Name         string
+	primaryField *gorm.Field
+	Value        interface{}
+	Searcher     func(interface{}, *qor.Context) error
+	Finder       func(interface{}, *MetaValues, *qor.Context) error
+	Saver        func(interface{}, *qor.Context) error
+	Deleter      func(interface{}, *qor.Context) error
+	validators   []func(interface{}, *MetaValues, *qor.Context) error
+	processors   []func(interface{}, *MetaValues, *qor.Context) error
 }
 
 type Resourcer interface {
 	GetResource() *Resource
+	GetMetas(...[]string) []Metaor
 	CallSearcher(interface{}, *qor.Context) error
 	CallFinder(interface{}, *MetaValues, *qor.Context) error
 	CallSaver(interface{}, *qor.Context) error
@@ -31,8 +31,6 @@ type Resourcer interface {
 	NewStruct() interface{}
 }
 
-// TODO: use a NewNamed method instead of a variant parameter
-// would be better and clearer
 func New(value interface{}, names ...string) *Resource {
 	name := reflect.Indirect(reflect.ValueOf(value)).Type().Name()
 	for _, n := range names {
@@ -46,19 +44,27 @@ func (res *Resource) GetResource() *Resource {
 	return res
 }
 
-func (res *Resource) PrimaryKey() string {
-	if res.primaryKey == "" {
+func (res *Resource) PrimaryField() *gorm.Field {
+	if res.primaryField == nil {
 		scope := gorm.Scope{Value: res.Value}
-		res.primaryKey = scope.PrimaryKey()
+		res.primaryField = scope.PrimaryKeyField()
 	}
-	return res.primaryKey
+	return res.primaryField
+}
+
+func (res *Resource) PrimaryFieldName() (name string) {
+	field := res.PrimaryField()
+	if field != nil {
+		name = field.Name
+	}
+	return
 }
 
 func (res *Resource) CallSearcher(result interface{}, context *qor.Context) error {
 	if res.Searcher != nil {
 		return res.Searcher(result, context)
 	} else {
-		return context.GetDB().Order(fmt.Sprintf("%v DESC", res.PrimaryKey())).Find(result).Error
+		return context.GetDB().Order(fmt.Sprintf("%v DESC", res.PrimaryField().DBName)).Find(result).Error
 	}
 }
 
@@ -103,17 +109,6 @@ func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context
 	res.processors = append(res.processors, fc)
 }
 
-func (res *Resource) Meta(metaor Metaor) {
-	if res.Metas == nil {
-		res.Metas = make(map[string]Metaor)
-	}
-
-	meta := metaor.GetMeta()
-	meta.Base = res
-	meta.UpdateMeta()
-	res.Metas[meta.Name] = metaor
-}
-
 func (res *Resource) NewSlice() interface{} {
 	sliceType := reflect.SliceOf(reflect.ValueOf(res.Value).Type())
 	slice := reflect.MakeSlice(sliceType, 0, 0)
@@ -126,55 +121,6 @@ func (res *Resource) NewStruct() interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
 }
 
-func (res *Resource) GetMetas(_attrs ...[]string) []*Meta {
-	var attrs []string
-	for _, value := range _attrs {
-		if value != nil {
-			attrs = value
-			break
-		}
-	}
-
-	if attrs == nil {
-		scope := &gorm.Scope{Value: res.Value}
-		attrs = []string{}
-		fields := scope.Fields()
-
-		includedMeta := map[string]bool{}
-		for _, meta := range res.Metas {
-			meta := meta.GetMeta()
-			if _, ok := fields[meta.Name]; !ok {
-				includedMeta[meta.Alias] = true
-				attrs = append(attrs, meta.Name)
-			}
-		}
-
-		for _, field := range fields {
-			if _, ok := includedMeta[field.Name]; ok {
-				continue
-			}
-			attrs = append(attrs, field.Name)
-		}
-	}
-
-	primaryKey := res.PrimaryKey()
-
-	metas := []*Meta{}
-	for _, attr := range attrs {
-		if meta, ok := res.Metas[attr]; ok {
-			metas = append(metas, meta.GetMeta())
-		} else {
-			var _meta Meta
-			_meta = Meta{Name: attr, Base: res}
-
-			if attr == primaryKey {
-				_meta.Type = "hidden"
-			}
-
-			_meta.UpdateMeta()
-			metas = append(metas, &_meta)
-		}
-	}
-
-	return metas
+func (res *Resource) GetMetas(...[]string) []Metaor {
+	panic("not defined")
 }

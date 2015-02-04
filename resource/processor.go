@@ -66,24 +66,24 @@ func (processor *processor) decode() (errors []error) {
 	}
 
 	for _, metaValue := range processor.MetaValues.Values {
-		if metaValue.Meta == nil {
+		meta := metaValue.Meta
+		if meta == nil {
 			continue
 		}
 
-		meta := metaValue.Meta.GetMeta()
 		if metaValue.MetaValues == nil {
-			if setter := metaValue.Meta.GetMeta().Setter; setter != nil {
+			if setter := meta.GetSetter(); setter != nil {
 				setter(processor.Result, processor.MetaValues, processor.Context)
 			}
 			continue
 		}
 
-		res := meta.GetMeta().Resource
+		res := metaValue.Meta.GetResource()
 		if res == nil {
 			continue
 		}
 
-		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.Alias)
+		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetAlias())
 		if field.Kind() == reflect.Struct {
 			association := field.Addr().Interface()
 			DecodeToResource(res, association, metaValue.MetaValues, processor.Context).Start()

@@ -1,13 +1,17 @@
 package qor
 
 import (
-	"github.com/jinzhu/gorm"
-
 	"net/http"
+
+	"github.com/jinzhu/gorm"
 )
 
 type CurrentUser interface {
 	DisplayName() string
+}
+
+type Contextor interface {
+	GetContext() *Context
 }
 
 type Context struct {

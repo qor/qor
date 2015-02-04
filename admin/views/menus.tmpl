@@ -1,0 +1,10 @@
+<ul>
+  {{range .Result}}
+    <li>
+      {{link_to .Name .Link}}
+      {{if .Items}}
+        {{render "menus" .Items}}
+      {{end}}
+    </li>
+  {{end}}
+</ul>

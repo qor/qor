@@ -4,25 +4,42 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 )
 
 type Resource struct {
-	resource.Resource // TODO: why not pointer?
-	indexAttrs        []string
-	newAttrs          []string
-	editAttrs         []string
-	showAttrs         []string
-	cachedMetas       *map[string][]*resource.Meta
-	scopes            map[string]*Scope
-	filters           map[string]*Filter
-	actions           map[string]*Action
+	resource.Resource
+	Config      *Config
+	Metas       []*Meta
+	actions     []*Action
+	scopes      map[string]*Scope
+	filters     map[string]*Filter
+	indexAttrs  []string
+	newAttrs    []string
+	editAttrs   []string
+	showAttrs   []string
+	cachedMetas *map[string][]*Meta
 }
 
-func (res *Resource) ToParam() string {
+func (res *Resource) Meta(meta *Meta) {
+	meta.base = res
+	meta.updateMeta()
+	res.Metas = append(res.Metas, meta)
+}
+
+func (res Resource) ToParam() string {
 	return strings.ToLower(res.Name)
+}
+
+func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}) interface{} {
+	return resource.ConvertObjectToMap(context, value, res.GetMetas())
+}
+
+func (res *Resource) Decode(contextor qor.Contextor, value interface{}) (errs []error) {
+	return resource.Decode(contextor, value, res)
 }
 
 func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
@@ -32,8 +49,8 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 		var primaryKey string
 		if metaValues == nil {
 			primaryKey = context.ResourceID
-		} else if id := metaValues.Get(res.PrimaryKey()); id != nil {
-			primaryKey = resource.ToString(id.Value)
+		} else if id := metaValues.Get(res.PrimaryFieldName()); id != nil {
+			primaryKey = ToString(id.Value)
 		}
 
 		if primaryKey != "" {
@@ -59,6 +76,14 @@ func (res *Resource) CallSearcher(result interface{}, context *qor.Context) erro
 	}
 }
 
+func (res *Resource) CallSaver(result interface{}, context *qor.Context) error {
+	if res.Saver != nil {
+		return res.Saver(result, context)
+	} else {
+		return context.GetDB().Save(result).Error
+	}
+}
+
 func (res *Resource) IndexAttrs(columns ...string) {
 	res.indexAttrs = columns
 }
@@ -75,52 +100,114 @@ func (res *Resource) ShowAttrs(columns ...string) {
 	res.showAttrs = columns
 }
 
-func (res *Resource) getCachedMetas(cacheKey string, fc func() []*resource.Meta) []*resource.Meta {
+func (res *Resource) getCachedMetas(cacheKey string, fc func() []resource.Metaor) []*Meta {
 	if res.cachedMetas == nil {
-		res.cachedMetas = &map[string][]*resource.Meta{}
+		res.cachedMetas = &map[string][]*Meta{}
 	}
 
 	if values, ok := (*res.cachedMetas)[cacheKey]; ok {
 		return values
 	} else {
-		values = fc()
-		(*res.cachedMetas)[cacheKey] = values
-		return values
+		values := fc()
+		var metas []*Meta
+		for _, value := range values {
+			metas = append(metas, value.(*Meta))
+		}
+		(*res.cachedMetas)[cacheKey] = metas
+		return metas
 	}
 }
 
-func (res *Resource) IndexMetas() []*resource.Meta {
-	return res.getCachedMetas("index_metas", func() []*resource.Meta {
+func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
+	var attrs []string
+	for _, value := range _attrs {
+		if value != nil {
+			attrs = value
+			break
+		}
+	}
+
+	if attrs == nil {
+		scope := &gorm.Scope{Value: res.Value}
+		attrs = []string{}
+		fields := scope.Fields()
+
+		includedMeta := map[string]bool{}
+		for _, meta := range res.Metas {
+			if _, ok := fields[meta.Name]; !ok {
+				includedMeta[meta.Alias] = true
+				attrs = append(attrs, meta.Name)
+			}
+		}
+
+		for _, field := range fields {
+			if _, ok := includedMeta[field.Name]; ok {
+				continue
+			}
+			attrs = append(attrs, field.Name)
+		}
+	}
+
+	primaryKey := res.PrimaryFieldName()
+
+	metas := []resource.Metaor{}
+	for _, attr := range attrs {
+		var meta *Meta
+		for _, m := range res.Metas {
+			if m.GetName() == attr {
+				meta = m
+				break
+			}
+		}
+
+		if meta == nil {
+			meta = &Meta{}
+			meta.Name = attr
+			meta.base = res
+			if attr == primaryKey {
+				meta.Type = "hidden"
+			}
+			meta.updateMeta()
+		}
+
+		metas = append(metas, meta)
+	}
+
+	return metas
+}
+
+func (res *Resource) IndexMetas() []*Meta {
+	return res.getCachedMetas("index_metas", func() []resource.Metaor {
 		return res.GetMetas(res.indexAttrs, res.showAttrs)
 	})
 }
 
-func (res *Resource) NewMetas() []*resource.Meta {
-	return res.getCachedMetas("new_metas", func() []*resource.Meta {
+func (res *Resource) NewMetas() []*Meta {
+	return res.getCachedMetas("new_metas", func() []resource.Metaor {
 		return res.GetMetas(res.newAttrs, res.editAttrs)
 	})
 }
 
-func (res *Resource) EditMetas() []*resource.Meta {
-	return res.getCachedMetas("edit_metas", func() []*resource.Meta {
+func (res *Resource) EditMetas() []*Meta {
+	return res.getCachedMetas("edit_metas", func() []resource.Metaor {
 		return res.GetMetas(res.editAttrs)
 	})
 }
 
-func (res *Resource) ShowMetas() []*resource.Meta {
-	return res.getCachedMetas("show_metas", func() []*resource.Meta {
+func (res *Resource) ShowMetas() []*Meta {
+	return res.getCachedMetas("show_metas", func() []resource.Metaor {
 		return res.GetMetas(res.showAttrs, res.editAttrs)
 	})
 }
 
-func (res *Resource) AllMetas() []*resource.Meta {
-	return res.getCachedMetas("all_metas", func() []*resource.Meta {
+func (res *Resource) AllMetas() []*Meta {
+	return res.getCachedMetas("all_metas", func() []resource.Metaor {
 		return res.GetMetas()
 	})
 }
 
-func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *Context, roles ...roles.PermissionMode) []*resource.Meta {
-	var metas = []*resource.Meta{}
+func (res *Resource) AllowedMetas(attrs []*Meta, context *Context, roles ...roles.PermissionMode) []*Meta {
+	var metas = []*Meta{}
 	for _, meta := range attrs {
 		for _, role := range roles {
 			if meta.HasPermission(role, context.Context) {
@@ -130,16 +217,4 @@ func (res *Resource) AllowedMetas(attrs []*resource.Meta, context *Context, role
 		}
 	}
 	return metas
-}
-
-func (res *Resource) Scope(scope *Scope) {
-	res.scopes[scope.Name] = scope
-}
-
-func (res *Resource) Filter(filter *Filter) {
-	res.filters[filter.Name] = filter
-}
-
-func (res *Resource) Action(action *Action) {
-	res.actions[action.Name] = action
 }

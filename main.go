@@ -5,6 +5,7 @@ import (
 
 	"os"
 	"runtime"
+	"runtime/debug"
 	"strings"
 )
 
@@ -28,6 +29,7 @@ func filenameWithLineNum() string {
 }
 
 func ExitWithMsg(str string, value ...interface{}) {
+	debug.PrintStack()
 	fmt.Printf("\n"+filenameWithLineNum()+"\n"+str+"\n", value...)
 	os.Exit(1)
 }

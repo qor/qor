@@ -26,13 +26,17 @@ func (rep *Responder) Respond(writer http.ResponseWriter, request *http.Request)
 		format = strings.TrimPrefix(ext, ".")
 	}
 
-	for _, str := range strings.Split(request.Header.Get("Accept"), ",") {
-		if str == "application/json" {
-			format = "json"
-			if writer != nil {
-				writer.Header().Set("Content-Type", "application/json")
+	if request.Header.Get("Content-Type") == "application/json" {
+		format = "json"
+	} else {
+		for _, str := range strings.Split(request.Header.Get("Accept"), ",") {
+			if str == "application/json" {
+				format = "json"
+				if writer != nil {
+					writer.Header().Set("Content-Type", "application/json")
+				}
+				break
 			}
-			break
 		}
 	}
 
