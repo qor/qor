@@ -16,21 +16,27 @@ type Searcher struct {
 	filters map[string]string
 }
 
+func (s *Searcher) clone() *Searcher {
+	return &Searcher{Context: s.Context, scopes: s.scopes, filters: s.filters}
+}
+
 func (s *Searcher) Scope(names ...string) *Searcher {
+	newSearcher := s.clone()
 	for _, name := range names {
 		if scope := s.Resource.scopes[name]; scope != nil && !scope.Default {
-			s.scopes = append(s.scopes, scope)
+			newSearcher.scopes = append(s.scopes, scope)
 		}
 	}
-	return s
+	return newSearcher
 }
 
 func (s *Searcher) Filter(name, query string) *Searcher {
-	if s.filters == nil {
-		s.filters = map[string]string{}
+	newSearcher := s.clone()
+	if newSearcher.filters == nil {
+		newSearcher.filters = map[string]string{}
 	}
-	s.filters[name] = query
-	return s
+	newSearcher.filters[name] = query
+	return newSearcher
 }
 
 var filterRegexp = regexp.MustCompile(`^filters\[(.*?)\]$`)
