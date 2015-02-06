@@ -175,7 +175,7 @@ func (meta *Meta) updateMeta() {
 				return ""
 			}
 		} else {
-			qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(base.Value))
+			// qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(base.Value))
 		}
 	}
 
