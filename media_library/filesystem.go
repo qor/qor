@@ -11,7 +11,7 @@ type FileSystem struct {
 	Base
 }
 
-func (f FileSystem) GetFullPath(url string, option Option) (path string) {
+func (f FileSystem) GetFullPath(url string, option Option) (path string, err error) {
 	if option["path"] != "" {
 		path = filepath.Join(option["path"], url)
 	} else {
@@ -20,19 +20,21 @@ func (f FileSystem) GetFullPath(url string, option Option) (path string) {
 
 	dir := filepath.Dir(path)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		os.MkdirAll(filepath.Dir(path), os.ModeDir)
+		err = os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	}
 
 	return
 }
 
 func (f FileSystem) Store(url string, option Option, fileHeader *multipart.FileHeader) error {
-	fullpath := f.GetFullPath(url, option)
-
-	if dst, err := os.Create(fullpath); err == nil {
-		if file, err := fileHeader.Open(); err == nil {
-			_, err := io.Copy(dst, file)
-			return err
+	if fullpath, err := f.GetFullPath(url, option); err == nil {
+		if dst, err := os.Create(fullpath); err == nil {
+			if file, err := fileHeader.Open(); err == nil {
+				_, err := io.Copy(dst, file)
+				return err
+			} else {
+				return err
+			}
 		} else {
 			return err
 		}
