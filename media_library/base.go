@@ -20,10 +20,13 @@ type Base struct {
 	Reader     io.Reader
 }
 
-func (b Base) Scan(value interface{}) error {
+func (b *Base) Scan(value interface{}) error {
 	switch v := value.(type) {
-	case *multipart.FileHeader:
-		b.FileHeader, b.FileName, b.Valid = v, v.Filename, true
+	case []*multipart.FileHeader:
+		if len(v) > 0 {
+			file := v[0]
+			b.FileHeader, b.FileName, b.Valid = file, file.Filename, true
+		}
 	case string:
 		b.Url, b.Valid = v, true
 	}
@@ -53,19 +56,15 @@ func (b Base) GetFileHeader() *multipart.FileHeader {
 	return b.FileHeader
 }
 
-func (b Base) GetPathTemplate(tag string) (path string) {
-	if path = parseTagSetting(tag)["url"]; path == "" {
-		path = "/system/{class}/{primary_key}/{column}/{basename}.{nanotime}.{extension}"
+func (b Base) GetURLTemplate(tag string) (path string) {
+	if path = parseTagOption(tag)["url"]; path == "" {
+		path = "/system/{{class}}/{{primary_key}}/{{column}}/{{basename}}.{{nanotime}}.{{extension}}"
 	}
 	return
 }
 
-func (b Base) SetCropOption(option *CropOption) {
+func (b *Base) SetCropOption(option *CropOption) {
 	b.CropOption = option
-}
-
-func (b Base) Store(url string, file *multipart.FileHeader) error {
-	return ErrNotImplemented
 }
 
 func (b Base) Retrieve(url string) (*os.File, error) {

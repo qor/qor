@@ -2,6 +2,7 @@ package media_library
 
 import (
 	"bytes"
+	"fmt"
 	"path"
 	"strings"
 	"text/template"
@@ -13,27 +14,33 @@ import (
 func getFuncMap(scope *gorm.Scope, field *gorm.Field, filename string) template.FuncMap {
 	return template.FuncMap{
 		"class":       scope.TableName,
-		"primary_key": scope.PrimaryKeyValue,
-		"column":      field.Name,
-		"filename":    filename,
-		"basename":    strings.TrimSuffix(path.Base(filename), path.Ext(filename)),
-		"nanotime":    strings.Replace(time.Now().Format("20060102150506.000000000"), ".", "", -1),
-		"extension":   path.Ext(filename),
+		"primary_key": func() string { return fmt.Sprintf("%v", scope.PrimaryKeyValue()) },
+		"column":      func() string { return field.Name },
+		"filename":    func() string { return filename },
+		"basename":    func() string { return strings.TrimSuffix(path.Base(filename), path.Ext(filename)) },
+		"nanotime":    func() string { return strings.Replace(time.Now().Format("20060102150506.000000000"), ".", "", -1) },
+		"extension":   func() string { return strings.TrimPrefix(path.Ext(filename), ".") },
 	}
 }
 
 func SaveAndCropImage(scope *gorm.Scope) {
 	for _, field := range scope.Fields() {
-		if media, ok := field.Field.Interface().(MediaLibrary); ok && media.GetFileHeader() != nil {
-			if path := media.GetPathTemplate(field.Tag.Get("media_library")); path != "" {
-				if tmpl, err := template.New("").Parse(path); err == nil {
+		if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok && media.GetFileHeader() != nil {
+			tag := field.Tag.Get("media_library")
+			if path := media.GetURLTemplate(tag); path != "" {
+				tmpl := template.New("").Funcs(getFuncMap(scope, field, media.GetFileName()))
+				if tmpl, err := tmpl.Parse(path); err == nil {
 					var result = bytes.NewBufferString("")
-					tmpl = tmpl.Funcs(getFuncMap(scope, field, media.GetFileName()))
-					if err := tmpl.Execute(result, scope.Value); err != nil {
-						filePath := result.String()
-						scope.NewDB().Model(scope.Value).UpdateColumn(field.Name, filePath)
-						media.Store(filePath, media.GetFileHeader())
+					if err := tmpl.Execute(result, scope.Value); err == nil {
+						url := result.String()
+						updateAttrs := map[string]interface{}{field.Name: url}
+						gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
+						scope.Err(media.Store(url, parseTagOption(tag), media.GetFileHeader()))
+					} else {
+						scope.Err(err)
 					}
+				} else {
+					scope.Err(err)
 				}
 			}
 		}

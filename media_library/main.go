@@ -19,22 +19,24 @@ type MediaLibrary interface {
 	Scan(value interface{}) error
 	Value() (driver.Value, error)
 
-	GetPathTemplate(tag string) string
+	GetURLTemplate(tag string) string
 
 	GetFileHeader() *multipart.FileHeader
 	GetFileName() string
 	SetCropOption(*CropOption)
 
-	Store(url string, fileHeader *multipart.FileHeader) error
+	Store(url string, option Option, fileHeader *multipart.FileHeader) error
 	Retrieve(url string) (*os.File, error)
 
 	URL(style ...string) string
 	String() string
 }
 
-func parseTagSetting(str string) map[string]string {
+type Option map[string]string
+
+func parseTagOption(str string) Option {
 	tags := strings.Split(str, ";")
-	setting := map[string]string{}
+	setting := Option{}
 	for _, value := range tags {
 		v := strings.Split(value, ":")
 		k := strings.TrimSpace(strings.ToUpper(v[0]))
