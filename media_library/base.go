@@ -3,6 +3,7 @@ package media_library
 import (
 	"database/sql/driver"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 
@@ -27,8 +28,10 @@ func (b *Base) Scan(value interface{}) error {
 			file := v[0]
 			b.FileHeader, b.FileName, b.Valid = file, file.Filename, true
 		}
-	case string:
-		b.Url, b.Valid = v, true
+	case []uint8:
+		b.Url, b.Valid = string(v), true
+	default:
+		fmt.Errorf("unsupported driver -> Scan pair for MediaLibrary")
 	}
 	return nil
 }
