@@ -45,6 +45,10 @@ func (b Base) String() string {
 	return b.URL()
 }
 
+func (b Base) GetFileName() string {
+	return b.FileName
+}
+
 func (b Base) GetFileHeader() *multipart.FileHeader {
 	return b.FileHeader
 }
@@ -56,11 +60,15 @@ func (b Base) GetPathTemplate(tag string) (path string) {
 	return
 }
 
+func (b Base) SetCropOption(option *CropOption) {
+	b.CropOption = option
+}
+
 func (b Base) Store(url string, file *multipart.FileHeader) error {
 	return ErrNotImplemented
 }
 
-func (b Base) Receive(url string) (*os.File, error) {
+func (b Base) Retrieve(url string) (*os.File, error) {
 	return nil, ErrNotImplemented
 }
 

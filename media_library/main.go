@@ -23,12 +23,12 @@ type MediaLibrary interface {
 
 	GetFileHeader() *multipart.FileHeader
 	GetFileName() string
-	SetCropOption(CropOption)
+	SetCropOption(*CropOption)
 
 	Store(url string, fileHeader *multipart.FileHeader) error
 	Retrieve(url string) (*os.File, error)
 
-	Url(style ...string) string
+	URL(style ...string) string
 	String() string
 }
 
