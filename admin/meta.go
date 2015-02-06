@@ -239,7 +239,9 @@ func (meta *Meta) updateMeta() {
 						field.SetFloat(ToFloat(value))
 					default:
 						if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
-							scanner.Scan(ToString(value))
+							if scanner.Scan(value) != nil {
+								scanner.Scan(ToString(value))
+							}
 						} else if reflect.TypeOf("").ConvertibleTo(field.Type()) {
 							field.Set(reflect.ValueOf(ToString(value)).Convert(field.Type()))
 						} else if reflect.TypeOf([]string{}).ConvertibleTo(field.Type()) {
