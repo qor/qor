@@ -2,14 +2,11 @@ package media_library
 
 import (
 	"database/sql/driver"
+	"mime/multipart"
+	"strings"
 
-	"github.com/jinzhu/gorm"
-
-	"io"
 	"os"
 )
-
-type Option map[string]string
 
 type CropOption struct {
 	X      int
@@ -22,35 +19,30 @@ type MediaLibrary interface {
 	Scan(value interface{}) error
 	Value() (driver.Value, error)
 
-	GetOption() Option
-	ParseOption(string)
-	GetPath(resource interface{}, column string, filename string) string
+	GetPathTemplate(tag string) string
 
-	SetFile(filename string, reader io.Reader)
-	GetFile() io.Reader
+	GetFileHeader() *multipart.FileHeader
 	GetFileName() string
 	SetCropOption(CropOption)
 
-	Store(string, io.Reader) error
-	Retrieve(filename string) (*os.File, error)
+	Store(url string, fileHeader *multipart.FileHeader) error
+	Retrieve(url string) (*os.File, error)
 
 	Url(style ...string) string
 	String() string
 }
 
-func SaveAndCropImage(scope *gorm.Scope) {
-	for _, field := range scope.Fields() {
-		if media, ok := field.Field.Interface().(MediaLibrary); ok {
-			media.ParseOption(field.Tag.Get("media_library"))
-			path := media.GetPath(scope.Value, field.Name, media.GetFileName())
-			media.Store(path, media.GetFile())
+func parseTagSetting(str string) map[string]string {
+	tags := strings.Split(str, ";")
+	setting := map[string]string{}
+	for _, value := range tags {
+		v := strings.Split(value, ":")
+		k := strings.TrimSpace(strings.ToUpper(v[0]))
+		if len(v) == 2 {
+			setting[k] = v[1]
+		} else {
+			setting[k] = k
 		}
 	}
-}
-
-func init() {
-	// gorm.DefaultCallback.Update().After("gorm:save_after_associations").
-	// 	Register("media_library:save_and_crop", SaveAndCropImage)
-	// gorm.DefaultCallback.Create().After("gorm:save_after_associations").
-	// 	Register("media_library:save_and_crop", SaveAndCropImage)
+	return setting
 }

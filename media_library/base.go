@@ -3,13 +3,8 @@ package media_library
 import (
 	"database/sql/driver"
 	"errors"
-	"fmt"
 	"io"
 	"os"
-	"path"
-	"reflect"
-
-	"github.com/jinzhu/gorm"
 
 	"mime/multipart"
 )
@@ -17,11 +12,11 @@ import (
 var ErrNotImplemented = errors.New("not implemented")
 
 type Base struct {
+	Url        string
+	Valid      bool
 	FileName   string
 	FileHeader *multipart.FileHeader
-	Valid      bool
-	Option     Option
-	CropOption CropOption
+	CropOption *CropOption
 	Reader     io.Reader
 }
 
@@ -30,7 +25,7 @@ func (b Base) Scan(value interface{}) error {
 	case *multipart.FileHeader:
 		b.FileHeader, b.FileName, b.Valid = v, v.Filename, true
 	case string:
-		b.FileName, b.Valid = v, true
+		b.Url, b.Valid = v, true
 	}
 	return nil
 }
@@ -42,38 +37,33 @@ func (b Base) Value() (driver.Value, error) {
 	return nil, nil
 }
 
-func (b Base) GetOption() Option {
-	return Option{}
-}
-
-func (b Base) ParseOption(option string) {
-}
-
-func (b Base) GetPath(value interface{}, column string, header *multipart.FileHeader) string {
-	scope := gorm.Scope{Value: value}
-	// ":model_name/:column_name/:primary_key/:filename"
-	kind := reflect.Indirect(reflect.ValueOf(value)).Type().Name()
-	primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
-	filename := header.Filename
-	return fmt.Sprintf(path.Join("/tmp", kind, column, primaryKey, filename))
-}
-
-func (b Base) Store(path string, src io.Reader) error {
-	return ErrNotImplemented
-}
-
-func (Base) Receive(filename string) (*os.File, error) {
-	return nil, ErrNotImplemented
-}
-
-func (Base) Crop(option CropOption) error {
-	return ErrNotImplemented
-}
-
-func (Base) Url(...string) string {
-	return ""
+func (b Base) URL(...string) string {
+	return b.Url
 }
 
 func (b Base) String() string {
-	return b.Url()
+	return b.URL()
+}
+
+func (b Base) GetFileHeader() *multipart.FileHeader {
+	return b.FileHeader
+}
+
+func (b Base) GetPathTemplate(tag string) (path string) {
+	if path = parseTagSetting(tag)["url"]; path == "" {
+		path = "/system/{class}/{primary_key}/{column}/{filename}"
+	}
+	return
+}
+
+func (b Base) Store(url string, file *multipart.FileHeader) error {
+	return ErrNotImplemented
+}
+
+func (b Base) Receive(url string) (*os.File, error) {
+	return nil, ErrNotImplemented
+}
+
+func (b Base) Crop() error {
+	return ErrNotImplemented
 }
