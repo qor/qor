@@ -71,13 +71,13 @@ var (
 
 func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix string) (*MetaValues, error) {
 	metaValues := &MetaValues{}
-	metaorMap := make(map[string]Metaor)
+	metaorMap := map[string]Metaor{}
+	convertedNextLevel := map[string]bool{}
 	for _, metaor := range metaors {
 		metaorMap[metaor.GetName()] = metaor
 	}
 
-	convertedNextLevel := make(map[string]bool)
-	for key, value := range request.Form {
+	newMetaValue := func(key string, value interface{}) {
 		if strings.HasPrefix(key, prefix) {
 			var metaValue *MetaValue
 			key = strings.TrimPrefix(key, prefix)
@@ -102,10 +102,14 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 		}
 	}
 
+	for key, value := range request.Form {
+		newMetaValue(key, value)
+	}
+
 	if request.MultipartForm != nil {
-		// for key, header := range request.MultipartForm.File {
-		// 	xxxxx
-		// }
+		for key, value := range request.MultipartForm.File {
+			newMetaValue(key, value)
+		}
 	}
 	return metaValues, nil
 }

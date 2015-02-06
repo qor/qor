@@ -28,24 +28,24 @@ type MediaLibrary interface {
 
 	SetFile(filename string, reader io.Reader)
 	GetFile() io.Reader
+	GetFileName() string
 	SetCropOption(CropOption)
 
 	Store(string, io.Reader) error
-	Receive(filename string) (*os.File, error)
+	Retrieve(filename string) (*os.File, error)
 
 	Url(style ...string) string
 	String() string
 }
 
 func SaveAndCropImage(scope *gorm.Scope) {
-	// for _, field := range scope.Fields() {
-	// 	if media, ok := field.Value.(MediaLibrary); ok {
-	// 		media.ParseOption(field.Tag.Get("media_library"))
-	// primaryKey := scope.PrimaryKeyValue()
-	// path := media.GetPath(scope.Value, field.Name, media.GetFile())
-	// media.Store(path, file)
-	// 	}
-	// }
+	for _, field := range scope.Fields() {
+		if media, ok := field.Field.Interface().(MediaLibrary); ok {
+			media.ParseOption(field.Tag.Get("media_library"))
+			path := media.GetPath(scope.Value, field.Name, media.GetFileName())
+			media.Store(path, media.GetFile())
+		}
+	}
 }
 
 func init() {

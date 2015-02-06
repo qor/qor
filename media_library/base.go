@@ -17,7 +17,8 @@ import (
 var ErrNotImplemented = errors.New("not implemented")
 
 type Base struct {
-	Path       string
+	FileName   string
+	FileHeader *multipart.FileHeader
 	Valid      bool
 	Option     Option
 	CropOption CropOption
@@ -25,16 +26,18 @@ type Base struct {
 }
 
 func (b Base) Scan(value interface{}) error {
-	if v, ok := value.(string); ok {
-		b.Path, b.Valid = v, true
-		return nil
+	switch v := value.(type) {
+	case *multipart.FileHeader:
+		b.FileHeader, b.FileName, b.Valid = v, v.Filename, true
+	case string:
+		b.FileName, b.Valid = v, true
 	}
 	return nil
 }
 
 func (b Base) Value() (driver.Value, error) {
 	if b.Valid {
-		return b.Path, nil
+		return b.FileName, nil
 	}
 	return nil, nil
 }
@@ -56,7 +59,6 @@ func (b Base) GetPath(value interface{}, column string, header *multipart.FileHe
 }
 
 func (b Base) Store(path string, src io.Reader) error {
-	b.Path, b.Valid = path, true
 	return ErrNotImplemented
 }
 
