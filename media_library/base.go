@@ -51,7 +51,7 @@ func (b Base) GetFileHeader() *multipart.FileHeader {
 
 func (b Base) GetPathTemplate(tag string) (path string) {
 	if path = parseTagSetting(tag)["url"]; path == "" {
-		path = "/system/{class}/{primary_key}/{column}/{filename}"
+		path = "/system/{class}/{primary_key}/{column}/{basename}.{nanotime}.{extension}"
 	}
 	return
 }

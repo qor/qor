@@ -2,7 +2,10 @@ package media_library
 
 import (
 	"bytes"
+	"path"
+	"strings"
 	"text/template"
+	"time"
 
 	"github.com/jinzhu/gorm"
 )
@@ -13,6 +16,9 @@ func getFuncMap(scope *gorm.Scope, field *gorm.Field, filename string) template.
 		"primary_key": scope.PrimaryKeyValue,
 		"column":      field.Name,
 		"filename":    filename,
+		"basename":    strings.TrimSuffix(path.Base(filename), path.Ext(filename)),
+		"nanotime":    strings.Replace(time.Now().Format("20060102150506.000000000"), ".", "", -1),
+		"extension":   path.Ext(filename),
 	}
 }
 
