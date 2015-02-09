@@ -97,8 +97,7 @@ func (b Base) Crop(ml MediaLibrary, option *Option) error {
 				var buffer bytes.Buffer
 				var cropOption = b.CropOption
 				rect := image.Rect(cropOption.X, cropOption.Y, cropOption.X+cropOption.Width, cropOption.Y+cropOption.Height)
-				imaging.Crop(img, rect)
-				imaging.Encode(&buffer, img, *format)
+				imaging.Encode(&buffer, imaging.Crop(img, rect), *format)
 				return ml.Store(b.URL(), option, &buffer)
 			}
 		} else {
