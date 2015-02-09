@@ -91,8 +91,21 @@ func (b Base) Retrieve(url string) (*os.File, error) {
 }
 
 func (b Base) Crop(ml MediaLibrary, option *Option) error {
-	if file, err := ml.Retrieve(b.URL("original")); err == nil {
-		if img, err := imaging.Decode(file); err == nil {
+	var reader io.Reader
+	var hasReader bool
+
+	if ml.GetFileHeader() != nil {
+		if file, err := ml.GetFileHeader().Open(); err == nil {
+			reader = file
+			hasReader = true
+		}
+	} else if file, err := ml.Retrieve(b.URL("original")); err == nil {
+		reader = file
+		hasReader = true
+	}
+
+	if hasReader {
+		if img, err := imaging.Decode(reader); err == nil {
 			if format, err := b.GetImageFormat(); err == nil {
 				var buffer bytes.Buffer
 				var cropOption = b.CropOption
