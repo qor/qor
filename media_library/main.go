@@ -32,6 +32,8 @@ type MediaLibrary interface {
 	Store(url string, option *Option, reader io.Reader) error
 	Retrieve(url string) (*os.File, error)
 
+	IsImage() bool
+
 	URL(style ...string) string
 	String() string
 }

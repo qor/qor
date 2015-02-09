@@ -9,6 +9,8 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/disintegration/imaging"
 )
@@ -86,15 +88,41 @@ func (b Base) Retrieve(url string) (*os.File, error) {
 func (b Base) Crop(ml MediaLibrary, option *Option) error {
 	if file, err := ml.Retrieve(b.URL("original")); err == nil {
 		if img, err := imaging.Decode(file); err == nil {
-			var buffer bytes.Buffer
-			var cropOption = b.CropOption
-			rect := image.Rect(cropOption.X, cropOption.Y, cropOption.X+cropOption.Width, cropOption.Y+cropOption.Height)
-			imaging.Crop(img, rect)
-			imaging.Encode(&buffer, img, imaging.PNG)
-			return ml.Store(b.URL(), option, &buffer)
+			if format, err := b.GetImageFormat(); err == nil {
+				var buffer bytes.Buffer
+				var cropOption = b.CropOption
+				rect := image.Rect(cropOption.X, cropOption.Y, cropOption.X+cropOption.Width, cropOption.Y+cropOption.Height)
+				imaging.Crop(img, rect)
+				imaging.Encode(&buffer, img, *format)
+				return ml.Store(b.URL(), option, &buffer)
+			}
 		} else {
 			return err
 		}
 	}
 	return nil
+}
+
+func (b Base) IsImage() bool {
+	_, err := b.GetImageFormat()
+	return err == nil
+}
+
+func (b Base) GetImageFormat() (*imaging.Format, error) {
+	formats := map[string]imaging.Format{
+		".jpg":  imaging.JPEG,
+		".jpeg": imaging.JPEG,
+		".png":  imaging.PNG,
+		".tif":  imaging.TIFF,
+		".tiff": imaging.TIFF,
+		".bmp":  imaging.BMP,
+		".gif":  imaging.GIF,
+	}
+
+	ext := strings.ToLower(filepath.Ext(b.Url))
+	if f, ok := formats[ext]; ok {
+		return &f, nil
+	} else {
+		return nil, imaging.ErrUnsupportedFormat
+	}
 }

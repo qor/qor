@@ -1,6 +1,6 @@
 <div>
   <label class="label" for="{{.InputId}}">{{.Label}}</label>
-  {{if .Value.URL}}
+  {{if .Value.IsImage}}
   <img src="{{.Value.URL}}">
   {{end}}
   <input id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}" type="file">
