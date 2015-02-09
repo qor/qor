@@ -24,7 +24,7 @@ func (s *Searcher) Scope(names ...string) *Searcher {
 	newSearcher := s.clone()
 	for _, name := range names {
 		if scope := s.Resource.scopes[name]; scope != nil && !scope.Default {
-			newSearcher.scopes = append(s.scopes, scope)
+			newSearcher.scopes = append(newSearcher.scopes, scope)
 		}
 	}
 	return newSearcher
@@ -77,21 +77,22 @@ func (s *Searcher) getContext() *qor.Context {
 
 func (s *Searcher) parseContext() *qor.Context {
 	var context = s.getContext()
+	var searcher = s.clone()
 
 	if context != nil && context.Request != nil {
 		// parse scopes
 		scopes := strings.Split(context.Request.Form.Get("scopes"), "|")
-		s.Scope(scopes...)
+		searcher = searcher.Scope(scopes...)
 
 		// parse filters
 		for key, value := range context.Request.Form {
 			if matches := filterRegexp.FindStringSubmatch(key); len(matches) > 0 {
-				s.Filter(matches[1], value[0])
+				searcher = searcher.Filter(matches[1], value[0])
 			}
 		}
 	}
 
-	s.callScopes(context)
+	searcher.callScopes(context)
 
 	return context
 }
