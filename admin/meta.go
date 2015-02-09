@@ -128,8 +128,6 @@ func (meta *Meta) updateMeta() {
 					meta.Type = "datetime"
 				} else if _, ok := field.Field.Addr().Interface().(media_library.MediaLibrary); ok {
 					meta.Type = "file"
-				} else {
-					fmt.Println(field.Field.Addr().Interface().(media_library.MediaLibrary))
 				}
 			}
 		}
