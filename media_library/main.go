@@ -2,6 +2,7 @@ package media_library
 
 import (
 	"database/sql/driver"
+	"io"
 	"mime/multipart"
 	"strings"
 
@@ -19,14 +20,16 @@ type MediaLibrary interface {
 	Scan(value interface{}) error
 	Value() (driver.Value, error)
 
-	GetURLTemplate(tag string) string
+	GetURLTemplate(*Option) string
 
 	GetFileHeader() *multipart.FileHeader
 	GetFileName() string
-	SetCropOption(*CropOption)
-	Crop(MediaLibrary) error
 
-	Store(url string, option *Option, fileHeader *multipart.FileHeader) error
+	SetCropOption(*CropOption)
+	GetCropOption() *CropOption
+	Crop(MediaLibrary, *Option) error
+
+	Store(url string, option *Option, reader io.Reader) error
 	Retrieve(url string) (*os.File, error)
 
 	URL(style ...string) string

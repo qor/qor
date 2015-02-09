@@ -2,7 +2,6 @@ package media_library
 
 import (
 	"io"
-	"mime/multipart"
 	"os"
 	"path/filepath"
 )
@@ -26,15 +25,11 @@ func (f FileSystem) GetFullPath(url string, option *Option) (path string, err er
 	return
 }
 
-func (f FileSystem) Store(url string, option *Option, fileHeader *multipart.FileHeader) error {
+func (f FileSystem) Store(url string, option *Option, reader io.Reader) error {
 	if fullpath, err := f.GetFullPath(url, option); err == nil {
 		if dst, err := os.Create(fullpath); err == nil {
-			if file, err := fileHeader.Open(); err == nil {
-				_, err := io.Copy(dst, file)
-				return err
-			} else {
-				return err
-			}
+			_, err := io.Copy(dst, reader)
+			return err
 		} else {
 			return err
 		}

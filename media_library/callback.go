@@ -25,25 +25,32 @@ func getFuncMap(scope *gorm.Scope, field *gorm.Field, filename string) template.
 
 func SaveAndCropImage(scope *gorm.Scope) {
 	for _, field := range scope.Fields() {
-		if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok && media.GetFileHeader() != nil {
-			tag := field.Tag.Get("media_library")
-			if path := media.GetURLTemplate(tag); path != "" {
-				tmpl := template.New("").Funcs(getFuncMap(scope, field, media.GetFileName()))
-				if tmpl, err := tmpl.Parse(path); err == nil {
-					var result = bytes.NewBufferString("")
-					if err := tmpl.Execute(result, scope.Value); err == nil {
-						url := result.String()
-						updateAttrs := map[string]interface{}{field.Name: url}
-						gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
-						if scope.Err(media.Store(url, parseTagOption(tag), media.GetFileHeader())) == nil {
-							media.Crop(media)
+		if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok {
+			option := parseTagOption(field.Tag.Get("media_library"))
+
+			// Store
+			if media.GetFileHeader() != nil {
+				if path := media.GetURLTemplate(option); path != "" {
+					tmpl := template.New("").Funcs(getFuncMap(scope, field, media.GetFileName()))
+					if tmpl, err := tmpl.Parse(path); err == nil {
+						var result = bytes.NewBufferString("")
+						if err := tmpl.Execute(result, scope.Value); err == nil {
+							url := result.String()
+							if file, err := media.GetFileHeader().Open(); err == nil {
+								updateAttrs := map[string]interface{}{field.Name: url}
+								gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
+								scope.Err(media.Store(url, option, file))
+							}
+						} else {
+							scope.Err(err)
 						}
-					} else {
-						scope.Err(err)
 					}
-				} else {
-					scope.Err(err)
 				}
+			}
+
+			// Crop
+			if !scope.HasError() && media.GetCropOption() != nil {
+				media.Crop(media, option)
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 package media_library
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"errors"
 	"fmt"
@@ -61,8 +62,8 @@ func (b Base) GetFileHeader() *multipart.FileHeader {
 	return b.FileHeader
 }
 
-func (b Base) GetURLTemplate(tag string) (path string) {
-	if path = parseTagOption(tag).Get("url"); path == "" {
+func (b Base) GetURLTemplate(option *Option) (path string) {
+	if path = option.Get("url"); path == "" {
 		path = "/system/{{class}}/{{primary_key}}/{{column}}/{{basename}}.{{nanotime}}.{{extension}}"
 	}
 	return
@@ -72,17 +73,23 @@ func (b *Base) SetCropOption(option *CropOption) {
 	b.CropOption = option
 }
 
+func (b *Base) GetCropOption() *CropOption {
+	return b.CropOption
+}
+
 func (b Base) Retrieve(url string) (*os.File, error) {
 	return nil, ErrNotImplemented
 }
 
-func (b Base) Crop(ml MediaLibrary) error {
+func (b Base) Crop(ml MediaLibrary, option *Option) error {
 	if file, err := ml.Retrieve(b.URL("original")); err == nil {
 		if img, err := imaging.Decode(file); err == nil {
-			cropOption := b.CropOption
+			var buffer bytes.Buffer
+			var cropOption = b.CropOption
 			rect := image.Rect(cropOption.X, cropOption.Y, cropOption.X+cropOption.Width, cropOption.Y+cropOption.Height)
 			imaging.Crop(img, rect)
-			return nil
+			imaging.Encode(&buffer, img, imaging.PNG)
+			return ml.Store(b.URL(), option, &buffer)
 		} else {
 			return err
 		}
