@@ -39,7 +39,12 @@ func SaveAndCropImage(scope *gorm.Scope) {
 							if file, err := media.GetFileHeader().Open(); err == nil {
 								updateAttrs := map[string]interface{}{field.DBName: media.URL()}
 								gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
+
+								defer file.Close()
 								scope.Err(media.Store(media.URL("original"), option, file))
+
+								file, _ := media.GetFileHeader().Open()
+								defer file.Close()
 								scope.Err(media.Store(media.URL(), option, file))
 							}
 						} else {

@@ -9,6 +9,7 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -50,7 +51,11 @@ func (b Base) Value() (driver.Value, error) {
 	return nil, nil
 }
 
-func (b Base) URL(...string) string {
+func (b Base) URL(styles ...string) string {
+	if len(styles) > 0 {
+		ext := path.Ext(b.Url)
+		return fmt.Sprintf("%v.%v%v", strings.TrimSuffix(b.Url, ext), styles[0], ext)
+	}
 	return b.Url
 }
 
