@@ -9,6 +9,11 @@ import (
 	"os"
 )
 
+type Size struct {
+	Width  int
+	Height int
+}
+
 type CropOption struct {
 	X      int
 	Y      int
@@ -28,6 +33,7 @@ type MediaLibrary interface {
 	SetCropOption(*CropOption)
 	GetCropOption() *CropOption
 	Crop(MediaLibrary, *Option) error
+	GetSizes() map[string]Size
 
 	Store(url string, option *Option, reader io.Reader) error
 	Retrieve(url string) (*os.File, error)

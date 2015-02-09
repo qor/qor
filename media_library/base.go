@@ -120,6 +120,10 @@ func (b Base) Crop(ml MediaLibrary, option *Option) error {
 	return nil
 }
 
+func (b Base) GetSizes() map[string]Size {
+	return map[string]Size{}
+}
+
 func (b Base) IsImage() bool {
 	_, err := b.GetImageFormat()
 	return err == nil

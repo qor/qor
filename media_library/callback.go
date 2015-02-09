@@ -37,15 +37,10 @@ func SaveAndCropImage(scope *gorm.Scope) {
 						if err := tmpl.Execute(result, scope.Value); err == nil {
 							media.Scan(result.String())
 							if file, err := media.GetFileHeader().Open(); err == nil {
+								defer file.Close()
 								updateAttrs := map[string]interface{}{field.DBName: media.URL()}
 								gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
-
-								defer file.Close()
 								scope.Err(media.Store(media.URL("original"), option, file))
-
-								file, _ := media.GetFileHeader().Open()
-								defer file.Close()
-								scope.Err(media.Store(media.URL(), option, file))
 							}
 						} else {
 							scope.Err(err)
@@ -55,7 +50,7 @@ func SaveAndCropImage(scope *gorm.Scope) {
 			}
 
 			// Crop
-			if !scope.HasError() && media.GetCropOption() != nil {
+			if !scope.HasError() {
 				media.Crop(media, option)
 			}
 		}
