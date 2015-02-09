@@ -35,7 +35,9 @@ func SaveAndCropImage(scope *gorm.Scope) {
 						url := result.String()
 						updateAttrs := map[string]interface{}{field.Name: url}
 						gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
-						scope.Err(media.Store(url, parseTagOption(tag), media.GetFileHeader()))
+						if scope.Err(media.Store(url, parseTagOption(tag), media.GetFileHeader())) == nil {
+							media.Crop(media)
+						}
 					} else {
 						scope.Err(err)
 					}

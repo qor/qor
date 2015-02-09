@@ -4,10 +4,12 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"image"
 	"io"
+	"mime/multipart"
 	"os"
 
-	"mime/multipart"
+	"github.com/disintegration/imaging"
 )
 
 var ErrNotImplemented = errors.New("not implemented")
@@ -74,6 +76,16 @@ func (b Base) Retrieve(url string) (*os.File, error) {
 	return nil, ErrNotImplemented
 }
 
-func (b Base) Crop() error {
-	return ErrNotImplemented
+func (b Base) Crop(ml MediaLibrary) error {
+	if file, err := ml.Retrieve(b.URL("original")); err == nil {
+		if img, err := imaging.Decode(file); err == nil {
+			cropOption := b.CropOption
+			rect := image.Rect(cropOption.X, cropOption.Y, cropOption.X+cropOption.Width, cropOption.Y+cropOption.Height)
+			imaging.Crop(img, rect)
+			return nil
+		} else {
+			return err
+		}
+	}
+	return nil
 }

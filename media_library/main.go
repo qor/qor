@@ -24,7 +24,7 @@ type MediaLibrary interface {
 	GetFileHeader() *multipart.FileHeader
 	GetFileName() string
 	SetCropOption(*CropOption)
-	Crop() error
+	Crop(MediaLibrary) error
 
 	Store(url string, option *Option, fileHeader *multipart.FileHeader) error
 	Retrieve(url string) (*os.File, error)
