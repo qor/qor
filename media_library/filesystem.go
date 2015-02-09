@@ -11,9 +11,9 @@ type FileSystem struct {
 	Base
 }
 
-func (f FileSystem) GetFullPath(url string, option Option) (path string, err error) {
-	if option["path"] != "" {
-		path = filepath.Join(option["path"], url)
+func (f FileSystem) GetFullPath(url string, option *Option) (path string, err error) {
+	if option != nil && option.Get("path") != "" {
+		path = filepath.Join(option.Get("path"), url)
 	} else {
 		path = filepath.Join("./public", url)
 	}
@@ -26,7 +26,7 @@ func (f FileSystem) GetFullPath(url string, option Option) (path string, err err
 	return
 }
 
-func (f FileSystem) Store(url string, option Option, fileHeader *multipart.FileHeader) error {
+func (f FileSystem) Store(url string, option *Option, fileHeader *multipart.FileHeader) error {
 	if fullpath, err := f.GetFullPath(url, option); err == nil {
 		if dst, err := os.Create(fullpath); err == nil {
 			if file, err := fileHeader.Open(); err == nil {
@@ -43,6 +43,10 @@ func (f FileSystem) Store(url string, option Option, fileHeader *multipart.FileH
 	}
 }
 
-func (f FileSystem) Receive(path string) (*os.File, error) {
-	return os.Open(path)
+func (f FileSystem) Retrieve(url string) (*os.File, error) {
+	if fullpath, err := f.GetFullPath(url, nil); err == nil {
+		return os.Open(fullpath)
+	} else {
+		return nil, os.ErrNotExist
+	}
 }

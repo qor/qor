@@ -60,7 +60,7 @@ func (b Base) GetFileHeader() *multipart.FileHeader {
 }
 
 func (b Base) GetURLTemplate(tag string) (path string) {
-	if path = parseTagOption(tag)["url"]; path == "" {
+	if path = parseTagOption(tag).Get("url"); path == "" {
 		path = "/system/{{class}}/{{primary_key}}/{{column}}/{{basename}}.{{nanotime}}.{{extension}}"
 	}
 	return

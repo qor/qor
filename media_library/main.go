@@ -24,8 +24,9 @@ type MediaLibrary interface {
 	GetFileHeader() *multipart.FileHeader
 	GetFileName() string
 	SetCropOption(*CropOption)
+	Crop() error
 
-	Store(url string, option Option, fileHeader *multipart.FileHeader) error
+	Store(url string, option *Option, fileHeader *multipart.FileHeader) error
 	Retrieve(url string) (*os.File, error)
 
 	URL(style ...string) string
@@ -34,7 +35,11 @@ type MediaLibrary interface {
 
 type Option map[string]string
 
-func parseTagOption(str string) Option {
+func (option Option) Get(key string) string {
+	return option[key]
+}
+
+func parseTagOption(str string) *Option {
 	tags := strings.Split(str, ";")
 	setting := Option{}
 	for _, value := range tags {
@@ -46,5 +51,5 @@ func parseTagOption(str string) Option {
 			setting[k] = k
 		}
 	}
-	return setting
+	return &setting
 }
