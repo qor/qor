@@ -35,11 +35,12 @@ func SaveAndCropImage(scope *gorm.Scope) {
 					if tmpl, err := tmpl.Parse(path); err == nil {
 						var result = bytes.NewBufferString("")
 						if err := tmpl.Execute(result, scope.Value); err == nil {
-							url := result.String()
+							media.Scan(result.String())
 							if file, err := media.GetFileHeader().Open(); err == nil {
-								updateAttrs := map[string]interface{}{field.Name: url}
+								updateAttrs := map[string]interface{}{field.DBName: media.URL()}
 								gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
-								scope.Err(media.Store(url, option, file))
+								scope.Err(media.Store(media.URL("original"), option, file))
+								scope.Err(media.Store(media.URL(), option, file))
 							}
 						} else {
 							scope.Err(err)

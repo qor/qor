@@ -33,6 +33,8 @@ func (b *Base) Scan(value interface{}) error {
 		}
 	case []uint8:
 		b.Url, b.Valid = string(v), true
+	case string:
+		b.Url, b.Valid = v, true
 	default:
 		fmt.Errorf("unsupported driver -> Scan pair for MediaLibrary")
 	}
