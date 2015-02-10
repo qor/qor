@@ -1,9 +1,11 @@
 <div>
   <label class="label" for="{{.InputId}}">{{.Label}}</label>
+  {{if .Value}}
   {{if .Value.IsImage}}
   <img src="{{.Value.URL}}">
   {{else}}
   <a href="{{.Value.URL}}">Download</a>
+  {{end}}
   {{end}}
   <input id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}" type="file">
 </div>
