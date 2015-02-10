@@ -6,6 +6,8 @@ import (
 	"mime/multipart"
 	"strings"
 
+	"github.com/jinzhu/gorm"
+
 	"os"
 )
 
@@ -26,14 +28,14 @@ type MediaLibrary interface {
 	Value() (driver.Value, error)
 
 	GetURLTemplate(*Option) string
+	GetURL(option *Option, scope *gorm.Scope, field *gorm.Field) string
 
 	GetFileHeader() *multipart.FileHeader
 	GetFileName() string
 
+	GetSizes() map[string]Size
 	SetCropOption(*CropOption)
 	GetCropOption() *CropOption
-	Crop(MediaLibrary, *Option) error
-	GetSizes() map[string]Size
 
 	Store(url string, option *Option, reader io.Reader) error
 	Retrieve(url string) (*os.File, error)

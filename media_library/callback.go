@@ -2,64 +2,83 @@ package media_library
 
 import (
 	"bytes"
-	"fmt"
-	"path"
-	"strings"
-	"text/template"
-	"time"
+	"errors"
+	"image"
+	"mime/multipart"
 
+	"github.com/disintegration/imaging"
 	"github.com/jinzhu/gorm"
 )
 
-func getFuncMap(scope *gorm.Scope, field *gorm.Field, filename string) template.FuncMap {
-	return template.FuncMap{
-		"class":       scope.TableName,
-		"primary_key": func() string { return fmt.Sprintf("%v", scope.PrimaryKeyValue()) },
-		"column":      func() string { return field.Name },
-		"filename":    func() string { return filename },
-		"basename":    func() string { return strings.TrimSuffix(path.Base(filename), path.Ext(filename)) },
-		"nanotime":    func() string { return strings.Replace(time.Now().Format("20060102150506.000000000"), ".", "", -1) },
-		"extension":   func() string { return strings.TrimPrefix(path.Ext(filename), ".") },
-	}
-}
+// updateAttrs := map[string]interface{}{field.DBName: media.URL()}
+// gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
 
-func SaveAndCropImage(scope *gorm.Scope) {
-	for _, field := range scope.Fields() {
-		if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok {
-			option := parseTagOption(field.Tag.Get("media_library"))
+func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
+	return func(scope *gorm.Scope) {
+		for _, field := range scope.Fields() {
+			if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok {
+				option := parseTagOption(field.Tag.Get("media_library"))
+				if media.GetFileHeader() != nil || media.GetCropOption() != nil {
+					var file multipart.File
 
-			// Store
-			if media.GetFileHeader() != nil {
-				if path := media.GetURLTemplate(option); path != "" {
-					tmpl := template.New("").Funcs(getFuncMap(scope, field, media.GetFileName()))
-					if tmpl, err := tmpl.Parse(path); err == nil {
-						var result = bytes.NewBufferString("")
-						if err := tmpl.Execute(result, scope.Value); err == nil {
-							media.Scan(result.String())
-							if file, err := media.GetFileHeader().Open(); err == nil {
-								defer file.Close()
-								updateAttrs := map[string]interface{}{field.DBName: media.URL()}
-								gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
-								scope.Err(media.Store(media.URL("original"), option, file))
+					url := media.GetURL(option, scope, field)
+					if url == "" {
+						scope.Err(errors.New("invalid URL"))
+					}
+					media.Scan(url)
+
+					if isCreate {
+						updateAttrs := map[string]interface{}{field.DBName: media.URL()}
+						gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
+					}
+
+					if fileHeader := media.GetFileHeader(); fileHeader != nil {
+						file, _ = media.GetFileHeader().Open()
+					} else {
+						file, _ = media.Retrieve(media.URL("original"))
+					}
+					if file != nil {
+						defer file.Close()
+					}
+
+					if media.IsImage() {
+						// Save Original Image
+						if scope.Err(media.Store(media.URL("original"), option, file)) == nil {
+							file.Seek(0, 0)
+
+							// Crop & Resize
+							if img, err := imaging.Decode(file); err == nil {
+								if format, err := getImageFormat(media.URL()); err == nil {
+									if cropOption := media.GetCropOption(); cropOption != nil {
+										rect := image.Rect(cropOption.X, cropOption.Y, cropOption.X+cropOption.Width, cropOption.Y+cropOption.Height)
+										img = imaging.Crop(img, rect)
+									}
+
+									// Save default image
+									var buffer bytes.Buffer
+									imaging.Encode(&buffer, img, *format)
+									media.Store(media.URL(), option, &buffer)
+
+									for key, size := range media.GetSizes() {
+										dst := imaging.Resize(img, size.Width, size.Height, imaging.Lanczos)
+										var buffer bytes.Buffer
+										imaging.Encode(&buffer, dst, *format)
+										media.Store(media.URL(key), option, &buffer)
+									}
+								}
 							}
-						} else {
-							scope.Err(err)
 						}
+					} else {
+						// Save File
+						scope.Err(media.Store(media.URL(), option, file))
 					}
 				}
-			}
-
-			// Crop
-			if !scope.HasError() {
-				media.Crop(media, option)
 			}
 		}
 	}
 }
 
 func init() {
-	gorm.DefaultCallback.Update().Before("gorm:after_update").
-		Register("media_library:save_and_crop", SaveAndCropImage)
-	gorm.DefaultCallback.Create().After("gorm:after_create").
-		Register("media_library:save_and_crop", SaveAndCropImage)
+	gorm.DefaultCallback.Update().Before("gorm:before_update").Register("media_library:save_and_crop", SaveAndCropImage(false))
+	gorm.DefaultCallback.Create().After("gorm:after_create").Register("media_library:save_and_crop", SaveAndCropImage(true))
 }

@@ -5,15 +5,17 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
-	"image"
 	"io"
 	"mime/multipart"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+	"text/template"
+	"time"
 
 	"github.com/disintegration/imaging"
+	"github.com/jinzhu/gorm"
 )
 
 var ErrNotImplemented = errors.New("not implemented")
@@ -46,7 +48,7 @@ func (b *Base) Scan(value interface{}) error {
 
 func (b Base) Value() (driver.Value, error) {
 	if b.Valid {
-		return b.FileName, nil
+		return b.Url, nil
 	}
 	return nil, nil
 }
@@ -78,6 +80,31 @@ func (b Base) GetURLTemplate(option *Option) (path string) {
 	return
 }
 
+func getFuncMap(scope *gorm.Scope, field *gorm.Field, filename string) template.FuncMap {
+	return template.FuncMap{
+		"class":       scope.TableName,
+		"primary_key": func() string { return fmt.Sprintf("%v", scope.PrimaryKeyValue()) },
+		"column":      func() string { return field.Name },
+		"filename":    func() string { return filename },
+		"basename":    func() string { return strings.TrimSuffix(path.Base(filename), path.Ext(filename)) },
+		"nanotime":    func() string { return strings.Replace(time.Now().Format("20060102150506.000000000"), ".", "", -1) },
+		"extension":   func() string { return strings.TrimPrefix(path.Ext(filename), ".") },
+	}
+}
+
+func (b Base) GetURL(option *Option, scope *gorm.Scope, field *gorm.Field) string {
+	if path := b.GetURLTemplate(option); path != "" {
+		tmpl := template.New("").Funcs(getFuncMap(scope, field, b.GetFileName()))
+		if tmpl, err := tmpl.Parse(path); err == nil {
+			var result = bytes.NewBufferString("")
+			if err := tmpl.Execute(result, scope.Value); err == nil {
+				return result.String()
+			}
+		}
+	}
+	return ""
+}
+
 func (b *Base) SetCropOption(option *CropOption) {
 	b.CropOption = option
 }
@@ -90,46 +117,16 @@ func (b Base) Retrieve(url string) (*os.File, error) {
 	return nil, ErrNotImplemented
 }
 
-func (b Base) Crop(ml MediaLibrary, option *Option) error {
-	var reader io.Reader
-	var hasReader bool
-
-	if ml.GetFileHeader() != nil {
-		if file, err := ml.GetFileHeader().Open(); err == nil {
-			reader = file
-			hasReader = true
-		}
-	} else if file, err := ml.Retrieve(b.URL("original")); err == nil {
-		reader = file
-		hasReader = true
-	}
-
-	if hasReader {
-		if img, err := imaging.Decode(reader); err == nil {
-			if format, err := b.GetImageFormat(); err == nil {
-				var buffer bytes.Buffer
-				var cropOption = b.CropOption
-				rect := image.Rect(cropOption.X, cropOption.Y, cropOption.X+cropOption.Width, cropOption.Y+cropOption.Height)
-				imaging.Encode(&buffer, imaging.Crop(img, rect), *format)
-				return ml.Store(b.URL(), option, &buffer)
-			}
-		} else {
-			return err
-		}
-	}
-	return nil
-}
-
 func (b Base) GetSizes() map[string]Size {
 	return map[string]Size{}
 }
 
 func (b Base) IsImage() bool {
-	_, err := b.GetImageFormat()
+	_, err := getImageFormat(b.URL())
 	return err == nil
 }
 
-func (b Base) GetImageFormat() (*imaging.Format, error) {
+func getImageFormat(url string) (*imaging.Format, error) {
 	formats := map[string]imaging.Format{
 		".jpg":  imaging.JPEG,
 		".jpeg": imaging.JPEG,
@@ -140,7 +137,7 @@ func (b Base) GetImageFormat() (*imaging.Format, error) {
 		".gif":  imaging.GIF,
 	}
 
-	ext := strings.ToLower(filepath.Ext(b.Url))
+	ext := strings.ToLower(filepath.Ext(url))
 	if f, ok := formats[ext]; ok {
 		return &f, nil
 	} else {
