@@ -3,15 +3,11 @@ package media_library
 import (
 	"bytes"
 	"errors"
-	"image"
 	"mime/multipart"
 
 	"github.com/disintegration/imaging"
 	"github.com/jinzhu/gorm"
 )
-
-// updateAttrs := map[string]interface{}{field.DBName: media.URL()}
-// gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
 
 func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 	return func(scope *gorm.Scope) {
@@ -50,8 +46,7 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 							if img, err := imaging.Decode(file); err == nil {
 								if format, err := getImageFormat(media.URL()); err == nil {
 									if cropOption := media.GetCropOption(); cropOption != nil {
-										rect := image.Rect(cropOption.X, cropOption.Y, cropOption.X+cropOption.Width, cropOption.Y+cropOption.Height)
-										img = imaging.Crop(img, rect)
+										img = imaging.Crop(img, *cropOption)
 									}
 
 									// Save default image

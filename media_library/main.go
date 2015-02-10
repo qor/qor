@@ -2,6 +2,7 @@ package media_library
 
 import (
 	"database/sql/driver"
+	"image"
 	"io"
 	"mime/multipart"
 	"strings"
@@ -12,13 +13,6 @@ import (
 )
 
 type Size struct {
-	Width  int
-	Height int
-}
-
-type CropOption struct {
-	X      int
-	Y      int
 	Width  int
 	Height int
 }
@@ -34,8 +28,8 @@ type MediaLibrary interface {
 	GetFileName() string
 
 	GetSizes() map[string]Size
-	SetCropOption(*CropOption)
-	GetCropOption() *CropOption
+	SetCropOption(image.Rectangle)
+	GetCropOption() *image.Rectangle
 
 	Store(url string, option *Option, reader io.Reader) error
 	Retrieve(url string) (*os.File, error)

@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"image"
 	"io"
 	"mime/multipart"
 	"os"
@@ -25,7 +26,7 @@ type Base struct {
 	Valid      bool
 	FileName   string
 	FileHeader *multipart.FileHeader
-	CropOption *CropOption
+	CropOption *image.Rectangle
 	Reader     io.Reader
 }
 
@@ -105,11 +106,11 @@ func (b Base) GetURL(option *Option, scope *gorm.Scope, field *gorm.Field) strin
 	return ""
 }
 
-func (b *Base) SetCropOption(option *CropOption) {
-	b.CropOption = option
+func (b *Base) SetCropOption(option image.Rectangle) {
+	b.CropOption = &option
 }
 
-func (b *Base) GetCropOption() *CropOption {
+func (b *Base) GetCropOption() *image.Rectangle {
 	return b.CropOption
 }
 
