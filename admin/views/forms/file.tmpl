@@ -1,11 +1,17 @@
+{{$value := .Value}}
+
 <div>
   <label class="label" for="{{.InputId}}">{{.Label}}</label>
-  {{if .Value}}
-  {{if .Value.IsImage}}
-  <img src="{{.Value.URL}}">
-  {{else}}
-  <a href="{{.Value.URL}}">Download</a>
+  {{if $value}}
+    {{if $value.IsImage}}
+      <img src="{{$value.URL}}">
+      {{range $key, $v := $value.GetSizes}}
+        <img src="{{$value.URL $key}}">
+      {{end}}
+    {{else}}
+      <a href="{{$value.URL}}">Download</a>
+    {{end}}
   {{end}}
-  {{end}}
-  <input id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}" type="file">
+
+  <input id="{{.InputId}}" name="{{.InputName}}" value="{{$value}}" type="file">
 </div>
