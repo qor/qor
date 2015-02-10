@@ -4,7 +4,8 @@
   <label class="label" for="{{.InputId}}">{{.Label}}</label>
   {{if $value}}
     {{if $value.IsImage}}
-      <img src="{{$value.URL}}">
+      <img class="cropper" src="{{$value.URL}}">
+
       {{range $key, $v := $value.GetSizes}}
         <img src="{{$value.URL $key}}">
       {{end}}
@@ -15,3 +16,40 @@
 
   <input id="{{.InputId}}" name="{{.InputName}}" value="{{$value}}" type="file">
 </div>
+
+<script>
+  var $image = $(".cropper");
+
+  $image.cropper({
+    done: function(data) {
+      console.log(data)
+    },
+    multiple: true,
+    zoomable: false,
+  });
+
+  if (window.URL) {
+    var $inputImage = $("input"),
+      blobURL;
+
+    $inputImage.change(function () {
+      console.log("sssss");
+      var files = this.files,
+      file;
+
+      if (files && files.length) {
+        file = files[0];
+
+        if (/^image\/\w+$/.test(file.type)) {
+          if (blobURL) {
+            URL.revokeObjectURL(blobURL); // Revoke the old one
+          }
+
+          blobURL = URL.createObjectURL(file);
+          $image.cropper("reset", true).cropper("replace", blobURL);
+          $inputImage.val("");
+        }
+      }
+    });
+  }
+</script>
