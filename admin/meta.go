@@ -258,6 +258,7 @@ func (meta *Meta) updateMeta() {
 							var buf = bytes.NewBufferString("")
 							json.NewEncoder(buf).Encode(value)
 							if err := json.NewDecoder(strings.NewReader(buf.String())).Decode(field.Addr().Interface()); err != nil {
+								// TODO: should not kill the process
 								qor.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.ValueOf(value).Type(), field.Type(), meta)
 							}
 						}
