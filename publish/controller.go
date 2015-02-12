@@ -50,33 +50,33 @@ func (db *PublishController) Diff(context *admin.Context) {
 func (db *PublishController) Publish(context *admin.Context) {
 	var request = context.Request
 	var ids = request.Form["checked_ids[]"]
+	var records = []interface{}{}
+	var values = map[string][]string{}
+
+	for _, id := range ids {
+		if keys := strings.Split(id, "__"); len(keys) == 2 {
+			name, id := keys[0], keys[1]
+			values[name] = append(values[name], id)
+		}
+	}
+
+	for name, value := range values {
+		res := context.Admin.GetResource(name)
+		results := res.NewSlice()
+		if db.DraftMode().Unscoped().Find(results, fmt.Sprintf("%v IN (?)", res.PrimaryFieldDBName()), value).Error == nil {
+			resultValues := reflect.Indirect(reflect.ValueOf(results))
+			for i := 0; i < resultValues.Len(); i++ {
+				records = append(records, resultValues.Index(i).Interface())
+			}
+		}
+	}
 
 	if request.Form.Get("publish_type") == "publish" {
-		var records = []interface{}{}
-		var values = map[string][]string{}
-
-		for _, id := range ids {
-			if keys := strings.Split(id, "__"); len(keys) == 2 {
-				name, id := keys[0], keys[1]
-				values[name] = append(values[name], id)
-			}
-		}
-
-		for name, value := range values {
-			res := context.Admin.GetResource(name)
-			results := res.NewSlice()
-			if db.DraftMode().Unscoped().Find(results, fmt.Sprintf("%v IN (?)", res.PrimaryFieldDBName()), value).Error == nil {
-				resultValues := reflect.Indirect(reflect.ValueOf(results))
-				for i := 0; i < resultValues.Len(); i++ {
-					records = append(records, resultValues.Index(i).Interface())
-				}
-			}
-		}
 		db.DB.Publish(records...)
-		http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 	} else if request.Form.Get("publish_type") == "discard" {
-		fmt.Fprint(context.Writer, "not supported yet")
+		db.DB.Discard(records...)
 	}
+	http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 }
 
 func (db *DB) InjectQorAdmin(web *admin.Admin) {

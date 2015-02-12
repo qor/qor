@@ -98,3 +98,7 @@ func (db *DB) NewResolver(records ...interface{}) *Resolver {
 func (db *DB) Publish(records ...interface{}) {
 	db.NewResolver(records...).Publish()
 }
+
+func (db *DB) Discard(records ...interface{}) {
+	db.NewResolver(records...).Discard()
+}

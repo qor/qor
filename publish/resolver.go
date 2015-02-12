@@ -107,7 +107,7 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 	}
 }
 
-func (resolver *Resolver) Publish() {
+func (resolver *Resolver) GenerateDependencies() {
 	for _, record := range resolver.Records {
 		if resolver.SupportModel(record) {
 			scope := &gorm.Scope{Value: record}
@@ -115,12 +115,16 @@ func (resolver *Resolver) Publish() {
 			resolver.AddDependency(&dependency)
 		}
 	}
+}
+
+func (resolver *Resolver) Publish() {
+	resolver.GenerateDependencies()
 
 	for _, dependency := range resolver.Dependencies {
-		value := reflect.New(dependency.Type)
-		productionScope := resolver.DB.ProductionMode().NewScope(value.Interface())
+		value := reflect.New(dependency.Type).Elem()
+		productionScope := resolver.DB.ProductionMode().NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
-		productionPrimaryKey := productionScope.PrimaryKey()
+		primaryKey := productionScope.PrimaryKey()
 		draftTable := DraftTableName(productionTable)
 
 		var columns []string
@@ -130,26 +134,62 @@ func (resolver *Resolver) Publish() {
 			}
 		}
 
-		var insertColumns []string
+		var productionColumns []string
 		for _, column := range columns {
-			insertColumns = append(insertColumns, fmt.Sprintf("%v.%v", productionTable, column))
+			productionColumns = append(productionColumns, fmt.Sprintf("%v.%v", productionTable, column))
 		}
 
-		var selectColumns []string
+		var draftColumns []string
 		for _, column := range columns {
-			selectColumns = append(selectColumns, fmt.Sprintf("%v.%v", draftTable, column))
+			draftColumns = append(draftColumns, fmt.Sprintf("%v.%v", draftTable, column))
 		}
 
-		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (?);",
-			productionTable, productionTable, productionScope.PrimaryKey())
+		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (?)", productionTable, productionTable, primaryKey)
 		resolver.DB.DB.Exec(deleteSql, dependency.PrimaryKeys)
 
 		publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (?)",
-			productionTable, strings.Join(insertColumns, " ,"), strings.Join(selectColumns, " ,"),
-			draftTable, draftTable, productionPrimaryKey)
+			productionTable, strings.Join(productionColumns, " ,"), strings.Join(draftColumns, " ,"),
+			draftTable, draftTable, primaryKey)
 		resolver.DB.DB.Exec(publishSql, dependency.PrimaryKeys)
 
-		updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v.%v IN (?)", draftTable, draftTable, productionPrimaryKey)
+		updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v.%v IN (?)", draftTable, draftTable, primaryKey)
 		resolver.DB.DB.Exec(updateStateSql, PUBLISHED, dependency.PrimaryKeys)
+	}
+}
+
+func (resolver *Resolver) Discard() {
+	resolver.GenerateDependencies()
+
+	for _, dependency := range resolver.Dependencies {
+		value := reflect.New(dependency.Type).Elem()
+		productionScope := resolver.DB.ProductionMode().NewScope(value.Addr().Interface())
+		productionTable := productionScope.TableName()
+		primaryKey := productionScope.PrimaryKey()
+		draftTable := DraftTableName(productionTable)
+
+		var columns []string
+		for _, field := range productionScope.Fields() {
+			if field.IsNormal {
+				columns = append(columns, field.DBName)
+			}
+		}
+
+		var productionColumns []string
+		for _, column := range columns {
+			productionColumns = append(productionColumns, fmt.Sprintf("%v.%v", productionTable, column))
+		}
+
+		var draftColumns []string
+		for _, column := range columns {
+			draftColumns = append(draftColumns, fmt.Sprintf("%v.%v", draftTable, column))
+		}
+
+		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (?)", draftTable, draftTable, primaryKey)
+		resolver.DB.DB.Exec(deleteSql, dependency.PrimaryKeys)
+
+		discardSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (?)",
+			draftTable, strings.Join(draftColumns, " ,"), strings.Join(productionColumns, " ,"),
+			productionTable, productionTable, primaryKey)
+		resolver.DB.DB.Exec(discardSql, dependency.PrimaryKeys)
 	}
 }
