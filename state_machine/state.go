@@ -4,7 +4,7 @@ import "strings"
 
 type State struct {
 	State           string
-	StateChangeLogs []StateChangeLog
+	StateChangeLogs []StateChangeLog `sql:"-"`
 }
 
 func (state *State) SetState(name string) {
