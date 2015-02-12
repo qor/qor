@@ -23,7 +23,8 @@ func (ac *controller) Index(context *Context) {
 		responder.With("html", func() {
 			context.Execute("index", result)
 		}).With("json", func() {
-			js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context, result))
+			res := context.Resource
+			js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.IndexMetas()))
 			context.Writer.Write(js)
 		}).Respond(context.Writer, context.Request)
 	} else {
@@ -37,7 +38,8 @@ func (ac *controller) Show(context *Context) {
 	responder.With("html", func() {
 		context.Execute("show", result)
 	}).With("json", func() {
-		js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context, result))
+		res := context.Resource
+		js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.ShowMetas()))
 		context.Writer.Write(js)
 	}).Respond(context.Writer, context.Request)
 }
@@ -55,7 +57,8 @@ func (ac *controller) Create(context *Context) {
 			primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
 			http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
 		}).With("json", func() {
-			js, _ := json.Marshal(res.ConvertObjectToMap(context, result))
+			res := context.Resource
+			js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.ShowMetas()))
 			context.Writer.Write(js)
 		}).Respond(context.Writer, context.Request)
 	}
@@ -68,7 +71,8 @@ func (ac *controller) Update(context *Context) {
 			responder.With("html", func() {
 				http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 			}).With("json", func() {
-				js, _ := json.Marshal(context.Resource.ConvertObjectToMap(context, result))
+				res := context.Resource
+				js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.ShowMetas()))
 				context.Writer.Write(js)
 			}).Respond(context.Writer, context.Request)
 		}

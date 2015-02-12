@@ -34,8 +34,12 @@ func (res Resource) ToParam() string {
 	return utils.ToParamString(res.Name)
 }
 
-func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}) interface{} {
-	return resource.ConvertObjectToMap(context, value, res.GetMetas())
+func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}, metas []*Meta) interface{} {
+	var metaors []resource.Metaor
+	for _, meta := range metas {
+		metaors = append(metaors, meta)
+	}
+	return resource.ConvertObjectToMap(context, value, metaors)
 }
 
 func (res *Resource) Decode(contextor qor.Contextor, value interface{}) (errs []error) {
