@@ -14,6 +14,24 @@ type controller struct {
 	*Admin
 }
 
+func renderError(context *Context, err error) {
+	responder.With("html", func() {
+		context.Writer.WriteHeader(http.StatusNotAcceptable)
+		if _, er := context.Writer.Write([]byte(err.Error())); er != nil {
+			println("failed to write response", er.Error())
+		}
+	}).With("json", func() {
+		data, er := json.Marshal(map[string]string{"error": err.Error()})
+		if er != nil {
+			println("failed to marshal error json")
+		}
+		context.Writer.WriteHeader(http.StatusNotAcceptable)
+		if _, er := context.Writer.Write(data); er != nil {
+			println("failed to write reponse", er.Error())
+		}
+	}).Respond(context.Writer, context.Request)
+}
+
 func (ac *controller) Dashboard(context *Context) {
 	context.Execute("dashboard", nil)
 }
@@ -67,7 +85,10 @@ func (ac *controller) Create(context *Context) {
 func (ac *controller) Update(context *Context) {
 	if result, err := context.FindOne(); err == nil {
 		if errs := context.Resource.Decode(context, result); len(errs) == 0 {
-			context.Resource.CallSaver(result, context.Context)
+			if err := context.Resource.CallSaver(result, context.Context); err != nil {
+				renderError(context, err)
+				return
+			}
 			responder.With("html", func() {
 				http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 			}).With("json", func() {
@@ -76,6 +97,8 @@ func (ac *controller) Update(context *Context) {
 				context.Writer.Write(js)
 			}).Respond(context.Writer, context.Request)
 		}
+	} else {
+		renderError(context, err)
 	}
 }
 
