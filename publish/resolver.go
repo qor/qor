@@ -77,7 +77,7 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 				var err error
 
 				if relationship.Kind == "belongs_to" || relationship.Kind == "has_many" {
-					sql := fmt.Sprintf("%v IN (?) and publish_status = ?", gorm.ToSnake(relationship.ForeignKey))
+					sql := fmt.Sprintf("%v IN (?) and publish_status = ?", relationship.ForeignDBName)
 					rows, err = draftDB.Table(draftTable).Select(toScope.PrimaryKey()).Where(sql, primaryKeys, DIRTY).Rows()
 				} else if relationship.Kind == "has_one" {
 					fromTable := fromScope.TableName()
@@ -86,7 +86,7 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 					toPrimaryKey := toScope.PrimaryKey()
 
 					sql := fmt.Sprintf("%v.%v IN (select %v.%v from %v where %v.%v IN (?)) and %v.publish_status = ?",
-						toTable, toPrimaryKey, fromTable, relationship.ForeignKey, fromTable, fromTable, fromPrimaryKey, toTable)
+						toTable, toPrimaryKey, fromTable, relationship.ForeignDBName, fromTable, fromTable, fromPrimaryKey, toTable)
 
 					rows, err = draftDB.Table(draftTable).Select(toTable+"."+toPrimaryKey).Where(sql, primaryKeys, DIRTY).Rows()
 				} else if relationship.Kind == "many_to_many" {
