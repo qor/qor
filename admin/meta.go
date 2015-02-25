@@ -72,35 +72,44 @@ func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context)
 	return meta.Permission.HasPermission(mode, context.Roles...)
 }
 
+func getField(fields map[string]*gorm.Field, name string) (*gorm.Field, bool) {
+	for _, field := range fields {
+		if field.Name == name || field.DBName == name {
+			return field, true
+		}
+	}
+	return nil, false
+}
+
 func (meta *Meta) updateMeta() {
 	if meta.Name == "" {
 		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
+	} else if meta.Alias == "" {
+		meta.Alias = meta.Name
 	}
 
 	if meta.Label == "" {
 		meta.Label = utils.HumanizeString(meta.Name)
 	}
 
-	if meta.Alias == "" {
-		meta.Alias = meta.Name
-	}
-	meta.Alias = gorm.SnakeToUpperCamel(meta.Alias)
-
 	var (
-		base        = meta.base
-		scope       = &gorm.Scope{Value: base.Value}
+		scope       = &gorm.Scope{Value: meta.base.Value}
+		nestedField = strings.Contains(meta.Alias, ".")
 		field       *gorm.Field
 		hasColumn   bool
-		nestedField = strings.Contains(meta.Alias, ".")
 		valueType   string
 	)
+
 	if nestedField {
-		submodel, name := parseNestedField(reflect.ValueOf(base.Value), meta.Alias)
-		subscope := &gorm.Scope{Value: submodel.Interface()}
-		field, hasColumn = subscope.FieldByName(name)
+		subModel, name := parseNestedField(reflect.ValueOf(meta.base.Value), meta.Alias)
+		subScope := &gorm.Scope{Value: subModel.Interface()}
+		field, hasColumn = getField(subScope.Fields(), name)
 	} else {
-		field, hasColumn = scope.FieldByName(meta.Alias)
+		if field, hasColumn = getField(scope.Fields(), meta.Name); hasColumn {
+			meta.Alias = field.Name
+		}
 	}
+
 	if hasColumn {
 		valueType = field.Field.Type().Kind().String()
 	}
@@ -195,7 +204,7 @@ func (meta *Meta) updateMeta() {
 		} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
 			meta.GetCollection = f
 		} else {
-			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(base.Value))
+			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Value))
 		}
 	} else if meta.Type == "select_one" || meta.Type == "select_many" {
 		qor.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
