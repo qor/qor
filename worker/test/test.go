@@ -30,9 +30,9 @@ func main() {
 	web := admin.New(&config)
 	// web.UseResource(user)
 
-	if err := db.DropTable(&worker.QorJob{}).Error; err != nil {
-		panic(err)
-	}
+	// if err := db.DropTable(&worker.QorJob{}).Error; err != nil {
+	// 	panic(err)
+	// }
 	if err := db.AutoMigrate(&worker.QorJob{}).Error; err != nil {
 		panic(err)
 	}
@@ -44,7 +44,7 @@ func main() {
 
 	web.AddResource(publishWorker, nil)
 
-	job := publishWorker.NewJob(bq, "publish products", func(job *worker.QorJob) (err error) {
+	publish := publishWorker.NewJob(bq, "publish products", func(job *worker.QorJob) (err error) {
 		log, err := job.GetLogger()
 		if err != nil {
 			return
@@ -55,6 +55,7 @@ func main() {
 		time.Sleep(time.Minute * 5)
 		return
 	})
+	publish.Description = "publish products so users could purchase new items"
 
 	// job.Meta(&admin.Meta{
 	// 	Name: "File",
@@ -66,25 +67,22 @@ func main() {
 	// 		return
 	// 	},
 	// })
-	job.Meta(&admin.Meta{
-		Name: "Message",
-		Type: "string",
-		Valuer: func(interface{}, *qor.Context) interface{} {
-			return nil
-		},
-		Setter: func(resource interface{}, metaValues *resource.MetaValues, context *qor.Context) {
-			return
-		},
+	publish.Meta(&admin.Meta{
+		Name:   "Message",
+		Type:   "string",
+		Valuer: func(interface{}, *qor.Context) interface{} { return "" },
+		Setter: func(resource interface{}, metaValues *resource.MetaValues, context *qor.Context) { return },
 	})
 
-	publishWorker.NewJob(bq, "send mail magazines", nil)
+	mail := publishWorker.NewJob(bq, "send mail magazines", nil)
+	mail.Description = "send mail magazines to subscribed users"
 
 	// extraInput := admin.NewResource(&Language{})
 	// w.ExtraInput(extraInput)
 
 	// worker.Listen()
 
-	_ = job
+	// _ = job
 	// if _, err := job.NewQorJob(1, time.Now()); err != nil {
 	// 	panic(err)
 	// }

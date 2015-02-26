@@ -1,0 +1,16 @@
+<div class="row">
+	<h3>{{.Result.JobName}}</h3>
+
+	<div class="progress">
+	  <span class="meter" style="width:{{.Result.Progress}}%;">{{.Result.Progress}}%</span>
+	</div>
+
+	<ul class="button-group">
+	  <li><a href="#" class="button">Run Again</a></li>
+	  {{$job := .Result.GetJob}}
+	  {{if $job}}<li><a href="{{$job.URL}}" class="button">Run Another</a></li>{{end}}
+	</ul>
+
+	<label>Log Output</label>
+	<div class="panel">{{.Result.GetLog}}</div>
+</div>

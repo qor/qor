@@ -34,6 +34,7 @@ func (w *Worker) InjectQorAdmin(a *admin.Admin) {
 	param := utils.ToParamString(w.Name)
 	a.GetRouter().Get("/"+param+"/new", w.newJobPage)
 	a.GetRouter().Post("/"+param+"/new", w.createJob)
+	a.GetRouter().Get("/"+param+`/[\d]+`, w.showJob)
 	a.GetRouter().Get("/"+param, w.indexPage)
 }
 
@@ -50,7 +51,6 @@ func (w *Worker) indexPage(c *admin.Context) {
 }
 
 func (w *Worker) newJobPage(c *admin.Context) {
-	fmt.Printf("--> %+v\n", "newJobPage")
 	// var res *admin.Resource
 	jobName := c.Request.URL.Query().Get("job")
 	job, ok := w.Jobs[jobName]
@@ -84,11 +84,11 @@ func (w *Worker) createJob(c *admin.Context) {
 		panic(err)
 	}
 
-	interval, err := strconv.ParseUint(mvs.Get("Interval").Value.(string), 10, 64)
+	interval, err := strconv.ParseUint(mvs.Get("Interval").Value.([]string)[0], 10, 64)
 	if err != nil {
 		panic(err)
 	}
-	startAt, err := time.Parse("2006-01-02 15:04", mvs.Get("StartAt").Value.(string))
+	startAt, err := time.Parse("2006-01-02T15:04", mvs.Get("StartAt").Value.([]string)[0])
 	if err != nil {
 		panic(err)
 	}
@@ -98,12 +98,14 @@ func (w *Worker) createJob(c *admin.Context) {
 	}
 
 	// TODO: support custom JobCli
-	_, err = job.NewQorJob(interval, startAt, inputs)
+	qorjob, err := job.NewQorJob(interval, startAt, inputs)
 	if err != nil {
 		panic(err)
 	}
 
-	// fmt.Printf("--> %+v\n", mvs.Get("StartAt").Value)
+	// TODO: turn this into a method?
+	url := fmt.Sprintf("/%s/%s/%d", w.admin.GetRouter().Prefix, utils.ToParamString(w.Name), qorjob.Id)
+	http.Redirect(c.Writer, c.Request, url, http.StatusSeeOther)
 }
 
 func marshalMetaValues(mvs *resource.MetaValues) (string, error) {
@@ -117,4 +119,14 @@ func marshalMetaValues(mvs *resource.MetaValues) (string, error) {
 	}
 	r, err := json.Marshal(m)
 	return string(r), err
+}
+
+func (w *Worker) showJob(c *admin.Context) {
+	parts := strings.Split(c.Request.URL.Path, "/")
+	var job QorJob
+	if err := jobDB.Where("id = " + parts[len(parts)-1]).Find(&job).Error; err != nil {
+		panic(err)
+	}
+
+	c.Execute("job/show", &job)
 }

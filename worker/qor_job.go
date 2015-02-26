@@ -3,6 +3,7 @@ package worker
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
@@ -50,6 +51,8 @@ type QorJob struct {
 	UpdatedAt time.Time
 	CreatedAt time.Time
 	DeletedAt time.Time
+
+	Progress int
 
 	log *os.File
 }
@@ -126,11 +129,24 @@ var JobLoggerDir = "/tmp"
 // TODO: undone
 func (j *QorJob) GetLogger() (rw io.ReadWriter, err error) {
 	if j.log == nil {
-		path := fmt.Sprintf("%s/%s-%d.log", JobLoggerDir, j.WorkerName, j.JobName, j.Id)
+		path := fmt.Sprintf("%s/%s-%s-%d.log", JobLoggerDir, j.WorkerName, j.JobName, j.Id)
 		j.log, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	}
 	rw = j.log
 
+	return
+}
+
+func (j *QorJob) GetLog() (l string) {
+	log, err := j.GetLogger()
+	if err != nil {
+		return "failed to retrieve log: " + err.Error()
+	}
+	lbytes, err := ioutil.ReadAll(log)
+	if err != nil {
+		return "failed to retrieve log: " + err.Error()
+	}
+	l = string(lbytes)
 	return
 }
 
