@@ -45,7 +45,7 @@ type QorJob struct {
 	SuccessCounter uint64
 	KillCounter    uint64
 
-	ExtraInput []byte
+	ExtraInputs string `sql:"type:text;"` // Mysql: 64KB
 
 	UpdatedAt time.Time
 	CreatedAt time.Time
@@ -64,7 +64,7 @@ func (qj *QorJob) GetWorker() *Worker {
 
 func (qj *QorJob) GetJob() *Job {
 	if w, ok := workers[qj.WorkerName]; ok {
-		return w.jobs[qj.JobName]
+		return w.Jobs[qj.JobName]
 	}
 
 	// if j == nil {

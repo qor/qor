@@ -1,11 +1,15 @@
 package worker
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/resource"
@@ -23,7 +27,7 @@ func (w *Worker) InjectQorAdmin(a *admin.Admin) {
 	})
 
 	w.admin = a
-	for _, job := range w.jobs {
+	for _, job := range w.Jobs {
 		job.initResource()
 	}
 
@@ -31,34 +35,25 @@ func (w *Worker) InjectQorAdmin(a *admin.Admin) {
 	a.GetRouter().Get("/"+param+"/new", w.newJobPage)
 	a.GetRouter().Post("/"+param+"/new", w.createJob)
 	a.GetRouter().Get("/"+param, w.indexPage)
-	a.GetRouter().Get("/"+param+"/switch_worker", w.switchWorker)
-}
-
-func (w *Worker) AllJobs() (jobs []string) {
-	for k, _ := range w.jobs {
-		jobs = append(jobs, k)
-	}
-
-	return
 }
 
 func (w *Worker) indexPage(c *admin.Context) {
 	var qorJobs []QorJob
 	if err := jobDB.Where("worker_name = ?", w.Name).Order("id desc").Find(&qorJobs).Error; err != nil {
-		// c.Admin.RenderError(err, http.StatusInternalServerError, c)
-		return
+		panic(err)
 	}
 
 	c.Execute("job/index", struct {
-		Jobs    []string
+		*Worker
 		QorJobs []QorJob
-	}{Jobs: w.AllJobs(), QorJobs: qorJobs})
+	}{Worker: w, QorJobs: qorJobs})
 }
 
 func (w *Worker) newJobPage(c *admin.Context) {
+	fmt.Printf("--> %+v\n", "newJobPage")
 	// var res *admin.Resource
 	jobName := c.Request.URL.Query().Get("job")
-	job, ok := w.jobs[jobName]
+	job, ok := w.Jobs[jobName]
 	if !ok {
 		c.Writer.WriteHeader(http.StatusNotFound)
 		return
@@ -71,9 +66,10 @@ func (w *Worker) newJobPage(c *admin.Context) {
 	c.Execute("job/new", job)
 }
 
+// TODO: remove panics
 func (w *Worker) createJob(c *admin.Context) {
 	jobName := c.Request.URL.Query().Get("job")
-	job, ok := w.jobs[jobName]
+	job, ok := w.Jobs[jobName]
 	if !ok {
 		c.Writer.WriteHeader(http.StatusNotFound)
 		return
@@ -83,8 +79,26 @@ func (w *Worker) createJob(c *admin.Context) {
 	for _, m := range job.Resource.NewMetas() {
 		metaors = append(metaors, m)
 	}
-	c.Request.ParseForm()
 	mvs, err := resource.ConvertFormToMetaValues(c.Request, metaors, "QorResource.")
+	if err != nil {
+		panic(err)
+	}
+
+	interval, err := strconv.ParseUint(mvs.Get("Interval").Value.(string), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	startAt, err := time.Parse("2006-01-02 15:04", mvs.Get("StartAt").Value.(string))
+	if err != nil {
+		panic(err)
+	}
+	inputs, err := marshalMetaValues(mvs)
+	if err != nil {
+		panic(err)
+	}
+
+	// TODO: support custom JobCli
+	_, err = job.NewQorJob(interval, startAt, inputs)
 	if err != nil {
 		panic(err)
 	}
@@ -92,15 +106,15 @@ func (w *Worker) createJob(c *admin.Context) {
 	// fmt.Printf("--> %+v\n", mvs.Get("StartAt").Value)
 }
 
-func (w *Worker) switchWorker(c *admin.Context) {
-	// wname := c.Request.FormValue("name")
-	// w, ok := workers[wname]
-	// if !ok {
-	// 	c.Writer.WriteHeader(http.StatusBadRequest)
-	// 	c.Writer.Write([]byte("worker does not exist"))
-	// 	return
-	// }
+func marshalMetaValues(mvs *resource.MetaValues) (string, error) {
+	m := map[string]interface{}{}
+	for _, mv := range mvs.Values {
+		if mv.Name == "Interval" || mv.Name == "StartAt" {
+			continue
+		}
 
-	// content := admin.Content{Context: c, Admin: c.Admin, Resource: w.resource, Action: "new"}
-	// c.Admin.Render("worker", content, roles.Create)
+		m[mv.Name] = mv.Value
+	}
+	r, err := json.Marshal(m)
+	return string(r), err
 }

@@ -24,16 +24,8 @@ func init() {
 	flag.Uint64Var(&jobId, "job-id", 0, "qor job id")
 }
 
-// SetJobDB will run a auto migration for creating table jobs
-func SetJobDB(db *gorm.DB) (err error) {
-	err = db.AutoMigrate(&QorJob{}).Error
-	if err != nil {
-		return
-	}
-
+func SetJobDB(db *gorm.DB) {
 	jobDB = db
-
-	return
 }
 
 // Listen will parse an flag named as "job-id". If the job-id is zero, it
@@ -93,11 +85,11 @@ func Listen() {
 type Worker struct {
 	Name  string
 	admin *admin.Admin
-	jobs  map[string]*Job
+	Jobs  map[string]*Job
 }
 
 func New(name string) *Worker {
-	w := &Worker{Name: name, jobs: map[string]*Job{}}
+	w := &Worker{Name: name, Jobs: map[string]*Job{}}
 	workers[name] = w
 	return w
 }
@@ -114,7 +106,7 @@ func (w *Worker) NewJob(queuer Queuer, name string, handle func(job *QorJob) err
 		j.initResource()
 	}
 
-	w.jobs[j.Name] = j
+	w.Jobs[j.Name] = j
 	queuers[queuer.Name()] = queuer
 
 	return

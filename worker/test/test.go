@@ -30,9 +30,13 @@ func main() {
 	web := admin.New(&config)
 	// web.UseResource(user)
 
-	if err := worker.SetJobDB(&db); err != nil {
+	if err := db.DropTable(&worker.QorJob{}).Error; err != nil {
 		panic(err)
 	}
+	if err := db.AutoMigrate(&worker.QorJob{}).Error; err != nil {
+		panic(err)
+	}
+	worker.SetJobDB(&db)
 
 	bq := worker.NewBeanstalkdQueue("beanstalkd", "localhost:11300")
 	var counter int

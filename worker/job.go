@@ -128,24 +128,27 @@ func (j *Job) Kill(job *QorJob) (err error) {
 	return
 }
 
-func (j *Job) NewQorJob(interval uint64, startAt time.Time) (job *QorJob, err error) {
-	return j.NewQorJobWithCli(interval, startAt, DefaultJobCli)
+func (j *Job) NewQorJob(interval uint64, startAt time.Time, extraInputs string) (job *QorJob, err error) {
+	return j.NewQorJobWithCli(interval, startAt, extraInputs, DefaultJobCli)
 }
 
-func (j *Job) NewQorJobWithCli(interval uint64, startAt time.Time, cli string) (job *QorJob, err error) {
+func (j *Job) NewQorJobWithCli(interval uint64, startAt time.Time, extraInputs, cli string) (job *QorJob, err error) {
 	job = &QorJob{
-		Interval:   interval,
-		StartAt:    startAt,
-		JobName:    j.Name,
-		WorkerName: j.worker.Name,
-		Cli:        cli,
+		Interval:    interval,
+		StartAt:     startAt,
+		JobName:     j.Name,
+		WorkerName:  j.worker.Name,
+		Cli:         cli,
+		ExtraInputs: extraInputs,
 	}
 
 	if err = jobDB.Save(job).Error; err != nil {
 		return
 	}
 
-	err = j.Queuer.Enqueue(job)
+	if err = j.Queuer.Enqueue(job); err != nil {
+		return
+	}
 
 	if job.QueueJobId != "" {
 		if err = jobDB.Save(job).Error; err != nil {
