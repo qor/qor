@@ -138,14 +138,17 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 		includedMeta := map[string]bool{}
 		for _, meta := range res.Metas {
-			if _, ok := fields[meta.Name]; !ok {
-				includedMeta[meta.Alias] = true
-				attrs = append(attrs, meta.Name)
+			for _, field := range fields {
+				if field.Name == meta.Name || field.DBName == meta.Name {
+					includedMeta[meta.Alias] = true
+					attrs = append(attrs, meta.Name)
+					break
+				}
 			}
 		}
 
 		for _, field := range fields {
-			if _, ok := includedMeta[field.Name]; ok {
+			if _, ok := includedMeta[field.Name]; ok || field.IsForeignKey {
 				continue
 			}
 			attrs = append(attrs, field.Name)

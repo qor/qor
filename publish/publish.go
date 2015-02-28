@@ -84,11 +84,19 @@ func (db *DB) AutoMigrateDrafts() {
 }
 
 func (db *DB) ProductionMode() *gorm.DB {
-	return db.DB.Set("qor_publish:draft_mode", false)
+	gormdb := db.DB.FreshDB()
+	if models, ok := db.DB.Get("publish:support_models"); ok {
+		gormdb.InstantSet("publish:support_models", models)
+	}
+	return gormdb.Set("qor_publish:draft_mode", false)
 }
 
 func (db *DB) DraftMode() *gorm.DB {
-	return db.DB.Set("qor_publish:draft_mode", true)
+	gormdb := db.DB.FreshDB()
+	if models, ok := db.DB.Get("publish:support_models"); ok {
+		gormdb.InstantSet("publish:support_models", models)
+	}
+	return gormdb.Set("qor_publish:draft_mode", true)
 }
 
 func (db *DB) NewResolver(records ...interface{}) *Resolver {

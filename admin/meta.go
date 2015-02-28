@@ -116,7 +116,7 @@ func (meta *Meta) updateMeta() {
 	}
 
 	// Set Meta Type
-	if meta.Type == "" {
+	if meta.Type == "" && hasColumn {
 		if relationship := field.Relationship; relationship != nil {
 			if relationship.Kind == "belongs_to" || relationship.Kind == "has_one" {
 				meta.Type = "single_edit"
