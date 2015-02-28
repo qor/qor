@@ -94,12 +94,13 @@ func New(name string) *Worker {
 	return w
 }
 
-func (w *Worker) NewJob(queuer Queuer, name string, handle func(job *QorJob) error) (j *Job) {
+func (w *Worker) NewJob(queuer Queuer, name, desc string, handle func(job *QorJob) error) (j *Job) {
 	j = &Job{
-		Name:   name,
-		Handle: handle,
-		Queuer: queuer,
-		worker: w,
+		Name:        name,
+		Handle:      handle,
+		Queuer:      queuer,
+		Description: desc,
+		worker:      w,
 	}
 
 	if w.admin != nil {

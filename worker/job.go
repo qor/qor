@@ -3,10 +3,17 @@ package worker
 import (
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/jinzhu/gorm"
+	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
 )
 
@@ -47,7 +54,7 @@ func (j *Job) Run(job *QorJob) (err error) {
 		if err = j.OnStart(job); err != nil {
 			logger.Write([]byte("worker.onstart: " + err.Error() + "\n"))
 
-			if err = job.UpdateStatus(JobFailed); err != nil {
+			if err = job.UpdateStatus(StatusFailed); err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(1)
 			}
@@ -57,13 +64,13 @@ func (j *Job) Run(job *QorJob) (err error) {
 		}
 	}
 
-	if err = job.UpdateStatus(JobRunning); err != nil {
+	if err = job.UpdateStatus(StatusRunning); err != nil {
 		fmt.Fprintf(logger, "error: %s\n", err)
 		return
 	}
 
 	if err = j.Handle(job); err != nil {
-		if err = job.UpdateStatus(JobFailed); err != nil {
+		if err = job.UpdateStatus(StatusFailed); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -76,14 +83,14 @@ func (j *Job) Run(job *QorJob) (err error) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	} else if j.OnSuccess != nil {
-		if err = job.UpdateStatus(JobRun); err != nil {
+		if err = job.UpdateStatus(StatusDone); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
 
 		j.OnSuccess(job)
 	}
 
-	if err = job.UpdateStatus(JobRun); err != nil {
+	if err = job.UpdateStatus(StatusDone); err != nil {
 		fmt.Fprintf(logger, "error: %s\n", err)
 		os.Exit(1)
 	}
@@ -93,7 +100,7 @@ func (j *Job) Run(job *QorJob) (err error) {
 	return
 }
 
-var ErrJobRun = errors.New("job is already run")
+var ErrJobDone = errors.New("job is finished")
 
 func (j *Job) Kill(job *QorJob) (err error) {
 	if j.OnKill != nil {
@@ -103,9 +110,9 @@ func (j *Job) Kill(job *QorJob) (err error) {
 	}
 
 	switch job.Status {
-	case JobToRun:
+	case StatusToRun:
 		err = j.Queuer.Purge(job)
-	case JobRunning:
+	case StatusRunning:
 		if job.PID == 0 {
 			return errors.New("pid is zero")
 		}
@@ -117,35 +124,51 @@ func (j *Job) Kill(job *QorJob) (err error) {
 		}
 
 		err = process.Kill()
-	case JobRun:
-		return ErrJobRun
+	case StatusDone:
+		return ErrJobDone
 	}
 
 	if err == nil {
-		err = job.UpdateStatus(JobKilled)
+		err = job.UpdateStatus(StatusKilled)
 	}
 
 	return
 }
 
-func (j *Job) NewQorJob(interval uint64, startAt time.Time, extraInputs string) (job *QorJob, err error) {
-	return j.NewQorJobWithCli(interval, startAt, extraInputs, DefaultJobCli)
+// func (j *Job) NewQorJob(interval uint64, startAt time.Time, by string) (job *QorJob, err error) {
+// 	return j.NewQorJobWithCli(interval, startAt, by, DefaultJobCli)
+// }
+
+func (j *Job) NewQorJob(interval uint64, startAt time.Time, by, cli string) (job *QorJob) {
+	job = &QorJob{
+		Interval:   interval,
+		StartAt:    startAt,
+		JobName:    j.Name,
+		WorkerName: j.worker.Name,
+		Cli:        cli,
+		Status:     StatusToRun,
+		By:         by,
+		// ExtraInputs: extraInputs,
+	}
+
+	// if err = jobDB.Save(job).Error; err != nil {
+	// 	return
+	// }
+
+	// if err = j.Queuer.Enqueue(job); err != nil {
+	// 	return
+	// }
+
+	// if job.QueueJobId != "" {
+	// 	if err = jobDB.Save(job).Error; err != nil {
+	// 		return
+	// 	}
+	// }
+
+	return
 }
 
-func (j *Job) NewQorJobWithCli(interval uint64, startAt time.Time, extraInputs, cli string) (job *QorJob, err error) {
-	job = &QorJob{
-		Interval:    interval,
-		StartAt:     startAt,
-		JobName:     j.Name,
-		WorkerName:  j.worker.Name,
-		Cli:         cli,
-		ExtraInputs: extraInputs,
-	}
-
-	if err = jobDB.Save(job).Error; err != nil {
-		return
-	}
-
+func (j *Job) Enqueue(job *QorJob) (err error) {
 	if err = j.Queuer.Enqueue(job); err != nil {
 		return
 	}
@@ -164,6 +187,20 @@ func (j *Job) initResource() {
 	// qorjob.IndexAttrs("Id", "QueueJobId", "Interval", "StartAt", "Cli", "WorkerName", "Status", "PID", "RunCounter", "FailCounter", "SuccessCounter", "KillCounter")
 	qorjob.NewAttrs("Interval", "StartAt")
 
+	scopes := map[string]string{
+		"running": StatusRunning,
+		"done":    StatusDone,
+		"failed":  StatusFailed,
+	}
+	for n, s := range scopes {
+		qorjob.Scope(&admin.Scope{
+			Name: n,
+			Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {
+				return db.Where("status = ?", s)
+			},
+		})
+	}
+
 	// qorjob.Meta(&admin.Meta{Name: "WorkerName", Type: "select_one", Collection: func(interface{}, *qor.Context) [][]string {
 	// 	var keys [][]string
 	// 	for k, _ := range w.jobs {
@@ -176,8 +213,71 @@ func (j *Job) initResource() {
 }
 
 func (j *Job) Meta(meta *admin.Meta) {
+	if meta.Valuer == nil {
+		meta.Valuer = func(val interface{}, ctx *qor.Context) interface{} {
+			ev := val.(*QorJob).ExtraValue
+			if ev == nil {
+				return ""
+			}
+			return (*ev)[meta.Name]
+		}
+	}
+	if meta.Setter == nil {
+		meta.Setter = func(val interface{}, metaValues *resource.MetaValues, ctx *qor.Context) {
+			mv := metaValues.Get(meta.Name)
+			if mv == nil {
+				return
+			}
+			q, ok := val.(*QorJob)
+			if !ok {
+				return
+			}
+
+			if meta.Type != "file" {
+				val, ok := mv.Value.([]string)
+				if !ok || len(val) == 0 {
+					return
+				}
+
+				if q.ExtraValue == nil {
+					q.ExtraValue = &ExtraInput{}
+				}
+				ev := *(q.ExtraValue)
+				ev[mv.Name] = val[0]
+				return
+			}
+
+			headers, ok := mv.Value.([]*multipart.FileHeader)
+			if !ok || len(headers) == 0 {
+				return
+			}
+			h := headers[0]
+			name := fmt.Sprintf("%s-%d-%s", strings.Replace(j.Name, "/", "-", -1), time.Now().UnixNano(), h.Filename)
+			path := filepath.Join(WorkerDataPath, name)
+			dst, err := os.Create(path)
+			if err != nil {
+				fmt.Printf("worker: os.Create(%s): %s\n", path, err)
+				return
+			}
+			src, err := h.Open()
+			if err != nil {
+				fmt.Println("worker: h.Open():", err)
+				return
+			}
+			if _, err := io.Copy(dst, src); err != nil {
+				fmt.Println("worker: io.Copy(dst, src):", err)
+				return
+			}
+			if q.ExtraFile == nil {
+				q.ExtraFile = &ExtraInput{}
+			}
+			ef := *(q.ExtraFile)
+			ef[mv.Name] = name
+		}
+	}
 	j.Resource.Meta(meta)
 	j.metas = append(j.metas, meta)
+
 	attrs := []string{"Interval", "StartAt"}
 	for _, meta := range j.metas {
 		attrs = append(attrs, meta.GetName())

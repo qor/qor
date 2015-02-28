@@ -21,12 +21,13 @@ import (
 )
 
 type Meta struct {
-	base          *Resource
-	Name          string
-	Alias         string
-	Label         string
-	Type          string
-	Valuer        func(interface{}, *qor.Context) interface{}
+	base   *Resource
+	Name   string
+	Alias  string
+	Label  string
+	Type   string
+	Valuer func(interface{}, *qor.Context) interface{}
+	// TODO: should allow Setter to return error, at least have a place to register
 	Setter        func(resource interface{}, metaValues *resource.MetaValues, context *qor.Context)
 	Metas         []resource.Metaor
 	Resource      resource.Resourcer

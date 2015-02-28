@@ -10,7 +10,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/worker"
 )
 
@@ -22,7 +21,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	db.LogMode(false)
+	db.LogMode(true)
 }
 
 func main() {
@@ -44,7 +43,7 @@ func main() {
 
 	web.AddResource(publishWorker, nil)
 
-	publish := publishWorker.NewJob(bq, "publish products", func(job *worker.QorJob) (err error) {
+	publish := publishWorker.NewJob(bq, "publish products", "publish products so users could purchase new items", func(job *worker.QorJob) (err error) {
 		log, err := job.GetLogger()
 		if err != nil {
 			return
@@ -55,7 +54,6 @@ func main() {
 		time.Sleep(time.Minute * 5)
 		return
 	})
-	publish.Description = "publish products so users could purchase new items"
 
 	// job.Meta(&admin.Meta{
 	// 	Name: "File",
@@ -68,14 +66,15 @@ func main() {
 	// 	},
 	// })
 	publish.Meta(&admin.Meta{
-		Name:   "Message",
-		Type:   "string",
-		Valuer: func(interface{}, *qor.Context) interface{} { return "" },
-		Setter: func(resource interface{}, metaValues *resource.MetaValues, context *qor.Context) { return },
+		Name: "Message",
+		Type: "string",
+	})
+	publish.Meta(&admin.Meta{
+		Name: "File",
+		Type: "file",
 	})
 
-	mail := publishWorker.NewJob(bq, "send mail magazines", nil)
-	mail.Description = "send mail magazines to subscribed users"
+	publishWorker.NewJob(bq, "send mail magazines", "send mail magazines to subscribed users", nil)
 
 	// extraInput := admin.NewResource(&Language{})
 	// w.ExtraInput(extraInput)

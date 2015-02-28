@@ -1,18 +1,14 @@
 package worker
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"path"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
 )
 
@@ -39,19 +35,22 @@ func (w *Worker) InjectQorAdmin(a *admin.Admin) {
 }
 
 func (w *Worker) indexPage(c *admin.Context) {
-	var qorJobs []QorJob
-	if err := jobDB.Where("worker_name = ?", w.Name).Order("id desc").Find(&qorJobs).Error; err != nil {
+	var resource *admin.Resource
+	for _, j := range w.Jobs {
+		resource = j.Resource
+	}
+	qorJobs, err := c.SetResource(resource).FindAll()
+	if err != nil {
 		panic(err)
 	}
 
 	c.Execute("job/index", struct {
 		*Worker
-		QorJobs []QorJob
+		QorJobs interface{}
 	}{Worker: w, QorJobs: qorJobs})
 }
 
 func (w *Worker) newJobPage(c *admin.Context) {
-	// var res *admin.Resource
 	jobName := c.Request.URL.Query().Get("job")
 	job, ok := w.Jobs[jobName]
 	if !ok {
@@ -60,9 +59,6 @@ func (w *Worker) newJobPage(c *admin.Context) {
 	}
 
 	c.SetResource(job.Resource)
-
-	// content := admin.Content{Context: c, Admin: c.Admin, Resource: res, Action: "new"}
-	// c.Admin.Render("new", content, roles.Create)
 	c.Execute("job/new", job)
 }
 
@@ -75,50 +71,21 @@ func (w *Worker) createJob(c *admin.Context) {
 		return
 	}
 
-	var metaors []resource.Metaor
-	for _, m := range job.Resource.NewMetas() {
-		metaors = append(metaors, m)
+	// TODO: get current user
+	qorJob := job.NewQorJob(0, time.Time{}, "tbd", DefaultJobCli)
+	if errs := job.Resource.Decode(c, qorJob); len(errs) > 0 {
+		panic(errs)
 	}
-	mvs, err := resource.ConvertFormToMetaValues(c.Request, metaors, "QorResource.")
-	if err != nil {
+
+	if err := jobDB.Save(qorJob).Error; err != nil {
 		panic(err)
 	}
 
-	interval, err := strconv.ParseUint(mvs.Get("Interval").Value.([]string)[0], 10, 64)
-	if err != nil {
-		panic(err)
-	}
-	startAt, err := time.Parse("2006-01-02T15:04", mvs.Get("StartAt").Value.([]string)[0])
-	if err != nil {
-		panic(err)
-	}
-	inputs, err := marshalMetaValues(mvs)
-	if err != nil {
+	if err := job.Enqueue(qorJob); err != nil {
 		panic(err)
 	}
 
-	// TODO: support custom JobCli
-	qorjob, err := job.NewQorJob(interval, startAt, inputs)
-	if err != nil {
-		panic(err)
-	}
-
-	// TODO: turn this into a method?
-	url := fmt.Sprintf("/%s/%s/%d", w.admin.GetRouter().Prefix, utils.ToParamString(w.Name), qorjob.Id)
-	http.Redirect(c.Writer, c.Request, url, http.StatusSeeOther)
-}
-
-func marshalMetaValues(mvs *resource.MetaValues) (string, error) {
-	m := map[string]interface{}{}
-	for _, mv := range mvs.Values {
-		if mv.Name == "Interval" || mv.Name == "StartAt" {
-			continue
-		}
-
-		m[mv.Name] = mv.Value
-	}
-	r, err := json.Marshal(m)
-	return string(r), err
+	http.Redirect(c.Writer, c.Request, qorJob.URL(), http.StatusSeeOther)
 }
 
 func (w *Worker) showJob(c *admin.Context) {

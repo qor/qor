@@ -1,25 +1,32 @@
 package worker
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/qor/qor/utils"
 )
+
+var WorkerDataPath = "worker_data"
 
 // type JobStatus string
 
 const (
 	// Job statuses
-	JobToRun   = "torun"
-	JobRunning = "running"
-	JobFailed  = "failed"
-	JobKilled  = "killed"
-	JobRun     = "done"
+	StatusToRun   = "Pending"
+	StatusRunning = "Running"
+	StatusFailed  = "Failed"
+	StatusKilled  = "Killed"
+	StatusDone    = "Done"
 )
 
 type QorJob struct {
@@ -46,7 +53,8 @@ type QorJob struct {
 	SuccessCounter uint64
 	KillCounter    uint64
 
-	ExtraInputs string `sql:"type:text;"` // Mysql: 64KB
+	ExtraValue *ExtraInput `sql:"type:text;"` // Mysql: 64KB
+	ExtraFile  *ExtraInput `sql:"type:text;"` // Mysql: 64KB
 
 	UpdatedAt time.Time
 	CreatedAt time.Time
@@ -55,6 +63,28 @@ type QorJob struct {
 	Progress int
 
 	log *os.File
+}
+
+type ExtraInput map[string]string
+
+func (ei *ExtraInput) Scan(src interface{}) error {
+	if ei == nil {
+		ei = &ExtraInput{}
+	}
+
+	return json.Unmarshal(src.([]byte), ei)
+}
+
+func (ei *ExtraInput) Value() (driver.Value, error) {
+	if ei == nil {
+		return []byte{}, nil
+	}
+
+	return json.Marshal(ei)
+}
+
+func (ei ExtraInput) Open(name string) (f *os.File, err error) {
+	return os.Open(filepath.Join(WorkerDataPath, name))
 }
 
 func (qj *QorJob) GetWorker() *Worker {
@@ -102,13 +132,13 @@ func (j *QorJob) UpdateStatus(status string) (err error) {
 	old := j.Status
 	j.Status = status
 	switch status {
-	case JobRunning:
+	case StatusRunning:
 		j.RunCounter++
-	case JobFailed:
+	case StatusFailed:
 		j.FailCounter++
-	case JobRun:
+	case StatusDone:
 		j.SuccessCounter++
-	case JobKilled:
+	case StatusKilled:
 		j.KillCounter++
 	}
 
@@ -124,12 +154,10 @@ func (j *QorJob) UpdateStatus(status string) (err error) {
 	return
 }
 
-var JobLoggerDir = "/tmp"
-
 // TODO: undone
 func (j *QorJob) GetLogger() (rw io.ReadWriter, err error) {
 	if j.log == nil {
-		path := fmt.Sprintf("%s/%s-%s-%d.log", JobLoggerDir, j.WorkerName, j.JobName, j.Id)
+		path := fmt.Sprintf("%s/%s-%s-%d.log", WorkerDataPath, j.WorkerName, j.JobName, j.Id)
 		j.log, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	}
 	rw = j.log
@@ -162,6 +190,14 @@ func (j *QorJob) SavePID() (err error) {
 	}
 
 	return
+}
+
+func (q *QorJob) URL() string {
+	w := q.GetWorker()
+	if w == nil {
+		return ""
+	}
+	return fmt.Sprintf("%s/%s/%d", w.admin.GetRouter().Prefix, utils.ToParamString(w.Name), q.Id)
 }
 
 func (j *QorJob) Stop() (err error) { return }

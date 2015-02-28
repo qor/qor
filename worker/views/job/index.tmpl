@@ -13,7 +13,7 @@
 <div class="row">
 	<li><a href="?scopes=running">Running</a></li>
 	<li><a href="?scopes=done">Done</a></li>
-	<li><a href="?scopes=exception">Exception</a></li>
+	<li><a href="?scopes=failed">Failed</a></li>
 </div>
 
 <div class="row">
@@ -38,9 +38,10 @@
 		</thead>
 		<tbody>
 			{{range .Result.QorJobs}}
+				{{$job := .GetJob}}
 				<tr>
-					<td>{{.Id}}</td>
-					<td>{{.GetJob.Description}}</td>
+					<td><a href="{{.URL}}">{{.Id}}</a></td>
+					<td>{{with $job}}{{.Description}}{{end}}</td>
 					<td>{{.Status}}</td>
 					<td>{{.By}}</td>
 					<td>{{.UpdatedAt}}</td>
