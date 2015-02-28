@@ -3,3 +3,4 @@ gin-bin
 .DS_Store
 tmp/
 /example/public/
+worker_data
