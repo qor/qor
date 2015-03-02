@@ -79,7 +79,7 @@ func main() {
 	// extraInput := admin.NewResource(&Language{})
 	// w.ExtraInput(extraInput)
 
-	// worker.Listen()
+	worker.Listen()
 
 	// _ = job
 	// if _, err := job.NewQorJob(1, time.Now()); err != nil {
