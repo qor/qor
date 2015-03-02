@@ -1,16 +1,18 @@
 <div class="row">
-	<h3>{{.Result.JobName}}</h3>
+  <h3>{{.Result.JobName}}</h3>
 
-	<div class="progress">
-	  <span class="meter" style="width:{{.Result.Progress}}%;">{{.Result.Progress}}%</span>
-	</div>
+  <div class="progress">
+    <span class="meter" style="width:{{.Result.Progress}}%;">{{.Result.Progress}}%</span>
+  </div>
 
-	<ul class="button-group">
-	  <li><a href="#" class="button">Run Again</a></li>
-	  {{$job := .Result.GetJob}}
-	  {{if $job}}<li><a href="{{$job.URL}}" class="button">Run Another</a></li>{{end}}
-	</ul>
+  <ul class="button-group">
+    <li><a class="button" href="">Kill</a></li>
+    <li><a class="button" href="{{.Result.URL}}/stop">Stop</a></li>
+    <li><a class="button" href="#">Run Again</a></li>
+    {{$job := .Result.GetJob}}
+    {{if $job}}<li><a href="{{$job.URL}}" class="button">Run Another</a></li>{{end}}
+  </ul>
 
-	<label>Log Output</label>
-	<div class="panel"><pre>{{.Result.GetLog}}</pre></div>
+  <label>Log Output</label>
+  <div class="panel"><pre>{{.Result.GetLog}}</pre></div>
 </div>
