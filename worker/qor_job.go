@@ -157,22 +157,25 @@ func (j *QorJob) UpdateStatus(status string) (err error) {
 // TODO: undone
 func (j *QorJob) GetLogger() (rw io.ReadWriter, err error) {
 	if j.log == nil {
-		path := fmt.Sprintf("%s/%s-%s-%d.log", WorkerDataPath, j.WorkerName, j.JobName, j.Id)
-		j.log, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		j.log, err = os.OpenFile(j.LogPath(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	}
 	rw = j.log
 
 	return
 }
 
+func (qj *QorJob) LogPath() string {
+	return fmt.Sprintf("%s/%s-%s-%d.log", WorkerDataPath, qj.WorkerName, qj.JobName, qj.Id)
+}
+
 func (j *QorJob) GetLog() (l string) {
-	log, err := j.GetLogger()
+	log, err := os.Open(j.LogPath())
 	if err != nil {
 		return "failed to retrieve log: " + err.Error()
 	}
 	lbytes, err := ioutil.ReadAll(log)
 	if err != nil {
-		return "failed to retrieve log: " + err.Error()
+		return "failed to read log: " + err.Error()
 	}
 	l = string(lbytes)
 	return
