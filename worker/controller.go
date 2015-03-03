@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -30,7 +31,8 @@ func (w *Worker) InjectQorAdmin(a *admin.Admin) {
 	param := utils.ToParamString(w.Name)
 	a.GetRouter().Get("/"+param+"/new", w.newJobPage)
 	a.GetRouter().Post("/"+param+"/new", w.createJob)
-	a.GetRouter().Get("/"+param+`/[\d]+`, w.showJob)
+	a.GetRouter().Get("/"+param+`/[\d]+$`, w.showJob)
+	a.GetRouter().Post("/"+param+`/[\d]+/stop`, w.stopJob)
 	a.GetRouter().Get("/"+param, w.indexPage)
 }
 
@@ -96,4 +98,25 @@ func (w *Worker) showJob(c *admin.Context) {
 	}
 
 	c.Execute("job/show", &job)
+}
+
+func (w *Worker) stopJob(c *admin.Context) {
+	parts := strings.Split(c.Request.URL.Path, "/")
+	var qj QorJob
+	if err := jobDB.Where("id = ?", parts[len(parts)-2]).First(&qj).Error; err != nil {
+		panic(err)
+	}
+	qj.Stopped = true
+	if err := jobDB.Save(&qj).Error; err != nil {
+		panic(err)
+	}
+	if job := qj.GetJob(); job != nil {
+		if err := job.Queuer.Purge(&qj); err != nil {
+			panic(err)
+		}
+	} else {
+		panic(fmt.Errorf("job %q not exist", qj.JobName))
+	}
+
+	http.Redirect(c.Writer, c.Request, strings.Replace(c.Request.URL.Path, "/stop", "", 1), http.StatusSeeOther)
 }

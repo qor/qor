@@ -48,7 +48,7 @@ func (j *Job) Run(job *QorJob) (err error) {
 		return
 	}
 
-	fmt.Fprintf(logger, "run job (%d) with pid (%d)\n", job.Id, job.PID)
+	fmt.Fprintf(logger, "Start Job (%d) at %s\n", job.PID, time.Now())
 
 	if j.OnStart != nil {
 		if err = j.OnStart(job); err != nil {
@@ -95,7 +95,7 @@ func (j *Job) Run(job *QorJob) (err error) {
 		os.Exit(1)
 	}
 
-	fmt.Fprintf(logger, "finish job (%d) with pid (%d)\n", job.Id, job.PID)
+	fmt.Fprintf(logger, "Finish job (%d) at %s\n", job.PID, time.Now())
 
 	return
 }

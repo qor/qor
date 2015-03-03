@@ -36,9 +36,10 @@ type QorJob struct {
 	// unit: minute
 	// 0 to run job only once
 	Interval uint64
-
 	// zero time value to execute job immediately
 	StartAt time.Time
+
+	Stopped bool
 
 	Cli        string
 	WorkerName string
@@ -112,7 +113,11 @@ func RunJob(jobId uint64) {
 	if err := jobDB.Find(job, jobId).Error; err != nil {
 		fmt.Printf("job (%d) do not existed\n", jobId)
 	} else {
-		job.Run()
+		if job.Stopped {
+			fmt.Println("can't run stopped job")
+		} else {
+			job.Run()
+		}
 	}
 }
 
@@ -131,18 +136,23 @@ func (j *QorJob) Run() (err error) {
 func (j *QorJob) UpdateStatus(status string) (err error) {
 	old := j.Status
 	j.Status = status
+	sql := fmt.Sprintf("update qor_jobs set status = %q and ", j.Status)
 	switch status {
 	case StatusRunning:
 		j.RunCounter++
+		sql += "run_counter = run_counter+1"
 	case StatusFailed:
 		j.FailCounter++
+		sql += "fail_counter = fail_counter+1"
 	case StatusDone:
 		j.SuccessCounter++
+		sql += "success_counter = success_counter+1"
 	case StatusKilled:
 		j.KillCounter++
+		sql += "kill_counter = kill_counter+1"
 	}
 
-	if err = jobDB.Save(j).Error; err != nil {
+	if err = jobDB.Where("id = ?", j.Id).Exec(sql).Error; err != nil {
 		logger, erro := j.GetLogger()
 		if erro == nil {
 			fmt.Fprintf(logger, "can't update status from %s to %s: %s\n", old, j.Status, err)
