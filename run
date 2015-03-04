@@ -1,9 +1,0 @@
-command -v gin >/dev/null;
-
-if [ $? -eq 1 ]; then
-  echo "installing gin..."
-  echo "go get -u github.com/codegangsta/gin"
-  go get -u github.com/codegangsta/gin
-fi
-
-cd example; gin -a 8080 -t '..'

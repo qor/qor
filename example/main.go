@@ -58,10 +58,10 @@ func main() {
 	// web.AddResource(&Role{}, nil)
 	web.AddResource(&Language{}, &admin.Config{Menu: []string{"Resources"}})
 
-	fmt.Println("listening on :8080")
+	fmt.Println("listening on :9000")
 
 	mux := http.NewServeMux()
 	web.MountTo("/admin", mux)
 	mux.Handle("/system/", http.FileServer(http.Dir("public")))
-	http.ListenAndServe(":8080", mux)
+	http.ListenAndServe(":9000", mux)
 }
