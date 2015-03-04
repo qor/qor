@@ -62,7 +62,6 @@ func (sm *StateMachine) New(name string) *Event {
 func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
 	if state := sm.states[name]; state != nil {
 		newTx := tx.New()
-		scope := &gorm.Scope{Value: value}
 		for _, before := range state.befores {
 			if err := before(value, newTx); err != nil {
 				return err
@@ -92,9 +91,9 @@ func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
 			}
 		}
 
-		tableName := scope.TableName()
+		scope := newTx.NewScope(value)
 		primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
-		log := StateChangeLog{ReferTable: tableName, ReferId: primaryKey, State: name}
+		log := StateChangeLog{ReferTable: scope.TableName(), ReferId: primaryKey, State: name}
 		return newTx.Save(&log).Error
 	} else {
 		return errors.New("state not found")
