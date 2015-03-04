@@ -5,6 +5,8 @@ type Queuer interface {
 	Name() string
 	// Enqueue pushes a job to a queue, also a Queuer could set a id value (string)
 	// in QorJob's QueueJobId if needed
+	// Interval
+	// StartAt
 	Enqueue(job *QorJob) (err error)
 	// Purge removes a job from a queue
 	Purge(job *QorJob) (err error)
