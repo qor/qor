@@ -1,4 +1,6 @@
 $(function() {
+  'use strict';
+
   var $editors = $('.redactor-editor');
   $editors.each(function() {
     $(this).redactor({
@@ -16,22 +18,21 @@ $(function() {
       console.log($image.cropper('getData', true))
     },
     multiple: true,
-    zoomable: false,
+    zoomable: false
   });
 
   if (window.URL) {
     var $inputImage = $("input.image-cropper-upload"),
-      blobURL;
+        blobURL;
 
-    $inputImage.change(function () {
-      var files = this.files,
-      file;
+    $inputImage.on('change', function () {
+      var files = this.files, file;
 
       if (files && files.length) {
         file = files[0];
 
         if (/^image\/\w+$/.test(file.type)) {
-          if (blobURL) {
+          if (blobURL) { // also can be done with FileReader
             URL.revokeObjectURL(blobURL); // Revoke the old one
           }
 
@@ -42,4 +43,5 @@ $(function() {
       }
     });
   }
+
 });
