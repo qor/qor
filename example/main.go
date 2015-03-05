@@ -28,9 +28,9 @@ func main() {
 	creditCard.Meta(&admin.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
 	user := web.AddResource(&User{}, &admin.Config{Menu: []string{"Resources"}})
-	user.IndexAttrs("fullname", "gender")
 	user.Meta(&admin.Meta{Name: "CreditCard", Resource: creditCard})
 	user.Meta(&admin.Meta{Name: "fullname", Alias: "name"})
+	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor"})
 	user.Meta(&admin.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
 	user.Meta(&admin.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
@@ -54,14 +54,12 @@ func main() {
 		},
 	})
 
-	// web.UseResource(user)
-	// web.AddResource(&Role{}, nil)
 	web.AddResource(&Language{}, &admin.Config{Menu: []string{"Resources"}})
-
-	fmt.Println("listening on :9000")
 
 	mux := http.NewServeMux()
 	web.MountTo("/admin", mux)
 	mux.Handle("/system/", http.FileServer(http.Dir("public")))
+
+	fmt.Println("listening on :9000")
 	http.ListenAndServe(":9000", mux)
 }

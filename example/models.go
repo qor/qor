@@ -32,6 +32,7 @@ type User struct {
 	Id           int64
 	Name         string
 	Gender       string
+	Description  string
 	File         media_library.FileSystem
 	RoleId       int64
 	Languages    []Language `gorm:"many2many:user_languages;"`
