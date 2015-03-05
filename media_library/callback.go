@@ -3,6 +3,7 @@ package media_library
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"mime/multipart"
 
 	"github.com/disintegration/imaging"
@@ -37,6 +38,10 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 						defer file.Close()
 					}
 
+					fmt.Println("------------")
+					fmt.Println(media.GetCropOption())
+					fmt.Println(media.IsImage())
+					fmt.Println(media.URL())
 					if media.IsImage() {
 						// Save Original Image
 						if scope.Err(media.Store(media.URL("original"), option, file)) == nil {

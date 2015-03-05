@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"text/template"
 	"time"
@@ -32,6 +33,10 @@ type Base struct {
 }
 
 func (b *Base) Scan(value interface{}) error {
+	fmt.Println("-------------------hello")
+	fmt.Println(b.Url)
+	fmt.Println(value)
+	fmt.Println(reflect.ValueOf(value).Type())
 	switch v := value.(type) {
 	case []*multipart.FileHeader:
 		if len(v) > 0 {
@@ -41,18 +46,19 @@ func (b *Base) Scan(value interface{}) error {
 	case []uint8:
 		b.Url, b.Valid = string(v), true
 	case string:
-		if strings.HasPrefix(v, "{") && strings.HasSuffix(v, "}") {
-			var cropOption struct{ x, y, width, height int }
-			if err := json.Unmarshal([]byte(v), &cropOption); err == nil {
+		b.Url, b.Valid = v, true
+	case []string:
+		str := v[0]
+		if strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}") {
+			var cropOption struct{ X, Y, Width, Height int }
+			if err := json.Unmarshal([]byte(str), &cropOption); err == nil {
 				b.SetCropOption(image.Rectangle{
-					Min: image.Point{X: cropOption.x, Y: cropOption.y},
-					Max: image.Point{X: cropOption.x + cropOption.width, Y: cropOption.y + cropOption.height},
+					Min: image.Point{X: cropOption.X, Y: cropOption.Y},
+					Max: image.Point{X: cropOption.X + cropOption.Width, Y: cropOption.Y + cropOption.Height},
 				})
 			} else {
 				return err
 			}
-		} else {
-			b.Url, b.Valid = v, true
 		}
 	default:
 		fmt.Errorf("unsupported driver -> Scan pair for MediaLibrary")

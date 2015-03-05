@@ -12,7 +12,8 @@ $(function() {
 
   $image.cropper({
     done: function(data) {
-      console.log(data)
+      $(".image-cropper-crop-option").val(JSON.stringify($image.cropper('getData', true)))
+      console.log($image.cropper('getData', true))
     },
     multiple: true,
     zoomable: false,
