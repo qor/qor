@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/admin"
 	"github.com/qor/qor/media_library"
 )
 
@@ -51,11 +52,7 @@ func init() {
 	}
 
 	db.LogMode(true)
-	db.AutoMigrate(&User{})
-	db.AutoMigrate(&CreditCard{})
-	db.AutoMigrate(&Address{})
-	db.AutoMigrate(&Role{})
-	db.AutoMigrate(&Language{})
+	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &admin.AssetManager{})
 
 	db.FirstOrCreate(&Role{}, Role{Name: "admin"})
 	db.FirstOrCreate(&Role{}, Role{Name: "dev"})
