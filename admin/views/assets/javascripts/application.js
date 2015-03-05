@@ -12,10 +12,16 @@ $(function() {
   // crop images
   var $image = $(".image-cropper");
 
+  var $optionInput = $(".image-cropper-crop-option");
+  
+  if (!$optionInput.length) {
+    $optionInput = $('<input name="QorResource.File" type="hidden">');
+    $('#QorResourceFile').after($optionInput);
+  }
+
   $image.cropper({
     done: function(data) {
-      $(".image-cropper-crop-option").val(JSON.stringify($image.cropper('getData', true)))
-      console.log($image.cropper('getData', true))
+      $optionInput.val(JSON.stringify($image.cropper('getData', true)));
     },
     multiple: true,
     zoomable: false
