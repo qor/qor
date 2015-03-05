@@ -79,12 +79,12 @@ func (db *PublishController) Publish(context *admin.Context) {
 	http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 }
 
-func (db *DB) InjectQorAdmin(web *admin.Admin) {
+func (db *DB) InjectQorAdmin(res *admin.Resource) {
 	controller := PublishController{db}
-	router := web.GetRouter()
-	router.Get("^/publish/diff/", controller.Diff)
-	router.Get("^/publish", controller.Preview)
-	router.Post("^/publish", controller.Publish)
+	router := res.GetAdmin().GetRouter()
+	router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
+	router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Preview)
+	router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.Publish)
 
 	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))

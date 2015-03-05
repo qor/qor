@@ -10,30 +10,29 @@ import (
 	"time"
 
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/utils"
 )
 
 var viewInject sync.Once
 
 // TODO: UNDONE
-func (w *Worker) InjectQorAdmin(a *admin.Admin) {
+func (w *Worker) InjectQorAdmin(res *admin.Resource) {
 	viewInject.Do(func() {
 		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/worker/views"))
 		}
 	})
 
-	w.admin = a
+	w.admin = res.GetAdmin()
 	for _, job := range w.Jobs {
 		job.initResource()
 	}
 
-	param := utils.ToParamString(w.Name)
-	a.GetRouter().Get("/"+param+"/new", w.newJobPage)
-	a.GetRouter().Post("/"+param+"/new", w.createJob)
-	a.GetRouter().Get("/"+param+`/[\d]+$`, w.showJob)
-	a.GetRouter().Post("/"+param+`/[\d]+/stop`, w.stopJob)
-	a.GetRouter().Get("/"+param, w.indexPage)
+	router := res.GetAdmin().GetRouter()
+	router.Get("/"+res.ToParam()+"/new", w.newJobPage)
+	router.Post("/"+res.ToParam()+"/new", w.createJob)
+	router.Get("/"+res.ToParam()+`/[\d]+$`, w.showJob)
+	router.Post("/"+res.ToParam()+`/[\d]+/stop`, w.stopJob)
+	router.Get("/"+res.ToParam(), w.indexPage)
 }
 
 func (w *Worker) indexPage(c *admin.Context) {

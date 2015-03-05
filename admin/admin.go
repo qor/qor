@@ -18,7 +18,7 @@ type Admin struct {
 }
 
 type Injector interface {
-	InjectQorAdmin(*Admin)
+	InjectQorAdmin(*Resource)
 }
 
 type ResourceNamer interface {
@@ -41,6 +41,7 @@ func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 		cachedMetas: &map[string][]*Meta{},
 		scopes:      map[string]*Scope{},
 		filters:     map[string]*Filter{},
+		admin:       admin,
 	}
 
 	var noName, noMenu bool
@@ -71,7 +72,7 @@ func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 	admin.resources = append(admin.resources, res)
 
 	if injector, ok := value.(Injector); ok {
-		injector.InjectQorAdmin(admin)
+		injector.InjectQorAdmin(res)
 	}
 	return res
 }

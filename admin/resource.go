@@ -12,6 +12,7 @@ import (
 
 type Resource struct {
 	resource.Resource
+	admin       *Admin
 	Config      *Config
 	Metas       []*Meta
 	actions     []*Action
@@ -28,6 +29,10 @@ func (res *Resource) Meta(meta *Meta) {
 	meta.base = res
 	meta.updateMeta()
 	res.Metas = append(res.Metas, meta)
+}
+
+func (res Resource) GetAdmin() *Admin {
+	return res.admin
 }
 
 func (res Resource) ToParam() string {

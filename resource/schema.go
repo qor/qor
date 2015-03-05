@@ -71,10 +71,10 @@ var (
 
 func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix string) (*MetaValues, error) {
 	metaValues := &MetaValues{}
-	metaorMap := map[string]Metaor{}
+	metaorsMap := map[string]Metaor{}
 	convertedNextLevel := map[string]bool{}
 	for _, metaor := range metaors {
-		metaorMap[metaor.GetName()] = metaor
+		metaorsMap[metaor.GetName()] = metaor
 	}
 
 	newMetaValue := func(key string, value interface{}) {
@@ -84,12 +84,12 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 
 			if matches := isCurrentLevel.FindStringSubmatch(key); len(matches) > 0 {
 				name := matches[0]
-				metaValue = &MetaValue{Name: name, Value: value, Meta: metaorMap[name]}
+				metaValue = &MetaValue{Name: name, Value: value, Meta: metaorsMap[name]}
 			} else if matches := isNextLevel.FindStringSubmatch(key); len(matches) > 0 {
 				name := matches[1]
 				if _, ok := convertedNextLevel[name]; !ok {
 					convertedNextLevel[name] = true
-					metaor := metaorMap[matches[2]]
+					metaor := metaorsMap[matches[2]]
 					if children, err := ConvertFormToMetaValues(request, metaor.GetMetas(), prefix+name+"."); err == nil {
 						metaValue = &MetaValue{Name: matches[2], Meta: metaor, MetaValues: children}
 					}
