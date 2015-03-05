@@ -76,20 +76,24 @@ func (b Base) GetFileHeader() *multipart.FileHeader {
 
 func (b Base) GetURLTemplate(option *Option) (path string) {
 	if path = option.Get("url"); path == "" {
-		path = "/system/{{class}}/{{primary_key}}/{{column}}/{{basename}}.{{nanotime}}.{{extension}}"
+		path = "/system/{{class}}/{{primary_key}}/{{column}}/{{filename_with_hash}}"
 	}
 	return
 }
 
 func getFuncMap(scope *gorm.Scope, field *gorm.Field, filename string) template.FuncMap {
+	hash := func() string { return strings.Replace(time.Now().Format("20060102150506.000000000"), ".", "", -1) }
 	return template.FuncMap{
 		"class":       scope.TableName,
 		"primary_key": func() string { return fmt.Sprintf("%v", scope.PrimaryKeyValue()) },
 		"column":      func() string { return field.Name },
 		"filename":    func() string { return filename },
 		"basename":    func() string { return strings.TrimSuffix(path.Base(filename), path.Ext(filename)) },
-		"nanotime":    func() string { return strings.Replace(time.Now().Format("20060102150506.000000000"), ".", "", -1) },
-		"extension":   func() string { return strings.TrimPrefix(path.Ext(filename), ".") },
+		"hash":        hash,
+		"filename_with_hash": func() string {
+			return fmt.Sprintf("%v.%v%v", strings.TrimSuffix(filename, path.Ext(filename)), hash(), path.Ext(filename))
+		},
+		"extension": func() string { return strings.TrimPrefix(path.Ext(filename), ".") },
 	}
 }
 
