@@ -42,11 +42,11 @@ func (b *Base) Scan(value interface{}) error {
 		b.Url, b.Valid = string(v), true
 	case string:
 		if strings.HasPrefix(v, "{") && strings.HasSuffix(v, "}") {
-			var cropOption struct{ X, Y, Width, Height int }
+			var cropOption struct{ x, y, width, height int }
 			if err := json.Unmarshal([]byte(v), &cropOption); err == nil {
 				b.SetCropOption(image.Rectangle{
-					Min: image.Point{X: cropOption.X, Y: cropOption.Y},
-					Max: image.Point{X: cropOption.X + cropOption.Width, Y: cropOption.Y + cropOption.Height},
+					Min: image.Point{X: cropOption.x, Y: cropOption.y},
+					Max: image.Point{X: cropOption.x + cropOption.width, Y: cropOption.y + cropOption.height},
 				})
 			} else {
 				return err
