@@ -10,7 +10,7 @@ import (
 
 type AssetManager struct {
 	ID   int
-	File media_library.FileSystem `media_library:"url:/system/asset_manager/{{primary_key}}/{{filename_with_hash}}"`
+	File media_library.FileSystem `media_library:"URL:/system/asset_manager/{{primary_key}}/{{filename_with_hash}}"`
 }
 
 func (*AssetManager) InjectQorAdmin(res *Resource) {
@@ -27,7 +27,6 @@ func (*AssetManager) InjectQorAdmin(res *Resource) {
 	router.Post(fmt.Sprintf("^/%v/crop", res.ToParam()), func(context *Context) {
 		var err error
 		var cropOption struct{ url, option string }
-
 		defer context.Request.Body.Close()
 		if err = json.NewDecoder(context.Request.Body).Decode(&cropOption); err == nil {
 			if matches := assetURL.FindStringSubmatch(cropOption.url); len(matches) > 1 {

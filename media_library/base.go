@@ -3,6 +3,7 @@ package media_library
 import (
 	"bytes"
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -40,7 +41,19 @@ func (b *Base) Scan(value interface{}) error {
 	case []uint8:
 		b.Url, b.Valid = string(v), true
 	case string:
-		b.Url, b.Valid = v, true
+		if strings.HasPrefix(v, "{") && strings.HasSuffix(v, "}") {
+			var cropOption struct{ X, Y, Width, Height int }
+			if err := json.Unmarshal([]byte(v), &cropOption); err == nil {
+				b.SetCropOption(image.Rectangle{
+					Min: image.Point{X: cropOption.X, Y: cropOption.Y},
+					Max: image.Point{X: cropOption.X + cropOption.Width, Y: cropOption.Y + cropOption.Height},
+				})
+			} else {
+				return err
+			}
+		} else {
+			b.Url, b.Valid = v, true
+		}
 	default:
 		fmt.Errorf("unsupported driver -> Scan pair for MediaLibrary")
 	}
@@ -75,7 +88,7 @@ func (b Base) GetFileHeader() *multipart.FileHeader {
 }
 
 func (b Base) GetURLTemplate(option *Option) (path string) {
-	if path = option.Get("url"); path == "" {
+	if path = option.Get("URL"); path == "" {
 		path = "/system/{{class}}/{{primary_key}}/{{column}}/{{filename_with_hash}}"
 	}
 	return
