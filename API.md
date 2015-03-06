@@ -52,15 +52,96 @@ Exchange:
 Localization:
 
     type Product struct {
-      Id int64
-      Name string
+      ID              int64
+      LangaugeCode    string
+      Name            string
+      Brand           Brand
+      Category        Category
+      ColorVariations ColorVariation
     }
 
-    type LocalizedProduct struct {
-      Product
-      ProductId int64
-      LanguageCode string
+    type Brand struct {
+      ID           int64
+      LangaugeCode string
+      Name         string
     }
+
+    type Category struct {
+      ID           int64
+      Name         string
+    }
+
+    type ColorVariation struct {
+      ID              int64
+      LangaugeCode    string
+      Color           string
+    }
+
+    localization.Localize(&ZHProduct{}, &GlobalProduct, "ZH")
+
+    db.Model(&product).Related(&Brand()) // SELECT * FROM brands WHERE id = 10 AND language_code = 'ZH' OR language_code IS NULL
+
+    localeDB := db.Set("localization:locale", "ZH" / global)
+    localeDB.Set("localization", "localized").Model(&product).Related(&Brand())
+    // SELECT * FROM brands WHERE id = 10 AND language_code = 'ZH'
+
+    localeDB.Set("localization", "global").Model(&product).Related(&Brand())
+    // SELECT * FROM brands WHERE id = 10 AND language_code IS NULL
+
+    localeDB.Model(&product).Related(&Brand())
+    // SELECT * FROM brands WHERE id = 10 AND (language_code = 'ZH' OR language_code IS NULL)
+
+    // Query:  depends on mode (localized, global, mixed)
+    // Update:
+        Global: sync attrs that need sync
+        Locale: can only update localized attrs
+    // Delete: locale as condition
+        Global: sync to all locales
+        Locale: delete with locale
+    // Create:
+        Global: create global record
+        Locale: create with locale
+
+    // Many To Many
+        Query:
+          localize: Scope(language_code: locale)
+          sync: Same
+        Delete:
+          localize: Delete(language_code: locale)
+          sync: not possible from locale
+        Create:
+          localize: Assign(language_code: locale)
+          sync: not possible from locale
+    // Has One
+        Query:
+          localize: localized mode
+          sync: mixed mode
+        Create:
+          localize: change foreign key
+          sync: not possible from locale
+        Delete:
+          localize: change foreign key
+          sync: not possible from locale
+    // Has Many
+        Query:
+          localize: localized mode
+          sync: mixed mode
+        Create:
+          localize: add new records with locale
+          sync: not possible from locale
+        Delete:
+          localize: delete the record with locale
+          sync: not possible from locale
+    // Belongs To:
+        Query:
+          localize: localized mode
+          sync: mixed mode
+        Create:
+          localize: add new records with locale
+          sync: not possible from locale
+        Delete:
+          localize: delete the record with locale
+          sync: not possible from locale
 
 Role:
 
