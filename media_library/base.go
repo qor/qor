@@ -30,6 +30,7 @@ type Base struct {
 	FileName   string
 	Url        string
 	CropOption *CropOption           `json:",omitempty"`
+	Crop       bool                  `json:"-"`
 	Valid      bool                  `json:"-"`
 	FileHeader *multipart.FileHeader `json:"-"`
 	Reader     io.Reader             `json:"-"`
@@ -49,6 +50,11 @@ func (b *Base) Scan(data interface{}) (err error) {
 	case string:
 		if err = json.Unmarshal([]byte(values), b); err == nil {
 			b.Valid = true
+		}
+
+		var doCrop struct{ Crop bool }
+		if err = json.Unmarshal([]byte(values), &doCrop); err == nil && doCrop.Crop {
+			b.Crop = true
 		}
 	case []string:
 		for _, str := range values {
@@ -129,7 +135,7 @@ func (b *Base) SetCropOption(option *CropOption) {
 }
 
 func (b *Base) GetCropOption() *image.Rectangle {
-	if cropOption := b.CropOption; cropOption != nil {
+	if cropOption := b.CropOption; b.Crop && cropOption != nil {
 		return &image.Rectangle{
 			Min: image.Point{X: cropOption.X, Y: cropOption.Y},
 			Max: image.Point{X: cropOption.X + cropOption.Width, Y: cropOption.Y + cropOption.Height},
