@@ -223,8 +223,7 @@ func (j *Job) Meta(meta *admin.Meta) {
 		}
 	}
 	if meta.Setter == nil {
-		meta.Setter = func(val interface{}, metaValues *resource.MetaValues, ctx *qor.Context) {
-			mv := metaValues.Get(meta.Name)
+		meta.Setter = func(val interface{}, mv *resource.MetaValues, ctx *qor.Context) {
 			if mv == nil {
 				return
 			}

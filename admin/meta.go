@@ -28,7 +28,7 @@ type Meta struct {
 	Type   string
 	Valuer func(interface{}, *qor.Context) interface{}
 	// TODO: should allow Setter to return error, at least have a place to register
-	Setter        func(resource interface{}, metaValues *resource.MetaValues, context *qor.Context)
+	Setter        func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context)
 	Metas         []resource.Metaor
 	Resource      resource.Resourcer
 	Collection    interface{}
@@ -62,7 +62,7 @@ func (meta *Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
 	return meta.Valuer
 }
 
-func (meta *Meta) GetSetter() func(resource interface{}, metaValues *resource.MetaValues, context *qor.Context) {
+func (meta *Meta) GetSetter() func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
 	return meta.Setter
 }
 
@@ -214,8 +214,7 @@ func (meta *Meta) updateMeta() {
 	scopeField, _ := scope.FieldByName(meta.Alias)
 
 	if meta.Setter == nil {
-		meta.Setter = func(resource interface{}, metaValues *resource.MetaValues, context *qor.Context) {
-			metaValue := metaValues.Get(meta.Name)
+		meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
 			if metaValue == nil {
 				return
 			}
@@ -284,8 +283,8 @@ func (meta *Meta) updateMeta() {
 			return oldvalue(getNestedModel(value, meta.Alias, context), context)
 		}
 		oldSetter := meta.Setter
-		meta.Setter = func(resource interface{}, metaValues *resource.MetaValues, context *qor.Context) {
-			oldSetter(getNestedModel(resource, meta.Alias, context), metaValues, context)
+		meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
+			oldSetter(getNestedModel(resource, meta.Alias, context), metaValue, context)
 		}
 	}
 }

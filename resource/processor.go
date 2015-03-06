@@ -73,7 +73,7 @@ func (processor *processor) decode() (errors []error) {
 
 		if metaValue.MetaValues == nil {
 			if setter := meta.GetSetter(); setter != nil {
-				setter(processor.Result, processor.MetaValues, processor.Context)
+				setter(processor.Result, metaValue, processor.Context)
 			}
 			continue
 		}

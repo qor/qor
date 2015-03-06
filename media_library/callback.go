@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"mime/multipart"
 
 	"github.com/disintegration/imaging"
@@ -17,11 +18,14 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 				option := parseTagOption(field.Tag.Get("media_library"))
 				if media.GetFileHeader() != nil || media.GetCropOption() != nil {
 					var file multipart.File
+					fmt.Println("---")
 					if fileHeader := media.GetFileHeader(); fileHeader != nil {
 						file, _ = media.GetFileHeader().Open()
 					} else {
 						file, _ = media.Retrieve(media.URL("original"))
+						fmt.Println("---2")
 					}
+					fmt.Println("---3")
 
 					if url := media.GetURL(option, scope, field); url == "" {
 						scope.Err(errors.New("invalid URL"))
@@ -41,6 +45,7 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 
 						if media.IsImage() {
 							// Save Original Image
+							fmt.Println(media.URL("original"))
 							if scope.Err(media.Store(media.URL("original"), option, file)) == nil {
 								file.Seek(0, 0)
 
