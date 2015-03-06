@@ -62,6 +62,29 @@ Localization:
       LanguageCode string
     }
 
+Role:
+
+    roles.Register("admin", func (req *http.Request, currentUser qor.CurrentUser) bool) {
+      return currentUser.(*User).Role == "admin"
+    })
+
+    roles.Register("admin", func (req *http.Request, currentUser qor.CurrentUser) bool) {
+      return req.RemoteAddr == "127.0.0.1"
+    })
+
+    roles.Register("translator", func (req *http.Request, currentUser qor.CurrentUser) bool) {
+      for _, role := range return currentUser.(*User).Roles {
+        if role == "translator" {
+          return true
+        }
+      }
+      return false
+    })
+
+    order := Admin.AddResource(&order{}, admin.Config{Permission: roles.Allow(role.CRUD, "amdin").Allow(role.Read, "translator")})
+
+    order.Permssion.HasPermission(role.Read, "admin", "translator"...)
+
 L10n
 
     locale = l18n.Locale("zh-CN")
@@ -105,30 +128,31 @@ Layout:
     layout.Render(name)
 
 StateMachine
-  type StateChangeLog struct {
-    Id         uint64
-    ReferTable string
-    ReferId    string
-    State      string
-    Note       string
-    CreatedAt  time.Time
-    UpdatedAt  time.Time
-    DeletedAt  time.Time
-  }
 
-  type StateMachine struct {
-    State string
-    StateChangeLogs []StateChangeLog
-  }
+    type StateChangeLog struct {
+      Id         uint64
+      ReferTable string
+      ReferId    string
+      State      string
+      Note       string
+      CreatedAt  time.Time
+      UpdatedAt  time.Time
+      DeletedAt  time.Time
+    }
 
-  type Order struct {
-    StateMachine // SetState
-  }
+    type StateMachine struct {
+      State string
+      StateChangeLogs []StateChangeLog
+    }
 
-  orderState := state.New(&Order{})
+    type Order struct {
+      StateMachine // SetState
+    }
 
-  orderState.New("finish").Before().After().Do().Enter(Handle, "checkout", "paid").Enter(Handle, "paypal_paid").Exit(Handle, "hello")
+    orderState := state.New(&Order{})
 
-  orderState.To("finish", &order)
-    order.SetState("finish")
-    order.NewStateLog("finish", tableName, Id, notes)
+    orderState.New("finish").Before().After().Do().Enter(Handle, "checkout", "paid").Enter(Handle, "paypal_paid").Exit(Handle, "hello")
+
+    orderState.To("finish", &order)
+      order.SetState("finish")
+      order.NewStateLog("finish", tableName, Id, notes)
