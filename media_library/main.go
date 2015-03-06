@@ -28,7 +28,7 @@ type MediaLibrary interface {
 	GetFileName() string
 
 	GetSizes() map[string]Size
-	SetCropOption(image.Rectangle)
+	SetCropOption(*CropOption)
 	GetCropOption() *image.Rectangle
 
 	Store(url string, option *Option, reader io.Reader) error

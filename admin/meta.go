@@ -139,6 +139,7 @@ func (meta *Meta) updateMeta() {
 				} else if _, ok := field.Field.Addr().Interface().(media_library.MediaLibrary); ok {
 					meta.Type = "file"
 				}
+				fmt.Println(field.Field.Addr().Interface().(media_library.MediaLibrary))
 			}
 		}
 	}

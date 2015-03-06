@@ -22,48 +22,46 @@ import (
 
 var ErrNotImplemented = errors.New("not implemented")
 
+type CropOption struct {
+	X, Y, Width, Height int
+}
 type Base struct {
-	Url        string
-	Valid      bool
 	FileName   string
-	FileHeader *multipart.FileHeader
-	CropOption *image.Rectangle
-	Reader     io.Reader
+	Url        string
+	CropOption *CropOption           `json:",omitempty"`
+	Valid      bool                  `json:"-"`
+	FileHeader *multipart.FileHeader `json:"-"`
+	Reader     io.Reader             `json:"-"`
 }
 
-func (b *Base) Scan(value interface{}) error {
-	switch v := value.(type) {
+func (b *Base) Scan(data interface{}) (err error) {
+	switch values := data.(type) {
 	case []*multipart.FileHeader:
-		if len(v) > 0 {
-			file := v[0]
+		if len(values) > 0 {
+			file := values[0]
 			b.FileHeader, b.FileName, b.Valid = file, file.Filename, true
 		}
 	case []uint8:
-		b.Url, b.Valid = string(v), true
+		if err = json.Unmarshal(values, b); err == nil {
+			b.Valid = true
+		}
 	case string:
-		b.Url, b.Valid = v, true
+		if err = json.Unmarshal([]byte(values), b); err == nil {
+			b.Valid = true
+		}
 	case []string:
-		str := v[0]
-		if strings.HasPrefix(str, "{") && strings.HasSuffix(str, "}") {
-			var cropOption struct{ X, Y, Width, Height int }
-			if err := json.Unmarshal([]byte(str), &cropOption); err == nil {
-				b.SetCropOption(image.Rectangle{
-					Min: image.Point{X: cropOption.X, Y: cropOption.Y},
-					Max: image.Point{X: cropOption.X + cropOption.Width, Y: cropOption.Y + cropOption.Height},
-				})
-			} else {
-				return err
-			}
+		for _, str := range values {
+			b.Scan(str)
 		}
 	default:
 		fmt.Errorf("unsupported driver -> Scan pair for MediaLibrary")
 	}
-	return nil
+	return
 }
 
 func (b Base) Value() (driver.Value, error) {
 	if b.Valid {
-		return b.Url, nil
+		return json.Marshal(b)
 	}
 	return nil, nil
 }
@@ -124,12 +122,19 @@ func (b Base) GetURL(option *Option, scope *gorm.Scope, field *gorm.Field) strin
 	return ""
 }
 
-func (b *Base) SetCropOption(option image.Rectangle) {
-	b.CropOption = &option
+func (b *Base) SetCropOption(option *CropOption) {
+	b.CropOption = option
 }
 
 func (b *Base) GetCropOption() *image.Rectangle {
-	return b.CropOption
+	if cropOption := b.CropOption; cropOption != nil {
+		return &image.Rectangle{
+			Min: image.Point{X: cropOption.X, Y: cropOption.Y},
+			Max: image.Point{X: cropOption.X + cropOption.Width, Y: cropOption.Y + cropOption.Height},
+		}
+	} else {
+		return nil
+	}
 }
 
 func (b Base) Retrieve(url string) (*os.File, error) {

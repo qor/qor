@@ -41,8 +41,8 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 								file.Seek(0, 0)
 
 								// Crop & Resize
-								if img, err := imaging.Decode(file); err == nil {
-									if format, err := getImageFormat(media.URL()); err == nil {
+								if img, err := imaging.Decode(file); scope.Err(err) == nil {
+									if format, err := getImageFormat(media.URL()); scope.Err(err) == nil {
 										if cropOption := media.GetCropOption(); cropOption != nil {
 											img = imaging.Crop(img, *cropOption)
 										}
@@ -58,11 +58,7 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 											imaging.Encode(&buffer, dst, *format)
 											media.Store(media.URL(key), option, &buffer)
 										}
-									} else {
-										scope.Err(err)
 									}
-								} else {
-									scope.Err(err)
 								}
 							}
 						} else {
