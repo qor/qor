@@ -58,7 +58,11 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 											imaging.Encode(&buffer, dst, *format)
 											media.Store(media.URL(key), option, &buffer)
 										}
+									} else {
+										scope.Err(err)
 									}
+								} else {
+									scope.Err(err)
 								}
 							}
 						} else {
