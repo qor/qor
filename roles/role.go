@@ -8,7 +8,7 @@ import (
 )
 
 type Role struct {
-	definitions map[string]func(req *http.Request, currentUser *qor.CurrentUser) bool
+	definitions map[string]func(req *http.Request, currentUser qor.CurrentUser) bool
 }
 
 func New() *Role {
@@ -17,7 +17,7 @@ func New() *Role {
 
 var role = &Role{}
 
-func Register(name string, fc func(req *http.Request, currentUser *qor.CurrentUser) bool) {
+func Register(name string, fc func(req *http.Request, currentUser qor.CurrentUser) bool) {
 	role.Register(name, fc)
 }
 
@@ -37,11 +37,11 @@ func Deny(mode PermissionMode, roles ...string) *Permission {
 	return role.Deny(mode, roles...)
 }
 
-func MatchedRoles(req *http.Request, currentUser *qor.CurrentUser) []string {
+func MatchedRoles(req *http.Request, currentUser qor.CurrentUser) []string {
 	return role.MatchedRoles(req, currentUser)
 }
 
-func (role *Role) MatchedRoles(req *http.Request, currentUser *qor.CurrentUser) (roles []string) {
+func (role *Role) MatchedRoles(req *http.Request, currentUser qor.CurrentUser) (roles []string) {
 	if definitions := role.definitions; definitions != nil {
 		for name, definition := range definitions {
 			if definition(req, currentUser) {
@@ -52,9 +52,9 @@ func (role *Role) MatchedRoles(req *http.Request, currentUser *qor.CurrentUser) 
 	return
 }
 
-func (role *Role) Register(name string, fc func(req *http.Request, currentUser *qor.CurrentUser) bool) {
+func (role *Role) Register(name string, fc func(req *http.Request, currentUser qor.CurrentUser) bool) {
 	if role.definitions == nil {
-		role.definitions = map[string]func(req *http.Request, currentUser *qor.CurrentUser) bool{}
+		role.definitions = map[string]func(req *http.Request, currentUser qor.CurrentUser) bool{}
 	}
 
 	definition := role.definitions[name]
