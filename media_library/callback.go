@@ -16,6 +16,13 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 			if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok {
 				option := parseTagOption(field.Tag.Get("media_library"))
 				if media.GetFileHeader() != nil || media.GetCropOption() != nil {
+					var file multipart.File
+					if fileHeader := media.GetFileHeader(); fileHeader != nil {
+						file, _ = media.GetFileHeader().Open()
+					} else {
+						file, _ = media.Retrieve(media.URL("original"))
+					}
+
 					if url := media.GetURL(option, scope, field); url == "" {
 						scope.Err(errors.New("invalid URL"))
 					} else {
@@ -27,13 +34,6 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 						if value, err := media.Value(); err == nil {
 							gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", map[string]interface{}{field.DBName: value}))
 						}
-					}
-
-					var file multipart.File
-					if fileHeader := media.GetFileHeader(); fileHeader != nil {
-						file, _ = media.GetFileHeader().Open()
-					} else {
-						file, _ = media.Retrieve(media.URL("original"))
 					}
 
 					if file != nil {

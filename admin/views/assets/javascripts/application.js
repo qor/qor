@@ -21,7 +21,7 @@ $(function() {
 
   $image.cropper({
     done: function(data) {
-      $optionInput.val(JSON.stringify($image.cropper('getData', true)));
+      $optionInput.val(JSON.stringify({CropOption: $image.cropper('getData', true)}));
     },
     multiple: true,
     zoomable: false
