@@ -74,14 +74,10 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 	metaorsMap := map[string]Metaor{}
 	convertedNextLevel := map[string]bool{}
 	for _, metaor := range metaors {
-		fmt.Println(metaor.GetName())
 		metaorsMap[metaor.GetName()] = metaor
 	}
 
 	newMetaValue := func(key string, value interface{}) {
-		fmt.Println("---")
-		fmt.Println(key)
-		fmt.Println(value)
 		if strings.HasPrefix(key, prefix) {
 			var metaValue *MetaValue
 			key = strings.TrimPrefix(key, prefix)

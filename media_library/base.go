@@ -12,7 +12,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"text/template"
 	"time"
@@ -33,10 +32,6 @@ type Base struct {
 }
 
 func (b *Base) Scan(value interface{}) error {
-	fmt.Println("-------------------hello")
-	fmt.Println(b.Url)
-	fmt.Println(value)
-	fmt.Println(reflect.ValueOf(value).Type())
 	switch v := value.(type) {
 	case []*multipart.FileHeader:
 		if len(v) > 0 {
