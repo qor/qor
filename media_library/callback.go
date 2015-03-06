@@ -2,6 +2,7 @@ package media_library
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"mime/multipart"
 
@@ -15,13 +16,16 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 			if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok {
 				option := parseTagOption(field.Tag.Get("media_library"))
 				if media.GetFileHeader() != nil || media.GetCropOption() != nil {
-					if isCreate {
-						if url := media.GetURL(option, scope, field); url == "" {
-							scope.Err(errors.New("invalid URL"))
-						} else {
-							media.Scan(url)
-							updateAttrs := map[string]interface{}{field.DBName: media.URL()}
-							gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", updateAttrs))
+					if url := media.GetURL(option, scope, field); url == "" {
+						scope.Err(errors.New("invalid URL"))
+					} else {
+						result, _ := json.Marshal(map[string]string{"Url": url})
+						media.Scan(string(result))
+					}
+
+					if isCreate && !scope.HasError() {
+						if value, err := media.Value(); err == nil {
+							gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", map[string]interface{}{field.DBName: value}))
 						}
 					}
 

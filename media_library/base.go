@@ -25,6 +25,7 @@ var ErrNotImplemented = errors.New("not implemented")
 type CropOption struct {
 	X, Y, Width, Height int
 }
+
 type Base struct {
 	FileName   string
 	Url        string
@@ -61,7 +62,8 @@ func (b *Base) Scan(data interface{}) (err error) {
 
 func (b Base) Value() (driver.Value, error) {
 	if b.Valid {
-		return json.Marshal(b)
+		result, err := json.Marshal(b)
+		return string(result), err
 	}
 	return nil, nil
 }

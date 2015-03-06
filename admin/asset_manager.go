@@ -10,7 +10,7 @@ import (
 
 type AssetManager struct {
 	ID   int
-	File media_library.FileSystem `media_library:"URL:/system/asset_manager/{{primary_key}}/{{filename_with_hash}}"`
+	File media_library.FileSystem `media_library:"URL:/system/assets/{{primary_key}}/{{filename_with_hash}}"`
 }
 
 func (*AssetManager) InjectQorAdmin(res *Resource) {
@@ -23,7 +23,7 @@ func (*AssetManager) InjectQorAdmin(res *Resource) {
 		context.Writer.Write(bytes)
 	})
 
-	assetURL := regexp.MustCompile(`^/system/asset_manager/(\d+)/`)
+	assetURL := regexp.MustCompile(`^/system/assets/(\d+)/`)
 	router.Post(fmt.Sprintf("^/%v/crop", res.ToParam()), func(context *Context) {
 		var err error
 		var cropOption struct{ url, option string }
