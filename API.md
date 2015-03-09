@@ -51,6 +51,28 @@ Exchange:
 
 Localization:
 
+    type News struct {
+      ID  int
+      l10n.Locale
+    }
+
+    type Blog struct {
+      ID int
+      l10n.Locale
+    }
+
+    type Comment struct {
+      ID int
+      l10n.Locale
+    }
+
+    var blogs []Blog
+    db.Find(&blogs)
+
+    db.Set("l10n:locale", "zh_CN").Find(&blogs)
+    db.Set("l10n:locale", "zh_CN").Find(&blogs)
+    db.Set("l10n:locale", "zh_CN").Find(&blogs).Related(&comments)
+
     type Product struct {
       ID              int64
       LangaugeCode    string
