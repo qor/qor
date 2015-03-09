@@ -2,6 +2,7 @@
 
 <div>
   <label class="label" for="{{.InputId}}">{{.Label}}</label>
+  <input id="{{.InputId}}" name="{{.InputName}}" class="image-cropper-upload" type="file">
   {{if $value}}
     {{if $value.IsImage}}
       <img class="image-cropper" src="{{$value.URL}}">
@@ -12,10 +13,9 @@
     {{else}}
       <a href="{{$value.URL}}">Download</a>
     {{end}}
-  {{end}}
 
-  <textarea name="{{.InputName}}" class="image-cropper-crop-option" style="display:none">
-    {{$value.Value}}
-  </textarea>
-  <input id="{{.InputId}}" name="{{.InputName}}" class="image-cropper-upload" type="file">
+    <textarea name="{{.InputName}}" class="image-cropper-crop-option" style="display:none">
+      {{$value.Value}}
+    </textarea>
+  {{end}}
 </div>

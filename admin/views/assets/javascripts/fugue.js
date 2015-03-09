@@ -25,9 +25,9 @@
 
         init: function() {
           var $form = $(ajaxform).data('fugue', this),
-              self = this;
+              me = this;
 
-          self.$el = $form.addClass('fugue');
+          me.$el = $form.addClass('fugue');
 
           options = $.extend({}, $.fugue.defaults, options);
           options.type = $form.attr('method') || options.type;
@@ -41,10 +41,10 @@
               alert('Connection Dead... Please check out the network ;)');
               return;
             }
-            self.submit(e, func);
+            me.submit(e, func);
           });
 
-          self.options = options;
+          me.options = options;
         },
 
         serialize: function() {
@@ -69,7 +69,7 @@
         },
 
         submit: function(e, func) {
-          var self = this;
+          var me = this;
           this.serialize();
           if (options.beforeSubmit && $.isFunction(options.beforeSubmit)) {
             options.beforeSubmit.call(this);
@@ -79,19 +79,19 @@
           }
           this.defered = $.ajax(this.options).done(function(data, textStatus, jqXHR) {
             if (options.done && $.isFunction(options.done)) {
-              options.done.call(self, data, textStatus, jqXHR);
+              options.done.call(me, data, textStatus, jqXHR);
             }
 
             if (func && $.isFunction(func)) {
-              func.call(self, data, textStatus, jqXHR);
+              func.call(me, data, textStatus, jqXHR);
             }
 
             if (options.reset && $.isFunction(options.reset)) {
-              options.reset.call(self, data, textStatus, jqXHR);
+              options.reset.call(me, data, textStatus, jqXHR);
             }
           }).fail(function(jqXHR, textStatus, errorThrown) {
             if (options.fail && $.isFunction(options.fail)) {
-              options.fail.call(self, jqXHR, textStatus, errorThrown);
+              options.fail.call(me, jqXHR, textStatus, errorThrown);
             }
           });
         },
@@ -121,8 +121,11 @@
       if ($.isFunction(options)) {
         callback = options;
         options = null;
+      } else {
+        options = options || {};
       }
-      if((typeof(options)).match('object|undefined')) {
+
+      if(typeof(options) === 'object') {
         return this.each(function(i) {
           if(!fugue) {
             fugue = $.fugue(this, options);
