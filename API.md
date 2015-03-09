@@ -102,16 +102,6 @@ Localization:
         Global: create global record
         Locale: create with locale
 
-    // Many To Many
-        Query:
-          localize: Scope(language_code: locale)
-          sync: Same
-        Delete:
-          localize: Delete(language_code: locale)
-          sync: not possible from locale
-        Create:
-          localize: Assign(language_code: locale)
-          sync: not possible from locale
     // Has One
         Query:
           localize: localized mode
@@ -141,6 +131,16 @@ Localization:
           sync: not possible from locale
         Delete:
           localize: delete the record with locale
+          sync: not possible from locale
+    // Many To Many
+        Query:
+          localize: Scope(language_code: locale)
+          sync: Same
+        Delete:
+          localize: Delete(language_code: locale)
+          sync: not possible from locale
+        Create:
+          localize: Assign(language_code: locale)
           sync: not possible from locale
 
 Role:
