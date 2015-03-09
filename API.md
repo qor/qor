@@ -49,7 +49,7 @@ Exchange:
     Exchange.Import(file, logger, context)
     Exchange.Export(records, writer, logger, context)
 
-Localization:
+L10n:
 
     type News struct {
       ID  int
@@ -188,9 +188,9 @@ Role:
 
     order.Permssion.HasPermission(role.Read, "admin", "translator"...)
 
-L10n
+i18n
 
-    locale = l18n.Locale("zh-CN")
+    locale = i18n.Locale("zh-CN")
     locale.Scope("scope").T("key")
     locale.Params(map[string]string).T("missing", "default value", "another default")
 
