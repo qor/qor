@@ -60,15 +60,15 @@ func TestMeta(t *testing.T) {
 			},
 		},
 	}
-	profileNameMeta.Setter(userModel, mvs, &qor.Context{Config: &qor.Config{DB: &db}})
+	profileNameMeta.Setter(userModel, mvs.Values[0], &qor.Context{Config: &qor.Config{DB: &db}})
 	if userModel.Profile.Name != mvs.Values[0].Value {
 		t.Errorf("Profile.Name: got %q; expect %q", userModel.Profile.Name, mvs.Values[0].Value)
 	}
-	profileSexMeta.Setter(userModel, mvs, &qor.Context{Config: &qor.Config{DB: &db}})
+	profileSexMeta.Setter(userModel, mvs.Values[1], &qor.Context{Config: &qor.Config{DB: &db}})
 	if userModel.Profile.Sex != mvs.Values[1].Value {
 		t.Errorf("Profile.Sex: got %q; expect %q", userModel.Profile.Sex, mvs.Values[1].Value)
 	}
-	phoneNumMeta.Setter(userModel, mvs, &qor.Context{Config: &qor.Config{DB: &db}})
+	phoneNumMeta.Setter(userModel, mvs.Values[2], &qor.Context{Config: &qor.Config{DB: &db}})
 	if userModel.Profile.Phone.Num != mvs.Values[2].Value {
 		t.Errorf("Profile.Phone.Num: got %q; expect %q", userModel.Profile.Phone.Num, mvs.Values[2].Value)
 	}
