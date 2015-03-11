@@ -87,8 +87,13 @@ func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context 
 	return &context
 }
 
+var DisableLogging bool
+
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() func() {
+		if DisableLogging {
+			return func() {}
+		}
 		begin := time.Now()
 		log.Printf("Start [%s] %s\n", req.Method, req.RequestURI)
 		return func() {

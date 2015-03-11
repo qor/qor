@@ -74,6 +74,7 @@ var (
 )
 
 func init() {
+	admin.DisableLogging = true
 	mux := http.NewServeMux()
 	db, _ = gorm.Open("sqlite3", "/tmp/qor_test.db")
 	// db.LogMode(true)
