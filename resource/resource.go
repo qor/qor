@@ -47,7 +47,7 @@ func (res *Resource) GetResource() *Resource {
 func (res *Resource) PrimaryField() *gorm.Field {
 	if res.primaryField == nil {
 		scope := gorm.Scope{Value: res.Value}
-		res.primaryField = scope.PrimaryKeyField()
+		res.primaryField = scope.PrimaryField()
 	}
 	return res.primaryField
 }
