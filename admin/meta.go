@@ -107,7 +107,7 @@ func (meta *Meta) updateMeta() {
 		subScope := &gorm.Scope{Value: subModel.Interface()}
 		field, hasColumn = getField(subScope.Fields(), name)
 	} else {
-		if field, hasColumn = getField(scope.Fields(), meta.Name); hasColumn {
+		if field, hasColumn = getField(scope.Fields(), meta.Alias); hasColumn {
 			meta.Alias = field.Name
 		}
 	}

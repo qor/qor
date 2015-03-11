@@ -138,13 +138,13 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 	if attrs == nil {
 		scope := &gorm.Scope{Value: res.Value}
-		attrs = []string{}
 		fields := scope.Fields()
+		attrs = []string{}
 
 		includedMeta := map[string]bool{}
 		for _, meta := range res.Metas {
 			for _, field := range fields {
-				if field.Name == meta.Name || field.DBName == meta.Name {
+				if field.Name == meta.Alias {
 					includedMeta[meta.Alias] = true
 					attrs = append(attrs, meta.Name)
 					break
