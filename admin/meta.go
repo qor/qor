@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -112,7 +113,11 @@ func (meta *Meta) updateMeta() {
 	}
 
 	if hasColumn {
-		valueType = field.Field.Type().Kind().String()
+		ft := field.Field.Type()
+		for ft.Kind() == reflect.Ptr {
+			ft = ft.Elem()
+		}
+		valueType = ft.Kind().String()
 	}
 
 	// Set Meta Type
@@ -126,6 +131,7 @@ func (meta *Meta) updateMeta() {
 				meta.Type = "select_many"
 			}
 		} else {
+
 			switch valueType {
 			case "string":
 				meta.Type = "string"
@@ -186,6 +192,8 @@ func (meta *Meta) updateMeta() {
 			}
 		} else {
 			// qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(base.Value))
+			fmt.Printf("Unsupported meta name %v for resource %T\n", meta.Name, meta.base.Value)
+			debug.PrintStack()
 		}
 	}
 
@@ -227,6 +235,12 @@ func (meta *Meta) updateMeta() {
 				alias = fields[len(fields)-1]
 			}
 			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(alias)
+			if field.Kind() == reflect.Ptr && field.IsNil() {
+				field.Set(newValue(field.Type()).Elem())
+			}
+			for field.Kind() == reflect.Ptr {
+				field = field.Elem()
+			}
 
 			if field.IsValid() && field.CanAddr() {
 				var relationship string
@@ -288,6 +302,7 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 }
+
 func getNestedModel(value interface{}, alias string, context *qor.Context) interface{} {
 	model := reflect.Indirect(reflect.ValueOf(value))
 	fields := strings.Split(alias, ".")
@@ -323,6 +338,22 @@ func parseNestedField(value reflect.Value, name string) (reflect.Value, string) 
 	}
 
 	return value, fields[len(fields)-1]
+}
+
+func newValue(t reflect.Type) (v reflect.Value) {
+	v = reflect.New(t)
+	ov := v
+	for t.Kind() == reflect.Ptr {
+		v = v.Elem()
+		t = t.Elem()
+		e := reflect.New(t)
+		v.Set(e)
+	}
+
+	if e := v.Elem(); e.Kind() == reflect.Map && e.IsNil() {
+		v.Elem().Set(reflect.MakeMap(v.Elem().Type()))
+	}
+	return ov
 }
 
 func ToArray(value interface{}) (values []string) {

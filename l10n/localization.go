@@ -8,15 +8,15 @@ type Interface interface {
 }
 
 type Locale struct {
-	LangaugeCode *string `sql:"size:6"`
+	LanguageCode *string `sql:"size:6"`
 }
 
 func (l Locale) IsGlobal() bool {
-	return l.LangaugeCode == nil
+	return l.LanguageCode == nil
 }
 
 func (l Locale) SetLocale(locale string) {
-	l.LangaugeCode = &locale
+	l.LanguageCode = &locale
 }
 
 func Localize(scope *gorm.Scope, global Interface, locale string) {
