@@ -138,24 +138,22 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 	if attrs == nil {
 		scope := &gorm.Scope{Value: res.Value}
-		fields := scope.Fields()
+		structFields := scope.GetModelStruct().StructFields
 		attrs = []string{}
 
-		includedMeta := map[string]bool{}
-		for _, meta := range res.Metas {
-			for _, field := range fields {
+	StructFields:
+		for _, field := range structFields {
+			for _, meta := range res.Metas {
 				if field.Name == meta.Alias {
-					includedMeta[meta.Alias] = true
 					attrs = append(attrs, meta.Name)
-					break
+					continue StructFields
 				}
 			}
-		}
 
-		for _, field := range fields {
-			if _, ok := includedMeta[field.Name]; ok || field.IsForeignKey {
+			if field.IsForeignKey {
 				continue
 			}
+
 			attrs = append(attrs, field.Name)
 		}
 	}
