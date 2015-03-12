@@ -5,12 +5,15 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/qor/qor/roles"
+
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
 
 type Resource struct {
 	*resource.Resource
+	Metas                map[string]*Meta
 	AutoCreate           bool
 	MultiDelimiter       string
 	HasSequentialColumns bool
@@ -20,20 +23,20 @@ type Resource struct {
 func NewResource(val interface{}) *Resource {
 	res := &Resource{Resource: &resource.Resource{Value: val}, AutoCreate: true}
 	res.AddValidator(func(_ interface{}, mvs *resource.MetaValues, ctx *qor.Context) error {
-		for _, mr := range res.Resource.Metas {
-			if meta, ok := mr.(*Meta); ok {
-				var hasMeta bool
+		for _, meta := range res.Metas {
+			// if meta, ok := mr.(*Meta); ok {
+			var hasMeta bool
 
-				for _, mv := range mvs.Values {
-					if mv.Name == meta.Name {
-						hasMeta = true
-						break
-					}
-				}
-				if !hasMeta && !meta.Optional && meta.Resource == nil {
-					return fmt.Errorf("exchange: should contains Meta %s in MetaValues", meta.Name)
+			for _, mv := range mvs.Values {
+				if mv.Name == meta.Name {
+					hasMeta = true
+					break
 				}
 			}
+			if !hasMeta && !meta.Optional && meta.Resource == nil {
+				return fmt.Errorf("exchange: should contains Meta %s in MetaValues", meta.Name)
+			}
+			// }
 		}
 
 		return nil
@@ -56,9 +59,58 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 }
 
 type Meta struct {
-	*resource.Meta
+	// *resource.Meta
+	Name          string
+	Alias         string
+	Label         string
+	Type          string
+	Valuer        func(interface{}, *qor.Context) interface{}
+	Setter        func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context)
+	Metas         []resource.Metaor
+	Resource      resource.Resourcer
+	Collection    interface{}
+	GetCollection func(interface{}, *qor.Context) [][]string
+	Permission    *roles.Permission
+
 	Optional     bool
 	AliasHeaders []string
+}
+
+func (meta *Meta) GetName() string {
+	return meta.Name
+}
+
+func (meta *Meta) GetAlias() string {
+	return meta.Alias
+}
+
+func (meta *Meta) GetMetas() []resource.Metaor {
+	if len(meta.Metas) > 0 {
+		return meta.Metas
+	} else if meta.Resource == nil {
+		return []resource.Metaor{}
+	} else {
+		return meta.Resource.GetMetas()
+	}
+}
+
+func (meta *Meta) GetResource() resource.Resourcer {
+	return meta.Resource
+}
+
+func (meta *Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
+	return meta.Valuer
+}
+
+func (meta *Meta) GetSetter() func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
+	return meta.Setter
+}
+
+func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
+	if meta.Permission == nil {
+		return true
+	}
+	return meta.Permission.HasPermission(mode, context.Roles...)
 }
 
 func (m *Meta) Set(field string, val interface{}) *Meta {
@@ -85,20 +137,24 @@ func (m *Meta) getCurrentLabel(vmap map[string]string, index int) string {
 	return ""
 }
 
-func (res *Resource) RegisterMeta(meta *resource.Meta) *Meta {
-	m := &Meta{Meta: meta}
-	res.Resource.Meta(m)
+func (res *Resource) Meta(meta *Meta) *Meta {
+	// m := &Meta{Meta: meta}
+	// res.Resource.Meta(m)
+	// meta.base = res
+	// meta.updateMeta()
+	// res.Metas = append(res.Metas, meta)
+	res.Metas[meta.Name] = meta
 	res.HeadersInOrder = append(res.HeadersInOrder, meta.Name)
-	return m
+	return meta
 }
 
 func (res *Resource) getMetaValues(vmap map[string]string, index int) (mvs *resource.MetaValues, validatedIndex bool) {
 	mvs = new(resource.MetaValues)
-	for _, mr := range res.Metas {
-		m, ok := mr.(*Meta)
-		if !ok {
-			continue
-		}
+	for _, m := range res.Metas {
+		// m, ok := mr.(*Meta)
+		// if !ok {
+		// 	continue
+		// }
 
 		mv := resource.MetaValue{Name: m.Name, Meta: m}
 		if m.Resource == nil {
@@ -148,9 +204,9 @@ func (res *Resource) getMetaValues(vmap map[string]string, index int) (mvs *reso
 }
 
 func (res *Resource) getSubVmaps(vmap map[string]string) (subVmaps []map[string]string) {
-	for _, metaor := range res.Metas {
+	for _, meta := range res.Metas {
 		for k, v := range vmap {
-			meta := metaor.GetMeta()
+			// meta := metaor.GetMeta()
 			if meta.Label == k {
 				for i, subv := range strings.Split(v, ",") {
 					if len(subVmaps) == i {

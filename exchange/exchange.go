@@ -249,7 +249,7 @@ func digestMsg(line []string) (msg string) {
 func (ex *Exchange) Export(records interface{}, w io.Writer, ctx *qor.Context) (err error) {
 	var headers []string
 	walkMetas(ex.Resource, ctx, nil, func(_ resource.Resourcer, metaor resource.Metaor, _ interface{}) {
-		if meta := metaor.GetMeta(); meta.Resource == nil {
+		if meta := metaor.(*Meta); meta.Resource == nil {
 			headers = append(headers, meta.Label)
 		}
 	})
@@ -263,14 +263,13 @@ func (ex *Exchange) Export(records interface{}, w io.Writer, ctx *qor.Context) (
 		fieldMap := map[string]string{}
 		labelCounter := map[string]int{}
 		walker = func(res resource.Resourcer, metaor resource.Metaor, record interface{}) {
-			// fmt.Printf("--> %+v\n", record)
-			if meta := metaor.GetMeta(); meta.Resource == nil {
+			if meta := metaor.(*Meta); meta.Resource == nil {
 				metaRes, ok := res.(*Resource)
 				if !ok {
 					return
 				}
 
-				value := fmt.Sprintf("%v", meta.Value(record, ctx))
+				value := fmt.Sprintf("%v", meta.Valuer(record, ctx))
 				label := meta.Label
 				labelCounter[label] = labelCounter[label] + 1
 				if metaRes.HasSequentialColumns {
@@ -355,9 +354,9 @@ func walkMetas(resx resource.Resourcer, ctx *qor.Context, record interface{}, wa
 	for _, header := range res.HeadersInOrder {
 		metaor := res.Metas[header]
 		walker(resx, metaor, record)
-		if resx := metaor.GetMeta().Resource; resx != nil {
+		if resx := metaor.Resource; resx != nil {
 			if record != nil {
-				metaRecord := deepIndirect(reflect.ValueOf(metaor.GetMeta().Value(record, ctx)))
+				metaRecord := deepIndirect(reflect.ValueOf(metaor.Valuer(record, ctx)))
 				switch metaRecord.Kind() {
 				case reflect.Struct:
 					walkMetas(resx, ctx, metaRecord.Interface(), walker)

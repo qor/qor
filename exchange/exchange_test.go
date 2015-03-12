@@ -76,8 +76,8 @@ func TestImportSimple(t *testing.T) {
 	cleanup()
 
 	useres := NewResource(User{})
-	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
-	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	useres.Meta(&Meta{Name: "Name", Label: "Name"})
+	useres.Meta(&Meta{Name: "Age", Label: "Age"})
 	ex := New(useres)
 
 	f, err := NewXLSXFile("simple.xlsx")
@@ -102,12 +102,12 @@ func TestImportNested(t *testing.T) {
 	cleanup()
 
 	useres := NewResource(User{})
-	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
-	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	useres.Meta(&Meta{Name: "Name", Label: "Name"})
+	useres.Meta(&Meta{Name: "Age", Label: "Age"})
 	addres := NewResource(Address{})
 	addres.HasSequentialColumns = true
-	useres.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: addres})
-	addres.RegisterMeta(&resource.Meta{Name: "Country", Label: "Country"})
+	useres.Meta(&Meta{Name: "Addresses", Resource: addres})
+	addres.Meta(&Meta{Name: "Country", Label: "Country"})
 	ex := New(useres)
 
 	f, err := NewXLSXFile("nested_resource.xlsx")
@@ -144,9 +144,9 @@ func TestImportNormalizeHeader(t *testing.T) {
 	testdb.AutoMigrate(&FullMarathon{})
 
 	marathon := NewResource(FullMarathon{})
-	marathon.RegisterMeta(&resource.Meta{Name: "RunningLevel", Label: "Running Level"})
-	marathon.RegisterMeta(&resource.Meta{Name: "Min1500", Label: "1500M Min"})
-	marathon.RegisterMeta(&resource.Meta{Name: "Sec1500", Label: "1500M Sec"})
+	marathon.Meta(&Meta{Name: "RunningLevel", Label: "Running Level"})
+	marathon.Meta(&Meta{Name: "Min1500", Label: "1500M Min"})
+	marathon.Meta(&Meta{Name: "Sec1500", Label: "1500M Sec"})
 	ex := New(marathon)
 	ex.JobThrottle = 10
 	ex.DataStartAt = 3
@@ -206,8 +206,8 @@ func TestImportError(t *testing.T) {
 	cleanup()
 
 	useres := NewResource(User{})
-	useres.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
-	useres.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
+	useres.Meta(&Meta{Name: "Name", Label: "Name"})
+	useres.Meta(&Meta{Name: "Age", Label: "Age"})
 	ex := New(useres)
 	ferr := errors.New("an validator error in the second line")
 	var i int
@@ -286,16 +286,16 @@ func TestExport(t *testing.T) {
 	address.HasSequentialColumns = true
 	oldAddress.MultiDelimiter = ","
 
-	user.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
-	user.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"})
-	user.RegisterMeta(&resource.Meta{Name: "CellPhone", Resource: cellphone})
-	user.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: address})
-	user.RegisterMeta(&resource.Meta{Name: "OldAddresses", Resource: oldAddress})
-	address.RegisterMeta(&resource.Meta{Name: "Country", Label: "Country"})
-	address.RegisterMeta(&resource.Meta{Name: "Phone", Resource: phone})
-	phone.RegisterMeta(&resource.Meta{Name: "Num", Label: "Phone"})
-	cellphone.RegisterMeta(&resource.Meta{Name: "Num", Label: "CellPhone"})
-	oldAddress.RegisterMeta(&resource.Meta{Name: "Country", Label: "Old Countries"})
+	user.Meta(&Meta{Name: "Name", Label: "Name"})
+	user.Meta(&Meta{Name: "Age", Label: "Age"})
+	user.Meta(&Meta{Name: "CellPhone", Resource: cellphone})
+	user.Meta(&Meta{Name: "Addresses", Resource: address})
+	user.Meta(&Meta{Name: "OldAddresses", Resource: oldAddress})
+	address.Meta(&Meta{Name: "Country", Label: "Country"})
+	address.Meta(&Meta{Name: "Phone", Resource: phone})
+	phone.Meta(&Meta{Name: "Num", Label: "Phone"})
+	cellphone.Meta(&Meta{Name: "Num", Label: "CellPhone"})
+	oldAddress.Meta(&Meta{Name: "Country", Label: "Old Countries"})
 
 	ex := New(user)
 	var buf bytes.Buffer

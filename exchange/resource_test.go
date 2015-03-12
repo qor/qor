@@ -6,32 +6,30 @@ import (
 	"testing"
 
 	"github.com/qor/qor"
-
-	"github.com/qor/qor/resource"
 )
 
 func TestGetMetaValues(t *testing.T) {
 	phone := NewResource(Phone{})
-	phone.RegisterMeta(&resource.Meta{Name: "Num", Label: "Phone"})
+	phone.Meta(&Meta{Name: "Num", Label: "Phone"})
 
 	address := NewResource(Address{})
 	address.HasSequentialColumns = true
-	address.RegisterMeta(&resource.Meta{Name: "Country", Label: "Address"})
-	address.RegisterMeta(&resource.Meta{Name: "Phone", Resource: phone})
+	address.Meta(&Meta{Name: "Country", Label: "Address"})
+	address.Meta(&Meta{Name: "Phone", Resource: phone})
 
 	oldPhone := NewResource(Phone{})
-	oldPhone.RegisterMeta(&resource.Meta{Name: "Num", Label: "Old Phone"})
+	oldPhone.Meta(&Meta{Name: "Num", Label: "Old Phone"})
 
 	oldAddress := NewResource(Address{})
 	oldAddress.MultiDelimiter = ","
-	oldAddress.RegisterMeta(&resource.Meta{Name: "Country", Label: "Old Addresses"})
-	oldAddress.RegisterMeta(&resource.Meta{Name: "Phone", Resource: oldPhone})
+	oldAddress.Meta(&Meta{Name: "Country", Label: "Old Addresses"})
+	oldAddress.Meta(&Meta{Name: "Phone", Resource: oldPhone})
 
 	user := NewResource(User{})
-	user.RegisterMeta(&resource.Meta{Name: "Name", Label: "Name"})
-	user.RegisterMeta(&resource.Meta{Name: "Age", Label: "Age"}).Set("AliasHeaders", []string{"Aeon"})
-	user.RegisterMeta(&resource.Meta{Name: "Addresses", Resource: address})
-	user.RegisterMeta(&resource.Meta{Name: "OldAddresses", Resource: oldAddress})
+	user.Meta(&Meta{Name: "Name", Label: "Name"})
+	user.Meta(&Meta{Name: "Age", Label: "Age"}).Set("AliasHeaders", []string{"Aeon"})
+	user.Meta(&Meta{Name: "Addresses", Resource: address})
+	user.Meta(&Meta{Name: "OldAddresses", Resource: oldAddress})
 
 	mvs, _ := user.getMetaValues(map[string]string{
 		"Name":       "Van",
@@ -157,7 +155,7 @@ func TestMetaOptional(t *testing.T) {
 	cleanup()
 
 	address := NewResource(Address{})
-	name := address.RegisterMeta(&resource.Meta{Name: "Name", Label: "Address"})
+	name := address.Meta(&Meta{Name: "Name", Label: "Address"})
 	ex := New(address)
 	for i := 0; i < 2; i++ {
 		if i == 1 {
