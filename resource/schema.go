@@ -127,6 +127,9 @@ func Decode(contextor qor.Contextor, result interface{}, res Resourcer) (errs []
 		context.Request.Body.Close()
 	}).Respond(nil, context.Request)
 
+	if err != nil {
+		errs = append(errs, err)
+	}
 	errs = DecodeToResource(res, result, metaValues, context).Start()
 	return errs
 }
