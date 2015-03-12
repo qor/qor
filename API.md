@@ -50,6 +50,11 @@ Exchange:
     Exchange.Export(records, writer, logger, context)
 
 L10n:
+    Admin.AddResource(l10n.Model(&Product{}), Permission: rules.Allow(roles.CRUD, "global_admin", "locale_admin"))
+
+    current_user {
+      current_locale -> locale_admin
+    }
 
     type News struct {
       ID  int

@@ -16,14 +16,14 @@ func BeforeQuery(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		if str, ok := scope.DB().Get("l10n:locale"); ok {
 			if locale, ok := str.(string); ok {
-				fmt.Println(locale)
+				quotedTableName := scope.QuotedTableName()
 				switch mode, _ := scope.DB().Get("l10n"); mode {
 				case "locale":
-					// scope.Search.Where("language_code = ?", locale)
+					scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), locale)
 				case "global":
-					// scope.Search.Where("language_code IS NULL")
+					scope.Search.Where(fmt.Sprintf("%v.language_code IS NULL", quotedTableName))
 				default:
-					// scope.Search.Where("language_code = ? OR language_code IS NULL", locale)
+					scope.Search.Where(fmt.Sprintf("%v.language_code = ? OR %v.language_code IS NULL", quotedTableName), locale)
 				}
 			}
 		}
