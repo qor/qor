@@ -22,7 +22,7 @@ func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
 						table := scope.TableName()
 						scope.InstanceSet("publish:original_table", table)
 						scope.InstanceSet("publish:supported_model", true)
-						scope.Search.TableName = DraftTableName(table)
+						scope.Search.Table(DraftTableName(table))
 						if isDraft {
 							scope.SetColumn("PublishStatus", DIRTY)
 						}
@@ -38,7 +38,7 @@ func GetModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope
 	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok && !draftMode.(bool) {
 		if table, ok := scope.InstanceGet("publish:original_table"); ok {
 			clone := scope.New(scope.Value)
-			clone.Search.TableName = table.(string)
+			scope.Search.Table(table.(string))
 			return true, clone
 		}
 	}
