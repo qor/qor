@@ -45,7 +45,7 @@ func (bq *BeanstalkdQueue) putJob(job *QorJob) (err error) {
 	if delay < 0 {
 		delay = 0
 	}
-	jobId := fmt.Sprintf("%d", job.Id)
+	jobId := fmt.Sprintf("%d", job.ID)
 	interval := parseInterval(job.Interval)
 	body := strings.Join([]string{jobId, interval}, ",")
 	queueJobId, _, err := client.Put(0, delay, 60, []byte(body))

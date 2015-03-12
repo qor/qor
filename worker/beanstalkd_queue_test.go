@@ -10,10 +10,13 @@ import (
 
 func TestBeanstalkdQueue(t *testing.T) {
 	queue := NewBeanstalkdQueue("beanstalkd-test", "localhost:11300")
-	client, _ := queue.newClient()
+	client, err := queue.newClient()
+	if err != nil {
+		t.Fatal(err)
+	}
 	{
-		job := &Job{
-			Id:       1,
+		job := &QorJob{
+			ID:       1,
 			Interval: 0,
 			StartAt:  time.Now(),
 		}
@@ -30,12 +33,12 @@ func TestBeanstalkdQueue(t *testing.T) {
 			t.Error("dequeue error: ", err)
 		}
 		if jobId != 1 {
-			t.Error("jobId: expect %d got %d", 1, jobId)
+			t.Error("jobID: expect %d got %d", 1, jobId)
 		}
 	}
 	{
-		job := &Job{
-			Id:       2,
+		job := &QorJob{
+			ID:       2,
 			Interval: 0,
 			StartAt:  time.Now().Add(time.Second * 5),
 		}
@@ -52,15 +55,15 @@ func TestBeanstalkdQueue(t *testing.T) {
 			t.Error("dequeue error: ", err)
 		}
 		if jobId != 2 {
-			t.Error("jobId: expect %d got %d", 2, jobId)
+			t.Error("jobID: expect %d got %d", 2, jobId)
 		}
 	}
 	{
 		parseInterval = func(interval uint64) string {
 			return "2"
 		}
-		job := &Job{
-			Id:       3,
+		job := &QorJob{
+			ID:       3,
 			Interval: 2,
 			StartAt:  time.Now(),
 		}
@@ -78,7 +81,7 @@ func TestBeanstalkdQueue(t *testing.T) {
 				t.Error("dequeue error: ", err)
 			}
 			if jobId != 3 {
-				t.Error("jobId: expect %d got %d", 3, jobId)
+				t.Error("jobID: expect %d got %d", 3, jobId)
 			}
 		}
 

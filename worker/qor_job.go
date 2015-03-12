@@ -30,7 +30,7 @@ const (
 )
 
 type QorJob struct {
-	Id         uint64
+	ID         uint64
 	QueueJobId string
 
 	// unit: minute
@@ -124,7 +124,7 @@ func RunJob(jobId uint64) {
 func (j *QorJob) Run() (err error) {
 	parts := strings.Split(j.Cli, " ")
 	name := parts[0]
-	args := []string{"-job-id", strconv.FormatUint(j.Id, 10)}
+	args := []string{"-job-id", strconv.FormatUint(j.ID, 10)}
 	if len(parts) > 1 {
 		args = append(args, parts[1:]...)
 	}
@@ -152,7 +152,7 @@ func (j *QorJob) UpdateStatus(status string) (err error) {
 		sql += "kill_counter = kill_counter+1"
 	}
 
-	if err = jobDB.Where("id = ?", j.Id).Exec(sql).Error; err != nil {
+	if err = jobDB.Where("id = ?", j.ID).Exec(sql).Error; err != nil {
 		logger, erro := j.GetLogger()
 		if erro == nil {
 			fmt.Fprintf(logger, "can't update status from %s to %s: %s\n", old, j.Status, err)
@@ -175,7 +175,7 @@ func (j *QorJob) GetLogger() (rw io.ReadWriter, err error) {
 }
 
 func (qj *QorJob) LogPath() string {
-	return fmt.Sprintf("%s/%s-%s-%d.log", WorkerDataPath, qj.WorkerName, qj.JobName, qj.Id)
+	return fmt.Sprintf("%s/%s-%s-%d.log", WorkerDataPath, qj.WorkerName, qj.JobName, qj.ID)
 }
 
 func (j *QorJob) GetLog() (l string) {
@@ -196,7 +196,7 @@ func (j *QorJob) SavePID() (err error) {
 	if err = jobDB.Save(j).Error; err != nil {
 		logger, erro := j.GetLogger()
 		if erro == nil {
-			fmt.Fprintf(logger, "can't save pid for job %d\n", j.Id)
+			fmt.Fprintf(logger, "can't save pid for job %d\n", j.ID)
 		}
 
 		return
@@ -210,7 +210,7 @@ func (q *QorJob) URL() string {
 	if w == nil {
 		return ""
 	}
-	return fmt.Sprintf("%s/%s/%d", w.admin.GetRouter().Prefix, utils.ToParamString(w.Name), q.Id)
+	return fmt.Sprintf("%s/%s/%d", w.admin.GetRouter().Prefix, utils.ToParamString(w.Name), q.ID)
 }
 
 func (j *QorJob) Stop() (err error) { return }
