@@ -92,10 +92,24 @@
 
           $image.attr('src', $image.data('origin').replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1'));
 
-          var cropData = JSON.parse($cropperDataHolder.val() || '{}').CropOption;
+          var data = JSON.parse($cropperDataHolder.val() || '{}').CropOption;
+
+          for (var k in data) {
+            data[k.toLowerCase()] = data[k];
+          }
 
           $image.cropper({
             built: function() {
+              var imageData = $(this).cropper('getImageData', true),
+                  cropData = {};
+
+              var zoomLevel = imageData.width / imageData.naturalWidth;
+
+              cropData.left = imageData.left + zoomLevel * data.x;
+              cropData.top = imageData.top + zoomLevel * data.y;
+              cropData.width = data.width * zoomLevel;
+              cropData.height = data.height * zoomLevel;
+
               $(this).addClass('cropper-clipper').cropper('setCropBoxData', cropData);
             },
             crop: function(data) {},
@@ -107,12 +121,7 @@
 
         $cropConfirm.on('click', '.act', function(e) {
           var act = $(e.target).data('act'),
-              data = $image.cropper('getData', true),
-              cropData = $image.cropper('getCropBoxData'),
-              imageData = $image.cropper('getImageData');
-
-          data.width = Math.round(data.width);
-          data.height = Math.round(data.height);
+              data = $image.cropper('getData', true);
 
           data = JSON.stringify({CropOption: data, Crop: !!(act*1)});
 
