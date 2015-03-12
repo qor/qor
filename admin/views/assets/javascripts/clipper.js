@@ -30,6 +30,12 @@
               $image = build.call(me, e);
             }
 
+            if ($image.parent().find('.cropper-container').length !== 0) {
+              $image.cropper('destroy');
+              $image.parent().find('.crop-confirm-wrapper').hide();
+              $image.parent().find('.clipper-btn').show();
+            }
+
             $('#cropper-data-' + me.id).val('');
 
             var files = this.files, file = files[0];
@@ -51,7 +57,7 @@
 
         reset: function() {
           var $image = build();
-          $image.cropper('reset', true);
+          $image.cropper('reset');
         },
 
         options: $.clipper.defaults
@@ -62,7 +68,7 @@
 
         var $image = $(options.imageSelector);
 
-        if (!event && $image.length ===0 ) {
+        if (!event && $image.length === 0 || !window.URL) {
           return;
         }
 
@@ -74,10 +80,6 @@
         var $input = $(fileInput).data('clipper', this),
             filePath = $input.val(),
             me = this;
-
-        if (!window.URL) {
-          return;
-        }
 
         this.id = uuid();
 
