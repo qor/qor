@@ -7,7 +7,7 @@ import (
 
 type Metaor interface {
 	GetName() string
-	GetAlias() string
+	GetFieldName() string
 	GetMetas() []Metaor
 	GetResource() Resourcer
 	GetValuer() func(interface{}, *qor.Context) interface{}

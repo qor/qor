@@ -41,7 +41,7 @@ func (meta *Meta) GetName() string {
 	return meta.Name
 }
 
-func (meta *Meta) GetAlias() string {
+func (meta *Meta) GetFieldName() string {
 	return meta.Alias
 }
 
