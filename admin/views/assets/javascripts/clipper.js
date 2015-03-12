@@ -26,9 +26,11 @@
               blobURL = '';
 
           $(fileInput).on('change', function(e) {
-            if (!$(this).hasClass('clipper')) {
+            if (!$(this).data('clipper') instanceof Clipper) {
               $image = build.call(me);
             }
+
+            $('#cropper-data-' + me.id).val('');
 
             var files = this.files, file = files[0];
 
@@ -51,10 +53,21 @@
           me.options = options;
         },
 
+        reset: function() {
+          var $image = build();
+          $image.cropper('reset', true);
+        },
+
         options: $.clipper.defaults
       } //Clipper.prototype
 
       function build() {
+        if ($(fileInput).data('clipper') instanceof Clipper) {
+          return me.$el;
+        }
+
+        this.id = uuid();
+
         options = $.extend({}, $.clipper.defaults, options);
 
         var $input = $(fileInput).data('clipper', this),
@@ -78,6 +91,8 @@
           $cropperDataHolder = $(options.cropperDataHolderTemplate);
           $input.before($cropperDataHolder);
         }
+
+        $cropperDataHolder.attr('id', 'cropper-data-' + this.id);
 
         $image.data('origin', $image[0].src).wrap('<figure class="figure clipper-image-wrapper"></figure>');
 
@@ -152,6 +167,9 @@
 
         return $(img);
       }
+
+      // https://gist.github.com/LeverOne/1308368
+      function uuid(a,b){for(b=a='';a++< 36;b+=a * 51&52?(a^15?8^Math.random()*(a^20?16:4):4).toString(16):'-');return b}
 
       return new Clipper();
 
