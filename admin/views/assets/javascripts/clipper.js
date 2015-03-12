@@ -22,12 +22,12 @@
 
         init: function() {
           var me = this,
-              $image = build.call(me),
+              $image = build.call(this),
               blobURL = '';
 
           $(fileInput).on('change', function(e) {
-            if (!$(this).data('clipper') instanceof Clipper) {
-              $image = build.call(me);
+            if (!$(this).hasClass('cropper-clipper')) {
+              $image = build.call(me, e);
             }
 
             $('#cropper-data-' + me.id).val('');
@@ -40,10 +40,6 @@
               }
 
               blobURL = URL.createObjectURL(file);
-
-              if ($image.hasClass('cropper-clipper')) {
-                // $image.cropper("reset", true).cropper("replace", blobURL);
-              }
 
               $image.attr('src', blobURL).data('origin', blobURL);
 
@@ -61,17 +57,21 @@
         options: $.clipper.defaults
       } //Clipper.prototype
 
-      function build() {
-        if ($(fileInput).data('clipper') instanceof Clipper) {
-          return me.$el;
-        }
-
-        this.id = uuid();
-
+      function build(event) {
         options = $.extend({}, $.clipper.defaults, options);
 
+        var $image = $(options.imageSelector);
+
+        if (!event && $image.length ===0 ) {
+          return;
+        }
+
+        if (event && $image.length !== 0) {
+          $('#cropper-data-' + this.id).val('');
+          return $image;
+        }
+
         var $input = $(fileInput).data('clipper', this),
-            $image = $(options.imageSelector),
             filePath = $input.val(),
             me = this;
 
@@ -79,11 +79,13 @@
           return;
         }
 
+        this.id = uuid();
+
         if ($image.length === 0) {
           $image = createImg();
         }
 
-        me.$el = $input.addClass('clipper');
+        me.$el = $input.addClass('clipper'); // can be $image?
 
         var $cropperDataHolder = $(options.cropperDataHolderSelector);
 
@@ -115,6 +117,10 @@
 
           $image.cropper({
             built: function() {
+              if (!data) {
+                return;
+              }
+
               var imageData = $(this).cropper('getImageData', true),
                   cropData = {};
 
@@ -138,7 +144,7 @@
           var act = $(e.target).data('act'),
               data = $image.cropper('getData', true);
 
-          data = JSON.stringify({CropOption: data, Crop: !!(act*1)});
+          data = !!(act*1) ? JSON.stringify({CropOption: data, Crop: !!(act*1)}) : '';
 
           $cropperDataHolder.val(data);
 
