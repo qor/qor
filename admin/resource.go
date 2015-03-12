@@ -59,7 +59,7 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 		if metaValues == nil {
 			primaryKey = context.ResourceID
 		} else if id := metaValues.Get(res.PrimaryFieldName()); id != nil {
-			primaryKey = ToString(id.Value)
+			primaryKey = utils.ToString(id.Value)
 		}
 
 		if primaryKey != "" {

@@ -2,10 +2,7 @@ package exchange
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
-
-	"github.com/qor/qor/roles"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -13,7 +10,7 @@ import (
 
 type Resource struct {
 	*resource.Resource
-	Metas                map[string]*Meta
+	Metas                map[string]*Meta // TODO: replace it with a slice
 	AutoCreate           bool
 	MultiDelimiter       string
 	HasSequentialColumns bool
@@ -21,7 +18,11 @@ type Resource struct {
 }
 
 func NewResource(val interface{}) *Resource {
-	res := &Resource{Resource: &resource.Resource{Value: val}, AutoCreate: true}
+	res := &Resource{
+		Resource:   &resource.Resource{Value: val},
+		AutoCreate: true,
+		Metas:      map[string]*Meta{},
+	}
 	res.AddValidator(func(_ interface{}, mvs *resource.MetaValues, ctx *qor.Context) error {
 		for _, meta := range res.Metas {
 			// if meta, ok := mr.(*Meta); ok {
@@ -58,90 +59,11 @@ func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaVal
 	return
 }
 
-type Meta struct {
-	// *resource.Meta
-	Name          string
-	Alias         string
-	Label         string
-	Type          string
-	Valuer        func(interface{}, *qor.Context) interface{}
-	Setter        func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context)
-	Metas         []resource.Metaor
-	Resource      resource.Resourcer
-	Collection    interface{}
-	GetCollection func(interface{}, *qor.Context) [][]string
-	Permission    *roles.Permission
-
-	Optional     bool
-	AliasHeaders []string
-}
-
-func (meta *Meta) GetName() string {
-	return meta.Name
-}
-
-func (meta *Meta) GetAlias() string {
-	return meta.Alias
-}
-
-func (meta *Meta) GetMetas() []resource.Metaor {
-	if len(meta.Metas) > 0 {
-		return meta.Metas
-	} else if meta.Resource == nil {
-		return []resource.Metaor{}
-	} else {
-		return meta.Resource.GetMetas()
-	}
-}
-
-func (meta *Meta) GetResource() resource.Resourcer {
-	return meta.Resource
-}
-
-func (meta *Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
-	return meta.Valuer
-}
-
-func (meta *Meta) GetSetter() func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-	return meta.Setter
-}
-
-func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
-	if meta.Permission == nil {
-		return true
-	}
-	return meta.Permission.HasPermission(mode, context.Roles...)
-}
-
-func (m *Meta) Set(field string, val interface{}) *Meta {
-	reflect.ValueOf(m).Elem().FieldByName(field).Set(reflect.ValueOf(val))
-	return m
-}
-
-func (m *Meta) getCurrentLabel(vmap map[string]string, index int) string {
-	var labels []string
-	if index > 0 {
-		// support both "label 01" and "label 1"
-		labels = append(labels, fmt.Sprintf("%s %#02d", m.Label, index), fmt.Sprintf("%s %d", m.Label, index))
-	} else {
-		labels = append(labels, m.Label)
-	}
-
-	labels = append(labels, m.AliasHeaders...)
-	for _, label := range labels {
-		if _, ok := vmap[label]; ok {
-			return label
-		}
-	}
-
-	return ""
-}
-
 func (res *Resource) Meta(meta *Meta) *Meta {
 	// m := &Meta{Meta: meta}
 	// res.Resource.Meta(m)
-	// meta.base = res
-	// meta.updateMeta()
+	meta.base = res
+	meta.updateMeta()
 	// res.Metas = append(res.Metas, meta)
 	res.Metas[meta.Name] = meta
 	res.HeadersInOrder = append(res.HeadersInOrder, meta.Name)

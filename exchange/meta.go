@@ -1,4 +1,4 @@
-package admin
+package exchange
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"regexp"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -14,26 +13,27 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
 	"github.com/qor/qor"
-	"github.com/qor/qor/media_library"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
 )
 
 type Meta struct {
-	base   *Resource
-	Name   string
-	Alias  string
-	Label  string
-	Type   string
-	Valuer func(interface{}, *qor.Context) interface{}
-	// TODO: should allow Setter to return error, at least have a place to register
-	Setter        func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context)
-	Metas         []resource.Metaor
-	Resource      resource.Resourcer
-	Collection    interface{}
-	GetCollection func(interface{}, *qor.Context) [][]string
-	Permission    *roles.Permission
+	base *Resource
+	Name string
+	// Alias string
+	Label string
+	// Type          string
+	Valuer   func(interface{}, *qor.Context) interface{}
+	Setter   func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context)
+	Metas    []resource.Metaor
+	Resource resource.Resourcer
+	// Collection    interface{}
+	// GetCollection func(interface{}, *qor.Context) [][]string
+	Permission *roles.Permission
+
+	Optional     bool
+	AliasHeaders []string
 }
 
 func (meta *Meta) GetName() string {
@@ -41,7 +41,7 @@ func (meta *Meta) GetName() string {
 }
 
 func (meta *Meta) GetFieldName() string {
-	return meta.Alias
+	return meta.Name
 }
 
 func (meta *Meta) GetMetas() []resource.Metaor {
@@ -73,20 +73,35 @@ func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context)
 	return meta.Permission.HasPermission(mode, context.Roles...)
 }
 
-func getField(fields map[string]*gorm.Field, name string) (*gorm.Field, bool) {
-	for _, field := range fields {
-		if field.Name == name || field.DBName == name {
-			return field, true
+func (m *Meta) Set(field string, val interface{}) *Meta {
+	reflect.ValueOf(m).Elem().FieldByName(field).Set(reflect.ValueOf(val))
+	return m
+}
+
+func (m *Meta) getCurrentLabel(vmap map[string]string, index int) string {
+	var labels []string
+	if index > 0 {
+		// support both "label 01" and "label 1"
+		labels = append(labels, fmt.Sprintf("%s %#02d", m.Label, index), fmt.Sprintf("%s %d", m.Label, index))
+	} else {
+		labels = append(labels, m.Label)
+	}
+
+	labels = append(labels, m.AliasHeaders...)
+	for _, label := range labels {
+		if _, ok := vmap[label]; ok {
+			return label
 		}
 	}
-	return nil, false
+
+	return ""
 }
 
 func (meta *Meta) updateMeta() {
 	if meta.Name == "" {
 		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
-	} else if meta.Alias == "" {
-		meta.Alias = meta.Name
+		// } else if meta.Alias == "" {
+		// 	meta.Alias = meta.Name
 	}
 
 	if meta.Label == "" {
@@ -95,19 +110,19 @@ func (meta *Meta) updateMeta() {
 
 	var (
 		scope       = &gorm.Scope{Value: meta.base.Value}
-		nestedField = strings.Contains(meta.Alias, ".")
+		nestedField = strings.Contains(meta.Name, ".")
 		field       *gorm.Field
 		hasColumn   bool
 		valueType   string
 	)
 
 	if nestedField {
-		subModel, name := utils.ParseNestedField(reflect.ValueOf(meta.base.Value), meta.Alias)
+		subModel, name := utils.ParseNestedField(reflect.ValueOf(meta.base.Value), meta.Name)
 		subScope := &gorm.Scope{Value: subModel.Interface()}
-		field, hasColumn = getField(subScope.Fields(), name)
+		field, hasColumn = utils.GetField(subScope.Fields(), name)
 	} else {
-		if field, hasColumn = getField(scope.Fields(), meta.Alias); hasColumn {
-			meta.Alias = field.Name
+		if field, hasColumn = utils.GetField(scope.Fields(), meta.Name); hasColumn {
+			meta.Name = field.Name
 		}
 	}
 
@@ -117,35 +132,6 @@ func (meta *Meta) updateMeta() {
 			ft = ft.Elem()
 		}
 		valueType = ft.Kind().String()
-	}
-
-	// Set Meta Type
-	if meta.Type == "" && hasColumn {
-		if relationship := field.Relationship; relationship != nil {
-			if relationship.Kind == "belongs_to" || relationship.Kind == "has_one" {
-				meta.Type = "single_edit"
-			} else if relationship.Kind == "has_many" {
-				meta.Type = "collection_edit"
-			} else if relationship.Kind == "many_to_many" {
-				meta.Type = "select_many"
-			}
-		} else {
-
-			switch valueType {
-			case "string":
-				meta.Type = "string"
-			case "bool":
-				meta.Type = "checkbox"
-			default:
-				if regexp.MustCompile(`^(.*)?(u)?(int|float)(\d+)?`).MatchString(valueType) {
-					meta.Type = "number"
-				} else if _, ok := field.Field.Interface().(time.Time); ok {
-					meta.Type = "datetime"
-				} else if _, ok := field.Field.Addr().Interface().(media_library.MediaLibrary); ok {
-					meta.Type = "file"
-				}
-			}
-		}
 	}
 
 	// Set Meta Resource
@@ -168,7 +154,7 @@ func (meta *Meta) updateMeta() {
 		if hasColumn {
 			meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
 				scope := &gorm.Scope{Value: value}
-				alias := meta.Alias
+				alias := meta.Name
 				if nestedField {
 					fields := strings.Split(alias, ".")
 					alias = fields[len(fields)-1]
@@ -177,7 +163,7 @@ func (meta *Meta) updateMeta() {
 				if f, ok := scope.FieldByName(alias); ok {
 					if field.Relationship != nil {
 						if f.Field.CanAddr() {
-							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
+							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.Name)
 						}
 					}
 					if f.Field.CanAddr() {
@@ -196,29 +182,7 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
-	// Set Meta Collection
-	if meta.Collection != nil {
-		if maps, ok := meta.Collection.([]string); ok {
-			meta.GetCollection = func(interface{}, *qor.Context) (results [][]string) {
-				for _, value := range maps {
-					results = append(results, []string{value, value})
-				}
-				return
-			}
-		} else if maps, ok := meta.Collection.([][]string); ok {
-			meta.GetCollection = func(interface{}, *qor.Context) [][]string {
-				return maps
-			}
-		} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
-			meta.GetCollection = f
-		} else {
-			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Value))
-		}
-	} else if meta.Type == "select_one" || meta.Type == "select_many" {
-		qor.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
-	}
-
-	scopeField, _ := scope.FieldByName(meta.Alias)
+	scopeField, _ := scope.FieldByName(meta.Name)
 
 	if meta.Setter == nil {
 		meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
@@ -228,7 +192,7 @@ func (meta *Meta) updateMeta() {
 
 			value := metaValue.Value
 			scope := &gorm.Scope{Value: resource}
-			alias := meta.Alias
+			alias := meta.Name
 			if nestedField {
 				fields := strings.Split(alias, ".")
 				alias = fields[len(fields)-1]
@@ -249,7 +213,7 @@ func (meta *Meta) updateMeta() {
 				if relationship == "many_to_many" {
 					context.GetDB().Where(utils.ToArray(value)).Find(field.Addr().Interface())
 					if !scope.PrimaryKeyZero() {
-						context.GetDB().Model(resource).Association(meta.Alias).Replace(field.Interface())
+						context.GetDB().Model(resource).Association(meta.Name).Replace(field.Interface())
 					}
 				} else {
 					switch field.Kind() {
@@ -293,11 +257,11 @@ func (meta *Meta) updateMeta() {
 	if nestedField {
 		oldvalue := meta.Valuer
 		meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
-			return oldvalue(utils.GetNestedModel(value, meta.Alias, context), context)
+			return oldvalue(utils.GetNestedModel(value, meta.Name, context), context)
 		}
 		oldSetter := meta.Setter
 		meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-			oldSetter(utils.GetNestedModel(resource, meta.Alias, context), metaValue, context)
+			oldSetter(utils.GetNestedModel(resource, meta.Name, context), metaValue, context)
 		}
 	}
 }
