@@ -1,3 +1,14 @@
-.cropper-container {
-  max-width: 500px;
+.image-cropper {
+  display: block;
+  max-width: 600px;
+}
+.clipper-image-wrapper {
+  position: relative;
+}
+.clipper-btn {
+  display: block;
+}
+.clipper-image-wrapper .btn {
+  display: block;
+  margin-bottom: 20px;
 }

@@ -9,7 +9,7 @@
     "use strict";
 
     $.clipper = function(fileInput, options) {
-      if (!fileInput || fileInput.nodeName.toLowerCase() !== "input") {
+      if (!fileInput || fileInput.nodeName !== "INPUT") {
         throw new Error('this is not a input');
       }
 
@@ -21,57 +21,29 @@
         constructor: Clipper,
 
         init: function() {
-          options = $.extend({}, $.clipper.defaults, options);
+          var me = this,
+              $image = build.call(me),
+              blobURL = '';
 
-          var $input = $(fileInput).data('clipper', this),
-              src = $input.val(),
-              suffix = src.split('.').reverse()[0].toLowerCase(),
-              me = this;
+          $(fileInput).on('change', function(e) {
+            if (!$(this).hasClass('clipper')) {
+              $image = build.call(me);
+            }
 
-          var $image = $(options.imageSelector);
-
-          me.$el = $input.addClass('clipper');
-
-          if (isImg(suffix) && $image.length !== 0) {
-            $image = createImg(src);
-          }
-
-          if (!window.URL) {
-            return;
-          }
-
-          var $cropperDataHolder = $(options.cropperDataHolderSelector);
-
-          if (!$cropperDataHolder.length) {
-            $cropperDataHolder = $(options.cropperDataHolderTemplate);
-            $input.before($cropperDataHolder);
-          }
-
-          $image.cropper({
-            done: function(data) {
-              $cropperDataHolder.val(JSON.stringify({CropOption: $image.cropper('getData', true), Crop: true}));
-            },
-            multiple: true,
-            zoomable: false
-          });
-
-          var blobURL = '';
-
-          $input.on('change', function(e) {
             var files = this.files, file = files[0];
 
             if (file && isImg(file.type)) {
-              if (!($image.length && $image[0].nodeName === 'IMG')) {
-                $image = createImg();
-              }
-
               if (blobURL) {
-                blobURL = URL.revokeObjectURL(blobURL)
+                blobURL = URL.revokeObjectURL(blobURL);
               }
 
               blobURL = URL.createObjectURL(file);
 
-              $image.cropper("reset", true).cropper("replace", blobURL);
+              if ($image.hasClass('cropper-clipper')) {
+                // $image.cropper("reset", true).cropper("replace", blobURL);
+              }
+
+              $image.attr('src', blobURL).data('origin', blobURL);
 
             }
           });
@@ -80,10 +52,87 @@
         },
 
         options: $.clipper.defaults
+      } //Clipper.prototype
+
+      function build() {
+        options = $.extend({}, $.clipper.defaults, options);
+
+        var $input = $(fileInput).data('clipper', this),
+            $image = $(options.imageSelector),
+            filePath = $input.val(),
+            me = this;
+
+        if (!window.URL) {
+          return;
+        }
+
+        if ($image.length === 0) {
+          $image = createImg();
+        }
+
+        me.$el = $input.addClass('clipper');
+
+        var $cropperDataHolder = $(options.cropperDataHolderSelector);
+
+        if (!$cropperDataHolder.length) {
+          $cropperDataHolder = $(options.cropperDataHolderTemplate);
+          $input.before($cropperDataHolder);
+        }
+
+        $image.data('origin', $image[0].src).wrap('<figure class="figure clipper-image-wrapper"></figure>');
+
+        var $cropBtn = $('<a href="javascript:;" class="clipper-btn">Crop</a>'),
+            $cropConfirm = $(options.cropperConfirmTemplate);
+
+        $image.before($cropBtn).before($cropConfirm);
+
+        $cropBtn.on('click', function() {
+          $(this).hide();
+          $cropConfirm.show();
+
+          $image.attr('src', $image.data('origin').replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1'));
+
+          var cropData = JSON.parse($cropperDataHolder.val() || '{}').CropOption;
+
+          $image.cropper({
+            built: function() {
+              $(this).addClass('cropper-clipper').cropper('setCropBoxData', cropData);
+            },
+            crop: function(data) {},
+            multiple: true,
+            zoomable: false
+          });
+          
+        });
+
+        $cropConfirm.on('click', '.act', function(e) {
+          var act = $(e.target).data('act'),
+              data = $image.cropper('getData', true),
+              cropData = $image.cropper('getCropBoxData'),
+              imageData = $image.cropper('getImageData');
+
+          data.width = Math.round(data.width);
+          data.height = Math.round(data.height);
+
+          data = JSON.stringify({CropOption: data, Crop: !!(act*1)});
+
+          $cropperDataHolder.val(data);
+
+          var dataURL = act*1 ? $image.cropper('getDataURL') : $image.data('origin');
+
+          $image.cropper('destroy');
+          $image.attr('src', dataURL);
+
+          $cropConfirm.hide();
+
+          $cropBtn.show();
+        });
+
+        return $image;
       }
 
       function isImg(suffix) {
-        return suffix.search(/jpg|jpeg|png|gif|bmp/) !== -1; 
+        return suffix.search(/jpg|jpeg|png|gif|bmp/i) !== -1;
       }
 
       function createImg(src) {
@@ -103,7 +152,11 @@
       imageSelector: '.image-cropper',
       imageClass: 'clipper-uploaded-image',
       cropperDataHolderSelector: '.image-cropper-crop-option',
-      cropperDataHolderTemplate: '<textarea name="QorResource.File" style="display:none">'
+      cropperDataHolderTemplate: '<textarea name="QorResource.File" style="display:none">',
+      cropperConfirmTemplate: '<div class="crop-confirm-wrapper" style="display: none;">\
+                                 <a href="javascript:;" data-act="0" class="btn act cancel">Cancel</a>\
+                                 <a href="javascript:;" data-act="1" class="btn act save">Save</a>\
+                               </div>'
     };
 
     $.fn.clipper = function(options, callback) {
