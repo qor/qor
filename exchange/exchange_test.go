@@ -80,7 +80,7 @@ func TestImportSimple(t *testing.T) {
 	useres.Meta(&Meta{Name: "Age", Label: "Age"})
 	ex := New(useres)
 
-	f, err := NewXLSXFile("simple.xlsx")
+	f, err := NewXLSXFile("fixture/simple.xlsx")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +110,7 @@ func TestImportNested(t *testing.T) {
 	addres.Meta(&Meta{Name: "Country", Label: "Country"})
 	ex := New(useres)
 
-	f, err := NewXLSXFile("nested_resource.xlsx")
+	f, err := NewXLSXFile("fixture/nested_resource.xlsx")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -175,7 +175,7 @@ func TestImportNormalizeHeader(t *testing.T) {
 
 		return
 	}
-	f, err := NewXLSXFile("headers.xlsx")
+	f, err := NewXLSXFile("fixture/headers.xlsx")
 	if err != nil {
 		t.Error(err)
 	}
@@ -218,7 +218,7 @@ func TestImportError(t *testing.T) {
 		return nil
 	})
 
-	f, err := NewXLSXFile("simple.xlsx")
+	f, err := NewXLSXFile("fixture/simple.xlsx")
 	if err != nil {
 		t.Error(err)
 	}

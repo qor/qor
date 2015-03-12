@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewXLSXFile(t *testing.T) {
-	got, err := NewXLSXFile("simple.xlsx")
+	got, err := NewXLSXFile("fixture/simple.xlsx")
 	if err != nil {
 		t.Fatal(err)
 	}
