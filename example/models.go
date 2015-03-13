@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/l10n"
@@ -42,37 +44,39 @@ type User struct {
 	CreditCard   CreditCard
 	CreditCardId int64
 	Addresses    []Address
+	DeletedAt    time.Time
+	publish.Status
 }
 
 type Product struct {
 	ID int
 	l10n.Locale
+	DeletedAt time.Time
+	publish.Status
 }
 
-var db gorm.DB
-var publishDB publish.Publish
+var DB gorm.DB
+var Publish *publish.Publish
 
 func init() {
 	var err error
-	db, err = gorm.Open("sqlite3", "tmp/qor.db")
+	DB, err = gorm.Open("sqlite3", "tmp/qor.db")
 	if err != nil {
 		panic(err)
 	}
 
-	db.LogMode(true)
-	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &admin.AssetManager{})
+	DB.LogMode(true)
+	DB.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &admin.AssetManager{})
 
-	publishDB := publish.New(&db)
-	publishDB.Support(&User{}, &Product{}).AutoMigrate()
-	// publish.DraftDB()
-	// publish.ProductionDB()
+	Publish = publish.New(&DB)
+	Publish.Support(&User{}, &Product{}).AutoMigrate()
 
-	db.FirstOrCreate(&Role{}, Role{Name: "admin"})
-	db.FirstOrCreate(&Role{}, Role{Name: "dev"})
-	db.FirstOrCreate(&Role{}, Role{Name: "customer_support"})
+	DB.FirstOrCreate(&Role{}, Role{Name: "admin"})
+	DB.FirstOrCreate(&Role{}, Role{Name: "dev"})
+	DB.FirstOrCreate(&Role{}, Role{Name: "customer_support"})
 
-	db.FirstOrCreate(&Language{}, Language{Name: "CN"})
-	db.FirstOrCreate(&Language{}, Language{Name: "JP"})
-	db.FirstOrCreate(&Language{}, Language{Name: "EN"})
-	db.FirstOrCreate(&Language{}, Language{Name: "DE"})
+	DB.FirstOrCreate(&Language{}, Language{Name: "CN"})
+	DB.FirstOrCreate(&Language{}, Language{Name: "JP"})
+	DB.FirstOrCreate(&Language{}, Language{Name: "EN"})
+	DB.FirstOrCreate(&Language{}, Language{Name: "DE"})
 }

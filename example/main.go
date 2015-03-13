@@ -19,22 +19,17 @@ func init() {
 }
 
 func main() {
-	config := qor.Config{DB: &db}
+	config := qor.Config{DB: Publish.DraftDB()}
 
-	// publish := publish.RegisterCallbacks(&db)
-	// publish.Support(&User{}, &Product{})
-	// publish.DraftDB()
-	// publish.ProductionDB()
+	Admin := admin.New(&config)
 
-	web := admin.New(&config)
+	Admin.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})
 
-	web.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})
-
-	creditCard := web.AddResource(&CreditCard{}, &admin.Config{Menu: []string{"User Management"}})
+	creditCard := Admin.AddResource(&CreditCard{}, &admin.Config{Menu: []string{"User Management"}})
 
 	creditCard.Meta(&admin.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
-	user := web.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
+	user := Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
 	user.Meta(&admin.Meta{Name: "CreditCard", Resource: creditCard})
 	user.Meta(&admin.Meta{Name: "fullname", Alias: "name"})
 
@@ -61,14 +56,14 @@ func main() {
 		},
 	})
 
-	web.AddResource(&Language{}, &admin.Config{Menu: []string{"User Management"}})
-	web.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
+	Admin.AddResource(&Language{}, &admin.Config{Menu: []string{"User Management"}})
+	Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
 
-	assetManager := web.AddResource(&admin.AssetManager{}, nil)
+	assetManager := Admin.AddResource(&admin.AssetManager{}, nil)
 	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: assetManager})
 
 	mux := http.NewServeMux()
-	web.MountTo("/admin", mux)
+	Admin.MountTo("/admin", mux)
 	mux.Handle("/system/", http.FileServer(http.Dir("public")))
 
 	fmt.Println("listening on :9000")
