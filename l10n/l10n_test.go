@@ -40,10 +40,6 @@ func init() {
 func TestL10n(t *testing.T) {
 	product := Product{Code: "L1212"}
 	dbGlobal.Create(&product)
-
-	dbCN.Create(&product)
-	dbEN.Create(&product)
-	dbCN.Delete(&product)
-	dbCN.Unscoped().Save(&product)
-	dbEN.Create(&product)
+	dbCN.Save(&product)
+	dbEN.Save(&product)
 }

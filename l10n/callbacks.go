@@ -40,6 +40,8 @@ func BeforeCreate(scope *gorm.Scope) {
 func BeforeUpdate(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		if locale, ok := getLocale(scope); ok { // is locale
+			scope.Search.Unscoped = true
+			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", scope.QuotedTableName()), locale)
 			setLocale(scope, locale)
 			scope.Search.Omit(syncColumns(scope)...)
 		}
@@ -48,7 +50,15 @@ func BeforeUpdate(scope *gorm.Scope) {
 
 func AfterUpdate(scope *gorm.Scope) {
 	if isLocalizable(scope) {
-		if _, ok := getLocale(scope); !ok { // is global
+		if locale, ok := getLocale(scope); ok {
+			if scope.DB().RowsAffected == 0 { //is locale and nothing updated
+				var count int
+				var query = fmt.Sprintf("language_code = ? AND %v = ?", scope.PrimaryKey())
+				if scope.NewDB().Table(scope.TableName()).Where(query, locale, scope.PrimaryKeyValue()).Count(&count); count == 0 {
+					scope.DB().Create(scope.Value)
+				}
+			}
+		} else { // is global
 			scope.NewDB().Where(fmt.Sprintf("%v = ?"), scope.PrimaryKeyValue).Select(syncColumns(scope)).Update(scope.Value)
 		}
 	}
