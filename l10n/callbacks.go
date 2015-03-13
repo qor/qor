@@ -18,7 +18,7 @@ func BeforeQuery(scope *gorm.Scope) {
 				case "global":
 					scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), "")
 				default:
-					scope.Search.Where(fmt.Sprintf("%v.language_code = ? OR %v.language_code = ?", quotedTableName), locale, "")
+					scope.Search.Where(fmt.Sprintf("%v.language_code = ? OR %v.language_code = ?", quotedTableName, quotedTableName), locale, "").Order("language_code DESC")
 				}
 			}
 		}

@@ -14,7 +14,7 @@ import (
 type Product struct {
 	ID int `gorm:"primary_key"`
 	l10n.Locale
-	Code      string
+	Code      string `l10n:"sync"`
 	Name      string
 	DeletedAt time.Time
 }
@@ -30,7 +30,6 @@ func init() {
 
 	db.DropTable(&Product{})
 	db.AutoMigrate(&Product{})
-	db.LogMode(true)
 
 	dbGlobal = &db
 	dbCN = dbGlobal.Set("l10n:locale", "zh")
@@ -46,7 +45,7 @@ func checkHasErr(t *testing.T, err error) {
 func checkHasProductInLocale(db *gorm.DB, locale string, t *testing.T) {
 	var count int
 	if db.Where("language_code = ?", locale).Count(&count); count != 1 {
-		t.Errorf("should create one product for locale %v", locale)
+		t.Errorf("should has only one product for locale %v, but found %v", locale, count)
 	}
 }
 
@@ -56,33 +55,92 @@ func checkHasProductInAllLocales(db *gorm.DB, t *testing.T) {
 	checkHasProductInLocale(db, "en", t)
 }
 
-func TestCreateLocalesWithCreate(t *testing.T) {
-	product := Product{Code: "CreateLocalesWithCreate"}
+func TestCreateWithCreate(t *testing.T) {
+	product := Product{Code: "CreateWithCreate"}
 	checkHasErr(t, dbGlobal.Create(&product).Error)
 	checkHasErr(t, dbCN.Create(&product).Error)
 	checkHasErr(t, dbEN.Create(&product).Error)
 
-	checkHasProductInAllLocales(dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "CreateLocalesWithCreate"), t)
+	checkHasProductInAllLocales(dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "CreateWithCreate"), t)
 }
 
-func TestCreateLocalesWithSave(t *testing.T) {
-	product := Product{Code: "CreateLocalesWithSave"}
+func TestCreateWithSave(t *testing.T) {
+	product := Product{Code: "CreateWithSave"}
 	checkHasErr(t, dbGlobal.Create(&product).Error)
 	checkHasErr(t, dbCN.Create(&product).Error)
 	checkHasErr(t, dbEN.Create(&product).Error)
 
-	checkHasProductInAllLocales(dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "CreateLocalesWithSave"), t)
+	checkHasProductInAllLocales(dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "CreateWithSave"), t)
 }
 
-func TestUpdateLocales(t *testing.T) {
-	product := Product{Code: "CreateUpdateLocales", Name: "global"}
+func TestUpdate(t *testing.T) {
+	product := Product{Code: "Update", Name: "global"}
 	checkHasErr(t, dbGlobal.Create(&product).Error)
+	sharedDB := dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "Update")
+
 	product.Name = "中文名"
 	checkHasErr(t, dbCN.Create(&product).Error)
-	checkHasProductInLocale(dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "中文名"), "zh", t)
+	checkHasProductInLocale(sharedDB.Where("name = ?", "中文名"), "zh", t)
 
 	product.Name = "English Name"
 	checkHasErr(t, dbEN.Create(&product).Error)
-	checkHasProductInLocale(dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "English Name"), "en", t)
+	checkHasProductInLocale(sharedDB.Where("name = ?", "English Name"), "en", t)
 
+	product.Name = "新的中文名"
+	product.Code = "NewCode // should be ignored when update"
+	dbCN.Save(&product)
+	checkHasProductInLocale(sharedDB.Where("name = ?", "新的中文名"), "zh", t)
+
+	product.Name = "New English Name"
+	product.Code = "NewCode // should be ignored when update"
+	dbEN.Save(&product)
+	checkHasProductInLocale(sharedDB.Where("name = ?", "New English Name"), "en", t)
+}
+
+func TestQuery(t *testing.T) {
+	product := Product{Code: "Query", Name: "global"}
+	dbGlobal.Create(&product)
+	dbCN.Create(&product)
+
+	var productCN Product
+	dbCN.First(&productCN, product.ID)
+	if productCN.LanguageCode != "zh" {
+		t.Error("Should find localized zh product with mixed mode")
+	}
+
+	if dbCN.Set("l10n:mode", "locale").First(&productCN, product.ID).RecordNotFound() {
+		t.Error("Should find localized zh product with locale mode")
+	}
+
+	if dbCN.Set("l10n:mode", "global").First(&productCN); productCN.LanguageCode != "" {
+		t.Error("Should find global product with global mode")
+	}
+
+	var productEN Product
+	dbEN.First(&productEN, product.ID)
+	if productEN.LanguageCode != "" {
+		t.Error("Should find global product for en with mixed mode")
+	}
+
+	if !dbEN.Set("l10n:mode", "locale").First(&productEN, product.ID).RecordNotFound() {
+		t.Error("Should find no record with locale mode")
+	}
+
+	if dbEN.Set("l10n:mode", "global").First(&productEN); productEN.LanguageCode != "" {
+		t.Error("Should find global product with global mode")
+	}
+}
+
+func TestDelete(t *testing.T) {
+	product := Product{Code: "Delete", Name: "global"}
+	dbGlobal.Create(&product)
+	dbCN.Create(&product)
+
+	if dbCN.Delete(&product).RowsAffected != 1 {
+		t.Errorf("Should delete localized record")
+	}
+
+	if dbEN.Delete(&product).RowsAffected != 0 {
+		t.Errorf("Should delete none record in unlocalized locale")
+	}
 }
