@@ -1,6 +1,7 @@
 package l10n
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -10,6 +11,31 @@ import (
 func isLocalizable(scope *gorm.Scope) (isLocalizable bool) {
 	_, isLocalizable = reflect.New(scope.GetModelStruct().ModelType).Interface().(Interface)
 	return
+}
+
+type LocalizationLocaleCreateable interface {
+	LocalizationLocaleCreateable()
+}
+
+func isLocalizationLocaleCreateable(scope *gorm.Scope) (ok bool) {
+	_, ok = reflect.New(scope.GetModelStruct().ModelType).Interface().(LocalizationLocaleCreateable)
+	return
+}
+
+func setScopeLocale(scope *gorm.Scope, locale string) {
+	method := func(value interface{}) {
+		if model, ok := value.(Interface); ok {
+			model.SetLocale(locale)
+		}
+	}
+
+	if values := scope.IndirectValue(); values.Kind() == reflect.Slice {
+		for i := 0; i < values.Len(); i++ {
+			method(values.Index(i).Addr().Interface())
+		}
+	} else {
+		method(scope.Value)
+	}
 }
 
 func BeforeQuery(scope *gorm.Scope) {
@@ -32,7 +58,13 @@ func BeforeQuery(scope *gorm.Scope) {
 
 func BeforeCreate(scope *gorm.Scope) {
 	if isLocalizable(scope) {
-		// is locale -> set locale
+		if str, ok := scope.DB().Get("l10n:locale"); ok {
+			if isLocalizationLocaleCreateable(scope) {
+				setScopeLocale(scope, str.(string))
+			} else {
+				scope.Err(errors.New("permission denied to create from locale"))
+			}
+		}
 	}
 }
 
