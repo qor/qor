@@ -62,6 +62,8 @@ func main() {
 	assetManager := Admin.AddResource(&admin.AssetManager{}, nil)
 	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: assetManager})
 
+	Admin.AddResource(Publish, nil)
+
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)
 	mux.Handle("/system/", http.FileServer(http.Dir("public")))
