@@ -20,6 +20,12 @@ func init() {
 
 func main() {
 	config := qor.Config{DB: &db}
+
+	// publish := publish.RegisterCallbacks(&db)
+	// publish.Support(&User{}, &Product{})
+	// publish.DraftDB()
+	// publish.ProductionDB()
+
 	web := admin.New(&config)
 
 	web.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})

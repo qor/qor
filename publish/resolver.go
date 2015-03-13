@@ -12,7 +12,7 @@ import (
 type Resolver struct {
 	Records      []interface{}
 	Dependencies map[string]*Dependency
-	DB           *DB
+	DB           *Publish
 }
 
 type Dependency struct {
@@ -65,7 +65,7 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 	value := reflect.New(dependency.Type)
 	fromScope := resolver.DB.DB.NewScope(value.Interface())
 
-	draftDB := resolver.DB.DraftMode().Unscoped()
+	draftDB := resolver.DB.DraftDB().Unscoped()
 	for _, field := range fromScope.Fields() {
 		if relationship := field.Relationship; relationship != nil {
 			if resolver.SupportModel(field.Field.Interface()) {
@@ -122,7 +122,7 @@ func (resolver *Resolver) Publish() {
 
 	for _, dependency := range resolver.Dependencies {
 		value := reflect.New(dependency.Type).Elem()
-		productionScope := resolver.DB.ProductionMode().NewScope(value.Addr().Interface())
+		productionScope := resolver.DB.ProductionDB().NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
 		primaryKey := productionScope.PrimaryKey()
 		draftTable := DraftTableName(productionTable)
@@ -162,7 +162,7 @@ func (resolver *Resolver) Discard() {
 
 	for _, dependency := range resolver.Dependencies {
 		value := reflect.New(dependency.Type).Elem()
-		productionScope := resolver.DB.ProductionMode().NewScope(value.Addr().Interface())
+		productionScope := resolver.DB.ProductionDB().NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
 		primaryKey := productionScope.PrimaryKey()
 		draftTable := DraftTableName(productionTable)

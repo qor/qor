@@ -12,17 +12,13 @@ const (
 	DIRTY     = true
 )
 
-type Publish struct {
+type Status struct {
 	PublishStatus bool
 }
 
-type DB struct {
+type Publish struct {
 	DB              *gorm.DB
 	SupportedModels []interface{}
-}
-
-func (DB) ResourceName() string {
-	return "publish"
 }
 
 func modelType(value interface{}) reflect.Type {
@@ -39,7 +35,7 @@ func modelType(value interface{}) reflect.Type {
 	return reflectValue.Type()
 }
 
-func New(db *gorm.DB) *DB {
+func New(db *gorm.DB) *Publish {
 	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production_after_create", SyncToProductionAfterCreate)
@@ -54,14 +50,14 @@ func New(db *gorm.DB) *DB {
 		Register("publish:sync_to_production", SyncToProductionAfterUpdate)
 
 	db.Callback().Query().Before("gorm:query").Register("publish:set_table_in_draft_mode", SetTableAndPublishStatus(false))
-	return &DB{DB: db}
+	return &Publish{DB: db}
 }
 
 func DraftTableName(table string) string {
 	return table + "_draft"
 }
 
-func (db *DB) Support(models ...interface{}) {
+func (publish *Publish) Support(models ...interface{}) *Publish {
 	for _, model := range models {
 		scope := gorm.Scope{Value: model}
 		for _, column := range []string{"DeletedAt", "PublishStatus"} {
@@ -71,38 +67,39 @@ func (db *DB) Support(models ...interface{}) {
 		}
 	}
 
-	db.SupportedModels = append(db.SupportedModels, models...)
+	publish.SupportedModels = append(publish.SupportedModels, models...)
 
 	var supportedModels []string
-	for _, model := range db.SupportedModels {
+	for _, model := range publish.SupportedModels {
 		supportedModels = append(supportedModels, modelType(model).String())
 	}
-	db.DB.InstantSet("publish:support_models", supportedModels)
+	publish.DB.InstantSet("publish:support_models", supportedModels)
+	return publish
 }
 
-func (db *DB) AutoMigrateDrafts() {
+func (db *Publish) AutoMigrate() {
 	for _, value := range db.SupportedModels {
 		table := (&gorm.Scope{Value: value}).TableName()
 		db.DB.Table(DraftTableName(table)).AutoMigrate(value)
 	}
 }
 
-func (db *DB) ProductionMode() *gorm.DB {
+func (db *Publish) ProductionDB() *gorm.DB {
 	return db.DB.Set("qor_publish:draft_mode", false)
 }
 
-func (db *DB) DraftMode() *gorm.DB {
+func (db *Publish) DraftDB() *gorm.DB {
 	return db.DB.Set("qor_publish:draft_mode", true)
 }
 
-func (db *DB) NewResolver(records ...interface{}) *Resolver {
+func (db *Publish) NewResolver(records ...interface{}) *Resolver {
 	return &Resolver{Records: records, DB: db, Dependencies: map[string]*Dependency{}}
 }
 
-func (db *DB) Publish(records ...interface{}) {
+func (db *Publish) Publish(records ...interface{}) {
 	db.NewResolver(records...).Publish()
 }
 
-func (db *DB) Discard(records ...interface{}) {
+func (db *Publish) Discard(records ...interface{}) {
 	db.NewResolver(records...).Discard()
 }

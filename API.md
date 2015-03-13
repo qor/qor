@@ -22,12 +22,11 @@ Admin:
 
 Publish:
 
-    Publish := publish.New(db *gorm.DB)
-    Publish.AddModel(&Order{}, publish.Config{Permission: permission, IgnoredAttrs: []string, Resource: admin.Resource}) // -> default scope, permission
+    Publish := publish.New(db)
+    Publish.Support(&Order{}, &Product{}).AutoMigrate()
     Publish.DraftDB()
     Publish.ProductionDB()
     Publish.Publish(records...)
-
     Admin.AddResource(Publish) -> router
 
 Worker:

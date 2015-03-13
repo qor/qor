@@ -9,7 +9,7 @@ import (
 	"github.com/qor/qor/publish"
 )
 
-var pb *publish.DB
+var pb *publish.Publish
 var pbdraft *gorm.DB
 var pbprod *gorm.DB
 
@@ -17,14 +17,14 @@ func init() {
 	db, _ := gorm.Open("sqlite3", "/tmp/qor_publish_test.db")
 	pb = publish.New(&db)
 	pb.Support(&Product{})
-	pbdraft = pb.DraftMode()
-	pbprod = pb.ProductionMode()
+	pbdraft = pb.DraftDB()
+	pbprod = pb.ProductionDB()
 
 	for _, table := range []string{"products", "products_draft", "colors"} {
 		pbprod.Exec(fmt.Sprintf("drop table %v", table))
 	}
 	pbprod.AutoMigrate(&Product{}, &Color{})
-	pb.AutoMigrateDrafts()
+	pb.AutoMigrate()
 }
 
 type Product struct {
@@ -33,11 +33,11 @@ type Product struct {
 	Color     Color
 	ColorId   int
 	DeletedAt time.Time
-	publish.Publish
+	publish.Status
 }
 
 type Color struct {
 	Id   int
 	Name string
-	publish.Publish
+	publish.Status
 }

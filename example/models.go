@@ -5,6 +5,7 @@ import (
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/media_library"
+	"github.com/qor/qor/publish"
 )
 
 type CreditCard struct {
@@ -49,6 +50,7 @@ type Product struct {
 }
 
 var db gorm.DB
+var publishDB publish.Publish
 
 func init() {
 	var err error
@@ -59,6 +61,11 @@ func init() {
 
 	db.LogMode(true)
 	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &admin.AssetManager{})
+
+	publishDB := publish.New(&db)
+	publishDB.Support(&User{}, &Product{}).AutoMigrate()
+	// publish.DraftDB()
+	// publish.ProductionDB()
 
 	db.FirstOrCreate(&Role{}, Role{Name: "admin"})
 	db.FirstOrCreate(&Role{}, Role{Name: "dev"})
