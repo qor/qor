@@ -21,6 +21,10 @@ type DB struct {
 	SupportedModels []interface{}
 }
 
+func (DB) ResourceName() string {
+	return "publish"
+}
+
 func modelType(value interface{}) reflect.Type {
 	reflectValue := reflect.Indirect(reflect.ValueOf(value))
 

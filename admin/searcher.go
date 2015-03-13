@@ -23,8 +23,10 @@ func (s *Searcher) clone() *Searcher {
 func (s *Searcher) Scope(names ...string) *Searcher {
 	newSearcher := s.clone()
 	for _, name := range names {
-		if scope := s.Resource.scopes[name]; scope != nil && !scope.Default {
-			newSearcher.scopes = append(newSearcher.scopes, scope)
+		if s.Resource.scopes != nil {
+			if scope := s.Resource.scopes[name]; scope != nil && !scope.Default {
+				newSearcher.scopes = append(newSearcher.scopes, scope)
+			}
 		}
 	}
 	return newSearcher
