@@ -16,9 +16,9 @@ func BeforeQuery(scope *gorm.Scope) {
 				case "locale":
 					scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), locale)
 				case "global":
-					scope.Search.Where(fmt.Sprintf("%v.language_code IS NULL", quotedTableName))
+					scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), "")
 				default:
-					scope.Search.Where(fmt.Sprintf("%v.language_code = ? OR %v.language_code IS NULL", quotedTableName), locale)
+					scope.Search.Where(fmt.Sprintf("%v.language_code = ? OR %v.language_code = ?", quotedTableName), locale, "")
 				}
 			}
 		}

@@ -29,7 +29,7 @@ func init() {
 	l10n.RegisterCallbacks(&db)
 
 	db.DropTable(&Product{})
-	db.Debug().AutoMigrate(&Product{})
+	db.AutoMigrate(&Product{})
 	db.LogMode(true)
 
 	dbGlobal = &db
@@ -37,9 +37,52 @@ func init() {
 	dbEN = dbGlobal.Set("l10n:locale", "en")
 }
 
-func TestL10n(t *testing.T) {
-	product := Product{Code: "L1212"}
-	dbGlobal.Create(&product)
-	dbCN.Save(&product)
-	dbEN.Save(&product)
+func checkHasErr(t *testing.T, err error) {
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func checkHasProductInLocale(db *gorm.DB, locale string, t *testing.T) {
+	var count int
+	if db.Where("language_code = ?", locale).Count(&count); count != 1 {
+		t.Errorf("should create one product for locale %v", locale)
+	}
+}
+
+func checkHasProductInAllLocales(db *gorm.DB, t *testing.T) {
+	checkHasProductInLocale(db, "", t)
+	checkHasProductInLocale(db, "zh", t)
+	checkHasProductInLocale(db, "en", t)
+}
+
+func TestCreateLocalesWithCreate(t *testing.T) {
+	product := Product{Code: "CreateLocalesWithCreate"}
+	checkHasErr(t, dbGlobal.Create(&product).Error)
+	checkHasErr(t, dbCN.Create(&product).Error)
+	checkHasErr(t, dbEN.Create(&product).Error)
+
+	checkHasProductInAllLocales(dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "CreateLocalesWithCreate"), t)
+}
+
+func TestCreateLocalesWithSave(t *testing.T) {
+	product := Product{Code: "CreateLocalesWithSave"}
+	checkHasErr(t, dbGlobal.Create(&product).Error)
+	checkHasErr(t, dbCN.Create(&product).Error)
+	checkHasErr(t, dbEN.Create(&product).Error)
+
+	checkHasProductInAllLocales(dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "CreateLocalesWithSave"), t)
+}
+
+func TestUpdateLocales(t *testing.T) {
+	product := Product{Code: "CreateUpdateLocales", Name: "global"}
+	checkHasErr(t, dbGlobal.Create(&product).Error)
+	product.Name = "中文名"
+	checkHasErr(t, dbCN.Create(&product).Error)
+	checkHasProductInLocale(dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "中文名"), "zh", t)
+
+	product.Name = "English Name"
+	checkHasErr(t, dbEN.Create(&product).Error)
+	checkHasProductInLocale(dbGlobal.Model(&Product{}).Where("id = ? AND code = ?", product.ID, "English Name"), "en", t)
+
 }
