@@ -24,16 +24,13 @@ func main() {
 
 	web.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})
 
-	creditCard := web.AddResource(&CreditCard{}, &admin.Config{Menu: []string{"Resources"}})
+	creditCard := web.AddResource(&CreditCard{}, &admin.Config{Menu: []string{"User Management"}})
 
 	creditCard.Meta(&admin.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
-	user := web.AddResource(&User{}, &admin.Config{Menu: []string{"Resources"}})
+	user := web.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
 	user.Meta(&admin.Meta{Name: "CreditCard", Resource: creditCard})
 	user.Meta(&admin.Meta{Name: "fullname", Alias: "name"})
-
-	assetManager := web.AddResource(&admin.AssetManager{}, nil)
-	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: assetManager})
 
 	user.Meta(&admin.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
 	user.Meta(&admin.Meta{Name: "RoleId", Label: "Role", Type: "select_one",
@@ -58,7 +55,11 @@ func main() {
 		},
 	})
 
-	web.AddResource(&Language{}, &admin.Config{Menu: []string{"Resources"}})
+	web.AddResource(&Language{}, &admin.Config{Menu: []string{"User Management"}})
+	web.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
+
+	assetManager := web.AddResource(&admin.AssetManager{}, nil)
+	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: assetManager})
 
 	mux := http.NewServeMux()
 	web.MountTo("/admin", mux)

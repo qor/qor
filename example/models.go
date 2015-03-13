@@ -58,7 +58,7 @@ func init() {
 	}
 
 	db.LogMode(true)
-	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &admin.AssetManager{})
+	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &admin.AssetManager{})
 
 	db.FirstOrCreate(&Role{}, Role{Name: "admin"})
 	db.FirstOrCreate(&Role{}, Role{Name: "dev"})
