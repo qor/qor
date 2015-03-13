@@ -3,11 +3,12 @@ package main
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/media_library"
 )
 
 type CreditCard struct {
-	Id     int64
+	Id     int
 	Number string
 	Issuer string
 }
@@ -30,7 +31,7 @@ type Language struct {
 }
 
 type User struct {
-	Id           int64
+	Id           int
 	Name         string
 	Gender       string
 	Description  string
@@ -40,6 +41,11 @@ type User struct {
 	CreditCard   CreditCard
 	CreditCardId int64
 	Addresses    []Address
+}
+
+type Product struct {
+	ID int
+	l10n.Locale
 }
 
 var db gorm.DB
