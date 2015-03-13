@@ -35,8 +35,13 @@ func setLocale(scope *gorm.Scope, locale string) {
 	}
 }
 
-type User struct {
-	Name string `l10n:sync`
+func getLocale(scope *gorm.Scope) (locale string, ok bool) {
+	if str, ok := scope.DB().Get("l10n:locale"); ok {
+		if locale, ok := str.(string); ok {
+			return locale, true
+		}
+	}
+	return "", false
 }
 
 func parseTagOption(str string) map[string]string {
