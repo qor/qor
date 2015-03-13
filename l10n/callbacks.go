@@ -61,3 +61,16 @@ func BeforeDelete(scope *gorm.Scope) {
 		}
 	}
 }
+
+func RegisterCallbacks(db *gorm.DB) {
+	callback := db.Callback()
+
+	callback.Create().Before("gorm:before_create").Register("l10n:before_create", BeforeCreate)
+
+	callback.Update().Before("gorm:before_update").Register("l10n:before_update", BeforeUpdate)
+	callback.Update().After("gorm:after_update").Register("l10n:after_update", AfterUpdate)
+
+	callback.Delete().Before("gorm:before_delete").Register("l10n:before_delete", BeforeDelete)
+
+	callback.Query().Before("gorm:query").Register("l10n:before_query", BeforeQuery)
+}

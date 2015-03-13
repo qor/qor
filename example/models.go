@@ -65,11 +65,12 @@ func init() {
 		panic(err)
 	}
 
-	DB.LogMode(true)
 	DB.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &admin.AssetManager{})
 
 	Publish = publish.New(&DB)
 	Publish.Support(&User{}, &Product{}).AutoMigrate()
+
+	l10n.RegisterCallbacks(&DB)
 
 	DB.FirstOrCreate(&Role{}, Role{Name: "admin"})
 	DB.FirstOrCreate(&Role{}, Role{Name: "dev"})
@@ -79,4 +80,6 @@ func init() {
 	DB.FirstOrCreate(&Language{}, Language{Name: "JP"})
 	DB.FirstOrCreate(&Language{}, Language{Name: "EN"})
 	DB.FirstOrCreate(&Language{}, Language{Name: "DE"})
+
+	DB.LogMode(true)
 }
