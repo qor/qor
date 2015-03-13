@@ -20,7 +20,7 @@ func isLocaleCreateable(scope *gorm.Scope) (ok bool) {
 }
 
 func setLocale(scope *gorm.Scope, locale string) {
-	method := func(value interface{}) {
+	set := func(value interface{}) {
 		if model, ok := value.(Interface); ok {
 			model.SetLocale(locale)
 		}
@@ -28,10 +28,10 @@ func setLocale(scope *gorm.Scope, locale string) {
 
 	if values := scope.IndirectValue(); values.Kind() == reflect.Slice {
 		for i := 0; i < values.Len(); i++ {
-			method(values.Index(i).Addr().Interface())
+			set(values.Index(i).Addr().Interface())
 		}
 	} else {
-		method(scope.Value)
+		set(scope.Value)
 	}
 }
 

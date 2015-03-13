@@ -8,14 +8,14 @@ type Interface interface {
 }
 
 type Locale struct {
-	LanguageCode *string `sql:"size:6"`
+	LanguageCode *string `sql:"size:6" gorm:"primary_key"`
 }
 
 func (l Locale) IsGlobal() bool {
 	return l.LanguageCode == nil
 }
 
-func (l Locale) SetLocale(locale string) {
+func (l *Locale) SetLocale(locale string) {
 	l.LanguageCode = &locale
 }
 
