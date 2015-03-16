@@ -14,7 +14,7 @@ $(function() {
       },
       imageUploadCallback: function($image) {
         var src = $image[0].src;
-        var $cropDataHolder = $('<textarea id="redactor-crop-data'+ src +'" style="display:none">');
+        var $cropDataHolder = $('<textarea id="redactor-crop-data-'+ src +'" style="display:none">');
 
         $('#crop-data-wrapper').append($cropDataHolder);
 

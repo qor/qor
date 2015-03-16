@@ -350,7 +350,9 @@ $.Redactor.fn.image = function () {
       this.modal.load('imageEdit', this.lang.get('edit'), 705);
 
       var $modal = this.modal.getModal(),
-          src = $image.data('origin') || $image[0].src.replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1');
+          src = $image.data('origin') || $image[0].src
+          .replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1')
+          .replace(/https?:\/\/[^\/]+/, '');
 
       var img = new Image();
           img.src = src;
