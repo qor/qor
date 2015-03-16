@@ -355,6 +355,8 @@ $.Redactor.fn.image = function () {
           .replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1')
           .replace(/https?:\/\/[^\/]+/, '');
 
+      src = decodeURI(src);
+
       var img = new Image();
           img.src = src;
 
