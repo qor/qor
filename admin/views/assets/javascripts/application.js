@@ -7,7 +7,6 @@ $(function() {
         uploadURL = $(this).data("upload-url");
 
     $(me).redactor({
-      plugins: ['clipper'],
       imageUpload: uploadURL,
       fileUpload: uploadURL,
       initCallback: function() {
