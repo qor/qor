@@ -24,8 +24,10 @@ func (Product) LocaleCreateable() {}
 var dbGlobal, dbCN, dbEN *gorm.DB
 
 func init() {
-	// db, _ := gorm.Open("sqlite3", "/tmp/qor_l10n_test.db")
-	db, _ := gorm.Open("mysql", "gorm:gorm@/gorm?charset=utf8&parseTime=True")
+	// CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
+	// CREATE DATABASE qor_l10n;
+	// GRANT ALL ON qor_l10n.* TO 'gorm'@'localhost';
+	db, _ := gorm.Open("mysql", "qor:qor@/qor_l10n?charset=utf8&parseTime=True")
 	l10n.RegisterCallbacks(&db)
 
 	db.DropTable(&Product{})
