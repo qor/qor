@@ -12,3 +12,8 @@
   display: block;
   margin-bottom: 20px;
 }
+
+#redactor-droparea-placeholder input[type="file"] {
+  display: inline-block;
+  width: auto;
+}
