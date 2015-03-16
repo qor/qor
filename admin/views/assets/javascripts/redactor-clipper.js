@@ -350,7 +350,7 @@ $.Redactor.fn.image = function () {
       this.modal.load('imageEdit', this.lang.get('edit'), 705);
 
       var $modal = this.modal.getModal(),
-          src = $image[0].src.replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1');
+          src = $image.data('origin') || $image[0].src.replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1');
 
       var img = new Image();
           img.src = src;
@@ -379,7 +379,7 @@ $.Redactor.fn.image = function () {
         var URL = this.$element.data('crop-url'),
             imageDataURL = $(img).cropper('getDataURL', true),
             data = $(img).cropper('getData', true),
-            data = JSON.stringify({CropOption: data, Crop: true});
+            data = JSON.stringify({url: src, option: {CropOption: data, Crop: true}});
 
         $.ajax({
           type: 'POST',
@@ -388,12 +388,16 @@ $.Redactor.fn.image = function () {
           cache: false,
           timeout: 7777,
           url: URL,
-          data: data
+          data: data,
+          beforeSends: function() {
+            // sending cropped image; disable submit.
+          }
         }).done(function(data) {
-          
+          // enable submit
+          console.log(data);
         });
 
-        $image[0].src = imageDataURL;
+        $image.data('origin', src)[0].src = imageDataURL;
 
         this.image.update($image);
 
