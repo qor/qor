@@ -17,10 +17,15 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 				option := parseTagOption(field.Tag.Get("media_library"))
 				if media.GetFileHeader() != nil || media.GetCropOption() != nil {
 					var file multipart.File
+					var err error
 					if fileHeader := media.GetFileHeader(); fileHeader != nil {
-						file, _ = media.GetFileHeader().Open()
+						file, err = media.GetFileHeader().Open()
 					} else {
-						file, _ = media.Retrieve(media.URL("original"))
+						file, err = media.Retrieve(media.URL("original"))
+					}
+
+					if scope.Err(err) != nil {
+						return
 					}
 
 					if url := media.GetURL(option, scope, field); url == "" {

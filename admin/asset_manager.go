@@ -1,8 +1,10 @@
 package admin
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"regexp"
 
 	"github.com/qor/qor/media_library"
@@ -28,14 +30,18 @@ func (*AssetManager) InjectQorAdmin(res *Resource) {
 		var err error
 		var cropOption struct{ Url string }
 		defer context.Request.Body.Close()
-		if err = json.NewDecoder(context.Request.Body).Decode(&cropOption); err == nil {
+
+		var buf bytes.Buffer
+		io.Copy(&buf, context.Request.Body)
+		if err = json.Unmarshal(buf.Bytes(), &cropOption); err == nil {
 			if matches := assetURL.FindStringSubmatch(cropOption.Url); len(matches) > 1 {
-				result := AssetManager{}
-				if err = context.GetDB().Find(&result, matches[1]).Error; err == nil {
-					if err = json.NewDecoder(context.Request.Body).Decode(result.File); err == nil {
+				result := &AssetManager{}
+				if err = context.GetDB().Find(result, matches[1]).Error; err == nil {
+					if err = result.File.Scan(buf.Bytes()); err == nil {
 						if err = context.GetDB().Save(result).Error; err == nil {
 							bytes, _ := json.Marshal(map[string]string{"url": result.File.URL(), "filename": result.File.GetFileName()})
 							context.Writer.Write(bytes)
+							return
 						}
 					}
 				}

@@ -351,7 +351,7 @@ $.Redactor.fn.image = function () {
 
       var $modal = this.modal.getModal(),
           src = $image.data('origin') || $image[0].src
-          .replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1')
+          // .replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1')
           .replace(/https?:\/\/[^\/]+/, '');
 
       var img = new Image();
