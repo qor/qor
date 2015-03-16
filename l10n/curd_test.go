@@ -2,41 +2,12 @@ package l10n_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/qor/qor/l10n"
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-type Product struct {
-	ID int `gorm:"primary_key"`
-	l10n.Locale
-	Code      string `l10n:"sync"`
-	Name      string
-	DeletedAt time.Time
-}
-
-func (Product) LocaleCreateable() {}
-
-var dbGlobal, dbCN, dbEN *gorm.DB
-
-func init() {
-	// CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
-	// CREATE DATABASE qor_l10n;
-	// GRANT ALL ON qor_l10n.* TO 'gorm'@'localhost';
-	db, _ := gorm.Open("mysql", "qor:qor@/qor_l10n?charset=utf8&parseTime=True")
-	l10n.RegisterCallbacks(&db)
-
-	db.DropTable(&Product{})
-	db.AutoMigrate(&Product{})
-
-	dbGlobal = &db
-	dbCN = dbGlobal.Set("l10n:locale", "zh")
-	dbEN = dbGlobal.Set("l10n:locale", "en")
-}
 
 func checkHasErr(t *testing.T, err error) {
 	if err != nil {
