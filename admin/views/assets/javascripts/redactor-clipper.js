@@ -349,9 +349,10 @@ $.Redactor.fn.image = function () {
 
       this.modal.load('imageEdit', this.lang.get('edit'), 705);
 
-      var $modal = this.modal.getModal(),
+      var me = this,
+          $modal = this.modal.getModal(),
           src = $image.data('origin') || $image[0].src
-          // .replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1')
+          .replace(/(jpg|jpeg|png|gif|bmp)$/, 'original.$1')
           .replace(/https?:\/\/[^\/]+/, '');
 
       var img = new Image();
@@ -381,7 +382,7 @@ $.Redactor.fn.image = function () {
         var URL = this.$element.data('crop-url'),
             imageDataURL = $(img).cropper('getDataURL', true),
             data = $(img).cropper('getData', true),
-            data = JSON.stringify({Url: src, CropOption: data, Crop: true});
+            data = JSON.stringify({Url: src.replace(/\.original\.(jpg|jpeg|png|gif|bmp)$/, '.$1'), CropOption: data, Crop: true});
 
         $.ajax({
           type: 'POST',
@@ -393,10 +394,12 @@ $.Redactor.fn.image = function () {
           data: data,
           beforeSends: function() {
             // sending cropped image; disable submit.
+            $(me.$element[0].form).find('input[type="submit"]').attr('disabled', true);
           }
         }).done(function(data) {
-          // enable submit
-          console.log(data);
+          $(me.$element[0].form).find('input[type="submit"]').removeAttr('disabled');
+          $image.data('origin', src)[0].src = data.url;
+          me.image.update($image);
         });
 
         $image.data('origin', src)[0].src = imageDataURL;
