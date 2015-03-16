@@ -26,13 +26,13 @@ func (*AssetManager) InjectQorAdmin(res *Resource) {
 	assetURL := regexp.MustCompile(`^/system/assets/(\d+)/`)
 	router.Post(fmt.Sprintf("^/%v/crop", res.ToParam()), func(context *Context) {
 		var err error
-		var cropOption struct{ url, option string }
+		var cropOption struct{ Url string }
 		defer context.Request.Body.Close()
 		if err = json.NewDecoder(context.Request.Body).Decode(&cropOption); err == nil {
-			if matches := assetURL.FindStringSubmatch(cropOption.url); len(matches) > 1 {
+			if matches := assetURL.FindStringSubmatch(cropOption.Url); len(matches) > 1 {
 				result := AssetManager{}
 				if err = context.GetDB().Find(&result, matches[1]).Error; err == nil {
-					if err = result.File.Scan(cropOption.option); err == nil {
+					if err = json.NewDecoder(context.Request.Body).Decode(result.File); err == nil {
 						if err = context.GetDB().Save(result).Error; err == nil {
 							bytes, _ := json.Marshal(map[string]string{"url": result.File.URL(), "filename": result.File.GetFileName()})
 							context.Writer.Write(bytes)

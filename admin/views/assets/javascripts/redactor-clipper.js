@@ -379,7 +379,7 @@ $.Redactor.fn.image = function () {
         var URL = this.$element.data('crop-url'),
             imageDataURL = $(img).cropper('getDataURL', true),
             data = $(img).cropper('getData', true),
-            data = JSON.stringify({url: src, option: {CropOption: data, Crop: true}});
+            data = JSON.stringify({Url: src, CropOption: data, Crop: true});
 
         $.ajax({
           type: 'POST',
