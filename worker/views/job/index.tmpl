@@ -40,7 +40,7 @@
 			{{range .Result.QorJobs}}
 				{{$job := .GetJob}}
 				<tr>
-					<td><a href="{{.URL}}">{{.Id}}</a></td>
+					<td><a href="{{.URL}}">{{.ID}}</a></td>
 					<td>{{with $job}}{{.Description}}{{end}}</td>
 					<td>{{.Status}}</td>
 					<td>{{.By}}</td>

@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/agent"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -20,7 +24,6 @@ import (
 type Job struct {
 	Name   string
 	Queuer Queuer
-	// Config *qor.Config
 
 	Description string
 
@@ -35,20 +38,15 @@ type Job struct {
 	OnFailed  func(job *QorJob)
 }
 
-// func (j *Job) ExtraInput(res *admin.Resource) {
-// 	j.Resource = res
-// }
-
+// TODO: run will pollute db data, status be reset to 0?
 func (j *Job) Run(job *QorJob) (err error) {
-	if err = job.SavePID(); err != nil {
+	if err = job.SaveRunStatus(); err != nil {
 		return
 	}
 	logger, err := job.GetLogger()
 	if err != nil {
 		return
 	}
-
-	fmt.Fprintf(logger, "Start Job (%d) at %s\n", job.PID, time.Now())
 
 	if j.OnStart != nil {
 		if err = j.OnStart(job); err != nil {
@@ -117,13 +115,9 @@ func (j *Job) Kill(job *QorJob) (err error) {
 			return errors.New("pid is zero")
 		}
 
-		var process *os.Process
-		process, err = os.FindProcess(job.PID)
-		if err != nil {
+		if err = kill(job.ServerUser, job.ServerHost, job.ServerSSHPort, job.PID); err != nil {
 			return
 		}
-
-		err = process.Kill()
 	case StatusDone:
 		return ErrJobDone
 	}
@@ -135,9 +129,30 @@ func (j *Job) Kill(job *QorJob) (err error) {
 	return
 }
 
-// func (j *Job) NewQorJob(interval uint64, startAt time.Time, by string) (job *QorJob, err error) {
-// 	return j.NewQorJobWithCli(interval, startAt, by, DefaultJobCli)
-// }
+func kill(user, host, port string, pid int) (err error) {
+	conn, err := net.Dial("unix", os.Getenv("SSH_AUTH_SOCK"))
+	if err != nil {
+		return
+	}
+	ac := agent.NewClient(conn)
+	signers, err := ac.Signers()
+	if err != nil {
+		return
+	}
+	auths := []ssh.AuthMethod{ssh.PublicKeys(signers...)}
+	client, err := ssh.Dial("tcp", host+":"+port, &ssh.ClientConfig{User: user, Auth: auths})
+	if err != nil {
+		return
+	}
+	s, err := client.NewSession()
+	if err != nil {
+		return
+	}
+	if err = s.Run(fmt.Sprintf("kill -9 %d", pid)); err != nil {
+		return
+	}
+	return
+}
 
 func (j *Job) NewQorJob(interval uint64, startAt time.Time, by, cli string) (job *QorJob) {
 	job = &QorJob{
@@ -148,22 +163,7 @@ func (j *Job) NewQorJob(interval uint64, startAt time.Time, by, cli string) (job
 		Cli:        cli,
 		Status:     StatusToRun,
 		By:         by,
-		// ExtraInputs: extraInputs,
 	}
-
-	// if err = jobDB.Save(job).Error; err != nil {
-	// 	return
-	// }
-
-	// if err = j.Queuer.Enqueue(job); err != nil {
-	// 	return
-	// }
-
-	// if job.QueueJobId != "" {
-	// 	if err = jobDB.Save(job).Error; err != nil {
-	// 		return
-	// 	}
-	// }
 
 	return
 }

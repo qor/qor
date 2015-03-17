@@ -2,9 +2,11 @@ package worker
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -28,11 +30,37 @@ func (w *Worker) InjectQorAdmin(res *admin.Resource) {
 	}
 
 	router := res.GetAdmin().GetRouter()
-	router.Get("/"+res.ToParam()+"/new", w.newJobPage)
-	router.Post("/"+res.ToParam()+"/new", w.createJob)
-	router.Get("/"+res.ToParam()+`/[\d]+$`, w.showJob)
-	router.Post("/"+res.ToParam()+`/[\d]+/stop`, w.stopJob)
-	router.Get("/"+res.ToParam(), w.indexPage)
+	router.Get("/"+res.ToParam()+"/new", wrap(w.newJobPage))
+	router.Post("/"+res.ToParam()+"/new", wrap(w.createJob))
+	router.Post("^/"+res.ToParam()+`/[\d]+/kill$`, wrap(w.killJob))
+	router.Get("/"+res.ToParam()+`/[\d]+$`, wrap(w.showJob))
+	router.Post("/"+res.ToParam()+`/[\d]+/stop`, wrap(w.stopJob))
+	router.Get("/"+res.ToParam(), wrap(w.indexPage))
+}
+
+func wrap(h admin.Handle) admin.Handle {
+	return func(c *admin.Context) {
+		defer func() {
+			r := recover()
+			if r == nil {
+				return
+			}
+			var err error
+			if er, ok := r.(error); !ok {
+				err = fmt.Errorf("%v", r)
+			} else {
+				err = er
+			}
+
+			log.Println(err)
+			debug.PrintStack()
+
+			c.Writer.WriteHeader(http.StatusInternalServerError)
+			c.Writer.Write([]byte(err.Error()))
+		}()
+
+		h(c)
+	}
 }
 
 func (w *Worker) indexPage(c *admin.Context) {
@@ -63,7 +91,6 @@ func (w *Worker) newJobPage(c *admin.Context) {
 	c.Execute("job/new", job)
 }
 
-// TODO: remove panics
 func (w *Worker) createJob(c *admin.Context) {
 	jobName := c.Request.URL.Query().Get("job")
 	job, ok := w.Jobs[jobName]
@@ -118,4 +145,16 @@ func (w *Worker) stopJob(c *admin.Context) {
 	}
 
 	http.Redirect(c.Writer, c.Request, strings.Replace(c.Request.URL.Path, "/stop", "", 1), http.StatusSeeOther)
+}
+
+func (w *Worker) killJob(c *admin.Context) {
+	parts := strings.Split(c.Request.URL.Path, "/")
+	var qj QorJob
+	if err := jobDB.Where("id = ?", parts[len(parts)-2]).First(&qj).Error; err != nil {
+		panic(err)
+	}
+	if err := qj.GetJob().Kill(&qj); err != nil {
+		panic(err)
+	}
+	http.Redirect(c.Writer, c.Request, c.Request.Referer(), http.StatusSeeOther)
 }

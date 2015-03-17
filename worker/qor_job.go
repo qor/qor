@@ -4,11 +4,12 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -16,7 +17,31 @@ import (
 	"github.com/qor/qor/utils"
 )
 
-var WorkerDataPath = "worker_data"
+var (
+	WorkerDataPath = "worker_data"
+
+	DefaultServerHost = func() string {
+		ip, err := CurrentServerIP("") // current host ip, eth0 for linux and en0 for darwin
+		if err != nil {
+			fmt.Println("failed to retrieve current host ip")
+		}
+		return ip
+	}()
+	DefaultServerUser    = "app"
+	DefaultServerSSHPort = "22"
+)
+
+func init() {
+	if host := os.Getenv("QorJobHost"); host != "" {
+		DefaultServerHost = host
+	}
+	if user := os.Getenv("QorJobUser"); user != "" {
+		DefaultServerUser = user
+	}
+	if port := os.Getenv("QorJobPort"); port != "" {
+		DefaultServerSSHPort = port
+	}
+}
 
 // type JobStatus string
 
@@ -45,7 +70,7 @@ type QorJob struct {
 	WorkerName string
 	JobName    string
 	Status     string
-	PID        int
+	PID        int // TODO: change it into uint
 
 	By string
 
@@ -53,6 +78,10 @@ type QorJob struct {
 	FailCounter    uint64
 	SuccessCounter uint64
 	KillCounter    uint64
+
+	ServerHost    string
+	ServerUser    string
+	ServerSSHPort string
 
 	ExtraValue *ExtraInput `sql:"type:text;"` // Mysql: 64KB
 	ExtraFile  *ExtraInput `sql:"type:text;"` // Mysql: 64KB
@@ -136,25 +165,24 @@ func (j *QorJob) Run() (err error) {
 func (j *QorJob) UpdateStatus(status string) (err error) {
 	old := j.Status
 	j.Status = status
-	sql := fmt.Sprintf("update qor_jobs set status = %q and ", j.Status)
+	changer := map[string]interface{}{"status": j.Status}
 	switch status {
 	case StatusRunning:
 		j.RunCounter++
-		sql += "run_counter = run_counter+1"
+		changer["run_counter"] = j.RunCounter
 	case StatusFailed:
 		j.FailCounter++
-		sql += "fail_counter = fail_counter+1"
+		changer["fail_counter"] = j.FailCounter
 	case StatusDone:
 		j.SuccessCounter++
-		sql += "success_counter = success_counter+1"
+		changer["success_counter"] = j.SuccessCounter
 	case StatusKilled:
 		j.KillCounter++
-		sql += "kill_counter = kill_counter+1"
+		changer["kill_counter"] = j.KillCounter
 	}
 
-	if err = jobDB.Where("id = ?", j.ID).Exec(sql).Error; err != nil {
-		logger, erro := j.GetLogger()
-		if erro == nil {
+	if err = jobDB.Model(&QorJob{}).Where("id = ?", j.ID).UpdateColumns(changer).Error; err != nil {
+		if logger, er := j.GetLogger(); er == nil {
 			fmt.Fprintf(logger, "can't update status from %s to %s: %s\n", old, j.Status, err)
 		}
 
@@ -164,12 +192,11 @@ func (j *QorJob) UpdateStatus(status string) (err error) {
 	return
 }
 
-// TODO: undone
-func (j *QorJob) GetLogger() (rw io.ReadWriter, err error) {
+func (j *QorJob) GetLogger() (f *os.File, err error) {
 	if j.log == nil {
 		j.log, err = os.OpenFile(j.LogPath(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	}
-	rw = j.log
+	f = j.log
 
 	return
 }
@@ -181,19 +208,33 @@ func (qj *QorJob) LogPath() string {
 func (j *QorJob) GetLog() (l string) {
 	log, err := os.Open(j.LogPath())
 	if err != nil {
-		return "failed to retrieve log: " + err.Error()
+		if !os.IsNotExist(err) {
+			return "failed to open log: " + err.Error() + "."
+		}
+		return "log is empty."
 	}
 	lbytes, err := ioutil.ReadAll(log)
 	if err != nil {
-		return "failed to read log: " + err.Error()
+		return "failed to read log: " + err.Error() + "."
 	}
 	l = string(lbytes)
 	return
 }
 
-func (j *QorJob) SavePID() (err error) {
+// TODO: dequeue job will override value?
+func (j *QorJob) SaveRunStatus() (err error) {
+	j.ServerHost = DefaultServerHost
+	j.ServerUser = DefaultServerUser
+	j.ServerSSHPort = DefaultServerSSHPort
 	j.PID = os.Getpid()
-	if err = jobDB.Save(j).Error; err != nil {
+	changer := QorJob{
+		ServerHost:    j.ServerHost,
+		ServerUser:    j.ServerUser,
+		ServerSSHPort: j.ServerSSHPort,
+		PID:           j.PID,
+		Status:        j.Status,
+	}
+	if err = jobDB.Model(j).UpdateColumns(changer).Error; err != nil {
 		logger, erro := j.GetLogger()
 		if erro == nil {
 			fmt.Fprintf(logger, "can't save pid for job %d\n", j.ID)
@@ -213,7 +254,30 @@ func (q *QorJob) URL() string {
 	return fmt.Sprintf("%s/%s/%d", w.admin.GetRouter().Prefix, utils.ToParamString(w.Name), q.ID)
 }
 
-func (j *QorJob) Stop() (err error) { return }
-
-// func (j *QorJob) Kill() (err error)  { return }
-func (j *QorJob) Start() (err error) { return }
+func CurrentServerIP(name string) (string, error) {
+	if name == "" {
+		name = "eth0"
+		if runtime.GOOS == "darwin" {
+			name = "en0"
+		}
+	}
+	intfs, err := net.InterfaceByName(name)
+	if err != nil {
+		return "", err
+	}
+	as, err := intfs.Addrs()
+	if err != nil {
+		return "", err
+	}
+	var ip net.IP
+	for _, a := range as {
+		ip, _, err = net.ParseCIDR(a.String())
+		if err != nil {
+			return "", err
+		}
+		if ip.To4() != nil {
+			break
+		}
+	}
+	return ip.String(), nil
+}

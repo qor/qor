@@ -16,10 +16,14 @@
   </div>
 
   <ul class="button-group">
-    <li><a class="button" href="">Kill</a></li>
+    <li>
+      <form method="POST" action="{{.Result.URL}}/kill">
+        <button type="submit" class="button">Kill</button>
+      </form>
+    </li>
     <li>
       <form method="POST" action="{{.Result.URL}}/stop">
-        <button type="submit" class="button" href="{{.Result.URL}}/stop">Stop</button>
+        <button type="submit" class="button">Stop</button>
       </form>
     </li>
     <li><a class="button" href="#">Run Again</a></li>

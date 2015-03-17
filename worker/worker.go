@@ -116,7 +116,3 @@ func (w *Worker) NewJob(queuer Queuer, name, desc string, handle func(job *QorJo
 func (w *Worker) ResourceName() string {
 	return w.Name
 }
-
-// func (w *Worker) ResourceParam() string {
-// 	return strings.ToLower(strings.Replace(w.Name, " ", "_", -1))
-// }
