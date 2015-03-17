@@ -41,9 +41,12 @@ func (bq *BeanstalkdQueue) putJob(job *QorJob) (err error) {
 		return
 	}
 
-	delay := uint64(job.StartAt.Sub(time.Now()).Seconds())
-	if delay < 0 {
-		delay = 0
+	var delay uint64
+	if !job.StartAt.IsZero() {
+		delay = uint64(job.StartAt.Sub(time.Now()).Seconds())
+		if delay < 0 {
+			delay = 0
+		}
 	}
 	jobId := fmt.Sprintf("%d", job.ID)
 	interval := parseInterval(job.Interval)
