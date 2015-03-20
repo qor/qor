@@ -4,3 +4,4 @@ gin-bin
 tmp/
 /example/public/
 worker_data
+node_modules/

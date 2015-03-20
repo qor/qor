@@ -294,7 +294,7 @@ func (context *Context) JavaScriptTag(name string) string {
 
 func (context *Context) StyleSheetTag(name string) string {
 	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "stylesheets", name+".css")
-	return fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s"%s>`, name)
+	return fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name)
 }
 
 func Equal(a, b interface{}) bool {
