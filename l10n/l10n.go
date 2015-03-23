@@ -1,5 +1,13 @@
 package l10n
 
+import (
+	"os"
+	"path"
+	"strings"
+
+	"github.com/qor/qor/admin"
+)
+
 type Interface interface {
 	IsGlobal() bool
 	SetLocale(locale string)
@@ -15,4 +23,10 @@ func (l Locale) IsGlobal() bool {
 
 func (l *Locale) SetLocale(locale string) {
 	l.LanguageCode = locale
+}
+
+func (l *Locale) InjectQorAdmin(res *admin.Resource) {
+	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/l10n/views"))
+	}
 }
