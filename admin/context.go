@@ -53,17 +53,25 @@ func (context *Context) NewResource(name ...string) *Context {
 }
 
 // Template
-func (context *Context) findFile(layout string) (string, error) {
-	paths := []string{}
-	for _, p := range []string{context.ResourcePath(), path.Join("themes", "default"), "."} {
+func (context *Context) getViewPaths() (paths []string) {
+	dirs := []string{context.ResourcePath(), path.Join("themes", "default"), "."}
+	if context.Resource != nil && context.Resource.Config != nil && context.Resource.Config.Theme != "" {
+		themePath := path.Join("themes", context.Resource.Config.Theme)
+		dirs = append([]string{path.Join(themePath, context.ResourcePath()), themePath}, dirs...)
+	}
+
+	for _, p := range dirs {
 		for _, d := range viewPaths {
 			if isExistingDir(path.Join(d, p)) {
 				paths = append(paths, path.Join(d, p))
 			}
 		}
 	}
+	return paths
+}
 
-	for _, p := range paths {
+func (context *Context) findFile(layout string) (string, error) {
+	for _, p := range context.getViewPaths() {
 		if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
 			return path.Join(p, layout), nil
 		}
@@ -72,16 +80,7 @@ func (context *Context) findFile(layout string) (string, error) {
 }
 
 func (context *Context) findTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
-	paths := []string{}
-	for _, p := range []string{context.ResourcePath(), path.Join("themes", "default"), "."} {
-		for _, d := range viewPaths {
-			if isExistingDir(path.Join(d, p)) {
-				paths = append(paths, path.Join(d, p))
-			}
-		}
-	}
-
-	for _, p := range paths {
+	for _, p := range context.getViewPaths() {
 		if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
 			if tmpl, err = tmpl.ParseFiles(path.Join(p, layout)); err != nil {
 				fmt.Println(err)

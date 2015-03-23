@@ -7,4 +7,5 @@ type Config struct {
 	Menu       []string
 	Invisible  bool
 	Permission *roles.Permission
+	Theme      string
 }
