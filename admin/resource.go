@@ -81,7 +81,7 @@ func (res *Resource) CallSearcher(result interface{}, context *qor.Context) erro
 	if res.Searcher != nil {
 		return res.Searcher(result, context)
 	} else {
-		return context.GetDB().Set("gorm:order_by_primary_key", "ASC").Find(result).Error
+		return context.GetDB().Set("gorm:order_by_primary_key", "DESC").Find(result).Error
 	}
 }
 
