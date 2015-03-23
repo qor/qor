@@ -80,6 +80,8 @@ func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context 
 	if admin.auth != nil {
 		if currentUser = admin.auth.GetCurrentUser(&context); currentUser == nil {
 			admin.auth.Login(&context)
+		} else {
+			context.CurrentUser = currentUser
 		}
 	}
 	context.Roles = roles.MatchedRoles(r, currentUser)

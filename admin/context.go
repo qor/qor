@@ -20,11 +20,12 @@ import (
 type Context struct {
 	*qor.Context
 	*Searcher
-	Resource *Resource
-	Admin    *Admin
-	Writer   http.ResponseWriter
-	Result   interface{}
-	Content  string
+	Resource    *Resource
+	Admin       *Admin
+	CurrentUser qor.CurrentUser
+	Writer      http.ResponseWriter
+	Result      interface{}
+	Content     string
 }
 
 // Resource
@@ -305,6 +306,7 @@ func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"menus":             context.Admin.GetMenus,
 		"render":            context.Render,
+		"current_user":      context.CurrentUser,
 		"primary_key_of":    context.PrimaryKeyOf,
 		"is_new_record":     context.NewRecord,
 		"value_of":          context.ValueOf,

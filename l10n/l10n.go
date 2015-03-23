@@ -29,4 +29,12 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/l10n/views"))
 	}
+
+	res.GetAdmin().RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
+		return []string{}
+	})
+
+	res.GetAdmin().RegisterFuncMap("editable_locales", func(context admin.Context) []string {
+		return []string{}
+	})
 }
