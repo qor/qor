@@ -304,9 +304,9 @@ func Equal(a, b interface{}) bool {
 
 func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
+		"current_user":      func() qor.CurrentUser { return context.CurrentUser },
 		"menus":             context.Admin.GetMenus,
 		"render":            context.Render,
-		"current_user":      context.CurrentUser,
 		"primary_key_of":    context.PrimaryKeyOf,
 		"is_new_record":     context.NewRecord,
 		"value_of":          context.ValueOf,
