@@ -42,6 +42,11 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/l10n/views"))
 	}
 
+	if res.Config == nil {
+		res.Config = &admin.Config{}
+	}
+	res.Config.Theme = "l10n"
+
 	res.GetAdmin().RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
 		if user, ok := context.CurrentUser.(ViewableLocalesInterface); ok {
 			return user.ViewableLocales()
