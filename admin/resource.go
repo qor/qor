@@ -154,6 +154,12 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 				continue
 			}
 
+			for _, value := range []string{"CreatedAt", "UpdatedAt", "DeletedAt"} {
+				if value == field.Name {
+					continue StructFields
+				}
+			}
+
 			attrs = append(attrs, field.Name)
 		}
 	}

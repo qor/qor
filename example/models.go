@@ -51,6 +51,8 @@ type User struct {
 type Product struct {
 	ID int
 	l10n.Locale
+	CreatedAt time.Time
+	UpdatedAt time.Time
 	DeletedAt time.Time
 	publish.Status
 }
