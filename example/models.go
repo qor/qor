@@ -11,41 +11,45 @@ import (
 )
 
 type CreditCard struct {
-	Id     int
+	ID     int
 	Number string
 	Issuer string
 }
 
 type Address struct {
-	Id       int
+	ID       int
 	UserId   int64
 	Address1 string
 	Address2 string
 }
 
 type Role struct {
-	Id   int
+	ID   int
 	Name string
 }
 
 type Language struct {
-	Id   int
+	ID   int
 	Name string
 }
 
 type User struct {
-	Id           int
+	ID           int
 	Name         string
 	Gender       string
 	Description  string
 	File         media_library.FileSystem
-	RoleId       int64
+	RoleID       int
 	Languages    []Language `gorm:"many2many:user_languages;"`
 	CreditCard   CreditCard
-	CreditCardId int64
+	CreditCardID int
 	Addresses    []Address
 	DeletedAt    time.Time
 	publish.Status
+}
+
+func (u User) DisplayName() string {
+	return u.Name
 }
 
 type Product struct {
@@ -74,9 +78,12 @@ func init() {
 
 	l10n.RegisterCallbacks(&DB)
 
-	DB.FirstOrCreate(&Role{}, Role{Name: "admin"})
+	var AdminRole Role
+	DB.FirstOrCreate(&AdminRole, Role{Name: "admin"})
 	DB.FirstOrCreate(&Role{}, Role{Name: "dev"})
 	DB.FirstOrCreate(&Role{}, Role{Name: "customer_support"})
+
+	DB.FirstOrCreate(&User{}, User{Name: "admin", RoleID: AdminRole.ID})
 
 	DB.FirstOrCreate(&Language{}, Language{Name: "CN"})
 	DB.FirstOrCreate(&Language{}, Language{Name: "JP"})
