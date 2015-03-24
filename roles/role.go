@@ -23,7 +23,7 @@ func Register(name string, fc func(req *http.Request, currentUser qor.CurrentUse
 
 func (role *Role) newPermission() *Permission {
 	return &Permission{
-		role:       role,
+		Role:       role,
 		allowRoles: map[PermissionMode][]string{},
 		denyRoles:  map[PermissionMode][]string{},
 	}

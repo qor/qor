@@ -13,7 +13,7 @@ const (
 var All = map[string]PermissionMode{"Read": Read, "Update": Update, "Create": Create, "Delete": Delete, "CRUD": CRUD}
 
 type Permission struct {
-	role       *Role
+	Role       *Role
 	allowRoles map[PermissionMode][]string
 	denyRoles  map[PermissionMode][]string
 }

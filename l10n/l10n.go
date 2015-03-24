@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/roles"
 )
 
 type Interface interface {
@@ -45,7 +46,12 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	if res.Config == nil {
 		res.Config = &admin.Config{}
 	}
+	if res.Config.Permission == nil {
+		res.Config.Permission = &roles.Permission{}
+	}
+
 	res.Config.Theme = "l10n"
+	res.Config.Permission.Allow(roles.CRUD, "locale_admin", "global_admin").Allow(roles.Read, "locale_reader")
 
 	res.GetAdmin().RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
 		if user, ok := context.CurrentUser.(ViewableLocalesInterface); ok {
