@@ -69,7 +69,7 @@ func main() {
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)
 	mux.Handle("/system/", http.FileServer(http.Dir("public")))
-	mux.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		var user User
 
 		if request.Method == "POST" {
@@ -77,13 +77,13 @@ func main() {
 			if !DB.First(&user, "name = ?", request.Form.Get("username")).RecordNotFound() {
 				cookie := http.Cookie{Name: "userid", Value: strconv.Itoa(user.ID), Expires: time.Now().AddDate(1, 0, 0)}
 				http.SetCookie(writer, &cookie)
-				writer.Write([]byte("logged as " + user.Name))
+				writer.Write([]byte("<html><body>logged as `" + user.Name + "`, go <a href='/admin'>admin</a></body></html>"))
 			} else {
 				http.Redirect(writer, request, "/login?failed_to_login", 301)
 			}
 		} else if userid, err := request.Cookie("userid"); err == nil {
 			if !DB.First(&user, "id = ?", userid.Value).RecordNotFound() {
-				writer.Write([]byte("already logged as " + user.Name))
+				writer.Write([]byte("<html><body>already logged as `" + user.Name + "`, go <a href='/admin'>admin</a></body></html>"))
 			} else {
 				http.Redirect(writer, request, "/logout", http.StatusSeeOther)
 			}
