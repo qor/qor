@@ -1,10 +1,12 @@
 package l10n
 
 import (
+	"net/http"
 	"os"
 	"path"
 	"strings"
 
+	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/roles"
 )
@@ -38,6 +40,32 @@ type EditableLocalesInterface interface {
 	EditableLocales() []string
 }
 
+func GetCurrentLocale(req *http.Request) string {
+	return req.Form.Get("locale")
+}
+
+func GetAvailableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
+	if user, ok := currentUser.(ViewableLocalesInterface); ok {
+		return user.ViewableLocales()
+	}
+
+	if user, ok := currentUser.(AvailableLocalesInterface); ok {
+		return user.AvailableLocales()
+	}
+	return []string{}
+}
+
+func GetEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
+	if user, ok := currentUser.(EditableLocalesInterface); ok {
+		return user.EditableLocales()
+	}
+
+	if user, ok := currentUser.(AvailableLocalesInterface); ok {
+		return user.AvailableLocales()
+	}
+	return []string{}
+}
+
 func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/l10n/views"))
@@ -51,27 +79,32 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	}
 
 	res.Config.Theme = "l10n"
-	res.Config.Permission.Allow(roles.CRUD, "locale_admin", "global_admin").Allow(roles.Read, "locale_reader")
+	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
+	res.Config.Permission.Role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+		currentLocale := GetCurrentLocale(req)
+		for _, locale := range GetEditableLocales(req, currentUser) {
+			if locale == currentLocale {
+				return true
+			}
+		}
+		return false
+	})
+
+	res.Config.Permission.Role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
+		currentLocale := GetCurrentLocale(req)
+		for _, locale := range GetAvailableLocales(req, currentUser) {
+			if locale == currentLocale {
+				return true
+			}
+		}
+		return false
+	})
 
 	res.GetAdmin().RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
-		if user, ok := context.CurrentUser.(ViewableLocalesInterface); ok {
-			return user.ViewableLocales()
-		}
-
-		if user, ok := context.CurrentUser.(AvailableLocalesInterface); ok {
-			return user.AvailableLocales()
-		}
-		return []string{}
+		return GetAvailableLocales(context.Request, context.CurrentUser)
 	})
 
 	res.GetAdmin().RegisterFuncMap("editable_locales", func(context admin.Context) []string {
-		if user, ok := context.CurrentUser.(EditableLocalesInterface); ok {
-			return user.EditableLocales()
-		}
-
-		if user, ok := context.CurrentUser.(AvailableLocalesInterface); ok {
-			return user.AvailableLocales()
-		}
-		return []string{}
+		return GetEditableLocales(context.Request, context.CurrentUser)
 	})
 }
