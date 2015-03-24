@@ -47,7 +47,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		res.Config = &admin.Config{}
 	}
 	if res.Config.Permission == nil {
-		res.Config.Permission = &roles.Permission{}
+		res.Config.Permission = roles.NewPermission()
 	}
 
 	res.Config.Theme = "l10n"

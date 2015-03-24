@@ -21,6 +21,10 @@ func Register(name string, fc func(req *http.Request, currentUser qor.CurrentUse
 	role.Register(name, fc)
 }
 
+func NewPermission() *Permission {
+	return role.newPermission()
+}
+
 func (role *Role) newPermission() *Permission {
 	return &Permission{
 		Role:       role,
