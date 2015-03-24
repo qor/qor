@@ -74,7 +74,7 @@ func init() {
 	DB.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &admin.AssetManager{})
 
 	Publish = publish.New(&DB)
-	Publish.Support(&User{}, &Product{}).AutoMigrate()
+	Publish.Support(&Product{}).AutoMigrate()
 
 	l10n.RegisterCallbacks(&DB)
 

@@ -17,7 +17,7 @@ func (Auth) Logout(c *admin.Context) {
 	http.Redirect(c.Writer, c.Request, "/logout", http.StatusSeeOther)
 }
 
-var loggedUserId string
+var loggedUserId int
 
 func (Auth) GetCurrentUser(c *admin.Context) qor.CurrentUser {
 	var user User

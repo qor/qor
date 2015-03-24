@@ -67,6 +67,25 @@ func main() {
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)
 	mux.Handle("/system/", http.FileServer(http.Dir("public")))
+	mux.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
+		if request.Method == "POST" {
+			request.ParseForm()
+			var user User
+			if !DB.First(&user, "name = ?", request.Form.Get("username")).RecordNotFound() {
+				loggedUserId = user.ID
+				writer.Write([]byte("logged as " + user.Name))
+			} else {
+				http.Redirect(writer, request, "/login?failed_to_login", 301)
+			}
+		} else {
+			writer.Write([]byte(`<html><form action="/login" method="POST"><input name="username" value="" placeholder="username"><input type=submit value="Login"></form></html>`))
+		}
+	})
+
+	mux.HandleFunc("/logout", func(writer http.ResponseWriter, request *http.Request) {
+		loggedUserId = 0
+		http.Redirect(writer, request, "/login?logged_out", 301)
+	})
 
 	fmt.Println("listening on :9000")
 	http.ListenAndServe(":9000", mux)
