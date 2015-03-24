@@ -92,11 +92,13 @@ func (context *Context) findTemplate(tmpl *template.Template, layout string) (*t
 	return tmpl, errors.New("template not found")
 }
 
-func (context *Context) Render(name string, result interface{}) string {
+func (context *Context) Render(name string, results ...interface{}) string {
 	var err error
 	names := strings.Split(name, "/")
 	tmpl := template.New(names[len(names)-1] + ".tmpl").Funcs(context.funcMap())
-	context.Result = result
+	if len(results) > 0 {
+		context.Result = results[0]
+	}
 
 	if tmpl, err = context.findTemplate(tmpl, name+".tmpl"); err == nil {
 		var result = bytes.NewBufferString("")
