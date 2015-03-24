@@ -22,6 +22,7 @@ func main() {
 	config := qor.Config{DB: Publish.DraftDB()}
 
 	Admin := admin.New(&config)
+	Admin.SetAuth(&Auth{})
 
 	Admin.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})
 

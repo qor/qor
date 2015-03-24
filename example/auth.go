@@ -21,6 +21,9 @@ var loggedUserId int
 
 func (Auth) GetCurrentUser(c *admin.Context) qor.CurrentUser {
 	var user User
-	DB.First(&user, "id = ?", loggedUserId)
-	return &user
+	if DB.First(&user, "id = ?", loggedUserId).RecordNotFound() {
+		return nil
+	} else {
+		return &user
+	}
 }
