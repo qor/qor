@@ -77,6 +77,10 @@ func main() {
 			} else {
 				http.Redirect(writer, request, "/login?failed_to_login", 301)
 			}
+		} else if loggedUserId != 0 {
+			var user User
+			DB.First(&user, "id = ?", loggedUserId)
+			writer.Write([]byte("already logged as " + user.Name))
 		} else {
 			writer.Write([]byte(`<html><form action="/login" method="POST"><input name="username" value="" placeholder="username"><input type=submit value="Login"></form></html>`))
 		}
@@ -84,7 +88,7 @@ func main() {
 
 	mux.HandleFunc("/logout", func(writer http.ResponseWriter, request *http.Request) {
 		loggedUserId = 0
-		http.Redirect(writer, request, "/login?logged_out", 301)
+		http.Redirect(writer, request, "/login?logged_out", http.StatusSeeOther)
 	})
 
 	fmt.Println("listening on :9000")
