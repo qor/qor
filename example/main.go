@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor"
@@ -69,26 +70,31 @@ func main() {
 	Admin.MountTo("/admin", mux)
 	mux.Handle("/system/", http.FileServer(http.Dir("public")))
 	mux.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
+		var user User
+
 		if request.Method == "POST" {
 			request.ParseForm()
-			var user User
 			if !DB.First(&user, "name = ?", request.Form.Get("username")).RecordNotFound() {
-				loggedUserId = user.ID
+				cookie := http.Cookie{Name: "userid", Value: strconv.Itoa(user.ID), Expires: time.Now().AddDate(1, 0, 0)}
+				http.SetCookie(writer, &cookie)
 				writer.Write([]byte("logged as " + user.Name))
 			} else {
 				http.Redirect(writer, request, "/login?failed_to_login", 301)
 			}
-		} else if loggedUserId != 0 {
-			var user User
-			DB.First(&user, "id = ?", loggedUserId)
-			writer.Write([]byte("already logged as " + user.Name))
+		} else if userid, err := request.Cookie("userid"); err == nil {
+			if !DB.First(&user, "id = ?", userid.Value).RecordNotFound() {
+				writer.Write([]byte("already logged as " + user.Name))
+			} else {
+				http.Redirect(writer, request, "/logout", http.StatusSeeOther)
+			}
 		} else {
 			writer.Write([]byte(`<html><form action="/login" method="POST"><input name="username" value="" placeholder="username"><input type=submit value="Login"></form></html>`))
 		}
 	})
 
 	mux.HandleFunc("/logout", func(writer http.ResponseWriter, request *http.Request) {
-		loggedUserId = 0
+		cookie := http.Cookie{Name: "userid", MaxAge: -1}
+		http.SetCookie(writer, &cookie)
 		http.Redirect(writer, request, "/login?logged_out", http.StatusSeeOther)
 	})
 

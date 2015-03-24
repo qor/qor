@@ -17,13 +17,12 @@ func (Auth) Logout(c *admin.Context) {
 	http.Redirect(c.Writer, c.Request, "/logout", http.StatusSeeOther)
 }
 
-var loggedUserId int
-
 func (Auth) GetCurrentUser(c *admin.Context) qor.CurrentUser {
-	var user User
-	if DB.First(&user, "id = ?", loggedUserId).RecordNotFound() {
-		return nil
-	} else {
-		return &user
+	if userid, err := c.Request.Cookie("userid"); err == nil {
+		var user User
+		if !DB.First(&user, "id = ?", userid.Value).RecordNotFound() {
+			return &user
+		}
 	}
+	return nil
 }
