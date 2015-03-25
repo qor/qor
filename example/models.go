@@ -48,6 +48,14 @@ type User struct {
 	publish.Status
 }
 
+func (User) ViewableLocales() []string {
+	return []string{"zh-CN", "JP", "EN", "DE"}
+}
+
+func (User) EditableLocales() []string {
+	return []string{"zh-CN", "EN"}
+}
+
 func (u User) DisplayName() string {
 	return u.Name
 }

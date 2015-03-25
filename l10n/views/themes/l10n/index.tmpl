@@ -1,11 +1,15 @@
-<p>{{link_to "Localize" (new_resource_path .Resource)}}</p>
-{{range $locale := viewable_locales .}}
-  {{$locale}}
-{{end}}
+<div>
+  {{link_to "Localize" (new_resource_path .Resource)}}
+  {{range $locale := editable_locales .}}
+    {{$locale}}
+  {{end}}
+</div>
 
-{{range $locale := editable_locales .}}
-  {{$locale}}
-{{end}}
+<div>
+  {{range $locale := viewable_locales .}}
+    {{$locale}}
+  {{end}}
+</div>
 
 <article class="article clearfix">
   {{render "index/filter"}}
