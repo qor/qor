@@ -53,11 +53,9 @@ func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 
 		if config.Invisible {
 			noMenu = true
-		} else {
-			if len(config.Menu) > 0 {
-				noMenu = true
-				admin.menus = appendMenu(admin.menus, config.Menu, res)
-			}
+		} else if len(config.Menu) > 0 {
+			noMenu = true
+			admin.menus = appendMenu(admin.menus, config.Menu, res)
 		}
 	}
 	if !noName {

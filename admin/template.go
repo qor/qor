@@ -2,7 +2,6 @@ package admin
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path"
 	"regexp"
@@ -36,7 +35,6 @@ func RegisterViewPath(path string) error {
 		viewPaths = append(viewPaths, path)
 		return nil
 	}
-	fmt.Println(viewPaths)
 	return errors.New("path not found")
 }
 

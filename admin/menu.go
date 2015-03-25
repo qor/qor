@@ -57,20 +57,24 @@ func (m *Menu) AddChild(menu *Menu) {
 }
 
 func newMenu(menus []string, res *Resource) (m *Menu) {
-	if mlen := len(menus); mlen == 0 {
-		m = &Menu{params: res.ToParam(), Name: res.Name}
-	} else {
-		m = &Menu{
-			Name:  menus[0],
-			Items: []*Menu{&Menu{params: res.ToParam(), Name: res.Name}},
-		}
+	m = &Menu{params: res.ToParam(), Name: res.Name}
+	// if mlen := len(menus); mlen == 0 {
+	// } else {
+	// 	m = &Menu{
+	// 		Name:  menus[0],
+	// 		Items: []*Menu{&Menu{params: res.ToParam(), Name: res.Name}},
+	// 	}
 
-		for i := mlen - 2; i >= 0; i-- {
-			m = &Menu{
-				Name:  menus[i],
-				Items: []*Menu{m},
-			}
-		}
+	// 	for i := mlen - 2; i >= 0; i-- {
+	// 		m = &Menu{
+	// 			Name:  menus[i],
+	// 			Items: []*Menu{m},
+	// 		}
+	// 	}
+	// }
+	l := len(menus)
+	for i, _ := range menus {
+		m = &Menu{Name: menus[l-i-1], Items: []*Menu{m}}
 	}
 
 	return

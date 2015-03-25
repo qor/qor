@@ -2,6 +2,7 @@ package admin
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/qor/qor/resource"
@@ -38,50 +39,45 @@ func TestMenu(t *testing.T) {
 		Config:   &Config{Menu: []string{"menu1", "menu1-1", "menu1-1-1"}},
 	}
 
+	menus = appendMenu(menus, res7.Config.Menu, res7)
 	menus = appendMenu(menus, res1.Config.Menu, res1)
 	menus = appendMenu(menus, res2.Config.Menu, res2)
 	menus = appendMenu(menus, res3.Config.Menu, res3)
 	menus = appendMenu(menus, res4.Config.Menu, res4)
 	menus = appendMenu(menus, res5.Config.Menu, res5)
 	menus = appendMenu(menus, res6.Config.Menu, res6)
-	menus = appendMenu(menus, res7.Config.Menu, res7)
 	relinkMenus(menus, "/admin")
 
 	expect := []*Menu{
 		&Menu{Name: "menu1", Items: []*Menu{
-			&Menu{Name: res1.Name, Link: "/admin/res1"},
-			&Menu{Name: res2.Name, Link: "/admin/res2"},
 			&Menu{Name: "menu1-1", Items: []*Menu{
-				&Menu{Name: res3.Name, Link: "/admin/res3"},
 				&Menu{Name: "menu1-1-1", Items: []*Menu{
-					&Menu{Name: res7.Name, Link: "/admin/res7"},
+					&Menu{Name: res7.Name, params: "res7", Link: "/admin/res7"},
 				}},
+				&Menu{Name: res3.Name, params: "res3", Link: "/admin/res3"},
 			}},
+			&Menu{Name: res1.Name, params: "res1", Link: "/admin/res1"},
+			&Menu{Name: res2.Name, params: "res2", Link: "/admin/res2"},
 			&Menu{Name: "menu1-2", Items: []*Menu{
-				&Menu{Name: res6.Name, Link: "/admin/res6"},
+				&Menu{Name: res6.Name, params: "res6", Link: "/admin/res6"},
 			}},
 		}},
 		&Menu{Name: "menu2", Items: []*Menu{
-			&Menu{Name: res4.Name, Link: "/admin/res4"},
+			&Menu{Name: res4.Name, params: "res4", Link: "/admin/res4"},
 		}},
-		&Menu{Name: res5.Name, Link: "/admin/res5"},
+		&Menu{Name: res5.Name, params: "res5", Link: "/admin/res5"},
 	}
 
-	isEqual := func(expect, got []*Menu) bool {
-		e, err := json.Marshal(expect)
+	if !reflect.DeepEqual(expect, menus) {
+		g, err := json.MarshalIndent(menus, "", "  ")
 		if err != nil {
-			t.Error("marshal expect error:", err)
+			t.Error(err)
 		}
-		g, err := json.Marshal(got)
+		w, err := json.MarshalIndent(expect, "", "  ")
 		if err != nil {
-			t.Error("marshal got error:", err)
+			t.Error(err)
 		}
-
-		return string(e) == string(g)
-	}
-
-	if !isEqual(expect, menus) {
-		t.Errorf("add menu errors: expect %s got %s", expect, menus)
+		t.Errorf("add menu errors: got %s; expect %s", g, w)
 	}
 
 	menu := getMenu(menus, "res6")
