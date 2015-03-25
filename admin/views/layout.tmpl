@@ -11,13 +11,24 @@
 
   <head>
     <title>Qor Admin</title>
+    {{stylesheet_tag "lib/foundation.min"}}
+    {{stylesheet_tag "lib/cropper.min"}}
+    {{stylesheet_tag "lib/redactor"}}
     {{stylesheet_tag "main"}}
 
-    {{javascript_tag "bundle.js"}}
+    {{javascript_tag "lib/jquery-2.1.3.min"}}
+    {{javascript_tag "lib/foundation.min"}}
+    {{javascript_tag "lib/cropper.min"}}
+    {{javascript_tag "lib/fugue"}}
+    {{javascript_tag "lib/redactor.min"}}
+    {{javascript_tag "app/clipper"}}
+    {{javascript_tag "app/redactor-clipper"}}
+    {{javascript_tag "application"}}
   </head>
 
   <body>
     {{template "header" .}}
+
 
     {{.Content}}
 

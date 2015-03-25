@@ -3,7 +3,7 @@ $(function() {
 
   var $editors = $('.redactor-editor');
   $editors.each(function(i, me) {
-    var cropURL = $(this).data('crop-url'), 
+    var cropURL = $(this).data('crop-url'),
         uploadURL = $(this).data("upload-url");
 
     $(me).redactor({
