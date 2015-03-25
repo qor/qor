@@ -5,3 +5,5 @@ tmp/
 /example/public/
 worker_data
 node_modules/
+.sass-cache/
+*.css.map
