@@ -33,7 +33,19 @@ func New(config *qor.Config) *Admin {
 	return &admin
 }
 
-func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
+func (admin *Admin) SetAuth(auth Auth) {
+	admin.auth = auth
+}
+
+func (admin *Admin) RegisterFuncMap(name string, fc interface{}) {
+	admin.funcMaps[name] = fc
+}
+
+func (admin *Admin) GetRouter() *Router {
+	return admin.router
+}
+
+func (admin *Admin) NewResource(value interface{}, config *Config) *Resource {
 	if config == nil {
 		config = &Config{}
 	}
@@ -53,12 +65,17 @@ func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 		res.Name = namer.ResourceName()
 	}
 
-	if !config.Invisible {
-		admin.menus = appendMenu(admin.menus, config.Menu, res)
-	}
-
 	if injector, ok := value.(Injector); ok {
 		injector.InjectQorAdmin(res)
+	}
+	return res
+}
+
+func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
+	res := admin.NewResource(value, config)
+
+	if !res.Config.Invisible {
+		admin.menus = appendMenu(admin.menus, res.Config.Menu, res)
 	}
 
 	admin.resources = append(admin.resources, res)
@@ -72,16 +89,4 @@ func (admin *Admin) GetResource(name string) *Resource {
 		}
 	}
 	return nil
-}
-
-func (admin *Admin) SetAuth(auth Auth) {
-	admin.auth = auth
-}
-
-func (admin *Admin) GetRouter() *Router {
-	return admin.router
-}
-
-func (admin *Admin) RegisterFuncMap(name string, fc interface{}) {
-	admin.funcMaps[name] = fc
 }

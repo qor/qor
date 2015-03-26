@@ -157,7 +157,7 @@ func (meta *Meta) updateMeta() {
 			} else if valueType == "slice" {
 				result = reflect.New(field.Field.Type().Elem()).Interface()
 			}
-			meta.Resource = meta.base.GetAdmin().AddResource(result, &Config{Invisible: true})
+			meta.Resource = meta.base.GetAdmin().NewResource(result, nil)
 		}
 	}
 
