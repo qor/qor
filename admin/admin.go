@@ -34,6 +34,10 @@ func New(config *qor.Config) *Admin {
 }
 
 func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
+	if config == nil {
+		config = &Config{}
+	}
+
 	res := &Resource{
 		Resource:    *resource.New(value),
 		Config:      config,
@@ -43,20 +47,14 @@ func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 		admin:       admin,
 	}
 
-	if namer, ok := value.(ResourceNamer); ok {
+	if config.Name != "" {
+		res.Name = config.Name
+	} else if namer, ok := value.(ResourceNamer); ok {
 		res.Name = namer.ResourceName()
 	}
 
-	if config != nil && config.Name != "" {
-		res.Name = config.Name
-	}
-
-	if config == nil || !config.Invisible {
-		if config != nil && len(config.Menu) > 0 {
-			admin.menus = appendMenu(admin.menus, config.Menu, res)
-		} else {
-			admin.AddMenu(&Menu{Name: res.Name, params: res.ToParam()})
-		}
+	if !config.Invisible {
+		admin.menus = appendMenu(admin.menus, config.Menu, res)
 	}
 
 	if injector, ok := value.(Injector); ok {
