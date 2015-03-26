@@ -7,26 +7,26 @@ import (
 )
 
 type Callback struct {
-	creates    []*func(context *qor.Context)
-	updates    []*func(context *qor.Context)
-	deletes    []*func(context *qor.Context)
-	queries    []*func(context *qor.Context)
-	processors []*callbackProcessor
+	creates    []*func(context *qor.Context) error
+	updates    []*func(context *qor.Context) error
+	deletes    []*func(context *qor.Context) error
+	queries    []*func(context *qor.Context) error
+	processors []*CallbackProcessor
 }
 
-type callbackProcessor struct {
+type CallbackProcessor struct {
 	name      string
 	before    string
 	after     string
 	replace   bool
 	remove    bool
 	typ       string
-	processor *func(context *qor.Context)
+	processor *func(context *qor.Context) error
 	callback  *Callback
 }
 
-func (c *Callback) addProcessor(typ string) *callbackProcessor {
-	cp := &callbackProcessor{typ: typ, callback: c}
+func (c *Callback) addProcessor(typ string) *CallbackProcessor {
+	cp := &CallbackProcessor{typ: typ, callback: c}
 	c.processors = append(c.processors, cp)
 	return cp
 }
@@ -41,46 +41,46 @@ func (c *Callback) clone() *Callback {
 	}
 }
 
-func (c *Callback) Create() *callbackProcessor {
+func (c *Callback) Create() *CallbackProcessor {
 	return c.addProcessor("create")
 }
 
-func (c *Callback) Update() *callbackProcessor {
+func (c *Callback) Update() *CallbackProcessor {
 	return c.addProcessor("update")
 }
 
-func (c *Callback) Delete() *callbackProcessor {
+func (c *Callback) Delete() *CallbackProcessor {
 	return c.addProcessor("delete")
 }
 
-func (c *Callback) Query() *callbackProcessor {
+func (c *Callback) Query() *CallbackProcessor {
 	return c.addProcessor("query")
 }
 
-func (cp *callbackProcessor) Before(name string) *callbackProcessor {
+func (cp *CallbackProcessor) Before(name string) *CallbackProcessor {
 	cp.before = name
 	return cp
 }
 
-func (cp *callbackProcessor) After(name string) *callbackProcessor {
+func (cp *CallbackProcessor) After(name string) *CallbackProcessor {
 	cp.after = name
 	return cp
 }
 
-func (cp *callbackProcessor) Register(name string, fc func(context *qor.Context)) {
+func (cp *CallbackProcessor) Register(name string, fc func(context *qor.Context) error) {
 	cp.name = name
 	cp.processor = &fc
 	cp.callback.sort()
 }
 
-func (cp *callbackProcessor) Remove(name string) {
+func (cp *CallbackProcessor) Remove(name string) {
 	fmt.Printf("[info] removing callback `%v` from %v\n", name, qor.FilenameWithLineNum())
 	cp.name = name
 	cp.remove = true
 	cp.callback.sort()
 }
 
-func (cp *callbackProcessor) Replace(name string, fc func(context *qor.Context)) {
+func (cp *CallbackProcessor) Replace(name string, fc func(context *qor.Context) error) {
 	fmt.Printf("[info] replacing callback `%v` from %v\n", name, qor.FilenameWithLineNum())
 	cp.name = name
 	cp.processor = &fc
@@ -97,8 +97,8 @@ func getRIndex(strs []string, str string) int {
 	return -1
 }
 
-func sortProcessors(cps []*callbackProcessor) []*func(context *qor.Context) {
-	var sortCallbackProcessor func(c *callbackProcessor)
+func sortProcessors(cps []*CallbackProcessor) []*func(context *qor.Context) error {
+	var sortCallbackProcessor func(c *CallbackProcessor)
 	var names, sortedNames = []string{}, []string{}
 
 	for _, cp := range cps {
@@ -110,7 +110,7 @@ func sortProcessors(cps []*callbackProcessor) []*func(context *qor.Context) {
 		names = append(names, cp.name)
 	}
 
-	sortCallbackProcessor = func(c *callbackProcessor) {
+	sortCallbackProcessor = func(c *CallbackProcessor) {
 		if getRIndex(sortedNames, c.name) > -1 {
 			return
 		}
@@ -149,8 +149,8 @@ func sortProcessors(cps []*callbackProcessor) []*func(context *qor.Context) {
 		sortCallbackProcessor(cp)
 	}
 
-	var funcs = []*func(context *qor.Context){}
-	var sortedFuncs = []*func(context *qor.Context){}
+	var funcs = []*func(*qor.Context) error{}
+	var sortedFuncs = []*func(*qor.Context) error{}
 	for _, name := range sortedNames {
 		index := getRIndex(names, name)
 		if !cps[index].remove {
@@ -170,7 +170,7 @@ func sortProcessors(cps []*callbackProcessor) []*func(context *qor.Context) {
 }
 
 func (c *Callback) sort() {
-	creates, updates, deletes, queries := []*callbackProcessor{}, []*callbackProcessor{}, []*callbackProcessor{}, []*callbackProcessor{}
+	creates, updates, deletes, queries := []*CallbackProcessor{}, []*CallbackProcessor{}, []*CallbackProcessor{}, []*CallbackProcessor{}
 
 	for _, processor := range c.processors {
 		switch processor.typ {
