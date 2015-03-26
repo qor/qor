@@ -18,6 +18,7 @@ type Resource struct {
 	Deleter      func(interface{}, *qor.Context) error
 	validators   []func(interface{}, *MetaValues, *qor.Context) error
 	processors   []func(interface{}, *MetaValues, *qor.Context) error
+	callback     *callback
 }
 
 type Resourcer interface {

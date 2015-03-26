@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func filenameWithLineNum() string {
+func FilenameWithLineNum() string {
 	var total = 10
 	var results []string
 	for i := 2; i < 15; i++ {
@@ -29,7 +29,7 @@ func filenameWithLineNum() string {
 }
 
 func ExitWithMsg(str string, value ...interface{}) {
-	fmt.Printf("\n"+filenameWithLineNum()+"\n"+str+"\n", value...)
+	fmt.Printf("\n"+FilenameWithLineNum()+"\n"+str+"\n", value...)
 	debug.PrintStack()
 	os.Exit(1)
 }
