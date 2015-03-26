@@ -18,7 +18,7 @@ type Product struct {
 	l10n.Locale
 }
 
-func (Product) LocaleCreateable() {}
+// func (Product) LocaleCreateable() {}
 
 type ColorVariation struct {
 	ID       int `gorm:"primary_key"`

@@ -28,7 +28,7 @@ func BeforeQuery(scope *gorm.Scope) {
 func BeforeCreate(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		if locale, ok := getLocale(scope); ok { // is locale
-			if isLocaleCreateable(scope) {
+			if isLocaleCreateable(scope) || !scope.PrimaryKeyZero() {
 				setLocale(scope, locale)
 			} else {
 				scope.Err(errors.New("permission denied to create from locale"))
