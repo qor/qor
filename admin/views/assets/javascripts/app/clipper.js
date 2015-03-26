@@ -87,7 +87,7 @@
           $image = createImg();
         }
 
-        me.$el = $input.addClass('clipper'); // can be $image?
+        me.$el = $input.addClass('cropper-clipper'); // can be $image?
 
         var $cropperDataHolder = $(options.cropperDataHolderSelector);
 
@@ -133,7 +133,7 @@
               cropData.width = data.width * zoomLevel;
               cropData.height = data.height * zoomLevel;
 
-              $(this).addClass('cropper-clipper').cropper('setCropBoxData', cropData);
+              $(this).cropper('setCropBoxData', cropData);
             },
             crop: function(data) {},
             multiple: true,
