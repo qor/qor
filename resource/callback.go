@@ -6,7 +6,7 @@ import (
 	"github.com/qor/qor"
 )
 
-type callback struct {
+type Callback struct {
 	creates    []*func(context *qor.Context)
 	updates    []*func(context *qor.Context)
 	deletes    []*func(context *qor.Context)
@@ -22,17 +22,17 @@ type callbackProcessor struct {
 	remove    bool
 	typ       string
 	processor *func(context *qor.Context)
-	callback  *callback
+	callback  *Callback
 }
 
-func (c *callback) addProcessor(typ string) *callbackProcessor {
+func (c *Callback) addProcessor(typ string) *callbackProcessor {
 	cp := &callbackProcessor{typ: typ, callback: c}
 	c.processors = append(c.processors, cp)
 	return cp
 }
 
-func (c *callback) clone() *callback {
-	return &callback{
+func (c *Callback) clone() *Callback {
+	return &Callback{
 		creates:    c.creates,
 		updates:    c.updates,
 		deletes:    c.deletes,
@@ -41,19 +41,19 @@ func (c *callback) clone() *callback {
 	}
 }
 
-func (c *callback) Create() *callbackProcessor {
+func (c *Callback) Create() *callbackProcessor {
 	return c.addProcessor("create")
 }
 
-func (c *callback) Update() *callbackProcessor {
+func (c *Callback) Update() *callbackProcessor {
 	return c.addProcessor("update")
 }
 
-func (c *callback) Delete() *callbackProcessor {
+func (c *Callback) Delete() *callbackProcessor {
 	return c.addProcessor("delete")
 }
 
-func (c *callback) Query() *callbackProcessor {
+func (c *Callback) Query() *callbackProcessor {
 	return c.addProcessor("query")
 }
 
@@ -169,7 +169,7 @@ func sortProcessors(cps []*callbackProcessor) []*func(context *qor.Context) {
 	return append(sortedFuncs, funcs...)
 }
 
-func (c *callback) sort() {
+func (c *Callback) sort() {
 	creates, updates, deletes, queries := []*callbackProcessor{}, []*callbackProcessor{}, []*callbackProcessor{}, []*callbackProcessor{}
 
 	for _, processor := range c.processors {

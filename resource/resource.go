@@ -18,7 +18,7 @@ type Resource struct {
 	Deleter      func(interface{}, *qor.Context) error
 	validators   []func(interface{}, *MetaValues, *qor.Context) error
 	processors   []func(interface{}, *MetaValues, *qor.Context) error
-	callback     *callback
+	callback     *Callback
 }
 
 type Resourcer interface {
@@ -38,7 +38,7 @@ func New(value interface{}, names ...string) *Resource {
 		name = n
 	}
 
-	return &Resource{Value: value, Name: name}
+	return &Resource{Value: value, Name: name, callback: &Callback{}}
 }
 
 func (res *Resource) GetResource() *Resource {
@@ -132,4 +132,8 @@ func (res *Resource) NewStruct() interface{} {
 
 func (res *Resource) GetMetas(...[]string) []Metaor {
 	panic("not defined")
+}
+
+func (res *Resource) Callback() *Callback {
+	return res.callback
 }
