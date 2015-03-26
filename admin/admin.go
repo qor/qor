@@ -9,12 +9,11 @@ import (
 
 type Admin struct {
 	Config    *qor.Config
+	menus     []*Menu
 	resources []*Resource
 	auth      Auth
 	router    *Router
 	funcMaps  template.FuncMap
-
-	menus []*Menu
 }
 
 type Injector interface {
@@ -44,40 +43,33 @@ func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 		admin:       admin,
 	}
 
-	var noName, noMenu bool
-	if config != nil {
-		if config.Name != "" {
-			noName = true
-			res.Name = config.Name
-		}
+	if namer, ok := value.(ResourceNamer); ok {
+		res.Name = namer.ResourceName()
+	}
 
-		if config.Invisible {
-			noMenu = true
-		} else if len(config.Menu) > 0 {
-			noMenu = true
+	if config != nil && config.Name != "" {
+		res.Name = config.Name
+	}
+
+	if config == nil || !config.Invisible {
+		if config != nil && len(config.Menu) > 0 {
 			admin.menus = appendMenu(admin.menus, config.Menu, res)
+		} else {
+			admin.AddMenu(&Menu{Name: res.Name, params: res.ToParam()})
 		}
 	}
-	if !noName {
-		if namer, ok := value.(ResourceNamer); ok {
-			res.Name = namer.ResourceName()
-		}
-	}
-	if !noMenu {
-		admin.AddMenu(&Menu{Name: res.Name, params: res.ToParam()})
-	}
-
-	admin.resources = append(admin.resources, res)
 
 	if injector, ok := value.(Injector); ok {
 		injector.InjectQorAdmin(res)
 	}
+
+	admin.resources = append(admin.resources, res)
 	return res
 }
 
 func (admin *Admin) GetResource(name string) *Resource {
 	for _, res := range admin.resources {
-		if res.ToParam() == name {
+		if res.ToParam() == name || res.Name == name {
 			return res
 		}
 	}

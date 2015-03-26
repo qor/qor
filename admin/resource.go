@@ -1,8 +1,6 @@
 package admin
 
 import (
-	"fmt"
-
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -49,60 +47,6 @@ func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}
 
 func (res *Resource) Decode(contextor qor.Contextor, value interface{}) (errs []error) {
 	return resource.Decode(contextor, value, res)
-}
-
-func (res *Resource) DefaultFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
-	var primaryKey string
-	if metaValues == nil {
-		primaryKey = context.ResourceID
-	} else if id := metaValues.Get(res.PrimaryFieldName()); id != nil {
-		primaryKey = utils.ToString(id.Value)
-	}
-
-	if primaryKey != "" {
-		if metaValues != nil {
-			if destroy := metaValues.Get("_destroy"); destroy != nil {
-				if fmt.Sprintf("%v", destroy.Value) != "0" {
-					context.GetDB().Delete(result, primaryKey)
-					return resource.ErrProcessorSkipLeft
-				}
-			}
-		}
-		return context.GetDB().First(result, primaryKey).Error
-	}
-	return nil
-}
-
-func (res *Resource) CallFinder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
-	if res.Finder != nil {
-		return res.Finder(result, metaValues, context)
-	} else {
-		return res.DefaultFinder(result, metaValues, context)
-	}
-}
-
-func (res *Resource) DefaultSearcher(result interface{}, context *qor.Context) error {
-	return context.GetDB().Set("gorm:order_by_primary_key", "DESC").Find(result).Error
-}
-
-func (res *Resource) CallSearcher(result interface{}, context *qor.Context) error {
-	if res.Searcher != nil {
-		return res.Searcher(result, context)
-	} else {
-		return res.DefaultSearcher(result, context)
-	}
-}
-
-func (res *Resource) DefaultSaver(result interface{}, context *qor.Context) error {
-	return context.GetDB().Save(result).Error
-}
-
-func (res *Resource) CallSaver(result interface{}, context *qor.Context) error {
-	if res.Saver != nil {
-		return res.Saver(result, context)
-	} else {
-		return res.DefaultSaver(result, context)
-	}
 }
 
 func (res *Resource) IndexAttrs(columns ...string) {
