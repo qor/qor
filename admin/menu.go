@@ -13,6 +13,10 @@ func (admin Admin) GetMenus() []*Menu {
 	return admin.menus
 }
 
+func (admin *Admin) AddMenu(menu *Menu) {
+	admin.menus = append(admin.menus, menu)
+}
+
 func (admin Admin) GetMenu(name string) (m *Menu) {
 	return getMenu(admin.menus, name)
 }
@@ -33,10 +37,6 @@ func getMenu(menus []*Menu, name string) *Menu {
 	return nil
 }
 
-func (admin *Admin) AddMenu(menu *Menu) {
-	admin.menus = append(admin.menus, menu)
-}
-
 func (admin *Admin) linkMenus() {
 	relinkMenus(admin.menus, admin.router.Prefix)
 }
@@ -52,54 +52,31 @@ func relinkMenus(menus []*Menu, prefix string) {
 	}
 }
 
-func (m *Menu) AddChild(menu *Menu) {
-	m.Items = append(m.Items, menu)
-}
+func newMenu(menus []string, res *Resource) (menu *Menu) {
+	menu = &Menu{params: res.ToParam(), Name: res.Name}
 
-func newMenu(menus []string, res *Resource) (m *Menu) {
-	m = &Menu{params: res.ToParam(), Name: res.Name}
-	// if mlen := len(menus); mlen == 0 {
-	// } else {
-	// 	m = &Menu{
-	// 		Name:  menus[0],
-	// 		Items: []*Menu{&Menu{params: res.ToParam(), Name: res.Name}},
-	// 	}
-
-	// 	for i := mlen - 2; i >= 0; i-- {
-	// 		m = &Menu{
-	// 			Name:  menus[i],
-	// 			Items: []*Menu{m},
-	// 		}
-	// 	}
-	// }
-	l := len(menus)
-	for i, _ := range menus {
-		m = &Menu{Name: menus[l-i-1], Items: []*Menu{m}}
+	menuCount := len(menus)
+	for index, _ := range menus {
+		menu = &Menu{Name: menus[menuCount-index-1], Items: []*Menu{menu}}
 	}
 
 	return
 }
 
 func appendMenu(menus []*Menu, resMenus []string, res *Resource) []*Menu {
-	if len(resMenus) == 0 {
-		return append(menus, newMenu(resMenus, res))
-	}
+	if len(resMenus) > 0 {
+		for _, m := range menus {
+			if m.Name != resMenus[0] {
+				continue
+			}
 
-	for _, m := range menus {
-		if m.Link != "" {
-			continue
+			if len(resMenus) > 1 {
+				m.Items = appendMenu(m.Items, resMenus[1:], res)
+			} else {
+				m.Items = append(m.Items, newMenu(nil, res))
+			}
+			return menus
 		}
-
-		if m.Name != resMenus[0] {
-			continue
-		}
-
-		if len(resMenus) > 1 {
-			m.Items = appendMenu(m.Items, resMenus[1:], res)
-		} else {
-			m.Items = append(m.Items, newMenu(nil, res))
-		}
-		return menus
 	}
 
 	return append(menus, newMenu(resMenus, res))
