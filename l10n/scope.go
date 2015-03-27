@@ -12,10 +12,12 @@ func isLocalizable(scope *gorm.Scope) (isLocalizable bool) {
 	return
 }
 
+type LocaleCreateableInterface interface {
+	LocaleCreateable()
+}
+
 func isLocaleCreateable(scope *gorm.Scope) (ok bool) {
-	_, ok = reflect.New(scope.GetModelStruct().ModelType).Interface().(interface {
-		LocaleCreateable()
-	})
+	_, ok = reflect.New(scope.GetModelStruct().ModelType).Interface().(LocaleCreateableInterface)
 	return
 }
 
@@ -30,7 +32,7 @@ func setLocale(scope *gorm.Scope, locale string) {
 func getLocale(scope *gorm.Scope) (locale string, ok bool) {
 	if str, ok := scope.DB().Get("l10n:locale"); ok {
 		if locale, ok := str.(string); ok {
-			return locale, true
+			return locale, locale != ""
 		}
 	}
 	return "", false

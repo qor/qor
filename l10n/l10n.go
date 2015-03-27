@@ -118,6 +118,14 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		return GetEditableLocales(context.Request, context.CurrentUser)
 	})
 
+	res.GetAdmin().RegisterFuncMap("createable_locales", func(context admin.Context) []string {
+		if _, ok := context.Resource.Value.(LocaleCreateableInterface); ok {
+			return GetEditableLocales(context.Request, context.CurrentUser)
+		} else {
+			return []string{""}
+		}
+	})
+
 	role := res.Config.Permission.Role
 	if _, ok := role.Get("locale_admin"); !ok {
 		role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {

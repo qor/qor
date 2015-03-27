@@ -1,6 +1,6 @@
 {{$resource := .Resource}}
 <ul class="editable_locales">
-  {{range $locale := editable_locales .}}
+  {{range $locale := createable_locales .}}
     <li>
       <a href="{{new_resource_path $resource}}?locale={{$locale}}">
         {{printf "New %v" $locale}}
