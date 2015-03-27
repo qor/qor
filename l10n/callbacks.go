@@ -58,8 +58,8 @@ func AfterUpdate(scope *gorm.Scope) {
 					scope.DB().Create(scope.Value)
 				}
 			}
-		} else { // is global
-			scope.NewDB().Where(fmt.Sprintf("%v = ?"), scope.PrimaryKeyValue).Select(syncColumns(scope)).Update(scope.Value)
+		} else if syncColumns := syncColumns(scope); len(syncColumns) > 0 { // is global
+			scope.NewDB().Where(fmt.Sprintf("%v = ?"), scope.PrimaryKeyValue).Select(syncColumns).Update(scope.Value)
 		}
 	}
 }
