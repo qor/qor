@@ -32,10 +32,10 @@ func setLocale(scope *gorm.Scope, locale string) {
 func getLocale(scope *gorm.Scope) (locale string, ok bool) {
 	if str, ok := scope.DB().Get("l10n:locale"); ok {
 		if locale, ok := str.(string); ok {
-			return locale, locale != ""
+			return locale, locale != Global
 		}
 	}
-	return "", false
+	return Global, false
 }
 
 func parseTagOption(str string) map[string]string {

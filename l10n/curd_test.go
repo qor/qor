@@ -5,6 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/qor/qor/l10n"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -23,7 +24,7 @@ func checkHasProductInLocale(db *gorm.DB, locale string, t *testing.T) {
 }
 
 func checkHasProductInAllLocales(db *gorm.DB, t *testing.T) {
-	checkHasProductInLocale(db, "", t)
+	checkHasProductInLocale(db, l10n.Global, t)
 	checkHasProductInLocale(db, "zh", t)
 	checkHasProductInLocale(db, "en", t)
 }
@@ -85,13 +86,13 @@ func TestQuery(t *testing.T) {
 		t.Error("Should find localized zh product with locale mode")
 	}
 
-	if dbCN.Set("l10n:mode", "global").First(&productCN); productCN.LanguageCode != "" {
+	if dbCN.Set("l10n:mode", "global").First(&productCN); productCN.LanguageCode != l10n.Global {
 		t.Error("Should find global product with global mode")
 	}
 
 	var productEN Product
 	dbEN.First(&productEN, product.ID)
-	if productEN.LanguageCode != "" {
+	if productEN.LanguageCode != l10n.Global {
 		t.Error("Should find global product for en with mixed mode")
 	}
 
@@ -99,7 +100,7 @@ func TestQuery(t *testing.T) {
 		t.Error("Should find no record with locale mode")
 	}
 
-	if dbEN.Set("l10n:mode", "global").First(&productEN); productEN.LanguageCode != "" {
+	if dbEN.Set("l10n:mode", "global").First(&productEN); productEN.LanguageCode != l10n.Global {
 		t.Error("Should find global product with global mode")
 	}
 }
@@ -122,7 +123,7 @@ func TestResetLanguageCodeWithGlobalDB(t *testing.T) {
 	product := Product{Code: "Query", Name: "global"}
 	product.LanguageCode = "test"
 	dbGlobal.Save(&product)
-	if product.LanguageCode != "" {
+	if product.LanguageCode != l10n.Global {
 		t.Error("Should reset language code in global mode")
 	}
 }

@@ -12,6 +12,8 @@ import (
 	"github.com/qor/qor/roles"
 )
 
+var Global = "global"
+
 type Interface interface {
 	IsGlobal() bool
 	SetLocale(locale string)
@@ -22,7 +24,7 @@ type Locale struct {
 }
 
 func (l Locale) IsGlobal() bool {
-	return l.LanguageCode == ""
+	return l.LanguageCode == Global
 }
 
 func (l *Locale) SetLocale(locale string) {
@@ -42,7 +44,10 @@ type EditableLocalesInterface interface {
 }
 
 func GetCurrentLocale(req *http.Request) string {
-	return req.Form.Get("locale")
+	if locale := req.Form.Get("locale"); locale != "" {
+		return locale
+	}
+	return Global
 }
 
 func GetAvailableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
@@ -119,11 +124,17 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	})
 
 	res.GetAdmin().RegisterFuncMap("createable_locales", func(context admin.Context) []string {
+		editableLocales := GetEditableLocales(context.Request, context.CurrentUser)
 		if _, ok := context.Resource.Value.(LocaleCreateableInterface); ok {
-			return GetEditableLocales(context.Request, context.CurrentUser)
+			return editableLocales
 		} else {
-			return []string{""}
+			for _, locale := range editableLocales {
+				if locale == "" {
+					return []string{""}
+				}
+			}
 		}
+		return []string{}
 	})
 
 	role := res.Config.Permission.Role

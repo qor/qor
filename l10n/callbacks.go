@@ -15,9 +15,9 @@ func BeforeQuery(scope *gorm.Scope) {
 			case "locale":
 				scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), locale)
 			case "global":
-				scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), "")
+				scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), Global)
 			default:
-				scope.Search.Where(fmt.Sprintf("%v.language_code = ? OR %v.language_code = ?", quotedTableName, quotedTableName), locale, "").Order("language_code DESC")
+				scope.Search.Where(fmt.Sprintf("%v.language_code = ? OR %v.language_code = ?", quotedTableName, quotedTableName), locale, Global).Order("language_code DESC")
 			}
 		}
 	}
@@ -32,7 +32,7 @@ func BeforeCreate(scope *gorm.Scope) {
 				scope.Err(errors.New("permission denied to create from locale"))
 			}
 		} else {
-			setLocale(scope, "")
+			setLocale(scope, Global)
 		}
 	}
 }
@@ -45,7 +45,7 @@ func BeforeUpdate(scope *gorm.Scope) {
 			setLocale(scope, locale)
 			scope.Search.Omit(syncColumns(scope)...)
 		} else {
-			setLocale(scope, "")
+			setLocale(scope, Global)
 		}
 	}
 }
