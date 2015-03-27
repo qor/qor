@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/l10n"
@@ -74,7 +75,10 @@ var Publish *publish.Publish
 
 func init() {
 	var err error
-	DB, err = gorm.Open("sqlite3", "tmp/qor.db")
+	// CREATE USER 'qor' IDENTIFIED BY 'qor';
+	// CREATE DATABASE qor_example;
+	// GRANT ALL PRIVILEGES ON qor_example.* TO 'qor';
+	DB, err = gorm.Open("mysql", "qor:qor@/qor_example?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		panic(err)
 	}

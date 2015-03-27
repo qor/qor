@@ -10,7 +10,7 @@ func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
 	return func(scope *gorm.Scope) {
 		if draftMode, ok := scope.Get("qor_publish:draft_mode"); force || ok {
 			if isDraft, ok := draftMode.(bool); force || ok && isDraft {
-				currentModel := modelType(scope.IndirectValue().Interface()).String()
+				currentModel := scope.GetModelStruct().ModelType.String()
 
 				var supportedModels []string
 				if value, ok := scope.Get("publish:support_models"); ok {
