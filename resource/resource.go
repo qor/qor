@@ -36,7 +36,7 @@ func New(value interface{}, names ...string) *Resource {
 		name = n
 	}
 
-	res := &Resource{Value: value, Name: name}
+	res := &Resource{Value: value, Name: name, Saver: DefaultSaver, Finder: DefaultFinder, Searcher: DefaultSearcher, Deleter: DefaultDeleter}
 	return res
 }
 
