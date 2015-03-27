@@ -129,8 +129,8 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 			return editableLocales
 		} else {
 			for _, locale := range editableLocales {
-				if locale == "" {
-					return []string{""}
+				if locale == Global {
+					return []string{Global}
 				}
 			}
 		}

@@ -66,11 +66,13 @@ func (u User) DisplayName() string {
 }
 
 type Product struct {
-	ID int
+	ID          int
+	Name        string
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	DeletedAt   time.Time
 	l10n.Locale
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
 	publish.Status
 }
 
