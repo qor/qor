@@ -9,16 +9,20 @@ import (
 
 func BeforeQuery(scope *gorm.Scope) {
 	if isLocalizable(scope) {
+		quotedTableName := scope.QuotedTableName()
 		if locale, ok := getLocale(scope); ok { // is locale
-			quotedTableName := scope.QuotedTableName()
 			switch mode, _ := scope.DB().Get("l10n:mode"); mode {
 			case "locale":
 				scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), locale)
 			case "global":
 				scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), Global)
 			default:
-				scope.Search.Where(fmt.Sprintf("%v.language_code = ? OR %v.language_code = ?", quotedTableName, quotedTableName), locale, Global).Order("language_code DESC")
+				primaryKey := scope.PrimaryKey()
+				joinCondition := fmt.Sprintf("LEFT JOIN %v t2 ON t2.%v = %v.%v AND t2.language_code = ?", quotedTableName, primaryKey, quotedTableName, primaryKey)
+				scope.Search.Joins(joinCondition).Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), locale, Global)
 			}
+		} else {
+			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), Global)
 		}
 	}
 }
