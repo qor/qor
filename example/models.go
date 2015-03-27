@@ -100,6 +100,7 @@ func init() {
 	DB.FirstOrCreate(&Role{}, Role{Name: "customer_support"})
 
 	DB.FirstOrCreate(&User{}, User{Name: "admin", RoleID: AdminRole.ID})
+	DB.FirstOrCreate(&User{}, User{Name: "global_admin", RoleID: AdminRole.ID})
 
 	DB.FirstOrCreate(&Language{}, Language{Name: "CN"})
 	DB.FirstOrCreate(&Language{}, Language{Name: "JP"})
