@@ -80,25 +80,6 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 
 	res.Config.Theme = "l10n"
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
-	res.Config.Permission.Role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
-		currentLocale := GetCurrentLocale(req)
-		for _, locale := range GetEditableLocales(req, currentUser) {
-			if locale == currentLocale {
-				return true
-			}
-		}
-		return false
-	})
-
-	res.Config.Permission.Role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
-		currentLocale := GetCurrentLocale(req)
-		for _, locale := range GetAvailableLocales(req, currentUser) {
-			if locale == currentLocale {
-				return true
-			}
-		}
-		return false
-	})
 
 	res.GetAdmin().RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
 		return GetAvailableLocales(context.Request, context.CurrentUser)
@@ -107,4 +88,27 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	res.GetAdmin().RegisterFuncMap("editable_locales", func(context admin.Context) []string {
 		return GetEditableLocales(context.Request, context.CurrentUser)
 	})
+
+	role := res.Config.Permission.Role
+	if _, ok := role.Get("locale_admin"); !ok {
+		role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			currentLocale := GetCurrentLocale(req)
+			for _, locale := range GetEditableLocales(req, currentUser) {
+				if locale == currentLocale {
+					return true
+				}
+			}
+			return false
+		})
+
+		role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			currentLocale := GetCurrentLocale(req)
+			for _, locale := range GetAvailableLocales(req, currentUser) {
+				if locale == currentLocale {
+					return true
+				}
+			}
+			return false
+		})
+	}
 }

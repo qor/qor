@@ -56,6 +56,11 @@ func (role *Role) MatchedRoles(req *http.Request, currentUser qor.CurrentUser) (
 	return
 }
 
+func (role *Role) Get(name string) (func(req *http.Request, currentUser qor.CurrentUser) bool, bool) {
+	fc, ok := role.definitions[name]
+	return fc, ok
+}
+
 func (role *Role) Register(name string, fc func(req *http.Request, currentUser qor.CurrentUser) bool) {
 	if role.definitions == nil {
 		role.definitions = map[string]func(req *http.Request, currentUser qor.CurrentUser) bool{}
