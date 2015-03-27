@@ -52,7 +52,7 @@ func (res *Resource) PrimaryField() *gorm.Field {
 	return res.primaryField
 }
 
-func (res *Resource) PrimaryFieldDBName() (name string) {
+func (res *Resource) PrimaryDBName() (name string) {
 	field := res.PrimaryField()
 	if field != nil {
 		name = field.DBName

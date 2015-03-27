@@ -62,7 +62,7 @@ func (db *PublishController) PublishOrDiscard(context *admin.Context) {
 	for name, value := range values {
 		res := context.Admin.GetResource(name)
 		results := res.NewSlice()
-		if db.DraftDB().Unscoped().Find(results, fmt.Sprintf("%v IN (?)", res.PrimaryFieldDBName()), value).Error == nil {
+		if db.DraftDB().Unscoped().Find(results, fmt.Sprintf("%v IN (?)", res.PrimaryDBName()), value).Error == nil {
 			resultValues := reflect.Indirect(reflect.ValueOf(results))
 			for i := 0; i < resultValues.Len(); i++ {
 				records = append(records, resultValues.Index(i).Interface())
