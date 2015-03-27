@@ -63,7 +63,7 @@ func (role *Role) Register(name string, fc func(req *http.Request, currentUser q
 
 	definition := role.definitions[name]
 	if definition != nil {
-		fmt.Println("%v already defined, overwrited it!", name)
+		fmt.Printf("%v already defined, overwrited it!\n", name)
 	}
 	role.definitions[name] = fc
 }
