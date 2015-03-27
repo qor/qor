@@ -1,8 +1,8 @@
-for n in $(find -iname '*.scss'); do
+for n in $(find . -iname '*.scss'); do
   scss --sourcemap=none --watch $n:$(echo $n | sed 's/\.scss/.css/' | sed 's/\/scss\//\//') &
 done
 
-for n in $(find -iname '*.coffee'); do
+for n in $(find . -iname '*.coffee'); do
   coffee --watch $n -o $(echo $n | sed 's/\.coffee/.js/' | sed 's/\/coffee\//\//') &
 done
 
