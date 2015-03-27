@@ -31,6 +31,8 @@ func BeforeCreate(scope *gorm.Scope) {
 			} else {
 				scope.Err(errors.New("permission denied to create from locale"))
 			}
+		} else {
+			setLocale(scope, "")
 		}
 	}
 }
@@ -42,6 +44,8 @@ func BeforeUpdate(scope *gorm.Scope) {
 			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", scope.QuotedTableName()), locale)
 			setLocale(scope, locale)
 			scope.Search.Omit(syncColumns(scope)...)
+		} else {
+			setLocale(scope, "")
 		}
 	}
 }

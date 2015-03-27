@@ -117,3 +117,12 @@ func TestDelete(t *testing.T) {
 		t.Errorf("Should delete none record in unlocalized locale")
 	}
 }
+
+func TestResetLanguageCodeWithGlobalDB(t *testing.T) {
+	product := Product{Code: "Query", Name: "global"}
+	product.LanguageCode = "test"
+	dbGlobal.Save(&product)
+	if product.LanguageCode != "" {
+		t.Error("Should reset language code in global mode")
+	}
+}
