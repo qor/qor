@@ -8,6 +8,7 @@ import (
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 )
 
@@ -66,6 +67,10 @@ func GetEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 	return []string{}
 }
 
+func getLocaleFromContext(context *qor.Context) string {
+	return context.Request.Form.Get("locale")
+}
+
 func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/l10n/views"))
@@ -80,6 +85,30 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 
 	res.Config.Theme = "l10n"
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
+
+	searcher := res.Searcher
+	res.Searcher = func(result interface{}, context *qor.Context) error {
+		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
+		return searcher(result, context)
+	}
+
+	finder := res.Finder
+	res.Finder = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
+		return finder(result, metaValues, context)
+	}
+
+	saver := res.Saver
+	res.Saver = func(result interface{}, context *qor.Context) error {
+		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
+		return saver(result, context)
+	}
+
+	deleter := res.Deleter
+	res.Deleter = func(result interface{}, context *qor.Context) error {
+		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
+		return deleter(result, context)
+	}
 
 	res.GetAdmin().RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
 		return GetAvailableLocales(context.Request, context.CurrentUser)
