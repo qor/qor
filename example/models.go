@@ -67,8 +67,8 @@ func (u User) DisplayName() string {
 
 type Product struct {
 	ID          int
-	Name        string
-	Description string
+	Name        *string
+	Description *string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   time.Time

@@ -17,9 +17,8 @@ func BeforeQuery(scope *gorm.Scope) {
 			case "global":
 				scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), Global)
 			default:
-				primaryKey := scope.PrimaryKey()
-				joinCondition := fmt.Sprintf("LEFT JOIN %v t2 ON t2.%v = %v.%v AND t2.language_code = ?", quotedTableName, primaryKey, quotedTableName, primaryKey)
-				scope.Search.Joins(joinCondition).Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), locale, Global)
+				quotedPrimaryKey := scope.Quote(scope.PrimaryKey())
+				scope.Search.Where(fmt.Sprintf("%v NOT IN (SELECT DISTINCT(%v) FROM %v t2 WHERE t2.language_code = ?) AND language_code = ?", quotedPrimaryKey, quotedPrimaryKey, quotedTableName), locale, Global).Or("language_code = ?", locale)
 			}
 		} else {
 			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), Global)
