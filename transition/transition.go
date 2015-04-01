@@ -25,7 +25,10 @@ type Stater interface {
 }
 
 func New(value interface{}) *StateMachine {
-	return &StateMachine{events: map[string]*Event{}}
+	return &StateMachine{
+		states: map[string]*State{},
+		events: map[string]*Event{},
+	}
 }
 
 type StateMachine struct {
