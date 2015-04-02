@@ -11,7 +11,9 @@
 
 <ul class="viewable_locales">
   {{range $locale := viewable_locales .}}
-    <li>{{$locale}}</li>
+    <li>
+      <a href="{{url_for $resource}}?locale={{$locale}}">{{$locale}}</a>
+    </li>
   {{end}}
 </ul>
 
