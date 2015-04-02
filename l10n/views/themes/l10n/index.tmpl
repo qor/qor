@@ -2,17 +2,18 @@
 <ul class="editable_locales">
   {{range $locale := createable_locales .}}
     <li>
-      <a href="{{new_resource_path $resource}}?locale={{$locale}}">
-        {{printf "New %v" $locale}}
-      </a>
+      <a href="{{new_resource_path $resource}}?locale={{$locale}}">{{printf "New %v" $locale}}</a>
     </li>
   {{end}}
 </ul>
 
+{{$current_locale := current_locale .}}
 <ul class="viewable_locales">
   {{range $locale := viewable_locales .}}
     <li>
-      <a href="{{url_for $resource}}?locale={{$locale}}">{{$locale}}</a>
+      <a href="{{url_for $resource}}?locale={{$locale}}" class="{{if (eq $current_locale $locale)}}active{{end}}">
+        {{$locale}}
+      </a>
     </li>
   {{end}}
 </ul>

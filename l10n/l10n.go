@@ -44,13 +44,6 @@ type EditableLocalesInterface interface {
 	EditableLocales() []string
 }
 
-func GetCurrentLocale(req *http.Request) string {
-	if locale := req.Form.Get("locale"); locale != "" {
-		return locale
-	}
-	return Global
-}
-
 func GetAvailableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
 	if user, ok := currentUser.(ViewableLocalesInterface); ok {
 		return user.ViewableLocales()
@@ -75,15 +68,18 @@ func GetEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 
 func getLocaleFromContext(context *qor.Context) string {
 	if locale := context.Request.Form.Get("locale"); locale != "" {
-		cookie := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0)}
-		http.SetCookie(context.Writer, &cookie)
+		if context.Writer != nil {
+			cookie := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0)}
+			http.SetCookie(context.Writer, &cookie)
+		}
 		return locale
 	}
 
 	if locale, err := context.Request.Cookie("locale"); err == nil {
 		return locale.Value
 	}
-	return ""
+
+	return Global
 }
 
 func (l *Locale) InjectQorAdmin(res *admin.Resource) {
@@ -125,6 +121,10 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		return deleter(result, context)
 	}
 
+	res.GetAdmin().RegisterFuncMap("current_locale", func(context admin.Context) string {
+		return getLocaleFromContext(context.Context)
+	})
+
 	res.GetAdmin().RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
 		return GetAvailableLocales(context.Request, context.CurrentUser)
 	})
@@ -150,7 +150,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	role := res.Config.Permission.Role
 	if _, ok := role.Get("locale_admin"); !ok {
 		role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
-			currentLocale := GetCurrentLocale(req)
+			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
 			for _, locale := range GetEditableLocales(req, currentUser) {
 				if locale == currentLocale {
 					return true
@@ -160,7 +160,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		})
 
 		role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
-			currentLocale := GetCurrentLocale(req)
+			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
 			for _, locale := range GetAvailableLocales(req, currentUser) {
 				if locale == currentLocale {
 					return true

@@ -1,11 +1,11 @@
+{{$context := .}}
+
 <section class="section table-wrapper">
 <table class="table">
   <thead>
-    <tr>
-      {{range $meta := index_metas}}
-        <th>{{$meta.Label}}</th>
-      {{end}}
-    </tr>
+    {{range $meta := index_metas}}
+      <th>{{$meta.Label}}</th>
+    {{end}}
   </thead>
 
   <tbody>
@@ -21,6 +21,14 @@
             {{end}}
           </td>
         {{end}}
+
+        <td>
+          {{range $locale := viewable_locales $context}}
+            <li>
+              <a href="{{url_for $resource}}?locale={{$locale}}">{{$locale}}</a>
+            </li>
+          {{end}}
+        </td>
 
         <td>
           <form action="{{url_for $resource}}" method="POST" style="display:inline">
