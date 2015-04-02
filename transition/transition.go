@@ -8,6 +8,19 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+type Transition struct {
+	State           string
+	StateChangeLogs []StateChangeLog `sql:"-"`
+}
+
+func (transition *Transition) SetState(name string) {
+	transition.State = name
+}
+
+func (transition Transition) GetState() string {
+	return transition.State
+}
+
 type StateChangeLog struct {
 	Id         uint64
 	ReferTable string
