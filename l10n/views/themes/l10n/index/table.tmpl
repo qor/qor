@@ -1,0 +1,35 @@
+<section class="section table-wrapper">
+<table class="table">
+  <thead>
+    <tr>
+      {{range $meta := index_metas}}
+        <th>{{$meta.Label}}</th>
+      {{end}}
+    </tr>
+  </thead>
+
+  <tbody>
+    {{range $resource := .Result}}
+      <tr>
+        {{range $index, $meta := index_metas}}
+          {{$text := value_of $resource $meta}}
+          <td>
+            {{if $index}}
+              {{$text}}
+            {{else}}
+              {{link_to $text $resource}}
+            {{end}}
+          </td>
+        {{end}}
+
+        <td>
+          <form action="{{url_for $resource}}" method="POST" style="display:inline">
+            <input name="_method" value="DELETE" type="hidden">
+            <input value="DELETE" type="submit"/>
+          </form>
+        </td>
+      </tr>
+    {{end}}
+  </tbody>
+</table>
+</section>
