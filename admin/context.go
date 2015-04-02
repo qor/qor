@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"path"
 	"reflect"
@@ -22,7 +21,6 @@ type Context struct {
 	Resource    *Resource
 	Admin       *Admin
 	CurrentUser qor.CurrentUser
-	Writer      http.ResponseWriter
 	Result      interface{}
 	Content     string
 }
@@ -42,7 +40,7 @@ func (context *Context) SetResource(res *Resource) *Context {
 }
 
 func (context *Context) NewResource(name ...string) *Context {
-	clone := &Context{Context: context.Context, Admin: context.Admin, Writer: context.Writer, Result: context.Result}
+	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result}
 	if len(name) > 0 {
 		clone.SetResource(context.Admin.GetResource(name[0]))
 	} else {

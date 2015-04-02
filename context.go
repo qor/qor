@@ -16,6 +16,7 @@ type Contextor interface {
 
 type Context struct {
 	Request    *http.Request
+	Writer     http.ResponseWriter
 	ResourceID string
 	Config     *Config
 	Roles      []string
@@ -29,6 +30,7 @@ func (context *Context) GetContext() *Context {
 func (context *Context) New() *Context {
 	return &Context{
 		Request:    context.Request,
+		Writer:     context.Writer,
 		ResourceID: context.ResourceID,
 		Config:     context.Config,
 		DB:         context.DB,

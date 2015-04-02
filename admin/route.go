@@ -76,7 +76,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 
 func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
 	var currentUser qor.CurrentUser
-	context := Context{Context: &qor.Context{Config: admin.Config, Request: r}, Writer: w, Admin: admin}
+	context := Context{Context: &qor.Context{Config: admin.Config, Request: r, Writer: w}, Admin: admin}
 	if admin.auth != nil {
 		if currentUser = admin.auth.GetCurrentUser(&context); currentUser == nil {
 			admin.auth.Login(&context)
