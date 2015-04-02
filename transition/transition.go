@@ -136,7 +136,7 @@ type Event struct {
 	transitions []*EventTransition
 }
 
-func (event Event) To(name string) *EventTransition {
+func (event *Event) To(name string) *EventTransition {
 	transition := &EventTransition{to: name}
 	event.transitions = append(event.transitions, transition)
 	return transition
