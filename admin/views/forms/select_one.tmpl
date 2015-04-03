@@ -1,6 +1,6 @@
-<div>
-  <label class="label" for="{{.InputId}}">{{.Label}}</label>
-  <select id="{{.InputId}}" name="{{.InputName}}">
+<div class="form-group">
+  <label for="{{.InputId}}">{{.Label}}</label>
+  <select class="form-control" id="{{.InputId}}" name="{{.InputName}}">
     {{$current_value := .Value}}
     {{range $values := .CollectionValue}}
         {{if (eq (print (index $values 0)) (print $current_value))}}

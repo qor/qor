@@ -11,13 +11,15 @@
 
   <head>
     <title>Qor Admin</title>
-    {{stylesheet_tag "lib/foundation.min"}}
     {{stylesheet_tag "lib/cropper.min"}}
     {{stylesheet_tag "lib/redactor"}}
+    {{stylesheet_tag "bootstrap.min"}}
     {{stylesheet_tag "main"}}
 
+    <!-- {{javascript_tag "require"}}
+    {{javascript_tag "main.dev"}} -->
     {{javascript_tag "lib/jquery-2.1.3.min"}}
-    {{javascript_tag "lib/foundation.min"}}
+    {{javascript_tag "bootstrap.min"}}
     {{javascript_tag "lib/cropper.min"}}
     {{javascript_tag "lib/fugue"}}
     {{javascript_tag "lib/redactor.min"}}
@@ -29,8 +31,11 @@
   <body>
     {{template "header" .}}
 
-
-    {{.Content}}
+    <div class="main user">
+      <div class="container">
+        {{.Content}}
+      </div>
+    </div>
 
     {{template "footer" .}}
   </body>

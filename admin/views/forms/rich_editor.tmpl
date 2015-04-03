@@ -1,9 +1,6 @@
-<div>
-  <label class="label" for="{{.InputId}}">{{.Label}}</label>
-  <textarea id="{{.InputId}}" name="{{.InputName}}"
-                              class="redactor-editor"
-                              data-upload-url="{{url_for .Meta.Resource}}/upload"
-                              data-crop-url="{{url_for .Meta.Resource}}/crop">
+<div class="form-group">
+  <label for="{{.InputId}}">{{.Label}}</label>
+  <textarea class="form-control redactor-editor" id="{{.InputId}}" name="{{.InputName}}" data-upload-url="{{url_for .Meta.Resource}}/upload" data-crop-url="{{url_for .Meta.Resource}}/crop">
     {{.Value}}
   </textarea>
 </div>

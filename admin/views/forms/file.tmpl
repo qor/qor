@@ -1,7 +1,7 @@
 {{$value := .Value}}
 
-<div>
-  <label class="label" for="{{.InputId}}">{{.Label}}</label>
+<div class="form-group">
+  <label for="{{.InputId}}">{{.Label}}</label>
   <input id="{{.InputId}}" name="{{.InputName}}" class="image-cropper-upload" type="file">
   {{if $value}}
     {{if $value.IsImage}}

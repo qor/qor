@@ -1,6 +1,6 @@
-<div>
+<div class="form-group">
   <label class="label" for="{{.InputId}}">{{.Label}}</label><br/>
-  <select multiple id="{{.InputId}}" name="{{.InputName}}">
+  <select class="form-control" multiple id="{{.InputId}}" name="{{.InputName}}">
     {{$current_values := .Value}}
     {{range $values := .CollectionValue}}
        {{if (has_primary_key $current_values (index $values 0))}}

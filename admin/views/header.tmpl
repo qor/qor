@@ -1,5 +1,14 @@
 {{define "header"}}
-<header style="margin-bottom:20px">
-  {{render "menus" menus}}
+<header class="header" id="top">
+  <div class="container">
+    <a class="brand" href="/">QOR Admin</a>
+  </div>
 </header>
+<div class="navbar">
+  <div class="container">
+   <ul class="nav nav-pills">
+    {{render "menus" menus}}
+    </ul>
+  </div>
+</div>
 {{end}}

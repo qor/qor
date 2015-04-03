@@ -1,4 +1,6 @@
-<p>{{link_to "New" (new_resource_path .Resource)}}</p>
+<p>
+  <a class="btn btn-primary" href="{{new_resource_path .Resource}}">New</a>
+</p>
 
 <article class="article clearfix">
   {{render "index/filter"}}
