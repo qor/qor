@@ -1,23 +1,8 @@
-.image-cropper {
-  display: block;
-  max-width: 600px;
-}
+@import '../core/reset.css'
+@import '../core/typography.css'
+@import '../core/rhyme.css'
 
-.clipper-image-wrapper {
-  position: relative;
-}
+@import 'global'
 
-.clipper-btn {
-  display: block;
-}
+@import 'clipper'
 
-.clipper-image-wrapper .btn {
-  display: block;
-  margin-bottom: 20px;
-}
-
-#redactor-droparea-placeholder input[type="file"] {
-  display: inline-block;
-  width: auto;
-  color: #fff;
-}

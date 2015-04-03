@@ -1,0 +1,91 @@
+/*
+ * Rhyme css v 0.1
+ *
+ * Copyright (c) 2011 ~ 2013, lancee LY
+ *
+ * http://xrhy.me/
+ *
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ */
+
+body {
+  /*-webkit-font-smoothing: antialiased;*/
+  /*text-rendering: optimizeLegibility;*/
+}
+
+h1, h2, h3, h4, h5, h6, strong, b {
+  font-weight: bold;
+}
+
+p {
+  margin-bottom: 1em;
+}
+
+pre, code, kbd, samp {
+  font-family: monospace, 'courier new', serif;
+  font-size: 1em;
+}
+
+address, caption, cite, dfn, th, var {
+  font-weight: normal;
+  font-style: normal;
+}
+
+em, i {
+  font-style: italic;
+}
+
+small {
+  font-size: 85%;
+}
+
+abbr, acronym {
+  border: 0;
+  cursor: help;
+}
+
+del, s {
+  text-decoration: line-through;
+}
+
+q:before,
+q:after {
+  font-family: 'Zapf Dingbats';
+  -webkit-font-smoothing: antialiased;
+}
+
+q:before {
+  content: '❝';
+}
+q:after {
+  content: '❞';
+}
+
+sub, sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sup {
+  top: -0.5em;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+ins {
+  text-decoration: none;
+}
+
+mark {
+  background: #ff0;
+}
+
+pre {
+  white-space: pre;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}

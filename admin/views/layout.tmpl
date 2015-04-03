@@ -29,8 +29,11 @@
   <body>
     {{template "header" .}}
 
-
-    {{.Content}}
+    <article id="container" class="article main">
+      <div class="wrapper">
+        {{.Content}}
+      </div>
+    </article>
 
     {{template "footer" .}}
   </body>

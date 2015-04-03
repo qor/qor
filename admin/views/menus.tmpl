@@ -1,10 +1,12 @@
-<ul>
-  {{range .Result}}
-    <li>
-      {{link_to .Name .Link}}
-      {{if .Items}}
-        {{render "menus" .Items}}
-      {{end}}
-    </li>
-  {{end}}
-</ul>
+<menu class="menu">
+  <ul class="clearfix">
+    {{range .Result}}
+      <li class="fl">
+        {{link_to .Name .Link}}
+        {{if .Items}}
+          {{render "menus" .Items}}
+        {{end}}
+      </li>
+    {{end}}
+  </ul>
+</menu>

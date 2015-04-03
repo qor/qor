@@ -7,3 +7,4 @@ worker_data
 node_modules/
 .sass-cache/
 *.css.map
+gulpfile.js
