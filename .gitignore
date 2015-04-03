@@ -8,3 +8,4 @@ node_modules/
 .sass-cache/
 *.css.map
 gulpfile.js
+*.exe
