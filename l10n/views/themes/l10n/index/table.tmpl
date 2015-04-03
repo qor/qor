@@ -23,9 +23,12 @@
         {{end}}
 
         <td>
-          {{range $locale := viewable_locales $context}}
+          {{range $resource_locale := locales_of_resource $resource $context}}
             <li>
-              <a href="{{url_for $resource}}?locale={{$locale}}">{{$locale}}</a>
+              <a class="{{if $resource_locale.localized}}localized{{end}}"
+                 href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
+                {{$resource_locale.locale}}
+              </a>
             </li>
           {{end}}
         </td>
@@ -44,7 +47,7 @@
 
 <style>
   /* move it to css file  */
-  .active {
+  .active, .localized {
     font-weight: 700;
   }
 </style>
