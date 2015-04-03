@@ -1,6 +1,7 @@
 package l10n
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -145,6 +146,26 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 			}
 		}
 		return []string{}
+	})
+
+	res.GetAdmin().RegisterFuncMap("locales_of_resource", func(resource interface{}, context admin.Context) []map[string]interface{} {
+		scope := context.GetDB().NewScope(resource)
+		var languageCodes []string
+		context.GetDB().New().Table("products_draft").Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
+
+		var results []map[string]interface{}
+		availableLocales := GetAvailableLocales(context.Request, context.CurrentUser)
+	OUT:
+		for _, locale := range availableLocales {
+			for _, localized := range languageCodes {
+				if locale == localized {
+					results = append(results, map[string]interface{}{"locale": locale, "localized": true})
+					continue OUT
+				}
+			}
+			results = append(results, map[string]interface{}{"locale": locale, "localized": false})
+		}
+		return results
 	})
 
 	role := res.Config.Permission.Role

@@ -1,0 +1,143 @@
+/*
+ * Rhyme css v 0.1
+ *
+ * Copyright (c) 2011 ~ 2013, lancee LY
+ *
+ * http://xrhy.me/
+ *
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ */
+
+html, body,
+h1, h2, h3, h4, h5, h6,
+p, blockquote, pre, code,
+dl, dt, dd, ol, ul, li,
+input, textarea, button, hr,
+fieldset, form, legend, table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, figure, dialog, footer, header, hgroup, menu, nav, section, details, summary, time, mark, audio, video {
+  padding: 0;
+  margin: 0;
+}
+
+article, aside, details, figure, figcaption, dialog, hgroup, footer, header, nav, section {
+  display: block;
+  position: relative;
+}
+
+canvas, audio, video {
+  display: inline-block;
+}
+
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+caption, th {
+  text-align: left;
+}
+
+button, label {
+  cursor: pointer;
+}
+
+button, fieldset {
+  border: none;
+}
+
+button, input, select, textarea {
+  font-size: 100%;
+  outline: 0;
+  vertical-align: baseline;
+}
+
+button[disabled], input[disabled] {
+  cursor: default;
+}
+
+textarea {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  vertical-align: top;
+  resize: vertical;
+  overflow: auto;
+}
+
+input[type="search"] {
+  -webkit-appearance: textfield;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 100%;
+}
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration,
+input[type="search"]::-webkit-search-decoration {
+  display: none;
+}
+input[type="search"]:empty {
+  padding-left: 1em;
+}
+img {
+  color: transparent;
+  font-size: 0;
+  vertical-align: middle;
+  -ms-interpolation-mode: bicubic;
+}
+
+img::selection {
+  background: transparent;
+}
+
+img::-moz-selection {
+  background: transparent;
+}
+
+img, fieldset {
+  border: 0;
+}
+
+ol, ul, li {
+  list-style: none;
+}
+
+a {
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+
+a:link,
+a:visited {
+  color: #777;
+  outline: none;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+a:focus {
+  outline: thin dotted;
+}
+
+::-moz-focus-inner {
+  border: none;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+button, input, select, textarea {
+  font-family: 'Helvetica Neue', Arial, Verdana, sans-serif;
+  color: #000;
+}
