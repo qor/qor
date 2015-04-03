@@ -1,25 +1,21 @@
-{{javascript_tag "foundation.min"}}
-{{stylesheet_tag "foundation.min"}}
-{{stylesheet_tag "font-awesome.min"}}
-{{javascript_tag "publish"}}
-{{stylesheet_tag "publish"}}
+<h3 class="page-header">DRAFTS</h3>
 
-<form action="" class="drafts clearfix" method="POST">
-  <h2 class="title left">DRAFTS</h2>
-  <div class="publish-buttons right">
-    <button type="submit" name="publish_type" value="discard" class="button alert radius tiny">DISCARD</button>
-    <button type="submit" name="publish_type" value="publish" class="button success radius tiny">PUBLISH</button>
+<form action="" method="POST">
+  <div class="section">
+    <button type="submit" name="publish_type" value="publish" class="btn btn-primary">PUBLISH</button>
+    <button type="submit" name="publish_type" value="discard" class="btn btn-danger">DISCARD</button>
   </div>
 
   {{range $res, $records := .Result}}
-  <section>
-    <table class="table">
+  <div class="table-responsive">
+    <table class="table table-striped">
       <thead>
         <tr>
           <th>{{$res.Name}}</th>
           {{range $meta := (index_metas $res)}}
           <th>{{$meta.Label}}</th>
           {{end}}
+          <th>Actions</th>
         </tr>
       </thead>
 
@@ -36,13 +32,28 @@
             {{$text}}
           </td>
           {{end}}
+          <td><a data-toggle="modal" data-remote="publish/diff/{{$key}}" href="#diffModal">View Diff</a></td>
         </tr>
         {{end}}
       </tbody>
     </table>
-  </section>
+  </div>
   {{end}}
 </form>
 
-<div class="reveal-modal-box reveal-modal" data-reveal>
+<!-- Modal -->
+<div class="modal fade diff-modal" id="diffModal" tabindex="-1" role="dialog" aria-labelledby="diffModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="diffModalLabel">Diff</h4>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
 </div>

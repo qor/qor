@@ -1,33 +1,42 @@
-<a class="close-reveal-modal">&#215;</a>
+<div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <h4 class="modal-title" id="diffModalLabel">Diff</h4>
+  </div>
+  <div class="modal-body">
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Column</th>
+            <th>Live</th>
+            <th>Draft</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{$production := .Result.Production}}
+          {{$draft := .Result.Draft}}
+          {{$has_production := not (is_new_record $production)}}
 
-<table>
-  <thead>
-    <tr>
-      <th>Column</th>
-      <th>Live</th>
-      <th>Draft</th>
-    </tr>
-  </thead>
+          {{range $meta := index_metas .Result.Resource}}
+          {{$draft_value := value_of $draft $meta}}
+          {{$production_value := value_of $production $meta}}
+          {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}
 
-  <tbody>
-    {{$production := .Result.Production}}
-    {{$draft := .Result.Draft}}
-    {{$has_production := not (is_new_record $production)}}
-
-    {{range $meta := index_metas .Result.Resource}}
-    {{$draft_value := value_of $draft $meta}}
-    {{$production_value := value_of $production $meta}}
-    {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}
-
-    <tr {{if $diff}}class="diff"{{end}}>
-      <td>{{$meta.Label}}</td>
-      {{if $has_production}}
-      <td>{{$production_value}}</td>
-      {{else}}
-      <td></td>
-      {{end}}
-      <td>{{$draft_value}}</td>
-    </tr>
-    {{end}}
-  </tbody>
-</table>
+          <tr {{if $diff}}class="danger"{{end}}>
+            <td>{{$meta.Label}}</td>
+            {{if $has_production}}
+            <td>{{$production_value}}</td>
+            {{else}}
+            <td></td>
+            {{end}}
+            <td>{{$draft_value}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- <div class="modal-footer">
+    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+  </div> -->
+</div>
