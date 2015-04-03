@@ -1,5 +1,5 @@
 <div class="form-group">
-  <label class="label" for="{{.InputId}}">{{.Label}}</label><br/>
+  <label for="{{.InputId}}">{{.Label}}</label><br/>
   <select class="form-control" multiple id="{{.InputId}}" name="{{.InputName}}">
     {{$current_values := .Value}}
     {{range $values := .CollectionValue}}

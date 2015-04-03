@@ -23,14 +23,16 @@
         {{end}}
 
         <td>
-          {{range $resource_locale := locales_of_resource $resource $context}}
-            <li>
-              <a class="{{if $resource_locale.localized}}localized{{end}}"
-                 href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
-                {{$resource_locale.locale}}
-              </a>
-            </li>
-          {{end}}
+          <ul>
+            {{range $resource_locale := locales_of_resource $resource $context}}
+              <li>
+                <a class="{{if $resource_locale.localized}}localized{{end}}"
+                  href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
+                  {{$resource_locale.locale}}
+                </a>
+              </li>
+            {{end}}
+          </ul>
         </td>
 
         <td>
