@@ -1,9 +1,9 @@
-<p>
-  <a class="btn btn-primary" href="{{new_resource_path .Resource}}">New</a>
-</p>
+<div class="section">
+  <div class="pull-left">
+    <a class="btn btn-primary" href="{{new_resource_path .Resource}}">New</a>
+  </div>
+</div>
 
-<article class="article clearfix">
-  {{render "index/filter"}}
+{{render "index/filter"}}
 
-  {{render "index/table"}}
-</article>
+{{render "index/table"}}

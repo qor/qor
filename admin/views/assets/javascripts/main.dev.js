@@ -3,12 +3,12 @@
   'use strict';
 
   var requireOptions = {
-        urlArgs: 'bust=' + (new Date()).getTime(),
+        urlArgs: 'bust=' + Date.now(),
         paths: {
           // Plugins
-          submitter: 'plugins/submitter',
-          validator: 'plugins/validator',
-          uploader: 'plugins/uploader'
+          // submitter: 'plugins/submitter',
+          // validator: 'plugins/validator',
+          // uploader: 'plugins/uploader'
 
           // Libraries
           // jquery: 'jquery.min',
@@ -23,12 +23,9 @@
   ], function ($) {
     require([
       'bootstrap',
-      'submitter',
-      'validator'
+      'qor'
     ], function () {
-      $(function () {
 
-      });
     });
   });
 

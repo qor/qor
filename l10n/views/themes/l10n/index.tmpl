@@ -1,25 +1,25 @@
-{{$resource := .Resource}}
-<ul class="editable_locales">
-  {{range $locale := createable_locales .}}
-    <li>
-      <a href="{{new_resource_path $resource}}?locale={{$locale}}">{{printf "New %v" $locale}}</a>
-    </li>
-  {{end}}
-</ul>
+<div class="section">
+  <div class="pull-left">
+    {{$resource := .Resource}}
+    {{range $locale := createable_locales .}}
+      <a class="btn btn-primary" href="{{new_resource_path $resource}}?locale={{$locale}}">{{printf "New %v" $locale}}</a>
+    {{end}}
+  </div>
+  <div class="pull-right dropdown lang-selector">
+    {{$current_locale := current_locale .}}
+    <a class="dropdown-toggle btn btn-primary" data-toggle="dropdown" href="javascript:void(0);" aria-expanded="false" role="button">
+      {{$current_locale}} <span class="caret"></span>
+    </a>
+    <ul class="dropdown-menu" role="menu">
+      {{range $locale := viewable_locales .}}
+        <li{{if (eq $current_locale $locale)}} class="active"{{end}}>
+          <a href="{{url_for $resource}}?locale={{$locale}}">{{$locale}}</a>
+        </li>
+      {{end}}
+    </ul>
+  </div>
+</div>
 
-{{$current_locale := current_locale .}}
-<ul class="viewable_locales">
-  {{range $locale := viewable_locales .}}
-    <li>
-      <a href="{{url_for $resource}}?locale={{$locale}}" class="{{if (eq $current_locale $locale)}}active{{end}}">
-        {{$locale}}
-      </a>
-    </li>
-  {{end}}
-</ul>
+{{render "index/filter"}}
 
-<article class="article clearfix">
-  {{render "index/filter"}}
-
-  {{render "index/table"}}
-</article>
+{{render "index/table"}}

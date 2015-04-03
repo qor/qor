@@ -3,18 +3,16 @@
   'use strict';
 
   var requireOptions = {
+        urlArgs: 'bust=' + (new Date()).getTime(),
         paths: {
           // Plugins
-          checkbox: 'plugins/checkbox',
-          radio: 'plugins/radio',
-          placeholder: 'plugins/placeholder',
-          submitter: 'plugins/submitter',
-          validator: 'plugins/validator',
+          // submitter: 'plugins/submitter',
+          // validator: 'plugins/validator',
+          // uploader: 'plugins/uploader'
 
           // Libraries
-          jquery: 'jquery.min',
-          underscore: 'underscore.min',
-          bootstrap: 'bootstrap.min'
+          // jquery: 'jquery.min',
+          // bootstrap: 'bootstrap.min'
         }
       };
 
@@ -24,18 +22,13 @@
     'jquery'
   ], function ($) {
     require([
-      'welife',
-      'bootstrap',
-      'checkbox',
-      'radio',
-      'placeholder',
-      'submitter',
-      'validator'
-    ], function (WeLife) {
+      'qor',
+      'bootstrap'
+    ], function (Qor) {
       $(function () {
         var $main = $('.main');
 
-        $main.data('welife', new WeLife($main[0], window._pageConfig || {}));
+        $main.data('qor', new Qor($main, window.options));
       });
     });
   });
