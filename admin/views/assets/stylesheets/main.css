@@ -19,9 +19,9 @@
 
 .footer {
   position: absolute;
-  left: 0;
   right: 0;
   bottom: 0;
+  left: 0;
   padding: 10px 15px;
   border-top: 1px solid #001226;
   background-color: #001f3f; }
@@ -74,10 +74,8 @@
   -webkit-box-shadow: none;
   box-shadow: none; }
   .dropdown-menu > li > a {
-    padding: 5px 20px;
-    color: #fff;
-    font-size: 12px;
-    line-height: 20px; }
+    padding: 10px 20px;
+    color: #fff; }
     .dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus {
       color: #fff;
       background-color: #001226; }
@@ -157,6 +155,9 @@
     color: #fff;
     background-color: #001226;
     border-color: #001226; }
+
+.label-primary {
+  background-color: #001f3f; }
 
 .label-group > .label {
   margin-right: 5px; }

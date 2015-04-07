@@ -15,11 +15,11 @@
 
   var console = window.console || (window.console = { log: $.noop }),
       $window = $(window),
-      $body = $(document.body),
 
       Qor = function (element, options) {
         var $element = $(element);
 
+        this.$context = $(document.body);
         this.$element = $element;
         this.options = $.extend({}, Qor.DEFAULTS, $.isPlainObject(options) && options);
         this.namespace = $element.data('namespace');
@@ -72,13 +72,20 @@
     },
 
     initFooter: function () {
-      var $footer = $('.footer');
+      var $footer = $('.footer'),
+          $context = this.$context;
 
       $window.on('resize', function () {
-        $footer.toggleClass('static', $body.height() > $window.height());
-      }).triggerHandler('resize');
+        var minHeight = $window.innerHeight();
 
-      $footer.removeClass('invisible');
+        console.log($context.height(), minHeight);
+
+        if ($context.height() >= minHeight) {
+          $footer.addClass('static');
+        } else {
+          $footer.removeClass('static');
+        }
+      }).triggerHandler('resize');
     }
   };
 
