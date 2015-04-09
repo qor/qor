@@ -55,6 +55,7 @@ func init() {
 
 	db.DropTable(&Product{})
 	db.DropTable(&Tag{})
+	db.Exec("drop table product_tags;")
 	db.AutoMigrate(&Product{})
 	db.AutoMigrate(&Tag{})
 

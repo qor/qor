@@ -5,7 +5,7 @@
   <input id="{{.InputId}}" name="{{.InputName}}" class="image-cropper-upload" type="file">
   {{if $value}}
     {{if $value.IsImage}}
-      <img class="image-cropper" src="{{$value.URL}}">
+      <img class="image-cropper" src="{{$value.URL}}" data-original-url={{$value.URL "original"}}>
 
       {{range $key, $v := $value.GetSizes}}
         <img src="{{$value.URL $key}}">
