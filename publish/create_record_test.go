@@ -40,7 +40,7 @@ func TestCreateStructFromDraft(t *testing.T) {
 
 func TestCreateStructFromProduction(t *testing.T) {
 	name := "create_product_from_production"
-	pbprod.Create(&Product{Name: name, Color: Color{Name: name}})
+	pbprod.Debug().Create(&Product{Name: name, Color: Color{Name: name}})
 
 	if pbprod.First(&Product{}, "name = ?", name).RecordNotFound() {
 		t.Errorf("record should not be found in production db")

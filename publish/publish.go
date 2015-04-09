@@ -1,6 +1,8 @@
 package publish
 
 import (
+	"strings"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 
@@ -54,7 +56,11 @@ func New(db *gorm.DB) *Publish {
 }
 
 func DraftTableName(table string) string {
-	return table + "_draft"
+	return OriginalTableName(table) + "_draft"
+}
+
+func OriginalTableName(table string) string {
+	return strings.TrimSuffix(table, "_draft")
 }
 
 func (publish *Publish) Support(models ...interface{}) *Publish {
@@ -65,6 +71,24 @@ func (publish *Publish) Support(models ...interface{}) *Publish {
 				qor.ExitWithMsg("%v has no %v column", model, column)
 			}
 		}
+		tableName := scope.TableName()
+		publish.DB.SetTableNameHandler(model, func(db *gorm.DB) string {
+			if db != nil {
+				var forceDraftMode = false
+				if forceMode, ok := db.Get("qor_publish:force_draft_mode"); ok {
+					if forceMode, ok := forceMode.(bool); ok && forceMode {
+						forceDraftMode = true
+					}
+				}
+
+				if draftMode, ok := db.Get("qor_publish:draft_mode"); ok {
+					if isDraft, ok := draftMode.(bool); ok && isDraft || forceDraftMode {
+						return DraftTableName(tableName)
+					}
+				}
+			}
+			return tableName
+		})
 	}
 
 	publish.SupportedModels = append(publish.SupportedModels, models...)
@@ -79,8 +103,7 @@ func (publish *Publish) Support(models ...interface{}) *Publish {
 
 func (db *Publish) AutoMigrate() {
 	for _, value := range db.SupportedModels {
-		table := (&gorm.Scope{Value: value}).TableName()
-		db.DB.Table(DraftTableName(table)).AutoMigrate(value)
+		db.DraftDB().AutoMigrate(value)
 	}
 }
 

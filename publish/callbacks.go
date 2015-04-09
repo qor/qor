@@ -6,33 +6,39 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
+func isDraftMode(scope *gorm.Scope) bool {
+	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok {
+		if isDraft, ok := draftMode.(bool); ok && isDraft {
+			return true
+		}
+	}
+	return false
+}
+
+func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
 	return func(scope *gorm.Scope) {
 		if scope.Value == nil {
 			return
 		}
 
-		if draftMode, ok := scope.Get("qor_publish:draft_mode"); force || ok {
-			if isDraft, ok := draftMode.(bool); force || ok && isDraft {
-				currentModel := scope.GetModelStruct().ModelType.String()
+		if update {
+			scope.Set("qor_publish:force_draft_mode", true)
+		}
 
-				var supportedModels []string
-				if value, ok := scope.Get("publish:support_models"); ok {
-					supportedModels = value.([]string)
-				}
+		currentModel := scope.GetModelStruct().ModelType.String()
 
-				for _, model := range supportedModels {
-					if model == currentModel {
-						table := scope.TableName()
-						scope.InstanceSet("publish:original_table", table)
-						scope.InstanceSet("publish:supported_model", true)
-						scope.Search.Table(DraftTableName(table))
-						if isDraft {
-							scope.SetColumn("PublishStatus", DIRTY)
-						}
-						break
-					}
+		var supportedModels []string
+		if value, ok := scope.Get("publish:support_models"); ok {
+			supportedModels = value.([]string)
+		}
+
+		for _, model := range supportedModels {
+			if model == currentModel {
+				scope.InstanceSet("publish:supported_model", true)
+				if isDraftMode(scope) && update {
+					scope.SetColumn("PublishStatus", DIRTY)
 				}
+				break
 			}
 		}
 	}
@@ -84,5 +90,6 @@ func Delete(scope *gorm.Scope) {
 		} else {
 			gorm.Delete(scope)
 		}
+		gorm.Delete(scope)
 	}
 }
