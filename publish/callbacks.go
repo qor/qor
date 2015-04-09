@@ -21,10 +21,6 @@ func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
 			return
 		}
 
-		if update {
-			scope.Set("qor_publish:force_draft_mode", true)
-		}
-
 		currentModel := scope.GetModelStruct().ModelType.String()
 
 		var supportedModels []string
@@ -35,6 +31,12 @@ func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
 		for _, model := range supportedModels {
 			if model == currentModel {
 				scope.InstanceSet("publish:supported_model", true)
+
+				if update {
+					scope.Set("qor_publish:force_draft_mode", true)
+					scope.Search.Table(DraftTableName(scope.TableName()))
+				}
+
 				if isDraftMode(scope) && update {
 					scope.SetColumn("PublishStatus", DIRTY)
 				}
@@ -46,9 +48,10 @@ func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
 
 func GetModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
 	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok && !draftMode.(bool) {
-		if table, ok := scope.InstanceGet("publish:original_table"); ok {
+		if _, ok := scope.InstanceGet("publish:supported_model"); ok {
+			table := OriginalTableName(scope.TableName())
 			clone := scope.New(scope.Value)
-			scope.Search.Table(table.(string))
+			clone.Search.Table(table)
 			return true, clone
 		}
 	}
