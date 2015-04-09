@@ -54,7 +54,9 @@ func init() {
 	l10n.RegisterCallbacks(&db)
 
 	db.DropTable(&Product{})
+	db.DropTable(&Tag{})
 	db.AutoMigrate(&Product{})
+	db.AutoMigrate(&Tag{})
 
 	dbGlobal = &db
 	dbCN = dbGlobal.Set("l10n:locale", "zh")
