@@ -1,6 +1,6 @@
 # Introduction
 
-transition is a Golang state machine implementation.
+transition is a Golang state machine implementation. rely on github.com/jinzhu/gorm
 
 # GO Compatibility ?
 
@@ -29,7 +29,7 @@ transition is a Golang state machine implementation.
 
     func init() {
 		// Define initial state
-		OrderStateMachine.Initial("draft")
+		OrderStateMachine.Initialize("draft")
 
         // Define what to do when enter a state and exit a state. See Callbacks for detail.
 		OrderStateMachine.State("paying").Enter(func(order interface{}, tx *gorm.DB) (err error) {
