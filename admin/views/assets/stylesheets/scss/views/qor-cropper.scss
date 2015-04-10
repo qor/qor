@@ -1,0 +1,85 @@
+.qor-cropper {
+  position: relative;
+  display: block;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  position: relative;
+  background-color: #fafafa;
+  max-width: 320px;
+  max-height: 180px;
+  overflow: hidden;
+  cursor: pointer;
+
+  > img {
+    max-width: 100%;
+    max-height: 180px;
+    @include center-block;
+  }
+}
+
+.qor-cropper-toggle {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0,0,0,0.5);
+  cursor: pointer;
+  opacity: 0;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:before,
+  &:after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    background-color: #eee;
+    content: " ";
+  }
+
+  &:before {
+    width: 30px;
+    height: 4px;
+    margin-left: -15px;
+    margin-top: -2px;
+  }
+
+  &:after {
+    width: 4px;
+    height: 30px;
+    margin-left: -2px;
+    margin-top: -15px;
+  }
+}
+
+.qor-cropper-modal {
+  z-index: 1055;
+
+  .modal-header {
+    border-bottom-color: #fafafa;
+  }
+
+  .modal-body {
+    padding: 0;
+    background-color: #fafafa;
+
+    img {
+      max-width: 100%;
+    }
+  }
+
+  .modal-footer {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-top-color: #fafafa;
+  }
+}
+
+.modal-backdrop {
+  z-index: 1054;
+}

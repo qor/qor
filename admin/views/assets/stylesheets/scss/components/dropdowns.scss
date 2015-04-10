@@ -1,0 +1,41 @@
+// The dropdown menu (ul)
+.dropdown-menu {
+  min-width: 100%;
+  padding: 0;
+  margin-top: 0;
+  background-color: $brand-primary;
+  border-color: $brand-primary;
+  border-radius: 0;
+  @include box-shadow(none);
+
+  // Links within the dropdown menu
+  > li > a {
+    padding: 10px 20px;
+    color: #fff;
+
+    &:hover,
+    &:focus {
+      color: #fff;
+      background-color: darken($brand-primary, 5%);
+    }
+  }
+}
+
+// Active state
+.dropdown-menu > .active > a {
+  &,
+  &:hover,
+  &:focus {
+    color: #fff;
+    background-color: darken($brand-primary, 5%);
+  }
+}
+
+// Disabled state
+.dropdown-menu > .disabled > a {
+  &,
+  &:hover,
+  &:focus {
+    color: $gray-lighter;
+  }
+}

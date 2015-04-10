@@ -1,8 +1,21 @@
-@import '../core/reset.css'
-@import '../core/typography.css'
-@import '../core/rhyme.css'
+@import "variables";
+@import "mixins";
+@import "layout";
 
-@import 'global'
+// Components
+@import "components/navs";
+@import "components/navbar";
+@import "components/dropdowns";
+@import "components/buttons";
+@import "components/table";
+@import "components/pagination";
+@import "components/labels";
+@import "components/modals";
 
-@import 'clipper'
+// Utilities
+@import "components/sections";
+@import "components/utilities";
 
+// Views
+@import "views/qor-cropper";
+@import "views/language";

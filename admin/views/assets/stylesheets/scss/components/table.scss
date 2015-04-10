@@ -1,0 +1,14 @@
+//
+// Tables
+// --------------------------------------------------
+
+.table {
+  border-top: 1px solid $gray-lighter;
+  border-bottom: 1px solid $gray-lighter;
+}
+
+.table-striped {
+  > tbody > tr:nth-of-type(odd) {
+    background-color: #fcfcfc;
+  }
+}

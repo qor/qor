@@ -1,0 +1,31 @@
+.btn {
+  padding: 5px 10px;
+  border-radius: 0;
+
+  &:active,
+  &.active {
+    @include box-shadow(none);
+  }
+}
+
+
+// Alternate buttons
+// --------------------------------------------------
+
+.btn-default {
+  @include button-variant($brand-primary, #fff, $gray-lighter);
+}
+
+.btn-primary {
+  @include button-variant(#fff, $brand-primary, $brand-primary);
+}
+
+.btn-link {
+  color: $brand-primary;
+
+  &:hover,
+  &:focus {
+    color: darken($brand-primary, 10%);
+    text-decoration: none;
+  }
+}

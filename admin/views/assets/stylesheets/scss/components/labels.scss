@@ -1,0 +1,21 @@
+//
+// Labels
+// --------------------------------------------------
+
+.label-primary {
+  background-color: $brand-primary;
+}
+
+.label-group {
+  > .label {
+    margin-right: 5px;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
+.table .label-group {
+  max-width: 480px;
+}
