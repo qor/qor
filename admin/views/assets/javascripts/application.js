@@ -25,6 +25,6 @@ $(function() {
     });
   });
 
-  $('.image-cropper-upload').clipper();
+  // $('.image-cropper-upload').clipper();
 
 });
