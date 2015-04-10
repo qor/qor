@@ -17,7 +17,7 @@
 
       QorCropper = function (element, options) {
         this.$element = $(element);
-        this.options = $.extend({}, QorCropper.DEFAULTS, options);
+        this.options = $.extend(true, {}, QorCropper.DEFAULTS, options);
         this.built = false;
         this.url = null;
         this.init();
@@ -95,6 +95,7 @@
       this.url = url;
 
       if (replaced) {
+        this.data[this.options.key] = null;
         this.$image.attr('src', url);
       }
     },
@@ -150,7 +151,7 @@
             });
           }
 
-          $modal.on('click', '[data-toggle="crop"]', function () {
+          $modal.find('.qor-cropper-save').one('click', function () {
             var cropData = $clone.cropper('getData');
 
             data[key] = {
@@ -161,7 +162,7 @@
             };
 
             _this.output($clone.cropper('getCroppedCanvas').toDataURL());
-            $modal.off('click').modal('hide');
+            $modal.modal('hide');
           });
         }
       });
@@ -204,7 +205,7 @@
             '<div class="modal-body"></div>' +
             '<div class="modal-footer">' +
               '<button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>' +
-              '<button type="button" class="btn btn-link " data-toggle="crop">OK</button>' +
+              '<button type="button" class="btn btn-link qor-cropper-save">OK</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
