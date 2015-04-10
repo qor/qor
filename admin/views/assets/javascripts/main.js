@@ -21,7 +21,6 @@
         this.built = false;
         this.url = null;
         this.init();
-        console.log(this);
       };
 
   QorCropper.prototype = {
@@ -262,6 +261,7 @@
     init: function () {
       this.initNavbar();
       this.initFooter();
+      this.initConfirm();
     },
 
     initNavbar: function () {
@@ -290,6 +290,16 @@
           $footer.removeClass('static');
         }
       }).triggerHandler('resize');
+    },
+
+    initConfirm: function () {
+      $('[data-confirm]').click(function (e) {
+        var message = $(this).data('confirm');
+
+        if (message && !confirm(message)) {
+          e.preventDefault();
+        }
+      });
     }
   };
 

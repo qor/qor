@@ -21,7 +21,6 @@
         this.built = false;
         this.url = null;
         this.init();
-        console.log(this);
       };
 
   QorCropper.prototype = {
