@@ -69,7 +69,9 @@ func init() {
 }
 
 func TestStateTransition(t *testing.T) {
-	order := Order{Address: "test"}
+	defer ResetDb()
+
+	order := Order{}
 	if err := testdb.Save(&order).Error; err != nil {
 		t.Errorf(err.Error())
 	}
@@ -80,5 +82,52 @@ func TestStateTransition(t *testing.T) {
 
 	if order.State != OrderStatePaying {
 		t.Errorf("state doesn't transfered successfully")
+	}
+}
+
+func TestStateEnterCallbacks(t *testing.T) {
+	defer ResetDb()
+
+	addressAfterCheckout := "I'm an address should be set after checkout"
+	OrderStateMachine.State(OrderStatePaying).Enter(func(order interface{}, tx *gorm.DB) (err error) {
+		order.(*Order).Address = addressAfterCheckout
+		return
+	})
+
+	order := Order{}
+	if err := testdb.Save(&order).Error; err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if err := OrderStateMachine.To(OrderEventCheckout, &order, testdb); err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if order.Address != addressAfterCheckout {
+		t.Errorf("enter callback not triggered")
+	}
+}
+
+func TestStateExitCallbacks(t *testing.T) {
+	defer ResetDb()
+
+	var prevState string
+	OrderStateMachine.State(OrderStateDraft).Exit(func(order interface{}, tx *gorm.DB) (err error) {
+		prevState = order.(*Order).State
+		return
+	})
+
+	order := Order{}
+	order.State = OrderStateDraft
+	if err := testdb.Save(&order).Error; err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if err := OrderStateMachine.To(OrderEventCheckout, &order, testdb); err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if prevState != OrderStateDraft {
+		t.Errorf("exit callback triggered after state change")
 	}
 }
