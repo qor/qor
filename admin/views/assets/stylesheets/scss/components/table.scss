@@ -5,6 +5,15 @@
 .table {
   border-top: 1px solid $gray-lighter;
   border-bottom: 1px solid $gray-lighter;
+
+  > tbody > tr > td {
+    max-width: 1%;
+    word-break: break-all;
+
+    img {
+      max-width: 200px;
+    }
+  }
 }
 
 .table-striped {

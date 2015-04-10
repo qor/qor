@@ -30,11 +30,11 @@
     font-size: 12px;
     line-height: 20px;
     text-align: center;
-    color: #999; }
+    color: #ccc; }
   .footer .bottomlinks {
     margin-bottom: 0; }
     .footer .bottomlinks > li > a {
-      color: #ccc; }
+      color: #eee; }
 
 .nav > li > a {
   padding: 10px 20px; }
@@ -137,6 +137,11 @@
 .table {
   border-top: 1px solid #eeeeee;
   border-bottom: 1px solid #eeeeee; }
+  .table > tbody > tr > td {
+    max-width: 1%;
+    word-break: break-all; }
+    .table > tbody > tr > td img {
+      max-width: 200px; }
 
 .table-striped > tbody > tr:nth-of-type(odd) {
   background-color: #fcfcfc; }
