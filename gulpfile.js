@@ -17,9 +17,9 @@ var gulp = require('gulp'),
 
 gulp.task('js', function () {
   return gulp.src(scripts.src)
-  .pipe(plugins.jshint())
+  .pipe(plugins.jscs('admin/views/assets/javascripts/.jscsrc'))
+  .pipe(plugins.jshint('admin/views/assets/javascripts/.jshintrc'))
   .pipe(plugins.jshint.reporter('default'))
-  // .pipe(plugins.jscs())
   .pipe(plugins.concat('main.js'))
   .pipe(plugins.uglify())
   .pipe(gulp.dest(scripts.dest));
