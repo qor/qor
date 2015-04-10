@@ -11,7 +11,7 @@ type Product struct {
 	ID              int    `gorm:"primary_key"`
 	Code            string `l10n:"sync"`
 	Name            string
-	DeletedAt       time.Time
+	DeletedAt       *time.Time
 	ColorVariations []ColorVariation
 	Brand           Brand
 	Tags            []Tag `gorm:"many2many:product_tags"`
