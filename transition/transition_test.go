@@ -1,6 +1,8 @@
 package transition_test
 
 import (
+	"errors"
+	"strconv"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -63,7 +65,7 @@ const (
 func init() {
 	ResetDb()
 
-	OrderStateMachine.Initialize(OrderStateDraft)
+	OrderStateMachine.Initial(OrderStateDraft)
 
 	OrderStateMachine.Event(OrderEventCheckout).To(OrderStatePaying).From(OrderStateDraft)
 }
@@ -82,6 +84,38 @@ func TestStateTransition(t *testing.T) {
 
 	if order.State != OrderStatePaying {
 		t.Errorf("state doesn't transfered successfully")
+	}
+}
+
+func TestStateChangeLog(t *testing.T) {
+	defer ResetDb()
+
+	order := Order{}
+	if err := testdb.Save(&order).Error; err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
+		t.Errorf(err.Error())
+	}
+
+	var stateChangeLog transition.StateChangeLog
+	testdb.First(&stateChangeLog)
+
+	if stateChangeLog.ReferTable != "orders" {
+		t.Errorf("refer table not set correctly")
+	}
+
+	if stateChangeLog.ReferId != strconv.Itoa(order.Id) {
+		t.Errorf("refer id not set correctly")
+	}
+
+	if stateChangeLog.From != OrderStateDraft {
+		t.Errorf("state from not set")
+	}
+
+	if stateChangeLog.To != OrderStatePaying {
+		t.Errorf("state to not set")
 	}
 }
 
@@ -176,5 +210,117 @@ func TestEventAfterCallback(t *testing.T) {
 
 	if order.Address != addressAfterCheckout {
 		t.Errorf("After callback not triggered")
+	}
+}
+
+func TestRollbackTransitionOnEnterCallbackError(t *testing.T) {
+	defer ResetDb()
+
+	OrderStateMachine.State(OrderStatePaying).Enter(func(order interface{}, tx *gorm.DB) (err error) {
+		order.(*Order).Address = "an address"
+		return errors.New("intentional error")
+	})
+
+	order := Order{}
+	order.State = OrderStateDraft
+	if err := testdb.Save(&order).Error; err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err == nil {
+		t.Errorf("intentional error not returned")
+	}
+
+	testdb.First(&order, order.Id)
+	if order.State != OrderStateDraft {
+		t.Errorf("state transitioned on Enter callback error")
+	}
+
+	if order.Address != "" {
+		t.Errorf("attribute changed on Enter callback error")
+	}
+}
+
+func TestRollbackTransitionOnExitCallbackError(t *testing.T) {
+	defer ResetDb()
+
+	OrderStateMachine.State(OrderStateDraft).Exit(func(order interface{}, tx *gorm.DB) (err error) {
+		order.(*Order).Address = "an address"
+		return errors.New("intentional error")
+	})
+
+	order := Order{}
+	order.State = OrderStateDraft
+	if err := testdb.Save(&order).Error; err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err == nil {
+		t.Errorf("intentional error not returned")
+	}
+
+	testdb.First(&order, order.Id)
+	if order.State != OrderStateDraft {
+		t.Errorf("state transitioned on Exit callback error")
+	}
+
+	if order.Address != "" {
+		t.Errorf("attribute changed on Exit callback error")
+	}
+}
+
+func TestRollbackTransitionOnBeforeCallbackError(t *testing.T) {
+	defer ResetDb()
+
+	OrderStateMachine.Event(OrderEventCheckout).To(OrderStatePaying).From(OrderStateDraft).Before(func(order interface{}, tx *gorm.DB) (err error) {
+		order.(*Order).Address = "an address"
+		return errors.New("intentional error")
+	})
+
+	order := Order{}
+	order.State = OrderStateDraft
+	if err := testdb.Save(&order).Error; err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err == nil {
+		t.Errorf("intentional error not returned")
+	}
+
+	testdb.First(&order, order.Id)
+	if order.State != OrderStateDraft {
+		t.Errorf("state transitioned on Before callback error")
+	}
+
+	if order.Address != "" {
+		t.Errorf("attribute changed on Before callback error")
+	}
+}
+
+func TestRollbackTransitionOnAfterCallbackError(t *testing.T) {
+	defer ResetDb()
+
+	OrderStateMachine.Event(OrderEventCheckout).To(OrderStatePaying).From(OrderStateDraft).After(func(order interface{}, tx *gorm.DB) (err error) {
+		order.(*Order).Address = "an address"
+		return errors.New("intentional error")
+	})
+
+	order := Order{}
+	order.State = OrderStateDraft
+	if err := testdb.Save(&order).Error; err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err == nil {
+		t.Errorf("intentional error not returned")
+	}
+
+	testdb.First(&order, order.Id)
+	if order.State != OrderStateDraft {
+		t.Errorf("state transitioned on Before callback error")
+	}
+
+	if order.Address != "" {
+		t.Errorf("attribute changed on Before callback error")
 	}
 }

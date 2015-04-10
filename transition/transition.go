@@ -25,7 +25,8 @@ type StateChangeLog struct {
 	Id         uint64
 	ReferTable string
 	ReferId    string
-	State      string
+	From       string
+	To         string
 	Note       string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
@@ -130,7 +131,7 @@ func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB) error {
 
 			scope := newTx.NewScope(value)
 			primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
-			log := StateChangeLog{ReferTable: scope.TableName(), ReferId: primaryKey, State: name}
+			log := StateChangeLog{ReferTable: scope.TableName(), ReferId: primaryKey, From: stateWas, To: transition.to}
 			return newTx.Save(&log).Error
 		}
 	}
