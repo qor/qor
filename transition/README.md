@@ -29,7 +29,7 @@ transition is a Golang state machine implementation. rely on github.com/jinzhu/g
 
     func init() {
 		// Define initial state
-		OrderStateMachine.Initialize("draft")
+		OrderStateMachine.Initial("draft")
 
         // Define what to do when enter a state and exit a state. See Callbacks for detail.
 		OrderStateMachine.State("paying").Enter(func(order interface{}, tx *gorm.DB) (err error) {

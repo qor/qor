@@ -50,7 +50,7 @@ type StateMachine struct {
 	events       map[string]*Event
 }
 
-func (sm *StateMachine) Initialize(name string) *StateMachine {
+func (sm *StateMachine) Initial(name string) *StateMachine {
 	sm.initialState = name
 	return sm
 }
