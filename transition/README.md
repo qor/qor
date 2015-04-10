@@ -59,7 +59,7 @@ transition is a Golang state machine implementation. rely on github.com/jinzhu/g
 ### 3. Transfer state
 
     // func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
-    OrderStatemachine.To("paid", order, db)
+    OrderStatemachine.To("checkout", *order, db)
 
 # Callbacks
 

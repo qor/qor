@@ -110,10 +110,10 @@ func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
 				}
 			}
 
-			value.SetState(name)
+			value.SetState(transition.to)
 
 			// State: enter
-			if state, ok := sm.states[name]; ok {
+			if state, ok := sm.states[transition.to]; ok {
 				for _, enter := range state.enters {
 					if err := enter(value, newTx); err != nil {
 						return err

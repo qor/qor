@@ -3,6 +3,8 @@ package transition_test
 import (
 	"testing"
 
+	_ "github.com/mattn/go-sqlite3"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/transition"
 )
@@ -32,6 +34,7 @@ var (
 func getTables() {
 	tables = []interface{}{
 		&Order{},
+		&transition.StateChangeLog{},
 	}
 
 }
@@ -71,7 +74,7 @@ func TestStateTransition(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	if err := OrderStateMachine.To(OrderStatePaying, order, testdb); err != nil {
+	if err := OrderStateMachine.To(OrderEventCheckout, &order, testdb); err != nil {
 		t.Errorf(err.Error())
 	}
 
