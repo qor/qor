@@ -2,10 +2,11 @@
 
 <div class="form-group">
   <label for="{{.InputId}}">{{.Label}}</label>
-  <input id="{{.InputId}}" name="{{.InputName}}" class="image-cropper-upload" type="file">
+  <input class="qor-file-input" id="{{.InputId}}" name="{{.InputName}}" type="file">
+  <textarea class="qor-file-options hide" name="{{.InputName}}">{{if $value}}{{$value.Value}}{{end}}</textarea>
   {{if $value}}
     {{if $value.IsImage}}
-      <img class="image-cropper" src="{{$value.URL}}">
+      <img class="qor-file-image" src="{{$value.URL}}">
 
       {{range $key, $v := $value.GetSizes}}
         <img src="{{$value.URL $key}}">
@@ -13,9 +14,5 @@
     {{else}}
       <a href="{{$value.URL}}">Download</a>
     {{end}}
-
-    <textarea name="{{.InputName}}" class="image-cropper-crop-option" style="display:none">
-      {{$value.Value}}
-    </textarea>
   {{end}}
 </div>
