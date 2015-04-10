@@ -253,5 +253,8 @@
 .modal-backdrop {
   z-index: 1054; }
 
+#redactor-modal-box input[type="file"] {
+  display: inline-block; }
+
 .lang-selector .dropdown-toggle {
   min-width: 120px; }

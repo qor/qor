@@ -19,10 +19,6 @@
       QorCropper = function (element, options) {
         this.$element = $(element);
         this.options = $.extend({}, QorCropper.DEFAULTS, options);
-        // this.$image = null;
-        // this.$output = null;
-        // this.$cropper = null;
-        // this.data = null;
         this.built = false;
         this.url = null;
         this.init();
@@ -72,7 +68,7 @@
     },
 
     read: function () {
-      var files = this.$input.prop('files'),
+      var files = this.$element.prop('files'),
           file;
 
       if (files) {
@@ -117,7 +113,7 @@
 
     start: function () {
       var $modal = this.$cropper.find('.modal'),
-          $clone = this.$image.clone(),
+          $clone = $('<img>').attr('src', this.url),
           data = this.data,
           key = this.options.key,
           _this = this;
@@ -130,7 +126,7 @@
           $clone.cropper('setCanvasData', previous.canvasData).cropper('setCropBoxData', previous.cropBoxData);
 
           $modal.on('click', '[data-toggle="crop"]', function () {
-            var options = $clone.cropper('getData');
+            var options = $clone.cropper('getData', true);
 
             options.canvasData = $clone.cropper('getCanvasData');
             options.cropBoxData = $clone.cropper('getCropBoxData');
@@ -150,7 +146,6 @@
     output: function (url) {
       this.$image.attr('src', url);
       this.$output.val(JSON.stringify(this.data));
-      console.log(this)
     },
 
     destroy: function () {

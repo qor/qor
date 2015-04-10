@@ -361,10 +361,7 @@ $.Redactor.fn.image = function () {
           img.src = src;
 
       img.onload = function() {
-        $(this).cropper({
-          multiple: true,
-          zoomable: false
-        });
+        $(this).cropper();
       }
 
       $modal.append(img);
@@ -382,9 +379,12 @@ $.Redactor.fn.image = function () {
       this.image.buttonSave.on('click', $.proxy(function()
       {
         var URL = this.$element.data('crop-url'),
-            imageDataURL = $(img).cropper('getDataURL', true),
-            data = $(img).cropper('getData', true),
-            data = JSON.stringify({Url: src.replace(/\.original\.(jpg|jpeg|png|gif|bmp)$/, '.$1'), CropOption: data, Crop: true});
+            imageDataURL = $(img).cropper('getCroppedCanvas').toDataURL(),
+            data = JSON.stringify({
+              Url: src.replace(/\.original\.(jpg|jpeg|png|gif|bmp)$/, '.$1'),
+              CropOption: $(img).cropper('getData', true),
+              Crop: true
+            });
 
         $.ajax({
           type: 'POST',
