@@ -14,3 +14,4 @@ _*
 *.css.map
 *.js.map
 *.min.map
+.sass-cache
