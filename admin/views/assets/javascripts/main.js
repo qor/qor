@@ -120,6 +120,11 @@
 
       $modal.find('.modal-body').html($clone);
       $clone.cropper({
+        background: false,
+        dragCrop: false,
+        roomable: false,
+        rotatable: false,
+
         built: function () {
           var previous = data[key] || {};
 

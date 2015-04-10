@@ -361,7 +361,12 @@ $.Redactor.fn.image = function () {
           img.src = src;
 
       img.onload = function() {
-        $(this).cropper();
+        $(this).cropper({
+          background: false,
+          dragCrop: false,
+          roomable: false,
+          rotatable: false
+        });
       }
 
       $modal.append(img);
