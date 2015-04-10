@@ -1,11 +1,13 @@
+# Back end
 Gemfile.lock
 gin-bin
 .DS_Store
-tmp/
-/example/public/
+tmp
+/example/public
 worker_data
-node_modules/
-.sass-cache/
-*.css.map
-gulpfile.js
 *.exe
+
+# Front end
+bower_components
+node_modules
+_*
