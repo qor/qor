@@ -76,7 +76,7 @@ func TestStateTransition(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	if err := OrderStateMachine.To(OrderEventCheckout, &order, testdb); err != nil {
+	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
 		t.Errorf(err.Error())
 	}
 
@@ -99,7 +99,7 @@ func TestStateEnterCallback(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	if err := OrderStateMachine.To(OrderEventCheckout, &order, testdb); err != nil {
+	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
 		t.Errorf(err.Error())
 	}
 
@@ -123,7 +123,7 @@ func TestStateExitCallback(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	if err := OrderStateMachine.To(OrderEventCheckout, &order, testdb); err != nil {
+	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
 		t.Errorf(err.Error())
 	}
 
@@ -147,7 +147,7 @@ func TestEventBeforeCallback(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	if err := OrderStateMachine.To(OrderEventCheckout, &order, testdb); err != nil {
+	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
 		t.Errorf(err.Error())
 	}
 
@@ -170,7 +170,7 @@ func TestEventAfterCallback(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	if err := OrderStateMachine.To(OrderEventCheckout, &order, testdb); err != nil {
+	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
 		t.Errorf(err.Error())
 	}
 

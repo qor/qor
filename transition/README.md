@@ -58,8 +58,8 @@ transition is a Golang state machine implementation. rely on github.com/jinzhu/g
 
 ### 3. Transfer state
 
-    // func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
-    OrderStatemachine.To("checkout", *order, db)
+    // func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB) error {
+    OrderStatemachine.Trigger("checkout", *order, db)
 
 # Callbacks
 

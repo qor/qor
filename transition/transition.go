@@ -67,7 +67,7 @@ func (sm *StateMachine) Event(name string) *Event {
 	return event
 }
 
-func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
+func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB) error {
 	stateWas := value.GetState()
 	if stateWas == "" {
 		stateWas = sm.initialState
