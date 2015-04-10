@@ -95,6 +95,8 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		res.Config.Permission = roles.NewPermission()
 	}
 
+	res.Meta(&admin.Meta{Name: "LanguageCode", Type: "hidden"})
+
 	res.Config.Theme = "l10n"
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
