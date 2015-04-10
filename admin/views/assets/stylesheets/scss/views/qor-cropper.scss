@@ -58,8 +58,6 @@
 }
 
 .qor-cropper-modal {
-  z-index: 1055;
-
   .modal-header {
     border-bottom-color: #fafafa;
   }
@@ -78,8 +76,4 @@
     padding-bottom: 10px;
     border-top-color: #fafafa;
   }
-}
-
-.modal-backdrop {
-  z-index: 1054;
 }
