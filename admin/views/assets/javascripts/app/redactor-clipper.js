@@ -363,8 +363,7 @@ $.Redactor.fn.image = function () {
       img.onload = function() {
         $(this).cropper({
           background: false,
-          dragCrop: false,
-          roomable: false,
+          zoomable: false,
           rotatable: false
         });
       }
@@ -385,9 +384,15 @@ $.Redactor.fn.image = function () {
       {
         var URL = this.$element.data('crop-url'),
             imageDataURL = $(img).cropper('getCroppedCanvas').toDataURL(),
+            cropData = $(img).cropper('getData'),
             data = JSON.stringify({
               Url: src.replace(/\.original\.(jpg|jpeg|png|gif|bmp)$/, '.$1'),
-              CropOption: $(img).cropper('getData', true),
+              CropOption: {
+                x: Math.round(cropData.x),
+                y: Math.round(cropData.y),
+                width: Math.round(cropData.width),
+                height: Math.round(cropData.height)
+              },
               Crop: true
             });
 

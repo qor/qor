@@ -75,12 +75,12 @@
         file = files[0];
 
         if (/^image\/\w+$/.test(file.type)) {
-          this.load(URL && URL.createObjectURL(file));
+          this.load(URL && URL.createObjectURL(file), true);
         }
       }
     },
 
-    load: function (url) {
+    load: function (url, replaced) {
       if (!url) {
         return;
       }
@@ -94,7 +94,7 @@
       }
 
       this.url = url;
-      this.$image.attr('src', url);
+      replaced && this.$image.attr('src', url);
     },
 
     build: function (url) {
@@ -121,8 +121,7 @@
       $modal.find('.modal-body').html($clone);
       $clone.cropper({
         background: false,
-        dragCrop: false,
-        roomable: false,
+        zoomable: false,
         rotatable: false,
 
         built: function () {
@@ -131,11 +130,14 @@
           $clone.cropper('setCanvasData', previous.canvasData).cropper('setCropBoxData', previous.cropBoxData);
 
           $modal.on('click', '[data-toggle="crop"]', function () {
-            var options = $clone.cropper('getData', true);
+            var cropData = $clone.cropper('getData');
 
-            options.canvasData = $clone.cropper('getCanvasData');
-            options.cropBoxData = $clone.cropper('getCropBoxData');
-            data[key] = options;
+            data[key] = {
+              x: Math.round(cropData.x),
+              y: Math.round(cropData.y),
+              width: Math.round(cropData.width),
+              height: Math.round(cropData.height)
+            };
 
             _this.output($clone.cropper('getCroppedCanvas').toDataURL());
             $modal.off('click').modal('hide');
