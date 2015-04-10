@@ -11,3 +11,6 @@ worker_data
 bower_components
 node_modules
 _*
+*.css.map
+*.js.map
+*.min.map
