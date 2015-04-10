@@ -6,6 +6,8 @@ tmp
 /example/public
 worker_data
 *.exe
+.sass-cache
+*.css.map
 
 # Front end
 bower_components
