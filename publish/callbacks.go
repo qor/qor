@@ -6,33 +6,41 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
+func isDraftMode(scope *gorm.Scope) bool {
+	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok {
+		if isDraft, ok := draftMode.(bool); ok && isDraft {
+			return true
+		}
+	}
+	return false
+}
+
+func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
 	return func(scope *gorm.Scope) {
 		if scope.Value == nil {
 			return
 		}
 
-		if draftMode, ok := scope.Get("qor_publish:draft_mode"); force || ok {
-			if isDraft, ok := draftMode.(bool); force || ok && isDraft {
-				currentModel := scope.GetModelStruct().ModelType.String()
+		currentModel := scope.GetModelStruct().ModelType.String()
 
-				var supportedModels []string
-				if value, ok := scope.Get("publish:support_models"); ok {
-					supportedModels = value.([]string)
+		var supportedModels []string
+		if value, ok := scope.Get("publish:support_models"); ok {
+			supportedModels = value.([]string)
+		}
+
+		for _, model := range supportedModels {
+			if model == currentModel {
+				scope.InstanceSet("publish:supported_model", true)
+
+				if update {
+					scope.Set("qor_publish:force_draft_mode", true)
+					scope.Search.Table(DraftTableName(scope.TableName()))
 				}
 
-				for _, model := range supportedModels {
-					if model == currentModel {
-						table := scope.TableName()
-						scope.InstanceSet("publish:original_table", table)
-						scope.InstanceSet("publish:supported_model", true)
-						scope.Search.Table(DraftTableName(table))
-						if isDraft {
-							scope.SetColumn("PublishStatus", DIRTY)
-						}
-						break
-					}
+				if isDraftMode(scope) && update {
+					scope.SetColumn("PublishStatus", DIRTY)
 				}
+				break
 			}
 		}
 	}
@@ -40,9 +48,10 @@ func SetTableAndPublishStatus(force bool) func(*gorm.Scope) {
 
 func GetModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
 	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok && !draftMode.(bool) {
-		if table, ok := scope.InstanceGet("publish:original_table"); ok {
+		if _, ok := scope.InstanceGet("publish:supported_model"); ok {
+			table := OriginalTableName(scope.TableName())
 			clone := scope.New(scope.Value)
-			scope.Search.Table(table.(string))
+			clone.Search.Table(table)
 			return true, clone
 		}
 	}
@@ -84,5 +93,6 @@ func Delete(scope *gorm.Scope) {
 		} else {
 			gorm.Delete(scope)
 		}
+		gorm.Delete(scope)
 	}
 }

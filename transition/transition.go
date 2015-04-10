@@ -112,6 +112,15 @@ func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
 
 			value.SetState(name)
 
+			// State: enter
+			if state, ok := sm.states[name]; ok {
+				for _, enter := range state.enters {
+					if err := enter(value, newTx); err != nil {
+						return err
+					}
+				}
+			}
+
 			// Transition: after
 			for _, after := range transition.afters {
 				if err := after(value, newTx); err != nil {

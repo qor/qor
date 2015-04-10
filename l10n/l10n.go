@@ -148,17 +148,21 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		return []string{}
 	})
 
+	type LanguageCode struct {
+		LanguageCode string
+	}
+
 	res.GetAdmin().RegisterFuncMap("locales_of_resource", func(resource interface{}, context admin.Context) []map[string]interface{} {
 		scope := context.GetDB().NewScope(resource)
-		var languageCodes []string
-		context.GetDB().New().Table("products_draft").Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
+		var languageCodes []LanguageCode
+		context.GetDB().New().Model(resource).Select("language_code").Find(&languageCodes, fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue())
 
 		var results []map[string]interface{}
 		availableLocales := GetAvailableLocales(context.Request, context.CurrentUser)
 	OUT:
 		for _, locale := range availableLocales {
 			for _, localized := range languageCodes {
-				if locale == localized {
+				if locale == localized.LanguageCode {
 					results = append(results, map[string]interface{}{"locale": locale, "localized": true})
 					continue OUT
 				}

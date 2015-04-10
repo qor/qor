@@ -1,10 +1,10 @@
-for n in $(find . -iname '*.scss'); do
-  scss --sourcemap=none --watch $n:$(echo $n | sed 's/\.scss/.css/' | sed 's/\/scss\//\//') &
-done
-
-for n in $(find . -iname '*.coffee'); do
-  coffee --watch $n -o $(echo $n | sed 's/\.coffee/.js/' | sed 's/\/coffee\//\//') &
-done
+# for n in $(find . -iname '*.scss'); do
+#   scss --sourcemap=none --watch $n:$(echo $n | sed 's/\.scss/.css/' | sed 's/\/scss\//\//') &
+# done
+#
+# for n in $(find . -iname '*.coffee'); do
+#   coffee --watch $n -o $(echo $n | sed 's/\.coffee/.js/' | sed 's/\/coffee\//\//') &
+# done
 
 goconvey --port=9999 -cover=true -depth=-1 &
 
