@@ -13,8 +13,7 @@
 
   'use strict';
 
-  var $window = $(window),
-      URL = window.URL || window.webkitURL,
+  var URL = window.URL || window.webkitURL,
 
       QorCropper = function (element, options) {
         this.$element = $(element);
@@ -74,8 +73,8 @@
       if (files) {
         file = files[0];
 
-        if (/^image\/\w+$/.test(file.type)) {
-          this.load(URL && URL.createObjectURL(file), true);
+        if (/^image\/\w+$/.test(file.type) && URL) {
+          this.load(URL.createObjectURL(file), true);
         }
       }
     },
@@ -89,15 +88,18 @@
         this.build();
       }
 
-      if (/^blob:\w+/.test(this.url)) {
-        URL && URL.revokeObjectURL(this.url); // Revoke the old one
+      if (/^blob:\w+/.test(this.url) && URL) {
+        URL.revokeObjectURL(this.url); // Revoke the old one
       }
 
       this.url = url;
-      replaced && this.$image.attr('src', url);
+
+      if (replaced) {
+        this.$image.attr('src', url);
+      }
     },
 
-    build: function (url) {
+    build: function () {
       if (this.built) {
         return;
       }
@@ -125,9 +127,28 @@
         rotatable: false,
 
         built: function () {
-          var previous = data[key] || {};
+          var previous = data[key],
+              scaled = {},
+              scaledRatio,
+              imageData,
+              canvasData;
 
-          $clone.cropper('setCanvasData', previous.canvasData).cropper('setCropBoxData', previous.cropBoxData);
+          if ($.isPlainObject(previous)) {
+            imageData = $clone.cropper('getImageData');
+            canvasData = $clone.cropper('getCanvasData');
+            scaledRatio = imageData.width / imageData.naturalWidth;
+
+            $.each(previous, function (key, val) {
+              scaled[String(key).toLowerCase()] = val * scaledRatio;
+            });
+
+            $clone.cropper('setCropBoxData', {
+              left: scaled.x + canvasData.left,
+              top: scaled.y + canvasData.top,
+              width: scaled.width,
+              height: scaled.height
+            });
+          }
 
           $modal.on('click', '[data-toggle="crop"]', function () {
             var cropData = $clone.cropper('getData');
@@ -151,8 +172,10 @@
     },
 
     output: function (url) {
+      var data = $.extend({}, this.data, this.options.data);
+
       this.$image.attr('src', url);
-      this.$output.val(JSON.stringify(this.data));
+      this.$output.val(JSON.stringify(data));
     },
 
     destroy: function () {
@@ -165,7 +188,8 @@
     target: '',
     output: '',
     parent: '',
-    key: 'qorCropper'
+    key: 'qorCropper',
+    data: null
   };
 
   QorCropper.TEMPLATE = (
@@ -197,7 +221,10 @@
           target: '.qor-file-image',
           output: '.qor-file-options',
           parent: '.form-group',
-          key: 'CropOption'
+          key: 'CropOption',
+          data: {
+            Crop: true
+          }
         }));
       }
     });
