@@ -198,12 +198,10 @@
   display: block;
   margin-top: 20px;
   margin-bottom: 20px;
-  position: relative;
-  background-color: #fafafa;
   max-width: 320px;
   max-height: 180px;
   overflow: hidden;
-  cursor: pointer; }
+  background-color: #fafafa; }
   .qor-cropper > img {
     max-width: 100%;
     max-height: 180px;
