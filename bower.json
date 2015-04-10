@@ -1,0 +1,18 @@
+{
+  "name": "qor3",
+  "description": "",
+  "version": "0.0.0",
+  "main": [],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "**/_*",
+    "node_modules",
+    "bower_components"
+  ],
+  "devDependencies": {
+    "jquery": "~2.1.3",
+    "bootstrap": "~3.3.4",
+    "bootstrap-sass": "~3.3.4"
+  }
+}
