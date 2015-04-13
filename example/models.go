@@ -75,9 +75,9 @@ var Publish *publish.Publish
 
 func init() {
 	var err error
-	// CREATE USER 'qor' IDENTIFIED BY 'qor';
+	// CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
 	// CREATE DATABASE qor_example;
-	// GRANT ALL PRIVILEGES ON qor_example.* TO 'qor';
+	// GRANT ALL PRIVILEGES ON qor_example.* TO 'qor'@'localhost';
 	DB, err = gorm.Open("mysql", "qor:qor@/qor_example?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		panic(err)
