@@ -1,8 +1,6 @@
 package main
 
 import (
-	"time"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
@@ -12,40 +10,39 @@ import (
 )
 
 type CreditCard struct {
-	ID     int
+	gorm.Model
 	Number string
 	Issuer string
 }
 
 type Address struct {
-	ID       int
+	gorm.Model
 	UserId   int64
 	Address1 string
 	Address2 string
 }
 
 type Role struct {
-	ID   int
+	gorm.Model
 	Name string
 }
 
 type Language struct {
-	ID   int
+	gorm.Model
 	Name string
 }
 
 type User struct {
-	ID           int
+	gorm.Model
 	Name         string
 	Gender       string
 	Description  string
 	File         media_library.FileSystem
-	RoleID       int
+	RoleID       uint
 	Languages    []Language `gorm:"many2many:user_languages;"`
 	CreditCard   CreditCard
-	CreditCardID int
+	CreditCardID uint
 	Addresses    []Address
-	DeletedAt    time.Time
 	publish.Status
 }
 
@@ -66,12 +63,9 @@ func (u User) DisplayName() string {
 }
 
 type Product struct {
-	ID          int
+	gorm.Model
 	Name        *string
 	Description *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   time.Time
 	l10n.Locale
 	publish.Status
 }
@@ -109,5 +103,5 @@ func init() {
 	DB.FirstOrCreate(&Language{}, Language{Name: "EN"})
 	DB.FirstOrCreate(&Language{}, Language{Name: "DE"})
 
-	DB.LogMode(false)
+	DB.LogMode(true)
 }
