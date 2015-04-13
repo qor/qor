@@ -56,10 +56,16 @@ func ResetDb() {
 }
 
 const (
-	OrderStateDraft  = "draft"
-	OrderStatePaying = "paying"
+	OrderStateDraft              = "draft"
+	OrderStatePaying             = "paying"
+	OrderStatePaid               = "paid"
+	OrderStateProcessed          = "processed"
+	OrderStateDelivered          = "delivered"
+	OrderStateCancelled          = "cancelled"
+	OrderStateCancelledAfterPaid = "cancelled after paid"
 
 	OrderEventCheckout = "checkout"
+	OrderEventCancel   = "cancel"
 )
 
 func init() {
@@ -70,17 +76,21 @@ func init() {
 	OrderStateMachine.Event(OrderEventCheckout).To(OrderStatePaying).From(OrderStateDraft)
 }
 
+func CreateOrderAndExecuteTransition(order *Order, event string, t *testing.T, raiseTriggerError bool) {
+	if err := testdb.Save(order).Error; err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if err := OrderStateMachine.Trigger(event, order, testdb); err != nil && raiseTriggerError {
+		t.Errorf(err.Error())
+	}
+}
+
 func TestStateTransition(t *testing.T) {
 	defer ResetDb()
 
-	order := Order{}
-	if err := testdb.Save(&order).Error; err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
-		t.Errorf(err.Error())
-	}
+	order := &Order{}
+	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, true)
 
 	if order.State != OrderStatePaying {
 		t.Errorf("state doesn't transfered successfully")
@@ -90,14 +100,8 @@ func TestStateTransition(t *testing.T) {
 func TestStateChangeLog(t *testing.T) {
 	defer ResetDb()
 
-	order := Order{}
-	if err := testdb.Save(&order).Error; err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
-		t.Errorf(err.Error())
-	}
+	order := &Order{}
+	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, true)
 
 	var stateChangeLog transition.StateChangeLog
 	testdb.First(&stateChangeLog)
@@ -119,6 +123,30 @@ func TestStateChangeLog(t *testing.T) {
 	}
 }
 
+func TestMultipleTransitionWithOneEvent(t *testing.T) {
+	defer ResetDb()
+
+	cancellEvent := OrderStateMachine.Event(OrderEventCancel)
+	cancellEvent.To(OrderStateCancelled).From(OrderStateDraft, OrderStatePaying)
+	cancellEvent.To(OrderStateCancelledAfterPaid).From(OrderStatePaid, OrderStateProcessed)
+
+	unpaidOrder := &Order{}
+	unpaidOrder.State = OrderStateDraft
+	CreateOrderAndExecuteTransition(unpaidOrder, OrderEventCancel, t, true)
+
+	if unpaidOrder.State != OrderStateCancelled {
+		t.Errorf("order status doesn't transitioned correctly")
+	}
+
+	paidOrder := &Order{}
+	paidOrder.State = OrderStatePaid
+	CreateOrderAndExecuteTransition(paidOrder, OrderEventCancel, t, true)
+
+	if paidOrder.State != OrderStateCancelledAfterPaid {
+		t.Errorf("order status doesn't transitioned correctly")
+	}
+}
+
 func TestStateEnterCallback(t *testing.T) {
 	defer ResetDb()
 
@@ -128,14 +156,8 @@ func TestStateEnterCallback(t *testing.T) {
 		return
 	})
 
-	order := Order{}
-	if err := testdb.Save(&order).Error; err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
-		t.Errorf(err.Error())
-	}
+	order := &Order{}
+	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, true)
 
 	if order.Address != addressAfterCheckout {
 		t.Errorf("enter callback not triggered")
@@ -151,15 +173,9 @@ func TestStateExitCallback(t *testing.T) {
 		return
 	})
 
-	order := Order{}
+	order := &Order{}
 	order.State = OrderStateDraft
-	if err := testdb.Save(&order).Error; err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
-		t.Errorf(err.Error())
-	}
+	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, true)
 
 	if prevState != OrderStateDraft {
 		t.Errorf("exit callback triggered after state change")
@@ -175,15 +191,9 @@ func TestEventBeforeCallback(t *testing.T) {
 		return
 	})
 
-	order := Order{}
+	order := &Order{}
 	order.State = OrderStateDraft
-	if err := testdb.Save(&order).Error; err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
-		t.Errorf(err.Error())
-	}
+	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, true)
 
 	if prevState != OrderStateDraft {
 		t.Errorf("Before callback triggered after state change")
@@ -199,14 +209,8 @@ func TestEventAfterCallback(t *testing.T) {
 		return
 	})
 
-	order := Order{}
-	if err := testdb.Save(&order).Error; err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err != nil {
-		t.Errorf(err.Error())
-	}
+	order := &Order{}
+	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, true)
 
 	if order.Address != addressAfterCheckout {
 		t.Errorf("After callback not triggered")
@@ -221,15 +225,9 @@ func TestRollbackTransitionOnEnterCallbackError(t *testing.T) {
 		return errors.New("intentional error")
 	})
 
-	order := Order{}
+	order := &Order{}
 	order.State = OrderStateDraft
-	if err := testdb.Save(&order).Error; err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err == nil {
-		t.Errorf("intentional error not returned")
-	}
+	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, false)
 
 	testdb.First(&order, order.Id)
 	if order.State != OrderStateDraft {
@@ -249,15 +247,9 @@ func TestRollbackTransitionOnExitCallbackError(t *testing.T) {
 		return errors.New("intentional error")
 	})
 
-	order := Order{}
+	order := &Order{}
 	order.State = OrderStateDraft
-	if err := testdb.Save(&order).Error; err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err == nil {
-		t.Errorf("intentional error not returned")
-	}
+	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, false)
 
 	testdb.First(&order, order.Id)
 	if order.State != OrderStateDraft {
@@ -277,15 +269,9 @@ func TestRollbackTransitionOnBeforeCallbackError(t *testing.T) {
 		return errors.New("intentional error")
 	})
 
-	order := Order{}
+	order := &Order{}
 	order.State = OrderStateDraft
-	if err := testdb.Save(&order).Error; err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err == nil {
-		t.Errorf("intentional error not returned")
-	}
+	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, false)
 
 	testdb.First(&order, order.Id)
 	if order.State != OrderStateDraft {
@@ -305,15 +291,9 @@ func TestRollbackTransitionOnAfterCallbackError(t *testing.T) {
 		return errors.New("intentional error")
 	})
 
-	order := Order{}
+	order := &Order{}
 	order.State = OrderStateDraft
-	if err := testdb.Save(&order).Error; err != nil {
-		t.Errorf(err.Error())
-	}
-
-	if err := OrderStateMachine.Trigger(OrderEventCheckout, &order, testdb); err == nil {
-		t.Errorf("intentional error not returned")
-	}
+	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, false)
 
 	testdb.First(&order, order.Id)
 	if order.State != OrderStateDraft {
