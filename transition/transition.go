@@ -25,7 +25,8 @@ type StateChangeLog struct {
 	Id         uint64
 	ReferTable string
 	ReferId    string
-	State      string
+	From       string
+	To         string
 	Note       string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
@@ -67,7 +68,7 @@ func (sm *StateMachine) Event(name string) *Event {
 	return event
 }
 
-func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
+func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB) error {
 	stateWas := value.GetState()
 	if stateWas == "" {
 		stateWas = sm.initialState
@@ -110,10 +111,10 @@ func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
 				}
 			}
 
-			value.SetState(name)
+			value.SetState(transition.to)
 
 			// State: enter
-			if state, ok := sm.states[name]; ok {
+			if state, ok := sm.states[transition.to]; ok {
 				for _, enter := range state.enters {
 					if err := enter(value, newTx); err != nil {
 						return err
@@ -130,7 +131,7 @@ func (sm *StateMachine) To(name string, value Stater, tx *gorm.DB) error {
 
 			scope := newTx.NewScope(value)
 			primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
-			log := StateChangeLog{ReferTable: scope.TableName(), ReferId: primaryKey, State: name}
+			log := StateChangeLog{ReferTable: scope.TableName(), ReferId: primaryKey, From: stateWas, To: transition.to}
 			return newTx.Save(&log).Error
 		}
 	}
