@@ -59,6 +59,7 @@
         }
       }
 
+      this.$parent = $parent;
       this.$image = $image;
       this.data = data || {};
       this.load($image.data('originalUrl') || $image.prop('src'));
@@ -106,7 +107,7 @@
 
       this.built = true;
 
-      this.$cropper = $(QorCropper.TEMPLATE).prepend(this.$image).insertAfter(this.$element);
+      this.$cropper = $(QorCropper.TEMPLATE).prepend(this.$image).appendTo(this.$parent);
       this.$cropper.find('.modal').on({
         'shown.bs.modal': $.proxy(this.start, this),
         'hidden.bs.modal': $.proxy(this.stop, this)
