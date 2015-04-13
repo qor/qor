@@ -302,19 +302,19 @@ func Equal(a, b interface{}) bool {
 
 func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
-		"current_user":      func() qor.CurrentUser { return context.CurrentUser },
 		"menus":             context.Admin.GetMenus,
+		"current_user":      func() qor.CurrentUser { return context.CurrentUser },
 		"render":            context.Render,
-		"primary_key_of":    context.PrimaryKeyOf,
+		"render_form":       context.RenderForm,
+		"url_for":           context.UrlFor,
+		"link_to":           context.LinkTo,
+		"new_resource_path": context.NewResourcePath,
+		"new_resource":      context.NewResource,
 		"is_new_record":     context.NewRecord,
 		"value_of":          context.ValueOf,
-		"url_for":           context.UrlFor,
-		"new_resource_path": context.NewResourcePath,
-		"link_to":           context.LinkTo,
-		"render_form":       context.RenderForm,
+		"primary_key_of":    context.PrimaryKeyOf,
 		"has_primary_key":   context.HasPrimaryKey,
-		"new_resource":      context.NewResource,
-		"all_metas":         context.AllMetas, // Resource Metas
+		"all_metas":         context.AllMetas,
 		"index_metas":       context.IndexMetas,
 		"edit_metas":        context.EditMetas,
 		"show_metas":        context.ShowMetas,
