@@ -109,5 +109,5 @@ func init() {
 	DB.FirstOrCreate(&Language{}, Language{Name: "EN"})
 	DB.FirstOrCreate(&Language{}, Language{Name: "DE"})
 
-	DB.LogMode(true)
+	DB.LogMode(false)
 }
