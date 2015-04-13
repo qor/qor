@@ -42,7 +42,7 @@ transition is a Golang state machine implementation. rely on github.com/jinzhu/g
         })
 
         // Define event and what to do before perform transition and after transition. See Callbacks for detail.
-        OrderStateMachine.Event("checkout").From("draft").To("paying").Before(func(order interface{}, tx *gorm.DB) (err error) {
+        OrderStateMachine.Event("checkout").To("paying").From("draft").Before(func(order interface{}, tx *gorm.DB) (err error) {
             // business logic here
             return
         }).After(func(order interface{}, tx *gorm.DB) (err error) {
@@ -52,8 +52,8 @@ transition is a Golang state machine implementation. rely on github.com/jinzhu/g
 
         // Different state transition for one event
         cancellEvent := OrderStateMachine.Event("cancel")
-        cancellEvent.From("draft", "paying").To("canceled")
-        cancellEvent.From("paid", "processed").To("canceled_after_paid")
+        cancellEvent.To("canceled").From("draft", "paying")  // NOTE: Must define `To` before `From`
+        cancellEvent.To("canceled_after_paid").From("paid", "processed")
     }
 
 ### 3. Transfer state
