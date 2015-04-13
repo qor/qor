@@ -2,7 +2,6 @@ package transition_test
 
 import (
 	"errors"
-	"strconv"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -104,15 +103,7 @@ func TestStateChangeLog(t *testing.T) {
 	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, true)
 
 	var stateChangeLog transition.StateChangeLog
-	testdb.First(&stateChangeLog)
-
-	if stateChangeLog.ReferTable != "orders" {
-		t.Errorf("refer table not set correctly")
-	}
-
-	if stateChangeLog.ReferId != strconv.Itoa(order.Id) {
-		t.Errorf("refer id not set correctly")
-	}
+	testdb.Where("refer_table = ? AND refer_id = ?", "orders", order.Id).First(&stateChangeLog)
 
 	if stateChangeLog.From != OrderStateDraft {
 		t.Errorf("state from not set")
