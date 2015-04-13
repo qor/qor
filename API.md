@@ -2,7 +2,7 @@ Admin:
 
     Admin := admin.New(db *gorm.DB)
 
-    order := Admin.AddResource(&order{}, admin.Config{Name: string, Menus: []string, Invisible: bool, Permission:})
+    order := Admin.AddResource(&order{}, admin.Config{Name: string, Menus: []string, Invisible: bool, Permission, PageCount: 20})
     order.IndexAttrs("Id", "Amount", "Email")
     order.Finder()
     order.Deleter()

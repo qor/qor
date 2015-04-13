@@ -8,4 +8,5 @@ type Config struct {
 	Invisible  bool
 	Permission *roles.Permission
 	Theme      string
+	PageCount  uint
 }
