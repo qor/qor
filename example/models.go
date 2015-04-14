@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
@@ -78,7 +81,11 @@ func init() {
 	// CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
 	// CREATE DATABASE qor_example;
 	// GRANT ALL PRIVILEGES ON qor_example.* TO 'qor'@'localhost';
-	DB, err = gorm.Open("mysql", "qor:qor@/qor_example?charset=utf8&parseTime=True&loc=Local")
+	dbuser, dbpwd := "qor", "qor"
+	if os.Getenv("WEB_ENV") == "online" {
+		dbuser, dbpwd = os.Getenv("DB_USER"), os.Getenv("DB_PWD")
+	}
+	DB, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@/qor_example?charset=utf8&parseTime=True&loc=Local", dbuser, dbpwd))
 	if err != nil {
 		panic(err)
 	}
