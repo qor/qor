@@ -296,6 +296,46 @@ func (context *Context) StyleSheetTag(name string) string {
 	return fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name)
 }
 
+type Page struct {
+	Page       int
+	Current    bool
+	IsPrevious bool
+	IsNext     bool
+}
+
+func (context *Context) Pagination() []Page {
+	pagination := context.Searcher.Pagination
+	start := pagination.CurrentPage
+	fmt.Println("-----------------------")
+	fmt.Println(pagination.CurrentPage)
+	if start-5 < 1 {
+		start = 1
+	}
+	fmt.Println(start)
+	fmt.Println(start - 5)
+	fmt.Println(start-5 < 1)
+
+	end := start + 9
+	if end > pagination.Pages {
+		end = pagination.Pages
+	}
+
+	var pages []Page
+	if start > 1 {
+		pages = append(pages, Page{Page: start - 1, IsPrevious: true})
+	}
+
+	for i := start; i <= end; i++ {
+		pages = append(pages, Page{Page: i, Current: pagination.CurrentPage == i})
+	}
+
+	if end < pagination.Pages {
+		pages = append(pages, Page{Page: end + 1, IsNext: true})
+	}
+
+	return pages
+}
+
 func Equal(a, b interface{}) bool {
 	return reflect.DeepEqual(a, b)
 }
@@ -319,10 +359,12 @@ func (context *Context) funcMap() template.FuncMap {
 		"edit_metas":        context.EditMetas,
 		"show_metas":        context.ShowMetas,
 		"new_metas":         context.NewMetas,
+		"pagination":        context.Pagination,
 		"javascript_tag":    context.JavaScriptTag,
 		"stylesheet_tag":    context.StyleSheetTag,
 		"equal":             Equal,
 	}
+
 	for key, value := range context.Admin.funcMaps {
 		funcMap[key] = value
 	}

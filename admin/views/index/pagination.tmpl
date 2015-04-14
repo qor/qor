@@ -1,21 +1,23 @@
 <nav class="clearfix">
   <ul class="pull-right pagination">
-    {{.Searcher.Pagination.CurrentPage}}
-    {{.Searcher.Pagination.Total}}
-    <li>
-      <a href="#" aria-label="Previous">
-        <span aria-hidden="true">&laquo;</span>
-      </a>
-    </li>
-    <li class="active"><a href="#">1</a></li>
-    <li><a href="#">2</a></li>
-    <li><a href="#">3</a></li>
-    <li><a href="#">4</a></li>
-    <li><a href="#">5</a></li>
-    <li>
-      <a href="#" aria-label="Next">
-        <span aria-hidden="true">&raquo;</span>
-      </a>
-    </li>
+    {{range $index, $page := pagination}}
+      {{if $page.IsPrevious}}
+        <li>
+          <a href="?page={{$page.Page}}" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+      {{else if $page.IsNext}}
+        <li>
+          <a href="?page={{$page.Page}}" aria-label="Next">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+      {{else if $page.Current}}
+        <li class="active"><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
+      {{else}}
+        <li><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
+      {{end}}
+    {{end}}
   </ul>
 </nav>

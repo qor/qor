@@ -12,10 +12,10 @@ import (
 type scopeFunc func(db *gorm.DB, context *qor.Context) *gorm.DB
 
 type Pagination struct {
-	Total       uint
-	Pages       uint
-	CurrentPage uint
-	PrePage     uint
+	Total       int
+	Pages       int
+	CurrentPage int
+	PrePage     int
 }
 
 type Searcher struct {
@@ -31,12 +31,12 @@ func (s *Searcher) WithPagination() *Searcher {
 	return s
 }
 
-func (s *Searcher) Page(num uint) *Searcher {
+func (s *Searcher) Page(num int) *Searcher {
 	s.Pagination.CurrentPage = num
 	return s
 }
 
-func (s *Searcher) PrePage(num uint) *Searcher {
+func (s *Searcher) PrePage(num int) *Searcher {
 	s.Pagination.PrePage = num
 	return s
 }
@@ -132,7 +132,7 @@ func (s *Searcher) parseContext() *qor.Context {
 	if s.Pagination.CurrentPage == 0 {
 		if s.Context.Request != nil {
 			if page, err := strconv.Atoi(s.Context.Request.Form.Get("page")); err == nil {
-				s.Pagination.CurrentPage = uint(page)
+				s.Pagination.CurrentPage = page
 			}
 		}
 
