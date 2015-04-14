@@ -10,6 +10,7 @@
   "devDependencies": {
     "gulp": "~3.8.11",
     "gulp-concat": "~2.5.2",
+    "gulp-sourcemaps": "~1.5.1",
     "gulp-jscs": "~1.5.1",
     "gulp-jshint": "~1.10.0",
     "gulp-uglify": "~1.1.0",
