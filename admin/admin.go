@@ -84,6 +84,10 @@ func (admin *Admin) NewResource(value interface{}, config *Config) *Resource {
 	}
 	res.Finder = res.finder
 
+	if config.PageCount == 0 {
+		config.PageCount = 10
+	}
+
 	if config.Name != "" {
 		res.Name = config.Name
 	} else if namer, ok := value.(ResourceNamer); ok {
