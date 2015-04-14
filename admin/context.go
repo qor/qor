@@ -306,14 +306,9 @@ type Page struct {
 func (context *Context) Pagination() []Page {
 	pagination := context.Searcher.Pagination
 	start := pagination.CurrentPage
-	fmt.Println("-----------------------")
-	fmt.Println(pagination.CurrentPage)
 	if start-5 < 1 {
 		start = 1
 	}
-	fmt.Println(start)
-	fmt.Println(start - 5)
-	fmt.Println(start-5 < 1)
 
 	end := start + 9
 	if end > pagination.Pages {
