@@ -95,32 +95,6 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 		}
 	}
 
-	// pagination
-	tableName := db.NewScope(s.Resource.Value).TableName()
-	paginationDB := db.Table(tableName).Select("count(*) total").Model(s.Resource.Value)
-	context.SetDB(paginationDB)
-	s.Resource.CallSearcher(&s.Pagination, context)
-
-	if s.Pagination.CurrentPage == 0 {
-		if s.Context.Request != nil {
-			if page, err := strconv.Atoi(s.Context.Request.Form.Get("page")); err == nil {
-				s.Pagination.CurrentPage = uint(page)
-			}
-		}
-
-		if s.Pagination.CurrentPage == 0 {
-			s.Pagination.CurrentPage = 1
-		}
-	}
-
-	if s.Pagination.PrePage == 0 {
-		s.Pagination.PrePage = s.Resource.Config.PageCount
-	}
-
-	s.Pagination.Pages = (s.Pagination.Total-1)/s.Pagination.PrePage + 1
-
-	db = db.Limit(s.Pagination.PrePage).Offset((s.Pagination.CurrentPage - 1) * s.Pagination.PrePage)
-
 	context.SetDB(db)
 	return context
 }
@@ -147,6 +121,34 @@ func (s *Searcher) parseContext() *qor.Context {
 	}
 
 	searcher.callScopes(context)
+
+	// pagination
+	db := context.GetDB()
+	tableName := db.NewScope(s.Resource.Value).TableName()
+	paginationDB := db.Table(tableName).Select("count(*) total").Model(s.Resource.Value)
+	context.SetDB(paginationDB)
+	s.Resource.CallSearcher(&s.Pagination, context)
+
+	if s.Pagination.CurrentPage == 0 {
+		if s.Context.Request != nil {
+			if page, err := strconv.Atoi(s.Context.Request.Form.Get("page")); err == nil {
+				s.Pagination.CurrentPage = uint(page)
+			}
+		}
+
+		if s.Pagination.CurrentPage == 0 {
+			s.Pagination.CurrentPage = 1
+		}
+	}
+
+	if s.Pagination.PrePage == 0 {
+		s.Pagination.PrePage = s.Resource.Config.PageCount
+	}
+
+	s.Pagination.Pages = (s.Pagination.Total-1)/s.Pagination.PrePage + 1
+
+	db = db.Limit(s.Pagination.PrePage).Offset((s.Pagination.CurrentPage - 1) * s.Pagination.PrePage)
+	context.SetDB(db)
 
 	return context
 }
