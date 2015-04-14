@@ -7,3 +7,25 @@
 .redactor-toolbar {
   z-index: 1000 !important;
 }
+
+
+// Reset for cropper
+
+#redactor-image-editter {
+  margin-left: -38px !important;
+}
+
+#redactor-image-cropper {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 50%;
+  margin-top: -11px;
+  margin-left: 1px;
+  padding: 7px 10px;
+  background-color: #000;
+  font-size: 11px;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+}

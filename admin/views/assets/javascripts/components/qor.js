@@ -60,7 +60,7 @@
       $('[data-confirm]').click(function (e) {
         var message = $(this).data('confirm');
 
-        if (message && !confirm(message)) {
+        if (message && !window.confirm(message)) {
           e.preventDefault();
         }
       });

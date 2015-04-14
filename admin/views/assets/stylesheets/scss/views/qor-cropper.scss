@@ -75,3 +75,17 @@
     border-top-color: #fafafa;
   }
 }
+
+.qor-redactor-cropper {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  overflow: hidden;
+  background-color: #fafafa;
+
+  > img {
+    max-width: 100%;
+    max-height: 320px;
+    @include center-block;
+  }
+}
