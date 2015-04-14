@@ -22,33 +22,29 @@
         this.init();
       };
 
-  function encodeURL(url, data) {
-    var args = [];
+  function encodeCropData(data) {
+    var nums = [];
 
     if ($.isPlainObject(data)) {
-      $.each(data, function (i, n) {
-        args.push([i, n].join('='));
+      $.each(data, function () {
+        nums.push(arguments[1]);
       });
     }
 
-    return [url, args.join('&')].join('?');
+    return nums.join();
   }
 
-  function decodeURL(url) {
-    var data = {
-          url: url,
-          data: {}
-        };
+  function decodeCropData(data) {
+    var nums = data && data.split(',');
 
-    if (typeof url === 'string') {
-      url = url.split('?');
-      data.url = url[0];
+    data = null;
 
-      if (url[1]) {
-        $.each(url[1].split('&'), function (i, arg) {
-          arg = arg.split('=');
-          data.data[arg[0]] = parseFloat(arg[1]);
-        });
+    if (nums && nums.length === 4) {
+      data = {
+        x: nums[0],
+        y: nums[1],
+        width: nums[2],
+        height: nums[3]
       }
     }
 
@@ -99,8 +95,8 @@
 
     crop: function ($image) {
       var options = this.options,
-          urlData = decodeURL($image.attr('src')),
-          originalUrl = urlData.url,
+          url = $image.attr('src'),
+          originalUrl = url,
           $clone = $('<img>'),
           $modal = $(QorRedactor.TEMPLATE);
 
@@ -118,11 +114,11 @@
           rotatable: false,
 
           built: function () {
-            var data = urlData.data,
+            var data = decodeCropData($image.attr('data-crop-option')),
                 canvasData,
                 imageData;
 
-            if (data && !$.isEmptyObject(data)) {
+            if ($.isPlainObject(data)) {
               imageData = $clone.cropper('getImageData');
               canvasData = $clone.cropper('getCanvasData');
               imageData.ratio = imageData.width / imageData.naturalWidth;
@@ -148,7 +144,7 @@
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                  Url: urlData.url,
+                  Url: url,
                   CropOption: cropData,
                   Crop: true
                 }),
@@ -156,7 +152,7 @@
 
                 success: function (response) {
                   if ($.isPlainObject(response) && response.url) {
-                    $image.attr('src', encodeURL(response.url, cropData)).removeAttr('style').removeAttr('rel');
+                    $image.attr('src', response.url).attr('data-crop-option', encodeCropData(cropData)).removeAttr('style').removeAttr('rel');
 
                     if ($.isFunction(options.complete)) {
                       options.complete();
@@ -222,7 +218,6 @@
               parent: '.redactor-editor',
               replace: function (url) {
                 return url.replace(/\.\w+$/, function (extension) {
-                  console.log(arguments);
                   return '.original' + extension;
                 });
               },
