@@ -1,27 +1,28 @@
 # Qor Admin
 
-## Usage
+## Introduction
 
+## Installation
 
-HTTP Mux
+## Setup
 
-```
-mux := http.NewServeMux()
-web := admin.New(&qor.Config{DB: &db})
-web.AddToMux("/admin", mux)
-http.ListenAndServe(":8080", mux)
-```
+- Database
+- Roles
+- Components
+- Initialize Admin
 
-Gin
+## Config
 
-```
-mux := http.NewServeMux()
-
-web := admin.New(&qor.Config{DB: &db.DB})
-web.AddToMux("/admin", mux)
-
-router := gin.Default()
-// ...
-mux.Handle("/", router)
-http.ListenAndServe(":8080", mux)
-```
+- Authentication
+- Menu control
+- Add resource
+- Meta config
+  - text field
+  - select one
+  - select many
+  - rich editor
+  - media upload
+- Filter
+- Search
+- Route
+- Server
