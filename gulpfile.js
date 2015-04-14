@@ -15,11 +15,19 @@ var gulp = require('gulp'),
       main: 'admin/views/assets/stylesheets/scss/main.scss'
     };
 
-gulp.task('js', function () {
+gulp.task('jshint', function () {
   return gulp.src(scripts.src)
-  .pipe(plugins.jscs('admin/views/assets/javascripts/.jscsrc'))
   .pipe(plugins.jshint('admin/views/assets/javascripts/.jshintrc'))
-  .pipe(plugins.jshint.reporter('default'))
+  .pipe(plugins.jshint.reporter('default'));
+});
+
+gulp.task('jscs', function () {
+  return gulp.src(scripts.src)
+  .pipe(plugins.jscs('admin/views/assets/javascripts/.jscsrc'));
+});
+
+gulp.task('js', ['jshint', 'jscs'], function () {
+  return gulp.src(scripts.src)
   .pipe(plugins.concat('main.js'))
   .pipe(plugins.uglify())
   .pipe(gulp.dest(scripts.dest));
@@ -27,7 +35,9 @@ gulp.task('js', function () {
 
 gulp.task('concat', function () {
   return gulp.src(scripts.src)
+  .pipe(plugins.sourcemaps.init())
   .pipe(plugins.concat('main.js'))
+  .pipe(plugins.sourcemaps.write('./'))
   .pipe(gulp.dest(scripts.dest))
 });
 
