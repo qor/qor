@@ -277,7 +277,8 @@
 #redactor-image-editter {
   margin-left: -38px !important; }
 
-#redactor-image-cropper {
+.redactor-image-cropper {
+  display: none;
   position: absolute;
   z-index: 5;
   top: 50%;
@@ -290,6 +291,8 @@
   line-height: 1;
   color: #fff;
   cursor: pointer; }
+  #redactor-image-box .redactor-image-cropper {
+    display: block; }
 
 .select2-search--dropdown .select2-search__field {
   padding-left: 24px;

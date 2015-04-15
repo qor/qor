@@ -250,12 +250,16 @@
 
   'use strict';
 
-  var REGEXP_OPTIONS = /x|y|width|height/,
+  var NAMESPACE = '.qor.redactor',
+      EVENT_CLICK = 'click' + NAMESPACE,
+      EVENT_FOCUS = 'focus' + NAMESPACE,
+      EVENT_IMAGE_UPLOAD = 'imageupload' + NAMESPACE,
+      EVENT_IMAGE_DELETE = 'imagedelete' + NAMESPACE,
+      REGEXP_OPTIONS = /x|y|width|height/,
 
       QorRedactor = function (element, options) {
         this.$element = $(element);
         this.options = $.extend(true, {}, QorRedactor.DEFAULTS, options);
-        this.built = false;
         this.init();
       };
 
@@ -282,7 +286,7 @@
         y: nums[1],
         width: nums[2],
         height: nums[3]
-      }
+      };
     }
 
     return data;
@@ -295,39 +299,36 @@
       var _this = this,
           $this = this.$element,
           options = this.options,
-          $parent,
-          $button;
+          $parent = $this.closest(options.parent),
+          click = $.proxy(this.click, this);
 
-      if (options.parent) {
-        $parent = $this.closest(options.parent);
-      }
+      this.$button = $(QorRedactor.BUTTON);
 
-      if (!$parent.length) {
-        $parent = $this.parent();
-      }
+      $this.on(EVENT_IMAGE_UPLOAD, function (e, image) {
+        $(image).on(EVENT_CLICK, click);
+      }).on(EVENT_IMAGE_DELETE, function (e, image) {
+        $(image).off(EVENT_CLICK, click);
+      }).on(EVENT_FOCUS, function (e) {
+        console.log(e.type);
+        $parent.find('img').off(EVENT_CLICK, click).on(EVENT_CLICK, click);
+      }).triggerHandler(EVENT_FOCUS);
 
-      $button = $(QorRedactor.BUTTON);
+      $('body').on(EVENT_CLICK, function () {
+        _this.$button.off(EVENT_CLICK).detach();
+      });
+    },
 
-      $parent.on('click', 'img', function (e) {
-        var $this = $(this),
-            originalEvent = e.originalEvent;
+    click: function (e) {
+      var _this = this,
+          $image = $(e.target);
 
-        if (originalEvent) {
-          originalEvent.qorCropperReady = true;
-        }
+      e.stopPropagation();
 
-        $button.insertBefore($this).one('click', function () {
-          _this.crop($this);
+      setTimeout(function () {
+        _this.$button.insertBefore($image).off(EVENT_CLICK).one(EVENT_CLICK, function () {
+          _this.crop($image);
         });
-      });
-
-      $('body').on('click', function (e) {
-        var originalEvent = e.originalEvent;
-
-        if (originalEvent && !originalEvent.qorCropperReady) {
-          $button.detach();
-        }
-      });
+      }, 1);
     },
 
     crop: function ($image) {
@@ -415,12 +416,13 @@
 
   QorRedactor.DEFAULTS = {
     remote: false,
+    toggle: false,
     parent: false,
     replace: null,
     complete: null
   };
 
-  QorRedactor.BUTTON = '<span id="redactor-image-cropper">Crop</span>';
+  QorRedactor.BUTTON = '<span class="redactor-image-cropper">Crop</span>';
 
   QorRedactor.TEMPLATE = (
     '<div class="modal fade qor-cropper-modal" id="qorCropperModal" tabindex="-1" role="dialog" aria-labelledby="qorCropperModalLabel" aria-hidden="true">' +
@@ -452,7 +454,8 @@
           if (!$this.data('qor.redactor')) {
             $this.data('qor.redactor', new QorRedactor($this, {
               remote: data.cropUrl,
-              parent: '.redactor-editor',
+              toggle: '.redactor-image-cropper',
+              parent: '.form-group',
               replace: function (url) {
                 return url.replace(/\.\w+$/, function (extension) {
                   return '.original' + extension;
@@ -463,6 +466,18 @@
               }, this)
             }));
           }
+        },
+
+        focusCallback: function (/*e*/) {
+          $this.triggerHandler(EVENT_FOCUS);
+        },
+
+        imageUploadCallback: function (/*image, json*/) {
+          $this.triggerHandler(EVENT_IMAGE_UPLOAD, arguments[0]);
+        },
+
+        imageDeleteCallback: function (/*url, image*/) {
+          $this.triggerHandler(EVENT_IMAGE_DELETE, arguments[1]);
         }
       });
     });
