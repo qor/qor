@@ -4,6 +4,7 @@ packages:
 - name: google.golang.org/appengine
 - name: github.com/golang/oauth2
 - name: github.com/jinzhu/gorm
+- name: github.com/disintegration/imaging
 - name: github.com/tealeg/xlsx
 
 #
