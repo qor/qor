@@ -14,9 +14,8 @@
   'use strict';
 
   $(function () {
-    $('.qor-select').select2({
-      // theme: 'classic',
-      // placeholder: 'Select...'
+    $('.qor-select').chosen({
+      allow_single_deselect: true
     });
   });
 

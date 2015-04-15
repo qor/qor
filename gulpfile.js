@@ -47,7 +47,7 @@ gulp.task('jslib', function () {
     'bower_components/jquery/dist/jquery.min.js',
     'bower_components/bootstrap/dist/js/bootstrap.js',
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
-    'bower_components/select2/dist/js/select2.min.js'
+    'bower_components/chosen/chosen.jquery.min.js'
   ])
   .pipe(gulp.dest(scripts.lib))
 });
@@ -79,7 +79,9 @@ gulp.task('csslib', ['fonts'], function () {
     'bower_components/bootstrap/dist/css/bootstrap.css',
     'bower_components/bootstrap/dist/css/bootstrap.css.map',
     'bower_components/bootstrap/dist/css/bootstrap.min.css',
-    'bower_components/select2/dist/css/select2.min.css'
+    'bower_components/chosen/chosen-sprite.png',
+    'bower_components/chosen/chosen-sprite@2x.png',
+    'bower_components/chosen/chosen.min.css'
   ])
   .pipe(gulp.dest(styles.lib))
 });
