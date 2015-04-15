@@ -41,12 +41,13 @@ gulp.task('concat', function () {
   .pipe(gulp.dest(scripts.dest))
 });
 
-gulp.task('jsComponents', function () {
+gulp.task('jslib', function () {
   return gulp.src([
     'bower_components/jquery/dist/jquery.js',
     'bower_components/jquery/dist/jquery.min.js',
     'bower_components/bootstrap/dist/js/bootstrap.js',
-    'bower_components/bootstrap/dist/js/bootstrap.min.js'
+    'bower_components/bootstrap/dist/js/bootstrap.min.js',
+    'bower_components/select2/dist/js/select2.min.js'
   ])
   .pipe(gulp.dest(scripts.lib))
 });
@@ -66,11 +67,19 @@ gulp.task('sass', function () {
   .pipe(gulp.dest(styles.dest))
 });
 
-gulp.task('cssComponents', ['fonts'], function () {
+gulp.task('fonts', function () {
+  return gulp.src([
+    'bower_components/bootstrap/fonts/*',
+  ])
+  .pipe(gulp.dest('admin/views/assets/fonts'))
+});
+
+gulp.task('csslib', ['fonts'], function () {
   return gulp.src([
     'bower_components/bootstrap/dist/css/bootstrap.css',
     'bower_components/bootstrap/dist/css/bootstrap.css.map',
-    'bower_components/bootstrap/dist/css/bootstrap.min.css'
+    'bower_components/bootstrap/dist/css/bootstrap.min.css',
+    'bower_components/select2/dist/css/select2.min.css'
   ])
   .pipe(gulp.dest(styles.lib))
 });
