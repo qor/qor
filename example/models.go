@@ -39,7 +39,7 @@ type User struct {
 	gorm.Model
 	Name         string
 	Gender       string
-	Description  string
+	Description  string `sql:"size:622550"`
 	File         media_library.FileSystem
 	RoleID       uint
 	Languages    []Language `gorm:"many2many:user_languages;"`
