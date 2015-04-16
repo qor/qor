@@ -2,6 +2,21 @@
 
 ## Introduction
 
+## Features
+
+- CRUD
+- Search and filtering
+- Authentication
+- Authorization(detail)
+- Custom actions
+- Customizable view
+- Rich editor
+- Image crop
+- Integrate-able with [Publish](https://github.com/theplant/qor3/tree/master/publish)
+- Integrate-able with [l10n](https://github.com/theplant/qor3/tree/master/l10n)
+- JSON API supported
+- extend-able
+
 ## Installation
 
 ## Setup
