@@ -88,6 +88,13 @@ gulp.task('csslib', ['fonts'], function () {
   .pipe(gulp.dest(styles.lib))
 });
 
+gulp.task('redactor', function () {
+  return gulp.src('admin/views/assets/stylesheets/lib/redactor.css')
+  .pipe(plugins.rename('redactor.min.css'))
+  .pipe(plugins.minifyCss())
+  .pipe(gulp.dest('admin/views/assets/stylesheets/lib'));
+});
+
 gulp.task('watch', function () {
   gulp.watch(scripts.src, ['concat']);
   gulp.watch(styles.src, ['sass']);
