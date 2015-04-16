@@ -15,14 +15,14 @@
     {{end}}
   </textarea>
 
-  {{if $value.URL}}
+  {{if $value}}
     {{if $value.IsImage}}
       <img class="qor-file-image" src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}">
 
       {{range $key, $v := $value.GetSizes}}
         <img src="{{$value.URL $key}}">
       {{end}}
-    {{else}}
+    {{else if $value.URL}}
       <a href="{{$value.URL}}">Download</a>
     {{end}}
   {{end}}
