@@ -253,6 +253,7 @@
   var NAMESPACE = '.qor.redactor',
       EVENT_CLICK = 'click' + NAMESPACE,
       EVENT_FOCUS = 'focus' + NAMESPACE,
+      EVENT_BLUR = 'blur' + NAMESPACE,
       EVENT_IMAGE_UPLOAD = 'imageupload' + NAMESPACE,
       EVENT_IMAGE_DELETE = 'imagedelete' + NAMESPACE,
       REGEXP_OPTIONS = /x|y|width|height/,
@@ -311,7 +312,10 @@
       }).on(EVENT_FOCUS, function (e) {
         console.log(e.type);
         $parent.find('img').off(EVENT_CLICK, click).on(EVENT_CLICK, click);
-      }).triggerHandler(EVENT_FOCUS);
+      }).on(EVENT_BLUR, function (e) {
+        console.log(e.type);
+        $parent.find('img').off(EVENT_CLICK, click);
+      });
 
       $('body').on(EVENT_CLICK, function () {
         _this.$button.off(EVENT_CLICK).detach();
@@ -470,6 +474,10 @@
 
         focusCallback: function (/*e*/) {
           $this.triggerHandler(EVENT_FOCUS);
+        },
+
+        blurCallback: function (/*e*/) {
+          $this.triggerHandler(EVENT_BLUR);
         },
 
         imageUploadCallback: function (/*image, json*/) {
