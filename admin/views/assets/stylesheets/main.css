@@ -38,6 +38,12 @@
 .form-control {
   border-radius: 0; }
 
+.input-group .input-group-addon:first-child {
+  border-radius: 0; }
+.input-group .input-group-addon:nth-child(3) {
+  border-left: 0;
+  border-right: 0; }
+
 .btn {
   border-radius: 0; }
   .btn:active, .btn.active {
