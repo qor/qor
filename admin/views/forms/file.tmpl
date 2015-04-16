@@ -8,12 +8,14 @@
       Choose
     </label>
   </div>
+
   <textarea class="qor-file-options hide" name="{{.InputName}}">
     {{if $value}}
       {{$value.Value}}
     {{end}}
   </textarea>
-  {{if $value}}
+
+  {{if $value.URL}}
     {{if $value.IsImage}}
       <img class="qor-file-image" src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}">
 
