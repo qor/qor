@@ -1,37 +1,54 @@
-<div class="table-responsive">
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        {{range $meta := index_metas}}
-          <th>{{$meta.Label}}</th>
+<div class="grid-switcher-wrapper">
+  
+</div>
+
+<div class="table clearfix">
+  <div class="thead">
+    <div class="thr-wrapper">
+      <ul class="clearfix thr-inner">
+        {{range $index, $meta := index_metas}}
+          <li class="fl th col-{{$index}}" data-col="col-{{$index}}">
+            <a href="javascript:;" title="{{$meta.Label}}">{{$meta.Label}}</a>
+          </li>
         {{end}}
+        <li class="fl th col-{{$index}}" data-col="col-act">
+          <a href="javascript:;" title="{{$meta.Label}}">Actions</a>
+        </li>
+      </ul>
+    </div>
+  </div>
 
-        <th>Actions</th>
-      </tr>
-    </thead>
+  <div class="tbody clearfix">
+    <!-- <div class="table-loader invisible">
+      <img src="/img/loader.gif">
+      <strong>Loading…</strong>
+    </div> -->
 
-    <tbody>
+    <ol class="clearfix orders" data-scope="{{.Result}}">
       {{range $resource := .Result}}
-        <tr>
+      <li data-id="order-{{$result.Id}}" id="order-{{$result.Id}}" class="order-item transition clearfix tr" {{if or (eq .State.State "confirmed") (eq .State.State "cancelled")}}state="{{.State.State}}"{{end}} data-cleaning="{{.Cleaning}}" data-due="{{.Due}}" data-inout="{{.InOut}}">
+        <div class="tr-inner clearfix">
           {{range $index, $meta := index_metas}}
             {{$text := value_of $resource $meta}}
-            <td>
+            <span class="fl td col-{{$index}}">
               {{if $index}}
                 {{$text}}
               {{else}}
                 {{link_to $text $resource}}
               {{end}}
-            </td>
+            </span>
           {{end}}
 
-          <td>
-            <form action="{{url_for $resource}}" method="POST" style="display:inline">
+          <span class="fl td col-act">
+            <form action="{{url_for $resource}}" method="POST">
               <input name="_method" value="DELETE" type="hidden">
               <button class="btn btn-xs btn-danger" type="submit">Delete</button>
             </form>
-          </td>
-        </tr>
+          </span>
+        </div>
+
+      </li>
       {{end}}
-    </tbody>
-  </table>
+    </ol>
+  </div>
 </div>

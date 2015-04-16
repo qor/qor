@@ -1,0 +1,64 @@
+@import '../../core/reset.css'
+@import '../../core/typography.css'
+@import '../../core/rhyme.css'
+@import url(http://fonts.googleapis.com/css?family=Poiret+One)
+@import 'global'
+
+.main
+  height: 100%
+  padding: 5.5rem 0 4rem 0
+  margin: -5.5rem 0 -4rem 0
+  box-sizing: border-box
+  .container
+    padding-top: 2rem
+    padding-bottom: 2rem
+
+.brand
+  display: block
+  margin: 0 auto
+  text-align: center
+  line-height: 4.2rem
+  font-family: 'Poiret One', cursive
+  font-size: 3.2rem
+
+.header
+  border-top: 3px #333 solid
+  padding-top: 1rem
+  font-family: 'Poiret One', cursive
+  &:after
+    content: ''
+    // position: absolute
+    // left: 0
+    // top: 0
+    border: 0
+    width: 100%
+    height: 0.1rem
+    background-image: -webkit-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.75), rgba(0,0,0,0))
+    background-image: -moz-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.75), rgba(0,0,0,0))
+    background-image: -ms-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.75), rgba(0,0,0,0))
+    background-image: -o-linear-gradient(left, rgba(0,0,0,0), rgba(0,0,0,0.75), rgba(0,0,0,0))
+    opacity: 0.5
+  .navbar
+    margin-bottom: 0
+    min-height: 0
+
+.footer
+  height: 4rem
+  line-height: 4rem
+  overflow: hidden
+
+#plus-wrapper
+  position: fixed
+  right: 2.4rem
+  bottom: 2.4rem
+  z-index: 7
+#plus
+  display: block
+  width: 5.6rem
+  height: 5.6rem
+  border-radius: 100%
+  background: #333 url(/admin/assets/images/plus.svg) no-repeat center center
+
+.lang-selector
+  display: none
+

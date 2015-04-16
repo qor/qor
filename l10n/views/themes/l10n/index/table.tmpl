@@ -1,54 +1,161 @@
 {{$context := .}}
+<div class="table clearfix">
+  <div class="thead">
+    <div class="thr-wrapper">
+      <ul class="clearfix thr-inner">
+        {{range $index, $meta := index_metas}}
+          <li class="th col-{{$index}}" data-col="col-{{$index}}">
+            <a href="javascript:;" title="{{$meta.Label}}">{{$meta.Label}}</a>
+          </li>
+        {{end}}
+        <li class="th col-lang" data-col="col-lang">
+          <a href="javascript:;" title="Languages">Languages</a>
+        </li>
+        <li class="th col-act" data-col="col-act">
+          <a href="javascript:;" title="Actions">Actions</a>
+        </li>
+      </ul>
+    </div>
+  </div>
 
-<div class="table-responsive">
-  <table class="table table-striped">
-    <thead>
-      {{range $meta := index_metas}}
-        <th>{{$meta.Label}}</th>
-      {{end}}
-      <th>Languages</th>
-      <th>Actions</th>
-    </thead>
+  <hr class="hair">
 
-    <tbody>
+  <div class="tbody clearfix">
+    <!-- <div class="table-loader invisible">
+      <img src="/img/loader.gif">
+      <strong>Loading…</strong>
+    </div> -->
+
+    <ol class="clearfix orders" data-scope="{{.Result}}">
       {{range $resource := .Result}}
-        <tr>
+      <li class="order-item transition clearfix tr">
+        <div class="tr-inner clearfix">
           {{range $index, $meta := index_metas}}
             {{$text := value_of $resource $meta}}
-            <td>
+            <span class="td col-{{$index}}">
               {{if $index}}
                 {{$text}}
               {{else}}
                 {{link_to $text $resource}}
               {{end}}
-            </td>
+            </span>
           {{end}}
 
-          <td>
-            <div class="label-group">
-              {{range $resource_locale := locales_of_resource $resource $context}}
-                <a class="label label-{{if $resource_locale.localized}}primary{{else}}default{{end}}" href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
-                  {{$resource_locale.locale}}
-                </a>
-              {{end}}
-            </div>
-          </td>
+          <span class="td col-lang">
+            {{range $resource_locale := locales_of_resource $resource $context}}
+              <a class="label label-{{if $resource_locale.localized}}primary{{else}}default{{end}}" href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
+                {{$resource_locale.locale}}
+              </a>
+            {{end}}
+          </span>
 
-          <td>
-            <form action="{{url_for $resource}}" method="POST" style="display:inline">
+          <span class="td col-act">
+            <form action="{{url_for $resource}}" method="POST">
               <input name="_method" value="DELETE" type="hidden">
               <button class="btn btn-xs btn-danger" type="submit">Delete</button>
             </form>
-          </td>
-        </tr>
-      {{end}}
-    </tbody>
-  </table>
-</div>
+          </span>
+        </div>
 
-<style>
-  /* move it to css file  */
-  .active, .localized {
-    font-weight: 700;
-  }
-</style>
+      </li>
+      {{end}}
+    </ol>
+
+    <ol class="clearfix orders">
+      <li class="order-item transition clearfix tr">
+        <div class="tr-inner clearfix">
+          <span class="td col-0">
+            1
+          </span>
+          <span class="td col-1">
+            1
+          </span>
+          <span class="td col-2">
+            1
+          </span>
+          <span class="td col-3">
+            1
+          </span>
+          <span class="td col-4">
+            1
+          </span>
+
+          <span class="td col-lang">
+            En
+          </span>
+
+          <span class="td col-act">
+            <form action="" method="POST">
+              <input name="_method" value="DELETE" type="hidden">
+              <button class="btn md md-delete" type="submit"></button>
+            </form>
+          </span>
+        </div>
+
+      </li>
+      <li class="order-item transition clearfix tr">
+        <div class="tr-inner clearfix">
+          <span class="td col-0">
+            2
+          </span>
+          <span class="td col-1">
+            2
+          </span>
+          <span class="td col-2">
+            2
+          </span>
+          <span class="td col-3">
+            2
+          </span>
+          <span class="td col-4">
+            2
+          </span>
+
+          <span class="td col-lang">
+            En
+          </span>
+
+          <span class="td col-act">
+            <form action="" method="POST">
+              <input name="_method" value="DELETE" type="hidden">
+              <button class="btn md md-delete" type="submit"></button>
+            </form>
+          </span>
+        </div>
+
+      </li>
+      <li class="order-item transition clearfix tr">
+        <div class="tr-inner clearfix">
+          <span class="td col-0">
+            3
+          </span>
+          <span class="td col-1">
+            3
+          </span>
+          <span class="td col-2">
+            3
+          </span>
+          <span class="td col-3">
+            3
+          </span>
+          <span class="td col-4">
+            3
+          </span>
+
+          <span class="td col-lang">
+            En
+          </span>
+
+          <span class="td col-act">
+            <form action="" method="POST">
+              <input name="_method" value="DELETE" type="hidden">
+              <button class="btn md md-delete" type="submit"></button>
+            </form>
+          </span>
+        </div>
+
+      </li>
+    </ol>
+
+  </div>
+</div>

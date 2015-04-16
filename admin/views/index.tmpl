@@ -1,9 +1,9 @@
-<div class="section">
+{{render "index/filter"}}
+
+{{render "index/table"}}
+
+<div class="section hidden">
   <div class="pull-left">
     <a class="btn btn-primary" href="{{new_resource_path .Resource}}">New</a>
   </div>
 </div>
-
-{{render "index/filter"}}
-
-{{render "index/table"}}

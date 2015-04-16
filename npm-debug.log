@@ -1,0 +1,92 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node',
+1 verbose cli   '/usr/local/bin/npm',
+1 verbose cli   'install',
+1 verbose cli   'material-design-iconic-font' ]
+2 info using npm@2.7.1
+3 info using node@v0.12.0
+4 verbose node symlink /usr/local/bin/node
+5 warn package.json qor3@0.0.0 No description
+6 warn package.json qor3@0.0.0 No README data
+7 silly cache add args [ 'material-design-iconic-font', null ]
+8 verbose cache add spec material-design-iconic-font
+9 silly cache add parsed spec { raw: 'material-design-iconic-font',
+9 silly cache add   scope: null,
+9 silly cache add   name: 'material-design-iconic-font',
+9 silly cache add   rawSpec: '',
+9 silly cache add   spec: '*',
+9 silly cache add   type: 'range' }
+10 verbose addNamed material-design-iconic-font@*
+11 silly addNamed semver.valid null
+12 silly addNamed semver.validRange *
+13 silly addNameRange { name: 'material-design-iconic-font',
+13 silly addNameRange   range: '*',
+13 silly addNameRange   hasData: false }
+14 silly mapToRegistry name material-design-iconic-font
+15 silly mapToRegistry using default registry
+16 silly mapToRegistry registry https://registry.npmjs.org/
+17 silly mapToRegistry uri https://registry.npmjs.org/material-design-iconic-font
+18 verbose addNameRange registry:https://registry.npmjs.org/material-design-iconic-font not in flight; fetching
+19 verbose request uri https://registry.npmjs.org/material-design-iconic-font
+20 verbose request no auth needed
+21 info attempt registry request try #1 at 16:44:53
+22 verbose request id 154753e90e941587
+23 http request GET https://registry.npmjs.org/material-design-iconic-font
+24 http 404 https://registry.npmjs.org/material-design-iconic-font
+25 verbose headers { date: 'Thu, 16 Apr 2015 08:44:53 GMT',
+25 verbose headers   server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+25 verbose headers   'content-type': 'application/json',
+25 verbose headers   'cache-control': 'max-age=0',
+25 verbose headers   'content-length': '51',
+25 verbose headers   'accept-ranges': 'bytes',
+25 verbose headers   via: '1.1 varnish',
+25 verbose headers   age: '0',
+25 verbose headers   'x-served-by': 'cache-nrt6135-NRT',
+25 verbose headers   'x-cache': 'MISS',
+25 verbose headers   'x-cache-hits': '0',
+25 verbose headers   'x-timer': 'S1429173893.767125,VS0,VE117',
+25 verbose headers   'keep-alive': 'timeout=10, max=50',
+25 verbose headers   connection: 'Keep-Alive' }
+26 silly get cb [ 404,
+26 silly get   { date: 'Thu, 16 Apr 2015 08:44:53 GMT',
+26 silly get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+26 silly get     'content-type': 'application/json',
+26 silly get     'cache-control': 'max-age=0',
+26 silly get     'content-length': '51',
+26 silly get     'accept-ranges': 'bytes',
+26 silly get     via: '1.1 varnish',
+26 silly get     age: '0',
+26 silly get     'x-served-by': 'cache-nrt6135-NRT',
+26 silly get     'x-cache': 'MISS',
+26 silly get     'x-cache-hits': '0',
+26 silly get     'x-timer': 'S1429173893.767125,VS0,VE117',
+26 silly get     'keep-alive': 'timeout=10, max=50',
+26 silly get     connection: 'Keep-Alive' } ]
+27 verbose stack Error: 404 Not Found: material-design-iconic-font
+27 verbose stack     at CachingRegistryClient.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:251:14)
+27 verbose stack     at Request._callback (/usr/local/lib/node_modules/npm/node_modules/npm-registry-client/lib/request.js:178:14)
+27 verbose stack     at Request.self.callback (/usr/local/lib/node_modules/npm/node_modules/request/request.js:344:22)
+27 verbose stack     at Request.emit (events.js:110:17)
+27 verbose stack     at Request.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:1239:14)
+27 verbose stack     at Request.emit (events.js:129:20)
+27 verbose stack     at IncomingMessage.<anonymous> (/usr/local/lib/node_modules/npm/node_modules/request/request.js:1187:12)
+27 verbose stack     at IncomingMessage.emit (events.js:129:20)
+27 verbose stack     at _stream_readable.js:908:16
+27 verbose stack     at process._tickCallback (node.js:355:11)
+28 verbose statusCode 404
+29 verbose pkgid material-design-iconic-font
+30 verbose cwd /Users/lancee/Yggdrasil/iWork/goyard/src/github.com/qor/qor
+31 error Darwin 13.4.0
+32 error argv "node" "/usr/local/bin/npm" "install" "material-design-iconic-font"
+33 error node v0.12.0
+34 error npm  v2.7.1
+35 error code E404
+36 error 404 Not Found: material-design-iconic-font
+36 error 404
+36 error 404 'material-design-iconic-font' is not in the npm registry.
+36 error 404 You should bug the author to publish it (or use the name yourself!)
+36 error 404 It was specified as a dependency of 'qor3'
+36 error 404
+36 error 404 Note that you can also install from a
+36 error 404 tarball, folder, http url, or git url.
+37 verbose exit [ 1, true ]
