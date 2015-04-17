@@ -69,14 +69,19 @@ func (res *Resource) finder(result interface{}, metaValues *resource.MetaValues,
 	return nil
 }
 
-func (admin *Admin) NewResource(value interface{}, config *Config) *Resource {
-	if config == nil {
-		config = &Config{}
+func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource {
+	var configuration *Config
+	if len(config) > 0 {
+		configuration = config[0]
+	}
+
+	if configuration == nil {
+		configuration = &Config{}
 	}
 
 	res := &Resource{
 		Resource:    *resource.New(value),
-		Config:      config,
+		Config:      configuration,
 		cachedMetas: &map[string][]*Meta{},
 		scopes:      map[string]*Scope{},
 		filters:     map[string]*Filter{},
@@ -84,12 +89,12 @@ func (admin *Admin) NewResource(value interface{}, config *Config) *Resource {
 	}
 	res.Finder = res.finder
 
-	if config.PageCount == 0 {
-		config.PageCount = 10
+	if configuration.PageCount == 0 {
+		configuration.PageCount = 10
 	}
 
-	if config.Name != "" {
-		res.Name = config.Name
+	if configuration.Name != "" {
+		res.Name = configuration.Name
 	} else if namer, ok := value.(ResourceNamer); ok {
 		res.Name = namer.ResourceName()
 	}
