@@ -51,6 +51,7 @@ func New(db *gorm.DB) *Publish {
 	db.Callback().Update().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production", SyncToProductionAfterUpdate)
 
+	db.Callback().RowQuery().Register("publish:set_table_in_draft_mode", SetTableAndPublishStatus(false))
 	db.Callback().Query().Before("gorm:query").Register("publish:set_table_in_draft_mode", SetTableAndPublishStatus(false))
 	return &Publish{DB: db}
 }
