@@ -3,12 +3,10 @@
   display: block;
   margin-top: 20px;
   margin-bottom: 20px;
-  position: relative;
-  background-color: #fafafa;
   max-width: 320px;
   max-height: 180px;
   overflow: hidden;
-  cursor: pointer;
+  background-color: #fafafa;
 
   > img {
     max-width: 100%;
@@ -58,8 +56,6 @@
 }
 
 .qor-cropper-modal {
-  z-index: 1055;
-
   .modal-header {
     border-bottom-color: #fafafa;
   }
@@ -80,6 +76,16 @@
   }
 }
 
-.modal-backdrop {
-  z-index: 1054;
+.qor-redactor-cropper {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  overflow: hidden;
+  background-color: #fafafa;
+
+  > img {
+    max-width: 100%;
+    max-height: 320px;
+    @include center-block;
+  }
 }

@@ -1,7 +1,8 @@
 package main
 
 import (
-	"time"
+	"fmt"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -12,40 +13,39 @@ import (
 )
 
 type CreditCard struct {
-	ID     int
+	gorm.Model
 	Number string
 	Issuer string
 }
 
 type Address struct {
-	ID       int
+	gorm.Model
 	UserId   int64
 	Address1 string
 	Address2 string
 }
 
 type Role struct {
-	ID   int
+	gorm.Model
 	Name string
 }
 
 type Language struct {
-	ID   int
+	gorm.Model
 	Name string
 }
 
 type User struct {
-	ID           int
+	gorm.Model
 	Name         string
 	Gender       string
-	Description  string
+	Description  string `sql:"size:622550"`
 	File         media_library.FileSystem
-	RoleID       int
+	RoleID       uint
 	Languages    []Language `gorm:"many2many:user_languages;"`
 	CreditCard   CreditCard
-	CreditCardID int
+	CreditCardID uint
 	Addresses    []Address
-	DeletedAt    time.Time
 	publish.Status
 }
 
@@ -66,12 +66,9 @@ func (u User) DisplayName() string {
 }
 
 type Product struct {
-	ID          int
+	gorm.Model
 	Name        *string
 	Description *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   time.Time
 	l10n.Locale
 	publish.Status
 }
@@ -81,10 +78,14 @@ var Publish *publish.Publish
 
 func init() {
 	var err error
-	// CREATE USER 'qor' IDENTIFIED BY 'qor';
+	// CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
 	// CREATE DATABASE qor_example;
-	// GRANT ALL PRIVILEGES ON qor_example.* TO 'qor';
-	DB, err = gorm.Open("mysql", "qor:qor@/qor_example?charset=utf8&parseTime=True&loc=Local")
+	// GRANT ALL PRIVILEGES ON qor_example.* TO 'qor'@'localhost';
+	dbuser, dbpwd := "qor", "qor"
+	if os.Getenv("WEB_ENV") == "online" {
+		dbuser, dbpwd = os.Getenv("DB_USER"), os.Getenv("DB_PWD")
+	}
+	DB, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@/qor_example?charset=utf8&parseTime=True&loc=Local", dbuser, dbpwd))
 	if err != nil {
 		panic(err)
 	}

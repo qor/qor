@@ -2,6 +2,7 @@ package admin
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -10,10 +11,34 @@ import (
 
 type scopeFunc func(db *gorm.DB, context *qor.Context) *gorm.DB
 
+type Pagination struct {
+	Total       int
+	Pages       int
+	CurrentPage int
+	PrePage     int
+}
+
 type Searcher struct {
 	*Context
-	scopes  []*Scope
-	filters map[string]string
+	scopes         []*Scope
+	filters        map[string]string
+	withPagination bool
+	Pagination     Pagination
+}
+
+func (s *Searcher) WithPagination() *Searcher {
+	s.withPagination = true
+	return s
+}
+
+func (s *Searcher) Page(num int) *Searcher {
+	s.Pagination.CurrentPage = num
+	return s
+}
+
+func (s *Searcher) PrePage(num int) *Searcher {
+	s.Pagination.PrePage = num
+	return s
 }
 
 func (s *Searcher) clone() *Searcher {
@@ -69,6 +94,7 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 			}
 		}
 	}
+
 	context.SetDB(db)
 	return context
 }
@@ -95,6 +121,34 @@ func (s *Searcher) parseContext() *qor.Context {
 	}
 
 	searcher.callScopes(context)
+
+	// pagination
+	db := context.GetDB()
+	tableName := db.NewScope(s.Resource.Value).TableName()
+	paginationDB := db.Table(tableName).Select("count(*) total").Model(s.Resource.Value)
+	context.SetDB(paginationDB)
+	s.Resource.CallSearcher(&s.Pagination, context)
+
+	if s.Pagination.CurrentPage == 0 {
+		if s.Context.Request != nil {
+			if page, err := strconv.Atoi(s.Context.Request.Form.Get("page")); err == nil {
+				s.Pagination.CurrentPage = page
+			}
+		}
+
+		if s.Pagination.CurrentPage == 0 {
+			s.Pagination.CurrentPage = 1
+		}
+	}
+
+	if s.Pagination.PrePage == 0 {
+		s.Pagination.PrePage = s.Resource.Config.PageCount
+	}
+
+	s.Pagination.Pages = (s.Pagination.Total-1)/s.Pagination.PrePage + 1
+
+	db = db.Limit(s.Pagination.PrePage).Offset((s.Pagination.CurrentPage - 1) * s.Pagination.PrePage)
+	context.SetDB(db)
 
 	return context
 }

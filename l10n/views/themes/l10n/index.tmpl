@@ -1,25 +1,36 @@
-<div class="section">
-  <div class="pull-left">
+<div class="section row">
+  <div class="col-sm-6">
     {{$resource := .Resource}}
     {{range $locale := createable_locales .}}
       <a class="btn btn-primary" href="{{new_resource_path $resource}}?locale={{$locale}}">{{printf "New %v" $locale}}</a>
     {{end}}
   </div>
-  <div class="pull-right dropdown lang-selector">
-    {{$current_locale := current_locale .}}
-    <a class="dropdown-toggle btn btn-primary" data-toggle="dropdown" href="javascript:void(0);" aria-expanded="false" role="button">
-      {{$current_locale}} <span class="caret"></span>
-    </a>
-    <ul class="dropdown-menu" role="menu">
-      {{range $locale := viewable_locales .}}
-        <li{{if (eq $current_locale $locale)}} class="active"{{end}}>
-          <a href="{{url_for $resource}}?locale={{$locale}}">{{$locale}}</a>
-        </li>
-      {{end}}
-    </ul>
+  <div class="col-sm-3">
+    <div class="pull-right dropdown lang-selector">
+      {{$current_locale := current_locale .}}
+      <a class="dropdown-toggle btn btn-primary" data-toggle="dropdown" href="javascript:void(0);" aria-expanded="false" role="button">
+        {{$current_locale}} <span class="caret"></span>
+      </a>
+      <ul class="dropdown-menu" role="menu">
+        {{range $locale := viewable_locales .}}
+          <li{{if (eq $current_locale $locale)}} class="active"{{end}}>
+            <a href="{{url_for $resource}}?locale={{$locale}}">{{$locale}}</a>
+          </li>
+        {{end}}
+      </ul>
+    </div>
+  </div>
+  <div class="col-sm-3">
+    <form class="search" role="form">
+      <div class="input-group">
+        <input type="search" class="form-control" name="keyword" placeholder="Search for...">
+        <span class="input-group-btn">
+          <button class="btn btn-primary" type="submit">Search</button>
+        </span>
+      </div>
+    </form>
   </div>
 </div>
 
-{{render "index/filter"}}
-
 {{render "index/table"}}
+{{render "index/pagination"}}

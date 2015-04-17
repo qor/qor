@@ -296,33 +296,70 @@ func (context *Context) StyleSheetTag(name string) string {
 	return fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name)
 }
 
+type Page struct {
+	Page       int
+	Current    bool
+	IsPrevious bool
+	IsNext     bool
+}
+
+func (context *Context) Pagination() []Page {
+	pagination := context.Searcher.Pagination
+	start := pagination.CurrentPage
+	if start-5 < 1 {
+		start = 1
+	}
+
+	end := start + 9
+	if end > pagination.Pages {
+		end = pagination.Pages
+	}
+
+	var pages []Page
+	if start > 1 {
+		pages = append(pages, Page{Page: start - 1, IsPrevious: true})
+	}
+
+	for i := start; i <= end; i++ {
+		pages = append(pages, Page{Page: i, Current: pagination.CurrentPage == i})
+	}
+
+	if end < pagination.Pages {
+		pages = append(pages, Page{Page: end + 1, IsNext: true})
+	}
+
+	return pages
+}
+
 func Equal(a, b interface{}) bool {
 	return reflect.DeepEqual(a, b)
 }
 
 func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
-		"current_user":      func() qor.CurrentUser { return context.CurrentUser },
 		"menus":             context.Admin.GetMenus,
+		"current_user":      func() qor.CurrentUser { return context.CurrentUser },
 		"render":            context.Render,
-		"primary_key_of":    context.PrimaryKeyOf,
+		"render_form":       context.RenderForm,
+		"url_for":           context.UrlFor,
+		"link_to":           context.LinkTo,
+		"new_resource_path": context.NewResourcePath,
+		"new_resource":      context.NewResource,
 		"is_new_record":     context.NewRecord,
 		"value_of":          context.ValueOf,
-		"url_for":           context.UrlFor,
-		"new_resource_path": context.NewResourcePath,
-		"link_to":           context.LinkTo,
-		"render_form":       context.RenderForm,
+		"primary_key_of":    context.PrimaryKeyOf,
 		"has_primary_key":   context.HasPrimaryKey,
-		"new_resource":      context.NewResource,
-		"all_metas":         context.AllMetas, // Resource Metas
+		"all_metas":         context.AllMetas,
 		"index_metas":       context.IndexMetas,
 		"edit_metas":        context.EditMetas,
 		"show_metas":        context.ShowMetas,
 		"new_metas":         context.NewMetas,
+		"pagination":        context.Pagination,
 		"javascript_tag":    context.JavaScriptTag,
 		"stylesheet_tag":    context.StyleSheetTag,
 		"equal":             Equal,
 	}
+
 	for key, value := range context.Admin.funcMaps {
 		funcMap[key] = value
 	}

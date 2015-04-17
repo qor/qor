@@ -70,7 +70,7 @@ func GetEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 func getLocaleFromContext(context *qor.Context) string {
 	if locale := context.Request.Form.Get("locale"); locale != "" {
 		if context.Writer != nil {
-			cookie := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0)}
+			cookie := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0), Path: "/"}
 			http.SetCookie(context.Writer, &cookie)
 		}
 		return locale
@@ -94,6 +94,8 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	if res.Config.Permission == nil {
 		res.Config.Permission = roles.NewPermission()
 	}
+
+	res.Meta(&admin.Meta{Name: "LanguageCode", Type: "hidden"})
 
 	res.Config.Theme = "l10n"
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
@@ -148,21 +150,17 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		return []string{}
 	})
 
-	type LanguageCode struct {
-		LanguageCode string
-	}
-
 	res.GetAdmin().RegisterFuncMap("locales_of_resource", func(resource interface{}, context admin.Context) []map[string]interface{} {
 		scope := context.GetDB().NewScope(resource)
-		var languageCodes []LanguageCode
-		context.GetDB().New().Model(resource).Select("language_code").Find(&languageCodes, fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue())
+		var languageCodes []string
+		context.GetDB().New().Model(resource).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
 
 		var results []map[string]interface{}
 		availableLocales := GetAvailableLocales(context.Request, context.CurrentUser)
 	OUT:
 		for _, locale := range availableLocales {
 			for _, localized := range languageCodes {
-				if locale == localized.LanguageCode {
+				if locale == localized {
 					results = append(results, map[string]interface{}{"locale": locale, "localized": true})
 					continue OUT
 				}

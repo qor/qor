@@ -3,10 +3,11 @@
 @import "layout";
 
 // Components
+@import "components/forms";
+@import "components/buttons";
 @import "components/navs";
 @import "components/navbar";
 @import "components/dropdowns";
-@import "components/buttons";
 @import "components/table";
 @import "components/pagination";
 @import "components/labels";
@@ -19,4 +20,5 @@
 // Views
 @import "views/qor-cropper";
 @import "views/qor-redactor";
+@import "views/qor-selector";
 @import "views/language";

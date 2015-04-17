@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/qor/qor"
@@ -39,7 +38,7 @@ func main() {
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if roles := []Role{}; !context.GetDB().Find(&roles).RecordNotFound() {
 				for _, role := range roles {
-					results = append(results, []string{strconv.Itoa(role.ID), role.Name})
+					results = append(results, []string{fmt.Sprintf("%v", role.ID), role.Name})
 				}
 			}
 			return
@@ -50,7 +49,7 @@ func main() {
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if languages := []Language{}; !context.GetDB().Find(&languages).RecordNotFound() {
 				for _, language := range languages {
-					results = append(results, []string{strconv.Itoa(language.ID), language.Name})
+					results = append(results, []string{fmt.Sprintf("%v", language.ID), language.Name})
 				}
 			}
 			return
@@ -74,7 +73,7 @@ func main() {
 		if request.Method == "POST" {
 			request.ParseForm()
 			if !DB.First(&user, "name = ?", request.Form.Get("username")).RecordNotFound() {
-				cookie := http.Cookie{Name: "userid", Value: strconv.Itoa(user.ID), Expires: time.Now().AddDate(1, 0, 0)}
+				cookie := http.Cookie{Name: "userid", Value: fmt.Sprintf("%v", user.ID), Expires: time.Now().AddDate(1, 0, 0)}
 				http.SetCookie(writer, &cookie)
 				writer.Write([]byte("<html><body>logged as `" + user.Name + "`, go <a href='/admin'>admin</a></body></html>"))
 			} else {

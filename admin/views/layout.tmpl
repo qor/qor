@@ -11,25 +11,21 @@
 
   <head>
     <title>Qor Admin</title>
-    <!-- {{stylesheet_tag "lib/bootstrap.min"}} -->
+    <!-- Stylesheets -->
+    {{stylesheet_tag "lib/bootstrap.min"}}
+    {{stylesheet_tag "lib/redactor.min"}}
     {{stylesheet_tag "lib/cropper.min"}}
-    {{stylesheet_tag "lib/redactor"}}
-    {{stylesheet_tag "fonts/material-design-iconic-font/css/material-design-iconic-font.min"}}
-    <!-- {{stylesheet_tag "main"}} -->
+    {{stylesheet_tag "lib/chosen.min"}}
+    {{stylesheet_tag "lib/bootstrap-datepicker3.standalone.min"}}
 
+    {{stylesheet_tag "fonts/material-design-iconic-font/css/material-design-iconic-font.min"}}
+    
+    <!-- {{stylesheet_tag "main"}} -->
+    
     {{stylesheet_tag "app"}}
 
-    {{javascript_tag "lib/jquery.min"}}
-    {{javascript_tag "lib/bootstrap.min"}}
-    {{javascript_tag "app"}}
-    {{javascript_tag "lib/cropper.min"}}
-    {{javascript_tag "lib/fugue"}}
-    {{javascript_tag "lib/redactor.min"}}
-    {{javascript_tag "main"}}
-    {{javascript_tag "app/clipper"}}
-    {{javascript_tag "app/redactor-clipper"}}
-    {{javascript_tag "application"}}
     {{javascript_tag "admin"}}
+
     <script type="text/javascript">
       WebFontConfig = {
         google: { families: [ 'Poiret+One::latin' ] }
@@ -44,6 +40,7 @@
         s.parentNode.insertBefore(wf, s);
       })();
     </script>
+
   </head>
 
   <body>
@@ -55,5 +52,14 @@
 
     <div id="plus-wrapper"><button id="plus"></button></div>
     {{template "footer" .}}
+
+    <!-- JavaScripts -->
+    {{javascript_tag "lib/jquery.min"}}
+    {{javascript_tag "lib/bootstrap.min"}}
+    {{javascript_tag "lib/redactor.min"}}
+    {{javascript_tag "lib/cropper.min"}}
+    {{javascript_tag "lib/chosen.jquery.min"}}
+    {{javascript_tag "lib/bootstrap-datepicker.min"}}
+    {{javascript_tag "main"}}
   </body>
 </html>

@@ -1,0 +1,20 @@
+//
+// Forms
+// --------------------------------------------------
+
+.form-control {
+  border-radius: 0;
+}
+
+.input-group {
+  .input-group-addon {
+    &:first-child {
+      border-radius: 0
+    }
+
+    &:nth-child(3) {
+      border-left: 0;
+      border-right: 0;
+    }
+  }
+}

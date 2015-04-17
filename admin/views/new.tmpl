@@ -1,8 +1,3 @@
-{{$result := .Result}}
-
 <h3 class="page-header">New {{.Resource.Name}}</h3>
 
-<form action="{{url_for .Resource}}" method="POST" enctype="multipart/form-data">
-  {{render_form .Result new_metas}}
-  <button class="btn btn-primary" type="submit">Save</button>
-</form>
+{{render "new/form"}}

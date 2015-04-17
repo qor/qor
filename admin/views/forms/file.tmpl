@@ -2,8 +2,19 @@
 
 <div class="form-group">
   <label for="{{.InputId}}">{{.Label}}</label>
-  <input class="qor-file-input" id="{{.InputId}}" name="{{.InputName}}" type="file">
-  <textarea class="qor-file-options hide" name="{{.InputName}}">{{if $value}}{{$value.Value}}{{end}}</textarea>
+  <div>
+    <label class="btn btn-primary">
+      <input class="qor-file-input sr-only" id="{{.InputId}}" name="{{.InputName}}" type="file">
+      Choose
+    </label>
+  </div>
+
+  <textarea class="qor-file-options hide" name="{{.InputName}}">
+    {{if $value}}
+      {{$value.Value}}
+    {{end}}
+  </textarea>
+
   {{if $value}}
     {{if $value.IsImage}}
       <img class="qor-file-image" src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}">
@@ -11,7 +22,7 @@
       {{range $key, $v := $value.GetSizes}}
         <img src="{{$value.URL $key}}">
       {{end}}
-    {{else}}
+    {{else if $value.URL}}
       <a href="{{$value.URL}}">Download</a>
     {{end}}
   {{end}}
