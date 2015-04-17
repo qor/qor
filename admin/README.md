@@ -1,25 +1,10 @@
-# Qor Admin
-
 ## Introduction
 
-## Features
-
-- CRUD
-- Search and filtering
-- Authentication
-- Authorization(detail)
-- Custom actions
-- Customizable view
-- Rich editor
-- Image crop
-- Integrate-able with [Publish](https://github.com/theplant/qor3/tree/master/publish)
-- Integrate-able with [l10n](https://github.com/theplant/qor3/tree/master/l10n)
-- JSON API supported
-- extend-able
+Qor admin provide easy-to-use interface for data management.
 
 ## Quick example
 
-Use 35 lines of code to have setup & run Qor admin.
+Use 35 lines of code to setup & run Qor admin.
 
     package main
 
@@ -59,6 +44,21 @@ Use 35 lines of code to have setup & run Qor admin.
 `go run main.go` and visit `localhost:9000/admin` to see the result !
 
 You can view [qor example](https://github.com/theplant/qor3/tree/master/example) for more detailed configuration example.
+
+## Features
+
+- CRUD of any resource
+- Search and filtering
+- Authentication
+- Authorization(detail)
+- Custom actions
+- Customizable view
+- Rich editor
+- Image crop
+- Integrate-able with [Publish](https://github.com/theplant/qor3/tree/master/publish)
+- Integrate-able with [l10n](https://github.com/theplant/qor3/tree/master/l10n)
+- JSON API supported
+- extend-able
 
 ## Documentation
 
