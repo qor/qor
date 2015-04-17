@@ -27,13 +27,13 @@
       <strong>Loading…</strong>
     </div> -->
 
-    <ol class="clearfix records" data-scope="{{.Result}}">
+    <ol class="clearfix records">
       {{range $resource := .Result}}
       <li class="record-item transition clearfix tr">
         <div class="tr-inner clearfix">
           {{range $index, $meta := index_metas}}
             {{$text := value_of $resource $meta}}
-            <span title="{{$meta}}" class="td col-{{$index}}">
+            <span title="{{$meta.Label}}" class="td col-{{$index}}">
               {{if $index}}
                 {{$text}}
               {{else}}
@@ -53,8 +53,8 @@
           <span class="td col-act">
             <form action="{{url_for $resource}}" method="POST">
               <input name="_method" value="DELETE" type="hidden">
-              <a class="btn btn-xs btn-primary" href="{{url_for $resource}}">Edit</a>
-              <button class="btn btn-xs btn-danger" data-confirm="Are you sure?" type="submit">Delete</button>
+              <a class="btn md md-edit" href="{{url_for $resource}}"></a>
+              <button class="btn md md-delete" type="submit" data-confirm="Are you sure?"></button>
             </form>
           </span>
         </div>
