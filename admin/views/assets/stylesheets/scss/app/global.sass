@@ -59,8 +59,9 @@ body
 
 // font: 400 16px/1.5 'Whitney SSm A', 'Whitney SSm B', sans-serif
 .table
-  margin: 2rem auto
+  // margin: 2rem auto
   font-size: 14px
+  &[state="list"]
   .md
     font-size: 2rem
     color: #777
@@ -97,3 +98,42 @@ body
     > *
       display: table-cell
 
+  &[state="grid"]
+    .thead
+      display: none
+    .tbody
+      font-size: 0
+      text-align: center
+    .tr-inner, .thr-wrapper
+      width: auto
+    .thr-inner, .tr-inner
+      display: block
+      > *
+        display: block
+    .tr
+      font-size: 1.6rem
+      display: inline-block
+      width: 25%
+      box-sizing: border-box
+      padding: 1rem 2rem
+      outline: 1px solid #EEE
+      outline-offset: -1px
+    .th, .td
+      text-align: left
+      &:last-child
+        padding-right: 0
+        text-align: left
+    .td
+      float: left
+      width: 50% !important
+      &:before
+        content: attr(title)': '
+      &.col-act::before
+        content: ''
+
+.trigger-wrapper
+  border: #777 solid 1px
+  border-radius: 0.4rem
+  .trigger
+    padding: 0.4rem 0.8rem
+    font-size: 2rem
