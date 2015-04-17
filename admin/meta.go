@@ -98,7 +98,6 @@ func (meta *Meta) updateMeta() {
 		nestedField = strings.Contains(meta.Alias, ".")
 		field       *gorm.Field
 		hasColumn   bool
-		valueType   string
 	)
 
 	if nestedField {
@@ -111,12 +110,12 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
+	var fieldType reflect.Type
 	if hasColumn {
-		ft := field.Field.Type()
-		for ft.Kind() == reflect.Ptr {
-			ft = ft.Elem()
+		fieldType = field.Field.Type()
+		for fieldType.Kind() == reflect.Ptr {
+			fieldType = fieldType.Elem()
 		}
-		valueType = ft.Kind().String()
 	}
 
 	// Set Meta Type
@@ -130,18 +129,17 @@ func (meta *Meta) updateMeta() {
 				meta.Type = "select_many"
 			}
 		} else {
-
-			switch valueType {
+			switch fieldType.Kind().String() {
 			case "string":
 				meta.Type = "string"
 			case "bool":
 				meta.Type = "checkbox"
 			default:
-				if regexp.MustCompile(`^(.*)?(u)?(int|float)(\d+)?`).MatchString(valueType) {
+				if regexp.MustCompile(`^(.*)?(u)?(int|float)(\d+)?`).MatchString(fieldType.Kind().String()) {
 					meta.Type = "number"
-				} else if _, ok := field.Field.Interface().(time.Time); ok {
+				} else if _, ok := reflect.New(fieldType).Interface().(*time.Time); ok {
 					meta.Type = "datetime"
-				} else if _, ok := field.Field.Addr().Interface().(media_library.MediaLibrary); ok {
+				} else if _, ok := reflect.New(fieldType).Interface().(*media_library.MediaLibrary); ok {
 					meta.Type = "file"
 				}
 			}
@@ -152,9 +150,9 @@ func (meta *Meta) updateMeta() {
 	if meta.Resource == nil {
 		if hasColumn && (field.Relationship != nil) {
 			var result interface{}
-			if valueType == "struct" {
+			if fieldType.Kind().String() == "struct" {
 				result = reflect.New(field.Field.Type()).Interface()
-			} else if valueType == "slice" {
+			} else if fieldType.Kind().String() == "slice" {
 				result = reflect.New(field.Field.Type().Elem()).Interface()
 			}
 			meta.Resource = meta.base.GetAdmin().NewResource(result, nil)

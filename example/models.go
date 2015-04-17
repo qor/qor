@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -39,6 +40,7 @@ type User struct {
 	gorm.Model
 	Name         string
 	Gender       string
+	Birthday     *time.Time
 	Description  string `sql:"size:622550"`
 	File         media_library.FileSystem
 	RoleID       uint
