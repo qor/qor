@@ -68,7 +68,7 @@
   };
 
   $(function () {
-    $('.main').data('qor', new Qor());
+    $('.main').data('qor', new Qor());    
   });
 
 });

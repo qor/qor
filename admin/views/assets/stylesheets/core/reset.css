@@ -124,7 +124,7 @@ a:hover {
 }
 
 a:focus {
-  outline: thin dotted;
+  /*outline: thin dotted;*/
 }
 
 ::-moz-focus-inner {

@@ -1,0 +1,214 @@
+html, body
+  font-size: 62.5%
+  height: 100%
+
+body
+  font: 1.4rem/1.5 "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Hiragino Kaku Gothic Pro", "Meiryo", sans-serif
+
+.container
+  // width: 102.4rem
+  margin: 0 auto
+  padding: 0 9.6rem
+
+.nav
+  font-size: 1.6rem
+  > .item
+    margin-right: 2em
+    position: relative
+    float: left
+    &:last-child
+      margin-right: 0
+  a
+    display: block
+    line-height: 4.2rem
+  .dropdown
+    &:hover
+      .dropdown-toggle
+        border: 1px solid #CCC
+        margin: -1px -13px
+        padding: 0 12px
+      .dropdown-menu
+        padding: 0 12px
+        background: #FFF
+        display: block
+        border: 1px solid #CCC
+        border-top-color: transparent
+        box-shadow: 0 0 4px rgba(0,0,0,0.25)
+
+  .dropdown-menu
+    position: absolute
+    top: 4.2rem
+    left: -13px
+    z-index: 2
+    min-width: 100%
+    display: none
+    border-radius: 0 0 2px 2px
+    a
+      display: block
+      padding: 0 12px
+      margin: 0 -12px
+      &:hover
+        background-color: #eee
+  .dropdown-toggle
+    border-bottom-color: transparent
+    border-radius: 2px 2px 0 0
+    position: relative
+    z-index: 3
+    background: #FFF
+
+.btn
+  background: none
+  border: 0
+
+.table-wrapper
+  padding: 0 9.6rem
+// font: 400 16px/1.5 'Whitney SSm A', 'Whitney SSm B', sans-serif
+table
+  margin-top: 1rem
+table, .table
+  // margin: 0 8rem
+  font-size: 14px
+  width: 100%
+  &[state="list"]
+  .md
+    font-size: 2rem
+    color: #777
+  .thead
+  .tbody
+  .th
+    padding: 2rem 0
+    font-weight: 500
+  .td
+    padding: 1rem 0
+    font-weight: 300
+  .th, .td
+    box-sizing: border-box
+    overflow: hidden
+    // white-space: nowrap
+    text-overflow: ellipsis
+    vertical-align: middle
+    &:last-child
+      padding-right: 0
+      text-align: right
+    &.col-act, &.col-lang
+      width: 80px !important
+  .tr
+    &:hover, &.cur
+      cursor: pointer
+      background-color: #FFE082
+  .thr-inner
+    width: 100%
+  .tr-inner, .thr-wrapper
+  .thr-inner, .tr-inner
+    display: table
+    > *
+      display: table-cell
+
+  &[state="grid"]
+    .thead, thead
+      display: none
+    .tbody, tbody
+      font-size: 0
+      text-align: center
+    .tr-inner, .thr-wrapper
+      width: auto
+    .thr-inner, .tr-inner
+      display: block
+      > *
+        display: block
+    .tr
+      font-size: 1.6rem
+      display: inline-block
+      width: 30%
+      margin-right: 5%
+      margin-bottom: 2.4rem
+      box-sizing: border-box
+      padding: 1rem 2rem
+      outline: 1px solid #CCC
+      outline-offset: -0.8rem
+      &:nth-child(3n), &:last-child
+        margin-right: 0
+    .th, .td
+      text-align: left
+      &:last-child
+        padding-right: 0
+        text-align: left
+    .td
+      float: left
+      display: block
+      width: 50% !important
+      &:before
+        content: attr(title)': '
+        display: block
+        font-size: 1.4rem
+        font-weight: 500
+      &.col-act::before
+        content: ''
+
+.trigger-wrapper
+  border: #777 solid 1px
+  border-radius: 0.2rem
+  .trigger
+    padding: 0.5rem 0.8rem
+    font-size: 2rem
+
+.pagination-wrapper
+  text-align: center
+
+.pagination
+  font-size: 1.8rem
+  margin-top: 8rem
+  display: inline-block
+  > *
+    font-family: Georgia, raleway
+    border-bottom: 1px solid #333
+    &.cur
+      margin-top: -0.8rem
+    a
+      display: block
+      padding: 0.8rem 1.6rem
+  .prev, .next
+    border-bottom: 0
+
+.copyright
+  font-family: 'Poiret One', cursive
+  font-size: 1.6rem
+  small
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Hiragino Kaku Gothic Pro", Meiryo, sans-serif
+    font-size: 1.2rem
+    margin-left: 0.5em
+
+.search-wrapper
+  // margin: 0.9rem 1.5rem 0 0
+  form
+    display: block
+    position: relative
+    width: 32rem
+    border: 1px solid #333
+    border-radius: 0.2rem
+  .md
+    font-size: 2rem
+    text-align: center
+    width: 4rem
+    height: 4rem
+    line-height: 4rem
+    position: absolute
+  .md-search
+    left: 0
+    top: 0
+  .md-close
+    right: 0
+    top: 0
+  input[type=search]
+    display: block
+    width: 24rem
+    line-height: 4rem
+    font-size: 1.8rem
+    margin: 0 4rem
+    padding: 0
+    box-shadow: none
+    border: 0
+    background-color: transparent
+
+.section.row
+  display: none

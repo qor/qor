@@ -12,23 +12,43 @@
   <head>
     <title>Qor Admin</title>
     <!-- Stylesheets -->
-    {{stylesheet_tag "lib/bootstrap.min"}}
+    <!-- {{stylesheet_tag "lib/bootstrap.min"}} -->
     {{stylesheet_tag "lib/redactor.min"}}
     {{stylesheet_tag "lib/cropper.min"}}
     {{stylesheet_tag "lib/chosen.min"}}
     {{stylesheet_tag "lib/bootstrap-datepicker3.standalone.min"}}
-    {{stylesheet_tag "main"}}
+
+    {{stylesheet_tag "fonts/css/material-design-iconic-font.min"}}
+    
+    <!-- {{stylesheet_tag "main"}} -->
+    
+    {{stylesheet_tag "app"}}
+
+    <script type="text/javascript">
+      WebFontConfig = {
+        google: { families: [ 'Poiret+One::latin' ] }
+      };
+      (function() {
+        var wf = document.createElement('script');
+        wf.src = ('https:' == document.location.protocol ? 'https' : 'http') +
+          '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+        wf.type = 'text/javascript';
+        wf.async = 'true';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(wf, s);
+      })();
+    </script>
+
   </head>
 
   <body>
     {{template "header" .}}
 
-    <div class="main user">
-      <div class="container">
-        {{.Content}}
-      </div>
+    <div class="main">
+      {{.Content}}
     </div>
 
+    <div id="plus-wrapper"><button id="plus"></button></div>
     {{template "footer" .}}
 
     <!-- JavaScripts -->
@@ -39,5 +59,6 @@
     {{javascript_tag "lib/chosen.jquery.min"}}
     {{javascript_tag "lib/bootstrap-datepicker.min"}}
     {{javascript_tag "main"}}
+    {{javascript_tag "admin"}}
   </body>
 </html>
