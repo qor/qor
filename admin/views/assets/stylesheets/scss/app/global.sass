@@ -6,15 +6,18 @@ body
   font: 1.4rem/1.5 "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Hiragino Kaku Gothic Pro", "Meiryo", sans-serif
 
 .container
-  width: 102.4rem
+  // width: 102.4rem
   margin: 0 auto
+  padding: 0 9.6rem
 
 .nav
   font-size: 1.6rem
   > .item
-    margin-left: 2em
+    margin-right: 2em
     position: relative
     float: left
+    &:last-child
+      margin-right: 0
   a
     display: block
     line-height: 4.2rem
@@ -57,10 +60,15 @@ body
   background: none
   border: 0
 
+.table-wrapper
+  padding: 0 9.6rem
 // font: 400 16px/1.5 'Whitney SSm A', 'Whitney SSm B', sans-serif
-.table
-  // margin: 2rem auto
+table
+  margin-top: 1rem
+table, .table
+  // margin: 0 8rem
   font-size: 14px
+  width: 100%
   &[state="list"]
   .md
     font-size: 2rem
@@ -76,7 +84,7 @@ body
   .th, .td
     box-sizing: border-box
     overflow: hidden
-    white-space: nowrap
+    // white-space: nowrap
     text-overflow: ellipsis
     vertical-align: middle
     &:last-child
@@ -91,17 +99,15 @@ body
   .thr-inner
     width: 100%
   .tr-inner, .thr-wrapper
-    width: 1024px
-    margin: 0 auto
   .thr-inner, .tr-inner
     display: table
     > *
       display: table-cell
 
   &[state="grid"]
-    .thead
+    .thead, thead
       display: none
-    .tbody
+    .tbody, tbody
       font-size: 0
       text-align: center
     .tr-inner, .thr-wrapper
@@ -113,11 +119,15 @@ body
     .tr
       font-size: 1.6rem
       display: inline-block
-      width: 25%
+      width: 30%
+      margin-right: 5%
+      margin-bottom: 2.4rem
       box-sizing: border-box
       padding: 1rem 2rem
-      outline: 1px solid #EEE
-      outline-offset: -1px
+      outline: 1px solid #CCC
+      outline-offset: -0.8rem
+      &:nth-child(3n), &:last-child
+        margin-right: 0
     .th, .td
       text-align: left
       &:last-child
@@ -125,9 +135,13 @@ body
         text-align: left
     .td
       float: left
+      display: block
       width: 50% !important
       &:before
         content: attr(title)': '
+        display: block
+        font-size: 1.4rem
+        font-weight: 500
       &.col-act::before
         content: ''
 
@@ -143,7 +157,7 @@ body
 
 .pagination
   font-size: 1.8rem
-  margin-top: 4rem
+  margin-top: 8rem
   display: inline-block
   > *
     font-family: Georgia, raleway
@@ -157,7 +171,7 @@ body
     border-bottom: 0
 
 .copyright
-  font-family: 'Poiret One',cursive
+  font-family: 'Poiret One', cursive
   font-size: 1.6rem
   small
     font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Hiragino Kaku Gothic Pro", Meiryo, sans-serif

@@ -1,6 +1,6 @@
 
 ;$(function() {
-  if ( $('.table').length && !$('.grid').length ) {
+  if ( $('.table').length ) {
     $('.table').each(function() {
       var self = this,
           $ths = $(this).find('.thr-inner .th');
@@ -17,6 +17,6 @@
 
   $('.grid-trigger-wrapper .trigger').on('click', function() {
     var state = $(this).attr('state');
-    $('.table').attr('state', state);
+    $('.table, table').attr('state', state);
   });
 });

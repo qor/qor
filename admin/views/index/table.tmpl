@@ -1,48 +1,41 @@
-<div class="table clearfix">
-  <div class="thead">
-    <div class="thr-wrapper">
-      <ul class="clearfix thr-inner">
-        {{range $index, $meta := index_metas}}
-          <li class="th col-{{$index}}" data-col="col-{{$index}}">
-            <a href="javascript:;" title="{{$meta.Label}}">{{$meta.Label}}</a>
-          </li>
-        {{end}}
-        <li class="th col-act" data-col="col-act">
-          <a href="javascript:;" title="Actions">Actions</a>
-        </li>
-      </ul>
-    </div>
-  </div>
-
-  <hr class="hair">
-
-  <div class="tbody clearfix">
-    <ol class="clearfix records">
-      {{range $resource := .Result}}
-      <li class="record-item transition clearfix tr">
-        <div class="tr-inner clearfix">
-          {{range $index, $meta := index_metas}}
-            {{$text := value_of $resource $meta}}
-            <span title="{{$meta.Label}}" class="td col-{{$index}}">
-              {{if $index}}
-                {{$text}}
-              {{else}}
-                {{link_to $text $resource}}
-              {{end}}
-            </span>
-          {{end}}
-
-          <span class="td col-act">
-            <form action="{{url_for $resource}}" method="POST">
-              <input name="_method" value="DELETE" type="hidden">
-              <a class="btn md md-edit" href="{{url_for $resource}}"></a>
-              <button class="btn md md-delete" type="submit" data-confirm="Are you sure?"></button>
-            </form>
-          </span>
-        </div>
-
-      </li>
+<div class="table-wrapper">
+<!-- <hr class="hair"> -->
+<table state="list">
+  <thead>
+    <tr>
+      {{range $index, $meta := index_metas}}
+        <th class="th col-{{$index}}" data-col="col-{{$index}}">
+          <a href="javascript:;" title="{{$meta.Label}}">{{$meta.Label}}</a>
+        </th>
       {{end}}
-    </ol>
-  </div>
+      <th class="th col-act" data-col="col-act">
+        <a href="javascript:;" title="Actions">Actions</a>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range $resource := .Result}}
+      <tr class="record-item tr transition">
+        {{range $index, $meta := index_metas}}
+          {{$text := value_of $resource $meta}}
+          <td title="{{$meta.Label}}" class="td col-{{$index}}">
+            {{if $index}}
+              {{$text}}
+            {{else}}
+              {{link_to $text $resource}}
+            {{end}}
+          </td>
+        {{end}}
+
+        <td class="td col-act">
+          <form action="{{url_for $resource}}" method="POST">
+            <input name="_method" value="DELETE" type="hidden">
+            <a class="btn md md-edit" href="{{url_for $resource}}"></a>
+            <button class="btn md md-delete" type="submit" data-confirm="Are you sure?"></button>
+          </form>
+        </td>
+      </tr>
+    {{end}}
+  </tbody>
+</table>
 </div>
