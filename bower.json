@@ -13,6 +13,8 @@
   "devDependencies": {
     "jquery": "~2.1.3",
     "bootstrap": "~3.3.4",
-    "bootstrap-sass": "~3.3.4"
+    "bootstrap-sass": "~3.3.4",
+    "bootstrap-datepicker": "~1.4.0",
+    "chosen": "~1.4.2"
   }
 }

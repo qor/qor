@@ -1,11 +1,11 @@
 <label for="{{.InputId}}">{{.Label}}</label>
 {{$meta := .Meta}}
 {{if .Value}}
-    {{range $index, $value := .Value }}
-      <fieldset>
-          {{render_form $value (edit_metas $meta.Resource) $index}}
-      </fieldset>
-    {{end}}
+  {{range $index, $value := .Value }}
+    <fieldset>
+      {{render_form $value (edit_metas $meta.Resource) $index}}
+    </fieldset>
+  {{end}}
 {{end}}
 
 <fieldset>

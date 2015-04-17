@@ -41,12 +41,14 @@ gulp.task('concat', function () {
   .pipe(gulp.dest(scripts.dest))
 });
 
-gulp.task('jsComponents', function () {
+gulp.task('jslib', function () {
   return gulp.src([
     'bower_components/jquery/dist/jquery.js',
     'bower_components/jquery/dist/jquery.min.js',
     'bower_components/bootstrap/dist/js/bootstrap.js',
-    'bower_components/bootstrap/dist/js/bootstrap.min.js'
+    'bower_components/bootstrap/dist/js/bootstrap.min.js',
+    'bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js',
+    'bower_components/chosen/chosen.jquery.min.js'
   ])
   .pipe(gulp.dest(scripts.lib))
 });
@@ -66,13 +68,31 @@ gulp.task('sass', function () {
   .pipe(gulp.dest(styles.dest))
 });
 
-gulp.task('cssComponents', ['fonts'], function () {
+gulp.task('fonts', function () {
+  return gulp.src([
+    'bower_components/bootstrap/fonts/*',
+  ])
+  .pipe(gulp.dest('admin/views/assets/fonts'))
+});
+
+gulp.task('csslib', ['fonts'], function () {
   return gulp.src([
     'bower_components/bootstrap/dist/css/bootstrap.css',
     'bower_components/bootstrap/dist/css/bootstrap.css.map',
-    'bower_components/bootstrap/dist/css/bootstrap.min.css'
+    'bower_components/bootstrap/dist/css/bootstrap.min.css',
+    'bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker3.standalone.min.css',
+    'bower_components/chosen/chosen-sprite.png',
+    'bower_components/chosen/chosen-sprite@2x.png',
+    'bower_components/chosen/chosen.min.css'
   ])
   .pipe(gulp.dest(styles.lib))
+});
+
+gulp.task('redactor', function () {
+  return gulp.src('admin/views/assets/stylesheets/lib/redactor.css')
+  .pipe(plugins.rename('redactor.min.css'))
+  .pipe(plugins.minifyCss())
+  .pipe(gulp.dest('admin/views/assets/stylesheets/lib'));
 });
 
 gulp.task('watch', function () {
