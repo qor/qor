@@ -1,20 +1,12 @@
-<div class="section row">
-  <div class="col-sm-9">
-    <a class="btn btn-primary" href="{{new_resource_path .Resource}}">New</a>
+<form class="search" role="form">
+  <div class="input-group">
+    <input type="search" class="form-control" name="keyword" placeholder="Search for...">
+    <span class="input-group-btn">
+      <button class="btn btn-primary" type="submit">Search</button>
+    </span>
   </div>
-  <div class="col-sm-3">
-    <form class="search" role="form">
-      <div class="input-group">
-        <input type="search" class="form-control" name="keyword" placeholder="Search for...">
-        <span class="input-group-btn">
-          <button class="btn btn-primary" type="submit">Search</button>
-        </span>
-      </div>
-    </form>
-  </div>
-</div>
+</form>
 
 {{render "index/filter"}}
 {{render "index/table"}}
-
 {{render "index/pagination"}}

@@ -1,5 +1,29 @@
-<nav class="clearfix">
-  <ul class="pull-right pagination">
+<nav class="clearfix pagination-wrapper">
+  <ul class="pagination clearfix">
+    <li class="fl prev">
+      <a href="" aria-label="Previous">
+        <span class="md md-chevron-left" aria-hidden="true"></span>
+      </a>
+    </li>
+    <li class="fl"><a href="">1</a></li>
+    <li class="fl"><a href="">2</a></li>
+    <li class="fl cur"><a href="">3</a></li>
+    <li class="fl"><a href="">4</a></li>
+    <li class="fl"><a href="">5</a></li>
+    <li class="fl"><a href="">6</a></li>
+    <li class="fl"><a href="">7</a></li>
+    <li class="fl"><a href="">8</a></li>
+    <li class="fl next">
+      <a href="" aria-label="Next">
+        <span class="md md-chevron-right" aria-hidden="true"></span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+
+<!-- <nav class="clearfix">
+  <ul class="pagination">
     {{range $index, $page := pagination}}
       {{if $page.IsPrevious}}
         <li>
@@ -21,3 +45,4 @@
     {{end}}
   </ul>
 </nav>
+ -->

@@ -133,7 +133,68 @@ body
 
 .trigger-wrapper
   border: #777 solid 1px
-  border-radius: 0.4rem
+  border-radius: 0.2rem
   .trigger
-    padding: 0.4rem 0.8rem
+    padding: 0.5rem 0.8rem
     font-size: 2rem
+
+.pagination-wrapper
+  text-align: center
+
+.pagination
+  font-size: 1.8rem
+  margin-top: 4rem
+  display: inline-block
+  > *
+    font-family: Georgia, raleway
+    border-bottom: 1px solid #333
+    &.cur
+      margin-top: -0.8rem
+    a
+      display: block
+      padding: 0.8rem 1.6rem
+  .prev, .next
+    border-bottom: 0
+
+.copyright
+  font-family: 'Poiret One',cursive
+  font-size: 1.6rem
+  small
+    font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Hiragino Kaku Gothic Pro", Meiryo, sans-serif
+    font-size: 1.2rem
+    margin-left: 0.5em
+
+.search-wrapper
+  // margin: 0.9rem 1.5rem 0 0
+  form
+    display: block
+    position: relative
+    width: 32rem
+    border: 1px solid #333
+    border-radius: 0.2rem
+  .md
+    font-size: 2rem
+    text-align: center
+    width: 4rem
+    height: 4rem
+    line-height: 4rem
+    position: absolute
+  .md-search
+    left: 0
+    top: 0
+  .md-close
+    right: 0
+    top: 0
+  input[type=search]
+    display: block
+    width: 24rem
+    line-height: 4rem
+    font-size: 1.8rem
+    margin: 0 4rem
+    padding: 0
+    box-shadow: none
+    border: 0
+    background-color: transparent
+
+.section.row
+  display: none
