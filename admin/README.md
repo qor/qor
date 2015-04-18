@@ -43,7 +43,7 @@ Use 35 lines of code to setup & run Qor admin.
 
 `go run main.go` and visit `localhost:9000/admin` to see the result !
 
-You can view [qor example](https://github.com/theplant/qor3/tree/master/example) for more detailed configuration example.
+You can view [qor example](https://github.com/theplant/qor3/tree/master/example) for a more detailed configuration example.
 
 ## Features
 
@@ -58,7 +58,7 @@ You can view [qor example](https://github.com/theplant/qor3/tree/master/example)
 - Integrate-able with [Publish](https://github.com/theplant/qor3/tree/master/publish)
 - Integrate-able with [l10n](https://github.com/theplant/qor3/tree/master/l10n)
 - JSON API supported
-- extend-able
+- Extendable
 
 ## Documentation
 
