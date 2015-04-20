@@ -1,48 +1,23 @@
 <nav class="clearfix pagination-wrapper">
   <ul class="pagination clearfix">
-    <li class="fl prev">
-      <a href="" aria-label="Previous">
-        <span class="md md-chevron-left" aria-hidden="true"></span>
-      </a>
-    </li>
-    <li class="fl"><a href="">1</a></li>
-    <li class="fl"><a href="">2</a></li>
-    <li class="fl cur"><a href="">3</a></li>
-    <li class="fl"><a href="">4</a></li>
-    <li class="fl"><a href="">5</a></li>
-    <li class="fl"><a href="">6</a></li>
-    <li class="fl"><a href="">7</a></li>
-    <li class="fl"><a href="">8</a></li>
-    <li class="fl next">
-      <a href="" aria-label="Next">
-        <span class="md md-chevron-right" aria-hidden="true"></span>
-      </a>
-    </li>
-  </ul>
-</nav>
-
-
-<!-- <nav class="clearfix">
-  <ul class="pagination">
     {{range $index, $page := pagination}}
       {{if $page.IsPrevious}}
-        <li>
+        <li class="fl prev">
           <a href="?page={{$page.Page}}" aria-label="Previous">
-            <span aria-hidden="true">&laquo;</span>
+            <span class="md md-chevron-left" aria-hidden="true"></span>
           </a>
         </li>
       {{else if $page.IsNext}}
-        <li>
+        <li class="fl next">
           <a href="?page={{$page.Page}}" aria-label="Next">
-            <span aria-hidden="true">&laquo;</span>
+            <span class="md md-chevron-right" aria-hidden="true"></span>
           </a>
         </li>
       {{else if $page.Current}}
-        <li class="active"><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
+        <li class="fl cur"><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
       {{else}}
-        <li><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
+        <li class="fl"><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
       {{end}}
     {{end}}
   </ul>
 </nav>
- -->
