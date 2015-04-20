@@ -3,10 +3,10 @@ package admin
 import "path"
 
 type Menu struct {
-	Name    string
-	rawPath string
-	Link    string
-	Items   []*Menu
+	Name     string
+	rawPath  string
+	Link     string
+	SubMenus []*Menu
 }
 
 func (admin Admin) GetMenus() []*Menu {
@@ -27,8 +27,8 @@ func getMenu(menus []*Menu, name string) *Menu {
 			return m
 		}
 
-		if len(m.Items) > 0 {
-			if mc := getMenu(m.Items, name); mc != nil {
+		if len(m.SubMenus) > 0 {
+			if mc := getMenu(m.SubMenus, name); mc != nil {
 				return mc
 			}
 		}
@@ -47,8 +47,8 @@ func prefixMenuLinks(menus []*Menu, prefix string) {
 		if m.rawPath != "" {
 			m.Link = path.Join(prefix, m.rawPath)
 		}
-		if len(m.Items) > 0 {
-			prefixMenuLinks(m.Items, prefix)
+		if len(m.SubMenus) > 0 {
+			prefixMenuLinks(m.SubMenus, prefix)
 		}
 	}
 }
@@ -58,7 +58,7 @@ func newMenu(menus []string, res *Resource) (menu *Menu) {
 
 	menuCount := len(menus)
 	for index, _ := range menus {
-		menu = &Menu{Name: menus[menuCount-index-1], Items: []*Menu{menu}}
+		menu = &Menu{Name: menus[menuCount-index-1], SubMenus: []*Menu{menu}}
 	}
 
 	return
@@ -72,9 +72,9 @@ func appendMenu(menus []*Menu, resMenus []string, res *Resource) []*Menu {
 			}
 
 			if len(resMenus) > 1 {
-				m.Items = appendMenu(m.Items, resMenus[1:], res)
+				m.SubMenus = appendMenu(m.SubMenus, resMenus[1:], res)
 			} else {
-				m.Items = append(m.Items, newMenu(nil, res))
+				m.SubMenus = append(m.SubMenus, newMenu(nil, res))
 			}
 			return menus
 		}

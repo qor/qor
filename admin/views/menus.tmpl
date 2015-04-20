@@ -1,11 +1,11 @@
 {{range .Result}}
-  {{if .Items}}
+  {{if .SubMenus}}
     <li class="dropdown" role="presentation">
       <a class="dropdown-toggle" href="{{.Link}}" aria-expanded="false" role="button">
         {{.Name}} <span class="caret"></span>
       </a>
       <ul class="dropdown-menu" role="menu">
-        {{render "menus" .Items}}
+        {{render "menus" .SubMenus}}
       </ul>
     </li>
   {{else}}
