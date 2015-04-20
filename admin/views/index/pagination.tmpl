@@ -1,5 +1,5 @@
-<nav class="clearfix pagination-wrapper">
-  <ul class="pagination">
+<nav class="pagination-wrapper">
+  <ul class="pagination clearfix">
     {{range $index, $page := pagination}}
       {{if $page.IsPrevious}}
         <li>
@@ -21,28 +21,3 @@
     {{end}}
   </ul>
 </nav>
-
-<!-- <nav class="clearfix">
-  <ul class="pagination">
-    {{range $index, $page := pagination}}
-      {{if $page.IsPrevious}}
-        <li>
-          <a href="?page={{$page.Page}}" aria-label="Previous">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-        </li>
-      {{else if $page.IsNext}}
-        <li>
-          <a href="?page={{$page.Page}}" aria-label="Next">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-        </li>
-      {{else if $page.Current}}
-        <li class="active"><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
-      {{else}}
-        <li><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
-      {{end}}
-    {{end}}
-  </ul>
-</nav>
- -->
