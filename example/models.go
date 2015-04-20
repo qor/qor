@@ -75,6 +75,22 @@ type Product struct {
 	publish.Status
 }
 
+type Order struct {
+	gorm.Model
+	UserID     uint
+	Status     string
+	Amount     float64
+	OrderItems []OrderItem
+}
+
+type OrderItem struct {
+	gorm.Model
+	OrderID   uint
+	ProductID uint
+	Price     float64
+	Quantity  uint
+}
+
 var DB gorm.DB
 var Publish *publish.Publish
 
@@ -92,7 +108,7 @@ func init() {
 		panic(err)
 	}
 
-	DB.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &admin.AssetManager{})
+	DB.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &Order{}, &OrderItem{}, &admin.AssetManager{})
 
 	Publish = publish.New(&DB)
 	Publish.Support(&Product{}).AutoMigrate()
