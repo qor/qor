@@ -9,6 +9,9 @@
             <a href="javascript:;" title="{{$meta.Label}}">{{$meta.Label}}</a>
           </th>
         {{end}}
+        <th class="th col-lang" data-col="col-lang">
+          <a href="javascript:;" title="Languages">Languages</a>
+        </th>
         <th class="th col-act" data-col="col-act">
           <a href="javascript:;" title="Actions">Actions</a>
         </th>
@@ -28,7 +31,7 @@
             </td>
           {{end}}
 
-          <td class="td">
+          <td class="td col-lang">
             {{range $resource_locale := locales_of_resource $resource $context}}
               <a class="label label-{{if $resource_locale.localized}}primary{{else}}default{{end}}" href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
                 {{$resource_locale.locale}}

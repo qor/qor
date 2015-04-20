@@ -15,3 +15,4 @@ _*
 *.js.map
 *.min.map
 .sass-cache
+npm-debug.log

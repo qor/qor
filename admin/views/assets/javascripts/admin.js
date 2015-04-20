@@ -18,5 +18,9 @@
   $('.grid-trigger-wrapper .trigger').on('click', function() {
     var state = $(this).attr('state');
     $('.table, table').attr('state', state);
+
+    $('.grid-trigger-wrapper .trigger').removeClass('cur');
+
+    $(this).addClass('cur');
   });
 });
