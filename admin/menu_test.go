@@ -46,26 +46,26 @@ func TestMenu(t *testing.T) {
 	menus = appendMenu(menus, res4.Config.Menu, res4)
 	menus = appendMenu(menus, res5.Config.Menu, res5)
 	menus = appendMenu(menus, res6.Config.Menu, res6)
-	relinkMenus(menus, "/admin")
+	prefixMenuLinks(menus, "/admin")
 
 	expect := []*Menu{
 		&Menu{Name: "menu1", Items: []*Menu{
 			&Menu{Name: "menu1-1", Items: []*Menu{
 				&Menu{Name: "menu1-1-1", Items: []*Menu{
-					&Menu{Name: res7.Name, params: "res7", Link: "/admin/res7"},
+					&Menu{Name: res7.Name, rawPath: "res7", Link: "/admin/res7"},
 				}},
-				&Menu{Name: res3.Name, params: "res3", Link: "/admin/res3"},
+				&Menu{Name: res3.Name, rawPath: "res3", Link: "/admin/res3"},
 			}},
-			&Menu{Name: res1.Name, params: "res1", Link: "/admin/res1"},
-			&Menu{Name: res2.Name, params: "res2", Link: "/admin/res2"},
+			&Menu{Name: res1.Name, rawPath: "res1", Link: "/admin/res1"},
+			&Menu{Name: res2.Name, rawPath: "res2", Link: "/admin/res2"},
 			&Menu{Name: "menu1-2", Items: []*Menu{
-				&Menu{Name: res6.Name, params: "res6", Link: "/admin/res6"},
+				&Menu{Name: res6.Name, rawPath: "res6", Link: "/admin/res6"},
 			}},
 		}},
 		&Menu{Name: "menu2", Items: []*Menu{
-			&Menu{Name: res4.Name, params: "res4", Link: "/admin/res4"},
+			&Menu{Name: res4.Name, rawPath: "res4", Link: "/admin/res4"},
 		}},
-		&Menu{Name: res5.Name, params: "res5", Link: "/admin/res5"},
+		&Menu{Name: res5.Name, rawPath: "res5", Link: "/admin/res5"},
 	}
 
 	if !reflect.DeepEqual(expect, menus) {

@@ -3,10 +3,10 @@ package admin
 import "path"
 
 type Menu struct {
-	Name   string
-	params string
-	Link   string
-	Items  []*Menu
+	Name    string
+	rawPath string
+	Link    string
+	Items   []*Menu
 }
 
 func (admin Admin) GetMenus() []*Menu {
@@ -37,23 +37,24 @@ func getMenu(menus []*Menu, name string) *Menu {
 	return nil
 }
 
-func (admin *Admin) linkMenus() {
-	relinkMenus(admin.menus, admin.router.Prefix)
+// Generate menu links by current route. e.g "/products" to "/admin/products"
+func (admin *Admin) generateMenuLinks() {
+	prefixMenuLinks(admin.menus, admin.router.Prefix)
 }
 
-func relinkMenus(menus []*Menu, prefix string) {
+func prefixMenuLinks(menus []*Menu, prefix string) {
 	for _, m := range menus {
-		if m.params != "" {
-			m.Link = path.Join(prefix, m.params)
+		if m.rawPath != "" {
+			m.Link = path.Join(prefix, m.rawPath)
 		}
 		if len(m.Items) > 0 {
-			relinkMenus(m.Items, prefix)
+			prefixMenuLinks(m.Items, prefix)
 		}
 	}
 }
 
 func newMenu(menus []string, res *Resource) (menu *Menu) {
-	menu = &Menu{params: res.ToParam(), Name: res.Name}
+	menu = &Menu{rawPath: res.ToParam(), Name: res.Name}
 
 	menuCount := len(menus)
 	for index, _ := range menus {
