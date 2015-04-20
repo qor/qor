@@ -4,8 +4,9 @@ html, body
 
 body
   font: 1.4rem/1.5 "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Hiragino Kaku Gothic Pro", "Meiryo", sans-serif
+  background: #F0F0F0
 
-.container
+.wrapper
   // width: 102.4rem
   margin: 0 auto
   padding: 0 9.6rem
@@ -18,9 +19,12 @@ body
     float: left
     &:last-child
       margin-right: 0
-  a
-    display: block
-    line-height: 4.2rem
+    a
+      display: block
+      line-height: 4.2rem
+      padding: 0
+      &:hover
+        background: none
   .dropdown
     &:hover
       .dropdown-toggle
@@ -32,17 +36,22 @@ body
         background: #FFF
         display: block
         border: 1px solid #CCC
-        border-top-color: transparent
+        border-top: 0
         box-shadow: 0 0 4px rgba(0,0,0,0.25)
+        box-sizing: content-box
 
   .dropdown-menu
     position: absolute
-    top: 4.2rem
-    left: -13px
+    top: 4.3rem
+    left: -1.3rem
     z-index: 2
     min-width: 100%
     display: none
     border-radius: 0 0 2px 2px
+    float: none
+    padding: 0
+    margin: 0
+    font-size: inherit
     a
       display: block
       padding: 0 12px
@@ -54,7 +63,7 @@ body
     border-radius: 2px 2px 0 0
     position: relative
     z-index: 3
-    background: #FFF
+    background: transparent
 
 .btn
   background: none
@@ -92,6 +101,8 @@ table, .table
       text-align: right
     &.col-act, &.col-lang
       width: 80px !important
+      .btn
+        padding: 0
   .tr
     &:hover, &.cur
       cursor: pointer
@@ -159,9 +170,8 @@ table, .table
 
 .pagination
   font-size: 1.8rem
-  margin-top: 8rem
   display: inline-block
-  > *
+  > li
     font-family: Georgia, raleway
     border-bottom: 1px solid #333
     &.cur
@@ -169,6 +179,14 @@ table, .table
     a
       display: block
       padding: 0.8rem 1.6rem
+      border: 0
+      border-radius: 0
+      color: #777
+      float: none
+      background: transparent
+      &:hover
+        color: #777
+        background: transparent
   .prev, .next
     border-bottom: 0
 
