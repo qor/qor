@@ -41,6 +41,7 @@ Use 35 lines of code to setup & run Qor admin.
       http.ListenAndServe(":9000", mux)
     }
 
+// TODO: add screenshot after QOR admin UI finished
 `go run main.go` and visit `localhost:9000/admin` to see the result !
 
 You can view [qor example](https://github.com/theplant/qor3/tree/master/example) for a more detailed configuration example.
