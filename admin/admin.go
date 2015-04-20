@@ -105,8 +105,8 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 	return res
 }
 
-func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
-	res := admin.NewResource(value, config)
+func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource {
+	res := admin.NewResource(value, config...)
 
 	if !res.Config.Invisible {
 		admin.menus = appendMenu(admin.menus, res.Config.Menu, res)

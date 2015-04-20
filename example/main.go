@@ -59,10 +59,10 @@ func main() {
 	Admin.AddResource(&Language{}, &admin.Config{Menu: []string{"User Management"}})
 	Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
 
-	assetManager := Admin.AddResource(&admin.AssetManager{}, nil)
+	assetManager := Admin.AddResource(&admin.AssetManager{})
 	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: assetManager})
 
-	Admin.AddResource(Publish, nil)
+	Admin.AddResource(Publish)
 
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)
