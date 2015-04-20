@@ -1,39 +1,24 @@
-### Database
----
+Setup usable Admin step by step.
 
-  Only accept https://github.com/jinzhu/gorm. "mysql", "sqlite", "postgresql" are supported by gorm
+### 1. Database
+Use [gorm](https://github.com/jinzhu/gorm) as ORM for example.
 
-  Initialize db by
+      DB, _ := gorm.Open("sqlite3", "demo.db")
+      DB.AutoMigrate(&User{}, &Product{})
 
-      DB, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=True&loc=Local", dbUser, dbPwd, dbName))
+### 2. Initialize admin and register resources to it.
 
-### Initialize Admin
----
+      Admin := admin.New(&qor.Config{DB: &DB})
+      Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
+      Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
 
-      config := qor.Config{DB: &DB}
-      Admin := admin.New(&config)
+### 3. Authentication
+[Authentication]()
 
-### Add resource
----
+### 4. Register route and start server
 
-  AddResource function accept 2 parameters
+      mux := http.NewServeMux()
+      Admin.MountTo("/admin", mux)
+      http.ListenAndServe(":9000", mux)
 
-  1. resource
-  2. menu that link to this resource
-
-      user := Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
-
-### Route
----
-
-  Initialize a mux and mount Admin to it.
-
-    mux := http.NewServeMux()
-    Admin.MountTo("/admin", mux)
-
-### Server
----
-
-  Listen and serve and you're done !
-
-    http.ListenAndServe(":9000", mux)
+Now a run-able admin has been created. You can start adding [Navigation](), [Roles](), Configure [Field](), [Filter](), [Search]() and [Localization]().
