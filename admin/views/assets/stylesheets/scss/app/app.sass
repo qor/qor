@@ -1,15 +1,15 @@
 @import '../../core/reset.css'
 @import '../../core/typography.css'
 @import '../../core/rhyme.css'
-@import url(http://fonts.googleapis.com/css?family=Poiret+One)
+
 @import 'global'
 
 .main
   min-height: 100%
-  padding: 5.5rem 0 9.6rem 0
-  margin: -5.5rem 0 -9.6rem 0
+  padding: 5.7rem 0 5.6rem 0
+  margin: -5.7rem 0 -5.6rem 0
   box-sizing: border-box
-  .container
+  .container, .wrapper
     padding-top: 2rem
     padding-bottom: 2rem
 
@@ -18,18 +18,14 @@
   margin: 0 auto
   text-align: center
   line-height: 4.2rem
-  font-family: 'Poiret One', cursive
+  font-family: Existence, 'Poiret One', 'Code Light'
   font-size: 3.2rem
 
 .header
   border-top: 3px #333 solid
   padding-top: 1rem
-  font-family: 'Poiret One', cursive
   &:after
     content: ''
-    // position: absolute
-    // left: 0
-    // top: 0
     border: 0
     width: 100%
     height: 0.1rem
@@ -43,8 +39,8 @@
     min-height: 0
 
 .footer
-  height: 9.6rem
-  line-height: 9.6rem
+  height: 5.6rem
+  line-height: 5.6rem
   overflow: hidden
 
 #plus-wrapper
@@ -60,6 +56,32 @@
   box-shadow: 0 0 0.8rem -0.1rem rgba(0,0,0,0.25)
   background: #333 url(/admin/assets/images/plus.svg) no-repeat center center
 
-.lang-selector
-  display: none
+.modal-footer .btn+.btn
+  margin-left: 1.6rem
 
+.lang-selector
+  .dropdown-toggle
+    height: 4.1rem
+    line-height: 4.1rem
+    margin-right: 2.4rem
+    border: 1px solid #333
+    border-radius: .2rem
+    display: block
+    text-align: center
+    min-width: 8rem
+.open > .btn-primary.dropdown-toggle
+  background-color: #FFF
+  border-color: #FFF
+  color: #333
+.dropdown-menu
+  & > li > a
+    padding: 1rem 2rem
+  & > .active > a
+    background-color: $highlight
+    color: #333
+    &:hover
+      background-color: $highlight
+      color: #333
+.dropdown-menu
+  border-radius: 0.2rem
+  left: -0.1rem
