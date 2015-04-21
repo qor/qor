@@ -69,14 +69,19 @@ func (res *Resource) finder(result interface{}, metaValues *resource.MetaValues,
 	return nil
 }
 
-func (admin *Admin) NewResource(value interface{}, config *Config) *Resource {
-	if config == nil {
-		config = &Config{}
+func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource {
+	var configuration *Config
+	if len(config) > 0 {
+		configuration = config[0]
+	}
+
+	if configuration == nil {
+		configuration = &Config{}
 	}
 
 	res := &Resource{
 		Resource:    *resource.New(value),
-		Config:      config,
+		Config:      configuration,
 		cachedMetas: &map[string][]*Meta{},
 		scopes:      map[string]*Scope{},
 		filters:     map[string]*Filter{},
@@ -84,12 +89,12 @@ func (admin *Admin) NewResource(value interface{}, config *Config) *Resource {
 	}
 	res.Finder = res.finder
 
-	if config.PageCount == 0 {
-		config.PageCount = 10
+	if configuration.PageCount == 0 {
+		configuration.PageCount = 10
 	}
 
-	if config.Name != "" {
-		res.Name = config.Name
+	if configuration.Name != "" {
+		res.Name = configuration.Name
 	} else if namer, ok := value.(ResourceNamer); ok {
 		res.Name = namer.ResourceName()
 	}
@@ -100,8 +105,8 @@ func (admin *Admin) NewResource(value interface{}, config *Config) *Resource {
 	return res
 }
 
-func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
-	res := admin.NewResource(value, config)
+func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource {
+	res := admin.NewResource(value, config...)
 
 	if !res.Config.Invisible {
 		// TODO: move Menu out of res.Config, make the API looks better
@@ -115,7 +120,7 @@ func (admin *Admin) AddResource(value interface{}, config *Config) *Resource {
 
 func (admin *Admin) GetResource(name string) *Resource {
 	for _, res := range admin.resources {
-		if res.ToParam() == name || res.Name == name {
+		if res.ToParam() == name || res.Name == name || res.StructType == name {
 			return res
 		}
 	}

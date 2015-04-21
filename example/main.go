@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net/http"
 	"time"
@@ -10,27 +9,17 @@ import (
 	"github.com/qor/qor/admin"
 )
 
-var runWorker bool
-
-func init() {
-	flag.BoolVar(&runWorker, "run-worker", false, "run example beanstalkd worker")
-	flag.Parse()
-}
-
 func main() {
-	config := qor.Config{DB: Publish.DraftDB()}
-
-	Admin := admin.New(&config)
+	Admin := admin.New(&qor.Config{DB: Publish.DraftDB()})
 	Admin.SetAuth(&Auth{})
 
 	Admin.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})
 
-	creditCard := Admin.AddResource(&CreditCard{}, &admin.Config{Menu: []string{"User Management"}})
+	creditcard := Admin.AddResource(&CreditCard{}, &admin.Config{Invisible: true})
+	creditcard.Meta(&admin.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
-	creditCard.Meta(&admin.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
-
-	user := Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
-	user.Meta(&admin.Meta{Name: "CreditCard", Resource: creditCard})
+	user := Admin.AddResource(&User{}, &admin.Config{Menu: []string{"Users Management"}})
+	user.Meta(&admin.Meta{Name: "CreditCard", Resource: creditcard})
 	user.Meta(&admin.Meta{Name: "fullname", Alias: "name"})
 
 	user.Meta(&admin.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
@@ -56,13 +45,13 @@ func main() {
 		},
 	})
 
-	Admin.AddResource(&Language{}, &admin.Config{Menu: []string{"User Management"}})
-	Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
+	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: Admin.NewResource(&admin.AssetManager{})})
 
-	assetManager := Admin.AddResource(&admin.AssetManager{}, nil)
-	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: assetManager})
+	Admin.AddResource(&Language{}, &admin.Config{Name: "Locales", Menu: []string{"Products Management"}})
+	Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Products Management"}})
+	Admin.AddResource(&Order{}, &admin.Config{Menu: []string{"Orders Management"}})
 
-	Admin.AddResource(Publish, nil)
+	Admin.AddResource(Publish)
 
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)

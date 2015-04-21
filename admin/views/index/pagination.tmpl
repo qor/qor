@@ -1,22 +1,22 @@
-<nav class="clearfix">
-  <ul class="pull-right pagination">
+<nav class="clearfix pagination-wrapper">
+  <ul class="pagination clearfix">
     {{range $index, $page := pagination}}
       {{if $page.IsPrevious}}
-        <li>
+        <li class="fl prev">
           <a href="?page={{$page.Page}}" aria-label="Previous">
-            <span aria-hidden="true">&laquo;</span>
+            <span class="md md-chevron-left" aria-hidden="true"></span>
           </a>
         </li>
       {{else if $page.IsNext}}
-        <li>
+        <li class="fl next">
           <a href="?page={{$page.Page}}" aria-label="Next">
-            <span aria-hidden="true">&laquo;</span>
+            <span class="md md-chevron-right" aria-hidden="true"></span>
           </a>
         </li>
       {{else if $page.Current}}
-        <li class="active"><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
+        <li class="fl cur"><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
       {{else}}
-        <li><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
+        <li class="fl"><a href="?page={{$page.Page}}">{{$page.Page}}</a></li>
       {{end}}
     {{end}}
   </ul>

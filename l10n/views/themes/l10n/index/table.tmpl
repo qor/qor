@@ -1,54 +1,66 @@
 {{$context := .}}
 
-<div class="table-responsive">
-  <table class="table table-striped">
-    <thead>
-      {{range $meta := index_metas}}
-        <th>{{$meta.Label}}</th>
-      {{end}}
-      <th>Languages</th>
-      <th>Actions</th>
-    </thead>
+<div class="table clearfix">
+  <div class="thead">
+    <div class="thr-wrapper">
+      <ul class="clearfix thr-inner">
+        {{range $index, $meta := index_metas}}
+          <li class="th col-{{$index}}" data-col="col-{{$index}}">
+            <a href="javascript:;" title="{{$meta.Label}}">{{$meta.Label}}</a>
+          </li>
+        {{end}}
+        <li class="th col-lang" data-col="col-lang">
+          <a href="javascript:;" title="Languages">Languages</a>
+        </li>
+        <li class="th col-act" data-col="col-act">
+          <a href="javascript:;" title="Actions">Actions</a>
+        </li>
+      </ul>
+    </div>
+  </div>
 
-    <tbody>
+  <hr class="hair">
+
+  <div class="tbody clearfix">
+    <!-- <div class="table-loader invisible">
+      <img src="/img/loader.gif">
+      <strong>Loading…</strong>
+    </div> -->
+
+    <ol class="clearfix records">
       {{range $resource := .Result}}
-        <tr>
+      <li class="record-item transition clearfix tr">
+        <div class="tr-inner clearfix">
           {{range $index, $meta := index_metas}}
             {{$text := value_of $resource $meta}}
-            <td>
+            <span title="{{$meta.Label}}" class="td col-{{$index}}">
               {{if $index}}
                 {{$text}}
               {{else}}
                 {{link_to $text $resource}}
               {{end}}
-            </td>
+            </span>
           {{end}}
 
-          <td>
-            <div class="label-group">
-              {{range $resource_locale := locales_of_resource $resource $context}}
-                <a class="label label-{{if $resource_locale.localized}}primary{{else}}default{{end}}" href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
-                  {{$resource_locale.locale}}
-                </a>
-              {{end}}
-            </div>
-          </td>
+          <span class="td col-lang">
+            {{range $resource_locale := locales_of_resource $resource $context}}
+              <a class="label label-{{if $resource_locale.localized}}primary{{else}}default{{end}}" href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
+                {{$resource_locale.locale}}
+              </a>
+            {{end}}
+          </span>
 
-          <td>
+          <span class="td col-act">
             <form action="{{url_for $resource}}" method="POST">
               <input name="_method" value="DELETE" type="hidden">
-              <button class="btn btn-xs btn-danger" data-confirm="Are you sure?" type="submit">Delete</button>
+              <a class="btn md md-edit" href="{{url_for $resource}}"></a>
+              <button class="btn md md-delete" type="submit" data-confirm="Are you sure?"></button>
             </form>
-          </td>
-        </tr>
-      {{end}}
-    </tbody>
-  </table>
-</div>
+          </span>
+        </div>
 
-<style>
-  /* move it to css file  */
-  .active, .localized {
-    font-weight: 700;
-  }
-</style>
+      </li>
+      {{end}}
+    </ol>
+  </div>
+</div>

@@ -70,7 +70,7 @@ func GetEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 func getLocaleFromContext(context *qor.Context) string {
 	if locale := context.Request.Form.Get("locale"); locale != "" {
 		if context.Writer != nil {
-			cookie := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0)}
+			cookie := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0), Path: "/"}
 			http.SetCookie(context.Writer, &cookie)
 		}
 		return locale

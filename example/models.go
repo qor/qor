@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -39,6 +40,7 @@ type User struct {
 	gorm.Model
 	Name         string
 	Gender       string
+	Birthday     *time.Time
 	Description  string `sql:"size:622550"`
 	File         media_library.FileSystem
 	RoleID       uint
@@ -73,6 +75,22 @@ type Product struct {
 	publish.Status
 }
 
+type Order struct {
+	gorm.Model
+	UserID     uint
+	Status     string
+	Amount     float64
+	OrderItems []OrderItem
+}
+
+type OrderItem struct {
+	gorm.Model
+	OrderID   uint
+	ProductID uint
+	Price     float64
+	Quantity  uint
+}
+
 var DB gorm.DB
 var Publish *publish.Publish
 
@@ -90,7 +108,7 @@ func init() {
 		panic(err)
 	}
 
-	DB.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &admin.AssetManager{})
+	DB.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &Order{}, &OrderItem{}, &admin.AssetManager{})
 
 	Publish = publish.New(&DB)
 	Publish.Support(&Product{}).AutoMigrate()
