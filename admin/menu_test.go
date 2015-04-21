@@ -8,6 +8,10 @@ import (
 	"github.com/qor/qor/resource"
 )
 
+func generateResourceMenu(resource *Resource) *Menu {
+	return &Menu{rawPath: resource.ToParam(), Name: resource.Name}
+}
+
 func TestMenu(t *testing.T) {
 	var menus []*Menu
 	res1 := &Resource{
@@ -39,13 +43,13 @@ func TestMenu(t *testing.T) {
 		Config:   &Config{Menu: []string{"menu1", "menu1-1", "menu1-1-1"}},
 	}
 
-	menus = appendMenu(menus, res7.Config.Menu, res7)
-	menus = appendMenu(menus, res1.Config.Menu, res1)
-	menus = appendMenu(menus, res2.Config.Menu, res2)
-	menus = appendMenu(menus, res3.Config.Menu, res3)
-	menus = appendMenu(menus, res4.Config.Menu, res4)
-	menus = appendMenu(menus, res5.Config.Menu, res5)
-	menus = appendMenu(menus, res6.Config.Menu, res6)
+	menus = appendMenu(menus, res7.Config.Menu, generateResourceMenu(res7))
+	menus = appendMenu(menus, res1.Config.Menu, generateResourceMenu(res1))
+	menus = appendMenu(menus, res2.Config.Menu, generateResourceMenu(res2))
+	menus = appendMenu(menus, res3.Config.Menu, generateResourceMenu(res3))
+	menus = appendMenu(menus, res4.Config.Menu, generateResourceMenu(res4))
+	menus = appendMenu(menus, res5.Config.Menu, generateResourceMenu(res5))
+	menus = appendMenu(menus, res6.Config.Menu, generateResourceMenu(res6))
 	prefixMenuLinks(menus, "/admin")
 
 	expect := []*Menu{
@@ -85,5 +89,51 @@ func TestMenu(t *testing.T) {
 		t.Error("failed to get menu")
 	} else if menu.Name != "res6" {
 		t.Error("failed to get correct menu")
+	}
+}
+
+func TestAddSubMenuViaParents(t *testing.T) {
+	var menus []*Menu
+	subMenuName := "Dashboard-subMenu"
+	sub2MenuName := "Dashboard-subMenu-subMenu"
+
+	pMenu1 := "pMenu1"
+	pMenu2 := "pMenu2"
+	pMenu1_1 := "pMenu1_1"
+
+	menus = appendMenu(menus, []string{}, &Menu{Name: "Dashboard"})
+	menus = appendMenu(menus, []string{"Dashboard"}, &Menu{Name: subMenuName})
+	menus = appendMenu(menus, []string{"Dashboard", subMenuName}, &Menu{Name: sub2MenuName})
+
+	menus = appendMenu(menus, []string{}, &Menu{Name: "Product"})
+	menus = appendMenu(menus, []string{"Product"}, &Menu{Name: pMenu1})
+	menus = appendMenu(menus, []string{"Product"}, &Menu{Name: pMenu2})
+	menus = appendMenu(menus, []string{"Product", pMenu1}, &Menu{Name: pMenu1_1})
+
+	expected := []*Menu{
+		&Menu{Name: "Dashboard", SubMenus: []*Menu{
+			&Menu{Name: subMenuName, SubMenus: []*Menu{
+				&Menu{Name: sub2MenuName},
+			}},
+		}},
+
+		&Menu{Name: "Product", SubMenus: []*Menu{
+			&Menu{Name: pMenu1, SubMenus: []*Menu{
+				&Menu{Name: pMenu1_1},
+			}},
+			&Menu{Name: pMenu2},
+		}},
+	}
+
+	if !reflect.DeepEqual(expected, menus) {
+		g, err := json.MarshalIndent(menus, "", "  ")
+		if err != nil {
+			t.Error(err)
+		}
+		w, err := json.MarshalIndent(expected, "", "  ")
+		if err != nil {
+			t.Error(err)
+		}
+		t.Errorf("add menu errors: got %s; expected %s", g, w)
 	}
 }

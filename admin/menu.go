@@ -3,10 +3,11 @@ package admin
 import "path"
 
 type Menu struct {
-	Name     string
-	rawPath  string
-	Link     string
-	SubMenus []*Menu
+	Name      string
+	rawPath   string
+	Link      string
+	SubMenus  []*Menu
+	Ancestors []string
 }
 
 func (admin Admin) GetMenus() []*Menu {
@@ -14,7 +15,7 @@ func (admin Admin) GetMenus() []*Menu {
 }
 
 func (admin *Admin) AddMenu(menu *Menu) {
-	admin.menus = append(admin.menus, menu)
+	admin.menus = appendMenu(admin.menus, menu.Ancestors, menu)
 }
 
 func (admin Admin) GetMenu(name string) (m *Menu) {
@@ -53,32 +54,30 @@ func prefixMenuLinks(menus []*Menu, prefix string) {
 	}
 }
 
-func newMenu(menus []string, res *Resource) (menu *Menu) {
-	menu = &Menu{rawPath: res.ToParam(), Name: res.Name}
-
+func newMenu(menus []string, neoMenu *Menu) *Menu {
 	menuCount := len(menus)
 	for index, _ := range menus {
-		menu = &Menu{Name: menus[menuCount-index-1], SubMenus: []*Menu{menu}}
+		neoMenu = &Menu{Name: menus[menuCount-index-1], SubMenus: []*Menu{neoMenu}}
 	}
 
-	return
+	return neoMenu
 }
 
-func appendMenu(menus []*Menu, resMenus []string, res *Resource) []*Menu {
-	if len(resMenus) > 0 {
+func appendMenu(menus []*Menu, ancestors []string, neoMenu *Menu) []*Menu {
+	if len(ancestors) > 0 {
 		for _, m := range menus {
-			if m.Name != resMenus[0] {
+			if m.Name != ancestors[0] {
 				continue
 			}
 
-			if len(resMenus) > 1 {
-				m.SubMenus = appendMenu(m.SubMenus, resMenus[1:], res)
+			if len(ancestors) > 1 {
+				m.SubMenus = appendMenu(m.SubMenus, ancestors[1:], neoMenu)
 			} else {
-				m.SubMenus = append(m.SubMenus, newMenu(nil, res))
+				m.SubMenus = append(m.SubMenus, newMenu(nil, neoMenu))
 			}
 			return menus
 		}
 	}
 
-	return append(menus, newMenu(resMenus, res))
+	return append(menus, newMenu(ancestors, neoMenu))
 }
