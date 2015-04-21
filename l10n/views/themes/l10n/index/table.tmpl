@@ -52,4 +52,9 @@
   </table>
 </div>
 
-<div id="plus-wrapper"><a id="plus" href="{{new_resource_path .Resource}}"></a></div>
+<div id="plus-wrapper">
+  {{$resource := .Resource}}
+  {{range $locale := createable_locales .}}
+    <a id="plus" href="{{new_resource_path $resource}}?locale={{$locale}}"></a>
+  {{end}}
+</div>
