@@ -1,7 +1,6 @@
-<div class="table-wrapper">
-<!-- <hr class="hair"> -->
+<div class="table-wrapper wrapper">
 <table state="list">
-  <thead>
+  <thead class="thead">
     <tr>
       {{range $index, $meta := index_metas}}
         <th class="th col-{{$index}}" data-col="col-{{$index}}">
@@ -13,7 +12,7 @@
       </th>
     </tr>
   </thead>
-  <tbody>
+  <tbody class="tbody">
     {{range $resource := .Result}}
       <tr class="record-item tr transition">
         {{range $index, $meta := index_metas}}

@@ -1,3 +1,8 @@
+$red: #F15A24
+$highlight: #FFE7A6 //#FFE082
+
+// box-shadow: 0 0 2px rgba(0, 0, 0, 0.12), 0 2px 2px rgba(0, 0, 0, 0.24)
+
 html, body
   font-size: 62.5%
   height: 100%
@@ -7,9 +12,10 @@ body
   background: #F0F0F0
 
 .wrapper
-  // width: 102.4rem
+  // min-width: 102.4rem
   margin: 0 auto
   padding: 0 9.6rem
+  box-sizing: content-box
 
 .nav
   font-size: 1.6rem
@@ -31,6 +37,7 @@ body
         border: 1px solid #CCC
         margin: -1px -13px
         padding: 0 12px
+        // background: #FFF
       .dropdown-menu
         padding: 0 12px
         background: #FFF
@@ -44,7 +51,7 @@ body
     position: absolute
     top: 4.3rem
     left: -1.3rem
-    z-index: 2
+    z-index: 7
     min-width: 100%
     display: none
     border-radius: 0 0 2px 2px
@@ -62,7 +69,7 @@ body
     border-bottom-color: transparent
     border-radius: 2px 2px 0 0
     position: relative
-    z-index: 3
+    z-index: 7
     background: transparent
 
 .btn
@@ -70,20 +77,32 @@ body
   border: 0
 
 .table-wrapper
-  padding: 0 9.6rem
+  // padding: 1.6rem 9.6rem
+  hr.hair
+    opacity: 0.2
+    width: 80%
+    margin: 0 auto
+
 // font: 400 16px/1.5 'Whitney SSm A', 'Whitney SSm B', sans-serif
-table
-  margin-top: 1rem
 table, .table
-  // margin: 0 8rem
   font-size: 14px
   width: 100%
+  position: relative
+  z-index: 3
   &[state="list"]
+    box-shadow: 0 1px 12px -1px rgba(0,0,0,0.25)
   .md
     font-size: 2rem
     color: #777
-  .thead
-  .tbody
+  .thead, thead
+    background: #F7F7F7
+    border: 1px solid #CCC
+    border-radius: 0.2rem
+  .tbody, tbody
+    background-color: #FFF
+    border-left: 1px solid #CCC
+    border-right: 1px solid #CCC
+    border-bottom: 2px solid $red
   .th
     padding: 2rem 0
     font-weight: 500
@@ -96,17 +115,22 @@ table, .table
     // white-space: nowrap
     text-overflow: ellipsis
     vertical-align: middle
+    padding: 0.8rem
+    &:first-child
+      padding-left: 1.6rem
     &:last-child
-      padding-right: 0
+      padding-right: 1.6rem
       text-align: right
-    &.col-act, &.col-lang
-      width: 80px !important
+    &.col-act
+      width: 9rem !important
       .btn
         padding: 0
+    &.col-lang
+      width: 11rem !important
   .tr
     &:hover, &.cur
       cursor: pointer
-      background-color: #FFE082
+      background-color: $highlight
   .thr-inner
     width: 100%
   .tr-inner, .thr-wrapper
@@ -121,6 +145,8 @@ table, .table
     .tbody, tbody
       font-size: 0
       text-align: center
+      background: none
+      border: 0
     .tr-inner, .thr-wrapper
       width: auto
     .thr-inner, .tr-inner
@@ -128,17 +154,43 @@ table, .table
       > *
         display: block
     .tr
+      position: relative
       font-size: 1.6rem
       display: inline-block
-      width: 30%
-      margin-right: 5%
-      margin-bottom: 2.4rem
+      vertical-align: top
+      width: 32%
+      margin-right: 2%
+      margin-bottom: 2.4%
       box-sizing: border-box
-      padding: 1rem 2rem
-      outline: 1px solid #CCC
-      outline-offset: -0.8rem
+      padding: 0.8rem
+      background-color: #FFF
+      box-shadow: 0 0 8px rgba(0,0,0,0.2)
+      border: 1px solid #CCC
+      border-radius: 2px
+      overflow: hidden
+      &:before
+        content: ''
+        display: block
+        margin: -0.8rem auto 0.8rem auto
+        width: 2rem
+        height: 0.5rem
+        background-color: #41d2fe
+        background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(65, 210, 254)), to(rgb(42, 155, 233)))
+        background-image: -webkit-linear-gradient(top, rgb(65, 210, 254), rgb(42, 155, 233))
+        background-image: -moz-linear-gradient(top, rgb(65, 210, 254), rgb(42, 155, 233))
+        background-image: -o-linear-gradient(top, rgb(65, 210, 254), rgb(42, 155, 233))
+        background-image: -ms-linear-gradient(top, rgb(65, 210, 254), rgb(42, 155, 233))
+        background-image: linear-gradient(top, rgb(65, 210, 254), rgb(42, 155, 233))
+        filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,StartColorStr='#41d2fe', EndColorStr='#2a9be9')
+        box-shadow: 0 0 8px 1px #41d2fe
+        border: 1px solid #4991E3
       &:nth-child(3n), &:last-child
         margin-right: 0
+      &:hover, &.cur
+        // cursor: pointer
+        box-shadow: 0 0 2.4rem -0.1rem rgba(0,0,0,0.25)
+        // &::before
+        
     .th, .td
       text-align: left
       &:last-child
@@ -163,7 +215,7 @@ table, .table
     padding: 0.5rem 0.8rem
     font-size: 2rem
     &.cur
-      color: #FFE082
+      color: $red
 
 .pagination-wrapper
   text-align: center
@@ -232,3 +284,4 @@ table, .table
 
 .section.row
   display: none
+
