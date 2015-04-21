@@ -17,6 +17,12 @@ body
   padding: 0 9.6rem
   box-sizing: content-box
 
+.page-header
+  font-weight: 300
+
+.btn-wrapper
+  font-size: 0
+
 .btn
   min-width: 88px
   padding: 0 16px
@@ -60,17 +66,14 @@ body
   &.btn-primary
     color: #333
     background-color: #FFF
-  &.white
-    background-color: #FFF
-    color: #333
-  &.red
-    color: #F44336
+  &.btn-danger
+    color: $red
+    box-shadow: none
+    &:hover
+      background: none
   &:disabled
     background-color: #C4C4C4
     color: #929292
-    box-shadow: none
-  &.finished
-    background-color: transparent
     box-shadow: none
   &:focus, &:active, &:active:focus
     border-color: none
@@ -86,30 +89,31 @@ table
     box-shadow: none
     height: auto
     min-width: 0
+    margin: 0
   tr
     &:nth-child(2n)
       background-color: #F7F7F7
     td
-      .label
-        background: #E1E1E1
+      .label, .label-default,
+      .label[href], .label-default[href]
+        background-color: #E1E1E1
         color: #333
         margin-right: 0.4rem
         border-radius: 0.2rem
-        padding: 0.2em 0.6em
         &:last-child
           margin-right: 0
         &:hover, &:focus
           color: #333
-          background: #FFF
+          background-color: #FFF
           box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
-        &.label-primary
-          background: $red
+        &.label-primary, &.label-primary[href]
+          background-color: $red
           color: #FFF
           margin-right: 0.4rem
           border-radius: 0.2rem
           &:hover, &:focus
             color: #FFF
-            background: $red
+            background-color: $red
             box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
 .nav
   font-size: 1.6rem
@@ -179,6 +183,11 @@ table, .table
   width: 100%
   position: relative
   z-index: 3
+  input[type=checkbox], input[type=radio]
+    margin: 0
+    display: block
+    &:hover
+      cursor: pointer
   &[state="list"]
     box-shadow: 0 1px 12px -1px rgba(0,0,0,0.25)
   .md
@@ -200,6 +209,7 @@ table, .table
     padding: 1rem 0
     font-weight: 300
   .th, .td
+    border: 0
     box-sizing: border-box
     overflow: hidden
     // white-space: nowrap
