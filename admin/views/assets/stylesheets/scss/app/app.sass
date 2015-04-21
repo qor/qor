@@ -56,8 +56,27 @@
   box-shadow: 0 0 0.8rem -0.1rem rgba(0,0,0,0.25)
   background: #333 url(/admin/assets/images/plus.svg) no-repeat center center
 
-.lang-selector
-  display: none
-
 .modal-footer .btn+.btn
   margin-left: 1.6rem
+
+.lang-selector
+  .btn
+    height: 4.1rem
+    line-height: 4.1rem
+    margin-right: 2.4rem
+.open > .btn-primary.dropdown-toggle
+  background-color: #FFF
+  border-color: #FFF
+  color: #333
+.dropdown-menu>.active>a
+  background-color: $highlight
+  color: #333
+  &:hover
+    background-color: $highlight
+    color: #333
+.dropdown-menu
+  border-radius: 0.2rem
+  left: -0.1rem
+
+
+

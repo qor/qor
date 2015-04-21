@@ -1,15 +1,26 @@
-<div class="section row">
-  <div class="col-sm-6">
-    {{$resource := .Resource}}
-    {{range $locale := createable_locales .}}
-      <a class="btn btn-primary" href="{{new_resource_path $resource}}?locale={{$locale}}">{{printf "New %v" $locale}}</a>
-    {{end}}
-  </div>
-  <div class="col-sm-6">
-    <div class="pull-right dropdown lang-selector">
+{{$resource := .Resource}}
+
+<div class="grid-trigger-wrapper">
+  <div class="wrapper clearfix">
+    <section class="trigger-wrapper fl">
+      <a class="trigger md md-view-headline cur" state="list" href="javascript:;"></a>
+      <a class="trigger md md-view-module" state="grid" href="javascript:;"></a>
+    </section>
+
+    <section class="search-wrapper fr">
+      <form role="form">
+        <i class="md md-search"></i>
+        <input type="search">
+        <!-- <i class="md md-close"></i> -->
+      </form>
+    </section>
+
+
+    <section class="fr dropdown lang-selector">
       {{$current_locale := current_locale .}}
       <a class="dropdown-toggle btn btn-primary" data-toggle="dropdown" href="javascript:void(0);" aria-expanded="false" role="button">
-        {{$current_locale}} <span class="caret"></span>
+        {{$current_locale}}
+        <span class="md md-expand-more"></span>
       </a>
       <ul class="dropdown-menu" role="menu">
         {{range $locale := viewable_locales .}}
@@ -18,10 +29,9 @@
           </li>
         {{end}}
       </ul>
-    </div>
+    </section>
   </div>
 </div>
 
-{{render "index/filter"}}
 {{render "index/table"}}
 {{render "index/pagination"}}
