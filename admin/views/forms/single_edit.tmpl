@@ -1,4 +1,6 @@
-<label for="{{.InputId}}">{{.Label}}</label>
-<fieldset>
-  {{render_form .Value (edit_metas .Meta.Resource)}}
-</fieldset>
+<div class="signle-edit">
+  <label for="{{.InputId}}">{{.Label}}</label>
+  <fieldset>
+    {{render_form .Value (edit_metas .Meta.Resource)}}
+  </fieldset>
+</div>

@@ -1,13 +1,15 @@
-<label for="{{.InputId}}">{{.Label}}</label>
-{{$meta := .Meta}}
-{{if .Value}}
-  {{range $index, $value := .Value }}
-    <fieldset>
-      {{render_form $value (edit_metas $meta.Resource) $index}}
-    </fieldset>
+<div class="collection-edit">
+  <label for="{{.InputId}}">{{.Label}}</label>
+  {{$meta := .Meta}}
+  {{if .Value}}
+    {{range $index, $value := .Value }}
+      <fieldset>
+        {{render_form $value (edit_metas $meta.Resource) $index}}
+      </fieldset>
+    {{end}}
   {{end}}
-{{end}}
 
-<fieldset>
-  {{render_form $meta.Resource.GetResource.Value (new_metas $meta.Resource) (len .Value)}}
-</fieldset>
+  <fieldset class="new-record">
+    {{render_form $meta.Resource.GetResource.Value (new_metas $meta.Resource) (len .Value)}}
+  </fieldset>
+</div>
