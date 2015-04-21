@@ -60,23 +60,28 @@
   margin-left: 1.6rem
 
 .lang-selector
-  .btn
+  .dropdown-toggle
     height: 4.1rem
     line-height: 4.1rem
     margin-right: 2.4rem
+    border: 1px solid #333
+    border-radius: .2rem
+    display: block
+    text-align: center
+    min-width: 8rem
 .open > .btn-primary.dropdown-toggle
   background-color: #FFF
   border-color: #FFF
   color: #333
-.dropdown-menu>.active>a
-  background-color: $highlight
-  color: #333
-  &:hover
+.dropdown-menu
+  & > li > a
+    padding: 1rem 2rem
+  & > .active > a
     background-color: $highlight
     color: #333
+    &:hover
+      background-color: $highlight
+      color: #333
 .dropdown-menu
   border-radius: 0.2rem
   left: -0.1rem
-
-
-

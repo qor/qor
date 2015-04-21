@@ -17,8 +17,8 @@
 
 
     <section class="fr dropdown lang-selector">
-      {{$current_locale := current_locale .}}
-      <a class="dropdown-toggle btn btn-primary" data-toggle="dropdown" href="javascript:void(0);" aria-expanded="false" role="button">
+      {{$current_locale := current_locale .}} <!-- btn btn-primary -->
+      <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0);" aria-expanded="false" role="button">
         {{$current_locale}}
         <span class="md md-expand-more"></span>
       </a>

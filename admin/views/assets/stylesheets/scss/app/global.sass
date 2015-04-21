@@ -89,27 +89,27 @@ table
     box-shadow: none
     height: auto
     min-width: 0
-  td
-    .label
-      background: #eee
-      color: #333
-      margin-right: 0.4rem
-      border-radius: 0.2rem
-      &:last-child
-        margin-right: 0
-      &:hover
+    td
+      .label
+        background: #eee
         color: #333
-        background: #FFF
-        box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
-    .label-primary
-      background: $red
-      color: #FFF
-      margin-right: 0.4rem
-      border-radius: 0.2rem
-      &:hover
-        color: #FFF
-        background: $red
-        box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
+        margin-right: 0.4rem
+        border-radius: 0.2rem
+        &:last-child
+          margin-right: 0
+        &:hover
+          color: #333
+          background: #FFF
+          box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
+        &.label-primary
+          background: $red
+          color: #FFF
+          margin-right: 0.4rem
+          border-radius: 0.2rem
+          &:hover
+            color: #FFF
+            background: $red
+            box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
 .nav
   font-size: 1.6rem
   > .item
@@ -204,18 +204,14 @@ table, .table
     // white-space: nowrap
     text-overflow: ellipsis
     vertical-align: middle
-    padding: 0.8rem
+    padding: 1.2rem 0.8rem
     &:first-child
       padding-left: 1.6rem
     &:last-child
       padding-right: 1.6rem
       text-align: right
-    &.col-act
-      width: 9rem !important
       .btn
         padding: 0
-    &.col-lang
-      width: 11rem !important
   .tr
     &:hover, &.cur
       cursor: pointer
