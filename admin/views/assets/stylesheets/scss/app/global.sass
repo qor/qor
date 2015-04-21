@@ -31,7 +31,7 @@ body
   -moz-transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
   -o-transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
   transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
-  
+
   -webkit-border-radius: 2px
   -webkit-background-clip: padding-box
   -moz-border-radius: 2px
@@ -89,8 +89,8 @@ table
     box-shadow: none
     height: auto
     min-width: 0
-  td 
-    .label, .label-primary
+  td
+    .label
       background: #eee
       color: #333
       margin-right: 0.4rem
@@ -101,8 +101,15 @@ table
         color: #333
         background: #FFF
         box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
-
-
+    .label-primary
+      background: $red
+      color: #FFF
+      margin-right: 0.4rem
+      border-radius: 0.2rem
+      &:hover
+        color: #FFF
+        background: $red
+        box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
 .nav
   font-size: 1.6rem
   > .item
