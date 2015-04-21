@@ -48,7 +48,18 @@ func main() {
 	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: Admin.NewResource(&admin.AssetManager{})})
 
 	Admin.AddResource(&Language{}, &admin.Config{Name: "Locales", Menu: []string{"Products Management"}})
-	Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Products Management"}})
+	product := Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Products Management"}})
+	product.Meta(&admin.Meta{Name: "CollectionID", Label: "Collection", Type: "select_one",
+		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
+			if collections := []Collection{}; !context.GetDB().Find(&collections).RecordNotFound() {
+				for _, collection := range collections {
+					results = append(results, []string{fmt.Sprintf("%v", collection.ID), collection.Name})
+				}
+			}
+			return
+		},
+	})
+	Admin.AddResource(&Collection{}, &admin.Config{Menu: []string{"Products Management"}})
 	Admin.AddResource(&Order{}, &admin.Config{Menu: []string{"Orders Management"}})
 
 	Admin.AddResource(Publish)
