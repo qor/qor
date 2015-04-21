@@ -81,23 +81,24 @@ body
       color: #333
 
 table
-  tr
-    &:nth-child(2n)
-      background-color: #F7F7F7
   .btn.md
     line-height: 1
     box-shadow: none
     height: auto
     min-width: 0
+  tr
+    &:nth-child(2n)
+      background-color: #F7F7F7
     td
       .label
-        background: #eee
+        background: #E1E1E1
         color: #333
         margin-right: 0.4rem
         border-radius: 0.2rem
+        padding: 0.2em 0.6em
         &:last-child
           margin-right: 0
-        &:hover
+        &:hover, &:focus
           color: #333
           background: #FFF
           box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
@@ -106,7 +107,7 @@ table
           color: #FFF
           margin-right: 0.4rem
           border-radius: 0.2rem
-          &:hover
+          &:hover, &:focus
             color: #FFF
             background: $red
             box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
