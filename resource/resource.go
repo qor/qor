@@ -9,6 +9,7 @@ import (
 
 type Resource struct {
 	Name         string
+	StructType   string
 	primaryField *gorm.Field
 	Value        interface{}
 	Searcher     func(interface{}, *qor.Context) error
@@ -31,12 +32,14 @@ type Resourcer interface {
 }
 
 func New(value interface{}, names ...string) *Resource {
-	name := reflect.Indirect(reflect.ValueOf(value)).Type().Name()
+	structType := reflect.Indirect(reflect.ValueOf(value)).Type()
+	typeName := structType.String()
+	name := structType.Name()
 	for _, n := range names {
 		name = n
 	}
 
-	res := &Resource{Value: value, Name: name, Saver: DefaultSaver, Finder: DefaultFinder, Searcher: DefaultSearcher, Deleter: DefaultDeleter}
+	res := &Resource{Value: value, Name: name, StructType: typeName, Saver: DefaultSaver, Finder: DefaultFinder, Searcher: DefaultSearcher, Deleter: DefaultDeleter}
 	return res
 }
 

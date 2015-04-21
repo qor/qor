@@ -166,9 +166,10 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 	} else if res, ok := value.(*Resource); ok {
 		url = path.Join(context.Admin.router.Prefix, res.ToParam())
 	} else {
+		structType := reflect.Indirect(reflect.ValueOf(value)).Type().String()
+		res := context.Admin.GetResource(structType)
 		primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
-		name := context.Admin.NewResource(value, nil).ToParam()
-		url = path.Join(context.Admin.router.Prefix, name, fmt.Sprintf("%v", primaryKey))
+		url = path.Join(context.Admin.router.Prefix, res.ToParam(), fmt.Sprintf("%v", primaryKey))
 	}
 	return url
 }

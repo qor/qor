@@ -118,7 +118,7 @@ func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource 
 
 func (admin *Admin) GetResource(name string) *Resource {
 	for _, res := range admin.resources {
-		if res.ToParam() == name || res.Name == name {
+		if res.ToParam() == name || res.Name == name || res.StructType == name {
 			return res
 		}
 	}
