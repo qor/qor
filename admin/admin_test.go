@@ -77,17 +77,14 @@ func init() {
 	admin.DisableLogging = true
 	mux := http.NewServeMux()
 	db, _ = gorm.Open("sqlite3", "/tmp/qor_test.db")
-	// db.LogMode(true)
-	db.DropTable(&User{})
-	db.DropTable(&CreditCard{})
-	db.DropTable(&Address{})
-	db.DropTable(&Language{})
-	db.DropTable(&Profile{})
-	db.DropTable(&Phone{})
-	db.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Language{}, &Profile{}, &Phone{})
+	models := []interface{}{&User{}, &CreditCard{}, &Address{}, &Language{}, &Profile{}, &Phone{}}
+	for _, value := range models {
+		db.DropTable(value)
+		db.AutoMigrate(value)
+	}
 
 	Admin = admin.New(&qor.Config{DB: &db})
-	user := Admin.AddResource(User{}, nil)
+	user := Admin.AddResource(&User{}, nil)
 	user.Meta(&admin.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if languages := []Language{}; !context.GetDB().Find(&languages).RecordNotFound() {
