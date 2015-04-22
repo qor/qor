@@ -54,16 +54,16 @@ func prefixMenuLinks(menus []*Menu, prefix string) {
 	}
 }
 
-func newMenu(menus []string, neoMenu *Menu) *Menu {
+func newMenu(menus []string, menu *Menu) *Menu {
 	menuCount := len(menus)
 	for index, _ := range menus {
-		neoMenu = &Menu{Name: menus[menuCount-index-1], SubMenus: []*Menu{neoMenu}}
+		menu = &Menu{Name: menus[menuCount-index-1], SubMenus: []*Menu{menu}}
 	}
 
-	return neoMenu
+	return menu
 }
 
-func appendMenu(menus []*Menu, ancestors []string, neoMenu *Menu) []*Menu {
+func appendMenu(menus []*Menu, ancestors []string, menu *Menu) []*Menu {
 	if len(ancestors) > 0 {
 		for _, m := range menus {
 			if m.Name != ancestors[0] {
@@ -71,13 +71,13 @@ func appendMenu(menus []*Menu, ancestors []string, neoMenu *Menu) []*Menu {
 			}
 
 			if len(ancestors) > 1 {
-				m.SubMenus = appendMenu(m.SubMenus, ancestors[1:], neoMenu)
+				m.SubMenus = appendMenu(m.SubMenus, ancestors[1:], menu)
 			} else {
-				m.SubMenus = append(m.SubMenus, newMenu(nil, neoMenu))
+				m.SubMenus = append(m.SubMenus, newMenu(nil, menu))
 			}
 			return menus
 		}
 	}
 
-	return append(menus, newMenu(ancestors, neoMenu))
+	return append(menus, newMenu(ancestors, menu))
 }
