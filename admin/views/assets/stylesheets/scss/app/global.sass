@@ -1,15 +1,120 @@
+$red: #F15A24
+$highlight: #FFE7A6 //#FFE082
+
+// box-shadow: 0 0 2px rgba(0, 0, 0, 0.12), 0 2px 2px rgba(0, 0, 0, 0.24)
+
 html, body
   font-size: 62.5%
   height: 100%
 
 body
   font: 1.4rem/1.5 "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Hiragino Kaku Gothic Pro", "Meiryo", sans-serif
+  background: #F0F0F0
 
-.container
-  // width: 102.4rem
+.wrapper
+  // min-width: 102.4rem
   margin: 0 auto
   padding: 0 9.6rem
+  box-sizing: content-box
 
+.page-header
+  font-weight: 300
+
+.btn-wrapper
+  font-size: 0
+
+.btn
+  min-width: 88px
+  padding: 0 16px
+  box-sizing: border-box
+  color: #FFF
+  font-size: 14px
+  text-decoration: none
+  line-height: 36px
+  height: 36px
+  display: inline-block
+  -webkit-transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
+  -moz-transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
+  -o-transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
+  transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms
+
+  -webkit-border-radius: 2px
+  -webkit-background-clip: padding-box
+  -moz-border-radius: 2px
+  -moz-background-clip: padding
+  border-radius: 2px
+  background-clip: padding-box
+
+  background: transparent
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.12), 0 2px 2px rgba(0, 0, 0, 0.24)
+  height: 36px
+  min-width: 88px
+  cursor: pointer
+  letter-spacing: 0
+  text-transform: uppercase
+  font-weight: 500
+  border: 0
+  &.sub
+    color: #333
+    background-color: transparent
+    box-shadow: none
+    min-width: 0
+    margin-right: 16px
+    &:disabled
+      color: #BBB
+      background-color: transparent
+  &.btn-primary
+    color: #333
+    background-color: #FFF
+  &.btn-danger
+    color: $red
+    box-shadow: none
+    &:hover
+      background: none
+  &:disabled
+    background-color: #C4C4C4
+    color: #929292
+    box-shadow: none
+  &:focus, &:active, &:active:focus
+    border-color: none
+    outline: 0
+  &.btn-link
+    color: #333
+    &:hover
+      color: #333
+
+table
+  .btn.md
+    line-height: 1
+    box-shadow: none
+    height: auto
+    min-width: 0
+    margin: 0
+  tr
+    &:nth-child(2n)
+      background-color: #F7F7F7
+    td
+      .label, .label-default,
+      .label[href], .label-default[href]
+        background-color: #E1E1E1
+        color: #333
+        margin-right: 0.4rem
+        border-radius: 0.2rem
+        &:last-child
+          margin-right: 0
+        &:hover, &:focus
+          color: #333
+          background-color: #FFF
+          box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
+        &.label-primary, &.label-primary[href]
+          background-color: $red
+          color: #FFF
+          margin-right: 0.4rem
+          border-radius: 0.2rem
+          &:hover, &:focus
+            color: #FFF
+            background-color: $red
+            box-shadow: 0 0 0.4rem rgba(0,0,0,0.2)
 .nav
   font-size: 1.6rem
   > .item
@@ -18,31 +123,40 @@ body
     float: left
     &:last-child
       margin-right: 0
-  a
-    display: block
-    line-height: 4.2rem
+    a
+      display: block
+      line-height: 4.2rem
+      padding: 0
+      &:hover
+        background: none
   .dropdown
     &:hover
       .dropdown-toggle
         border: 1px solid #CCC
         margin: -1px -13px
         padding: 0 12px
+        // background: #FFF
       .dropdown-menu
         padding: 0 12px
         background: #FFF
         display: block
         border: 1px solid #CCC
-        border-top-color: transparent
+        border-top: 0
         box-shadow: 0 0 4px rgba(0,0,0,0.25)
+        box-sizing: content-box
 
   .dropdown-menu
     position: absolute
-    top: 4.2rem
-    left: -13px
-    z-index: 2
+    top: 4.3rem
+    left: -1.3rem
+    z-index: 7
     min-width: 100%
     display: none
     border-radius: 0 0 2px 2px
+    float: none
+    padding: 0
+    margin: 0
+    font-size: inherit
     a
       display: block
       padding: 0 12px
@@ -53,28 +167,41 @@ body
     border-bottom-color: transparent
     border-radius: 2px 2px 0 0
     position: relative
-    z-index: 3
-    background: #FFF
-
-.btn
-  background: none
-  border: 0
+    z-index: 7
+    background: transparent
 
 .table-wrapper
-  padding: 0 9.6rem
+  // padding: 1.6rem 9.6rem
+  hr.hair
+    opacity: 0.2
+    width: 80%
+    margin: 0 auto
+
 // font: 400 16px/1.5 'Whitney SSm A', 'Whitney SSm B', sans-serif
-table
-  margin-top: 1rem
 table, .table
-  // margin: 0 8rem
   font-size: 14px
   width: 100%
+  position: relative
+  z-index: 3
+  input[type=checkbox], input[type=radio]
+    margin: 0
+    display: block
+    &:hover
+      cursor: pointer
   &[state="list"]
+    box-shadow: 0 1px 12px -1px rgba(0,0,0,0.25)
   .md
     font-size: 2rem
     color: #777
-  .thead
-  .tbody
+  .thead, thead
+    background: #F7F7F7
+    border: 1px solid #CCC
+    border-radius: 0.2rem
+  .tbody, tbody
+    background-color: #FFF
+    border-left: 1px solid #CCC
+    border-right: 1px solid #CCC
+    border-bottom: 2px solid $red
   .th
     padding: 2rem 0
     font-weight: 500
@@ -82,20 +209,24 @@ table, .table
     padding: 1rem 0
     font-weight: 300
   .th, .td
+    border: 0
     box-sizing: border-box
     overflow: hidden
     // white-space: nowrap
     text-overflow: ellipsis
     vertical-align: middle
+    padding: 1.2rem 0.8rem
+    &:first-child
+      padding-left: 1.6rem
     &:last-child
-      padding-right: 0
+      padding-right: 1.6rem
       text-align: right
-    &.col-act, &.col-lang
-      width: 80px !important
+      .btn
+        padding: 0
   .tr
     &:hover, &.cur
       cursor: pointer
-      background-color: #FFE082
+      background-color: $highlight
   .thr-inner
     width: 100%
   .tr-inner, .thr-wrapper
@@ -110,6 +241,8 @@ table, .table
     .tbody, tbody
       font-size: 0
       text-align: center
+      background: none
+      border: 0
     .tr-inner, .thr-wrapper
       width: auto
     .thr-inner, .tr-inner
@@ -117,22 +250,49 @@ table, .table
       > *
         display: block
     .tr
+      position: relative
       font-size: 1.6rem
       display: inline-block
-      width: 30%
-      margin-right: 5%
-      margin-bottom: 2.4rem
+      vertical-align: top
+      width: 32%
+      margin-right: 2%
+      margin-bottom: 2.4%
       box-sizing: border-box
-      padding: 1rem 2rem
-      outline: 1px solid #CCC
-      outline-offset: -0.8rem
+      padding: 0.8rem
+      background-color: #FFF
+      box-shadow: 0 0 8px rgba(0,0,0,0.2)
+      border: 1px solid #CCC
+      border-radius: 2px
+      overflow: hidden
+      &:before
+        content: ''
+        display: block
+        margin: -0.8rem auto 0.8rem auto
+        width: 2rem
+        height: 0.5rem
+        background-color: #41d2fe
+        background-image: -webkit-gradient(linear, left top, left bottom, from(rgb(65, 210, 254)), to(rgb(42, 155, 233)))
+        background-image: -webkit-linear-gradient(top, rgb(65, 210, 254), rgb(42, 155, 233))
+        background-image: -moz-linear-gradient(top, rgb(65, 210, 254), rgb(42, 155, 233))
+        background-image: -o-linear-gradient(top, rgb(65, 210, 254), rgb(42, 155, 233))
+        background-image: -ms-linear-gradient(top, rgb(65, 210, 254), rgb(42, 155, 233))
+        background-image: linear-gradient(top, rgb(65, 210, 254), rgb(42, 155, 233))
+        filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,StartColorStr='#41d2fe', EndColorStr='#2a9be9')
+        box-shadow: 0 0 8px 1px #41d2fe
+        border: 1px solid #4991E3
       &:nth-child(3n), &:last-child
         margin-right: 0
+      &:hover, &.cur
+        // cursor: pointer
+        box-shadow: 0 0 2.4rem -0.1rem rgba(0,0,0,0.25)
+        // &::before
     .th, .td
       text-align: left
       &:last-child
-        padding-right: 0
+        padding-right: 0.8rem
         text-align: left
+      &:first-child
+        padding-left: 0.8rem
     .td
       float: left
       display: block
@@ -151,15 +311,16 @@ table, .table
   .trigger
     padding: 0.5rem 0.8rem
     font-size: 2rem
+    &.cur
+      color: $red
 
 .pagination-wrapper
   text-align: center
 
 .pagination
   font-size: 1.8rem
-  margin-top: 8rem
   display: inline-block
-  > *
+  > li
     font-family: Georgia, raleway
     border-bottom: 1px solid #333
     &.cur
@@ -167,6 +328,14 @@ table, .table
     a
       display: block
       padding: 0.8rem 1.6rem
+      border: 0
+      border-radius: 0
+      color: #777
+      float: none
+      background: transparent
+      &:hover
+        color: #777
+        background: transparent
   .prev, .next
     border-bottom: 0
 
@@ -209,6 +378,3 @@ table, .table
     box-shadow: none
     border: 0
     background-color: transparent
-
-.section.row
-  display: none

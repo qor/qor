@@ -93,6 +93,5 @@ func Delete(scope *gorm.Scope) {
 		} else {
 			gorm.Delete(scope)
 		}
-		gorm.Delete(scope)
 	}
 }

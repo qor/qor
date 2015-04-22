@@ -69,10 +69,16 @@ func (u User) DisplayName() string {
 
 type Product struct {
 	gorm.Model
-	Name        *string
-	Description *string
+	Name         *string
+	Description  *string
+	CollectionID uint
 	l10n.Locale
 	publish.Status
+}
+
+type Collection struct {
+	gorm.Model
+	Name string
 }
 
 type Order struct {
@@ -108,7 +114,7 @@ func init() {
 		panic(err)
 	}
 
-	DB.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &Order{}, &OrderItem{}, &admin.AssetManager{})
+	DB.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &Collection{}, &Order{}, &OrderItem{}, &admin.AssetManager{})
 
 	Publish = publish.New(&DB)
 	Publish.Support(&Product{}).AutoMigrate()

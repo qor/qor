@@ -1,58 +1,59 @@
-<h3 class="page-header">DRAFTS</h3>
+<div class="wrapper">
+  <h3 class="page-header">DRAFTS</h3>
+  <form action="" method="POST">
+    <div class="section btn-wrapper">
+      <button type="submit" name="publish_type" value="publish" class="btn btn-primary">PUBLISH</button>
+      <button type="submit" name="publish_type" value="discard" class="btn btn-danger">DISCARD</button>
+    </div>
 
-<form action="" method="POST">
-  <div class="section">
-    <button type="submit" name="publish_type" value="publish" class="btn btn-primary">PUBLISH</button>
-    <button type="submit" name="publish_type" value="discard" class="btn btn-danger">DISCARD</button>
-  </div>
+    {{range $res, $records := .Result}}
+    <div class="table-wrapper">
+      <table state="list">
+        <thead class="thead">
+          <tr>
+            <th class="th">{{$res.Name}}</th>
+            {{range $meta := (index_metas $res)}}
+            <th class="th">{{$meta.Label}}</th>
+            {{end}}
+            <th class="th">Actions</th>
+          </tr>
+        </thead>
 
-  {{range $res, $records := .Result}}
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>{{$res.Name}}</th>
-          {{range $meta := (index_metas $res)}}
-          <th>{{$meta.Label}}</th>
+        <tbody class="tbody">
+          {{range $record := $records}}
+          {{$key := (printf "%s__%v" $res.ToParam (primary_key_of $record))}}
+          <tr id={{$key}} class="draft-item record-item tr transition">
+            <td class="selector td">
+              <input type="checkbox" name="checked_ids[]" value="{{$key}}"/>
+            </td>
+            {{range $index, $meta := index_metas $res}}
+            {{$text := value_of $record $meta}}
+            <td class="td">
+              {{$text}}
+            </td>
+            {{end}}
+            <td class="td"><a data-toggle="modal" data-remote="publish/diff/{{$key}}" href="#diffModal">View Diff</a></td>
+          </tr>
           {{end}}
-          <th>Actions</th>
-        </tr>
-      </thead>
+        </tbody>
+      </table>
+    </div>
+    {{end}}
+  </form>
 
-      <tbody>
-        {{range $record := $records}}
-        {{$key := (printf "%s__%v" $res.ToParam (primary_key_of $record))}}
-        <tr id={{$key}} class="draft-item">
-          <td class="selector">
-            <input type="checkbox" name="checked_ids[]" value="{{$key}}"/>
-          </td>
-          {{range $index, $meta := index_metas $res}}
-          {{$text := value_of $record $meta}}
-          <td>
-            {{$text}}
-          </td>
-          {{end}}
-          <td><a data-toggle="modal" data-remote="publish/diff/{{$key}}" href="#diffModal">View Diff</a></td>
-        </tr>
-        {{end}}
-      </tbody>
-    </table>
-  </div>
-  {{end}}
-</form>
-
-<!-- Modal -->
-<div class="modal fade diff-modal" id="diffModal" tabindex="-1" role="dialog" aria-labelledby="diffModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="diffModalLabel">Diff</h4>
-      </div>
-      <div class="modal-body"></div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+  <!-- Modal -->
+  <div class="modal fade diff-modal" id="diffModal" tabindex="-1" role="dialog" aria-labelledby="diffModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="diffModalLabel">Diff</h4>
+        </div>
+        <div class="modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
       </div>
     </div>
   </div>

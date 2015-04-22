@@ -1,40 +1,3 @@
-.header {
-  height: 60px;
-  background-color: #3f51b5; }
-  .header .brand {
-    float: left;
-    display: block;
-    padding: 15px 20px;
-    color: #fff;
-    font-size: 18px;
-    line-height: 30px;
-    text-decoration: none; }
-
-.main {
-  min-height: 300px;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  background-color: #fff; }
-
-.footer {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  padding: 10px 15px;
-  border-top: 1px solid #3849a2;
-  background-color: #3f51b5; }
-  .footer .copyright {
-    margin-bottom: 0;
-    font-size: 12px;
-    line-height: 20px;
-    text-align: center;
-    color: #ccc; }
-  .footer .bottomlinks {
-    margin-bottom: 0; }
-    .footer .bottomlinks > li > a {
-      color: #eee; }
-
 .form-control {
   border-radius: 0; }
 
@@ -89,57 +52,6 @@
   .btn-link:hover, .btn-link:focus {
     color: #32408f;
     text-decoration: none; }
-
-.nav > li > a {
-  padding: 10px 20px; }
-  .nav > li > a:hover, .nav > li > a:focus {
-    background-color: #3f51b5; }
-.nav > li.disabled > a {
-  color: #eeeeee; }
-  .nav > li.disabled > a:hover, .nav > li.disabled > a:focus {
-    color: #eeeeee; }
-.nav .open > a, .nav .open > a:hover, .nav .open > a:focus {
-  background-color: #3f51b5;
-  border-color: transparent; }
-
-.nav-pills > li > a {
-  border-radius: 0;
-  color: #fff; }
-.nav-pills > li + li {
-  margin-left: 0; }
-.nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus {
-  color: #fff;
-  background-color: #3f51b5; }
-
-.navbar {
-  min-height: 40px;
-  margin-bottom: 0;
-  background-color: #3849a2;
-  border-radius: 0;
-  border-width: 0; }
-
-.dropdown-menu {
-  min-width: 100%;
-  padding: 0;
-  margin-top: 0;
-  background-color: #3f51b5;
-  border-color: #3f51b5;
-  border-radius: 0;
-  -webkit-box-shadow: none;
-  box-shadow: none; }
-  .dropdown-menu > li > a {
-    padding: 10px 20px;
-    color: #fff; }
-    .dropdown-menu > li > a:hover, .dropdown-menu > li > a:focus {
-      color: #fff;
-      background-color: #3849a2; }
-
-.dropdown-menu > .active > a, .dropdown-menu > .active > a:hover, .dropdown-menu > .active > a:focus {
-  color: #fff;
-  background-color: #3849a2; }
-
-.dropdown-menu > .disabled > a, .dropdown-menu > .disabled > a:hover, .dropdown-menu > .disabled > a:focus {
-  color: #eeeeee; }
 
 .table {
   border-top: 1px solid #eeeeee;
