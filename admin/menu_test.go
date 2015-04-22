@@ -53,20 +53,20 @@ func TestMenu(t *testing.T) {
 	prefixMenuLinks(menus, "/admin")
 
 	expect := []*Menu{
-		&Menu{Name: "menu1", SubMenus: []*Menu{
-			&Menu{Name: "menu1-1", SubMenus: []*Menu{
-				&Menu{Name: "menu1-1-1", SubMenus: []*Menu{
+		&Menu{Name: "menu1", subMenus: []*Menu{
+			&Menu{Name: "menu1-1", subMenus: []*Menu{
+				&Menu{Name: "menu1-1-1", subMenus: []*Menu{
 					&Menu{Name: res7.Name, rawPath: "res7", Link: "/admin/res7"},
 				}},
 				&Menu{Name: res3.Name, rawPath: "res3", Link: "/admin/res3"},
 			}},
 			&Menu{Name: res1.Name, rawPath: "res1", Link: "/admin/res1"},
 			&Menu{Name: res2.Name, rawPath: "res2", Link: "/admin/res2"},
-			&Menu{Name: "menu1-2", SubMenus: []*Menu{
+			&Menu{Name: "menu1-2", subMenus: []*Menu{
 				&Menu{Name: res6.Name, rawPath: "res6", Link: "/admin/res6"},
 			}},
 		}},
-		&Menu{Name: "menu2", SubMenus: []*Menu{
+		&Menu{Name: "menu2", subMenus: []*Menu{
 			&Menu{Name: res4.Name, rawPath: "res4", Link: "/admin/res4"},
 		}},
 		&Menu{Name: res5.Name, rawPath: "res5", Link: "/admin/res5"},
@@ -111,14 +111,14 @@ func TestAddSubMenuViaParents(t *testing.T) {
 	menus = appendMenu(menus, []string{"Product", pMenu1}, &Menu{Name: pMenu1_1})
 
 	expected := []*Menu{
-		&Menu{Name: "Dashboard", SubMenus: []*Menu{
-			&Menu{Name: subMenuName, SubMenus: []*Menu{
+		&Menu{Name: "Dashboard", subMenus: []*Menu{
+			&Menu{Name: subMenuName, subMenus: []*Menu{
 				&Menu{Name: sub2MenuName},
 			}},
 		}},
 
-		&Menu{Name: "Product", SubMenus: []*Menu{
-			&Menu{Name: pMenu1, SubMenus: []*Menu{
+		&Menu{Name: "Product", subMenus: []*Menu{
+			&Menu{Name: pMenu1, subMenus: []*Menu{
 				&Menu{Name: pMenu1_1},
 			}},
 			&Menu{Name: pMenu2},
