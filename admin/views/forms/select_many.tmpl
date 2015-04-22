@@ -1,6 +1,6 @@
 <div class="form-group">
   <label for="{{.InputId}}">{{.Label}}</label><br/>
-  <select class="form-control qor-select" id="{{.InputId}}" data-toggle="qor.selector" name="{{.InputName}}" multiple>
+  <select class="form-control" id="{{.InputId}}" data-toggle="qor.selector" name="{{.InputName}}" multiple>
     {{$current_values := .Value}}
     {{range $values := .CollectionValue}}
       {{if (has_primary_key $current_values (index $values 0))}}
