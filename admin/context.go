@@ -218,7 +218,11 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 		data["InputId"] = strings.Join(prefix, "")
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
-		data["Value"] = meta.Valuer(value, context.Context)
+		value := meta.Valuer(value, context.Context)
+		if rv := reflect.ValueOf(value); rv.Kind() == reflect.Ptr && !rv.IsNil() {
+			value = rv.Elem().Interface()
+		}
+		data["Value"] = value
 		if meta.GetCollection != nil {
 			data["CollectionValue"] = meta.GetCollection(value, context.Context)
 		}
