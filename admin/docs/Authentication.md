@@ -1,10 +1,11 @@
 Authentication
 
-Auth must implement 3 functions
+Auth must implement 4 functions
 
 1. Login(*Context)
 2. Logout(*Context)
 3. GetCurrentUser(*Context) qor.CurrentUser
+4. func (user User) DisplayName() string
 
 Example:
 
@@ -26,6 +27,10 @@ Example:
         }
       }
       return nil
+    }
+
+    func (u User) DisplayName() string {
+      return u.Name
     }
 
     // Register customized Auth in Qor admin
