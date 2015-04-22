@@ -1,31 +1,36 @@
-### Meta config
+### Field configuration
 ---
 
-  Meta accepts below parameters
+Use resource "user" as example to introduce supported field type. [gorm](https://github.com/jinzhu/gorm) as ORM.
 
-  - **Name**, name of the attribute
-  - **Alias**(TODO: this should switch name with Name), point to db field name when field name is different with the name used outside(API client). use Alias to point to field name. For example, if field name is "name" but wants to use "fullname" in Admin. you need define {Name: "fullname", Alias: "name"}, Alias point to field name.
-  - **Label**, field label text
-  - **Type**, define how to display this meta, see below list for detail
-  - **Resource**, set nested resources, the nested resources's meta will be displayed in parent resource form. You can nest infinity resources you want.
-  - **Collection**, data set of select one and select many meta.
-  - **Permission**, control user's permission on current meta.
+    type User struct {
+      gorm.Model
+      Name      string
+      Gender    string
+      Description string
+      Languages []Language
+    }
+
+    type Language struct {
+      gorm.Model
+      Name string
+    }
 
 #### text field
 
-  Set the name of the field and label(optional), "Type" is default as text input.
+  User name will be displayed as text input in form with label "Full Name"
 
-    user.Meta(&admin.Meta{Name: "name", Label: "Full Name"})
+    user.Meta(&admin.Meta{Name: "Name", Label: "Full Name"})
 
 #### select one
 
-  Set "Type" as "select_one" then set data source by parameter "Collection"
+  User gender will be displayed as select in form with options "M", "F", "U"
 
-    user.Meta(&admin.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
+    user.Meta(&admin.Meta{Name: "Gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
 
 #### select many
 
-  Set "Type" as "select_many", "Collection" also support function
+  User languages will be displayed as select(multiple selectable) in form with all languages in database. `Collection` can be a Array or a Function
 
     user.Meta(&admin.Meta{Name: "Languages", Type: "select_many",
       Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
@@ -40,10 +45,40 @@
 
 #### rich editor
 
-  Set "Name" and "Type" as "rich_editor"
+  User description will be displayed as rich editor in form.
 
-    user.Meta(&admin.Meta{Name: "description", Type: "rich_editor"})
+    user.Meta(&admin.Meta{Name: "Description", Type: "rich_editor", Resource: Admin.NewResource(&admin.AssetManager{})}})
+
+  `Resource: Admin.NewResource(&admin.AssetManager{})` here means enable image upload feature for this rich editor.
 
 #### media upload
 
-  // placeholder
+  resource image will have a file uploader in form by this, Please visit [media library]() for more detail.
+
+    type Image struct {
+      File media_library.FileSystem
+    }
+
+    image.Meta(&admin.Meta{Name: "File"})
+
+### Additional features
+---
+
+#### permission control
+
+  "translator" can fully control language's name but "user" could only read language's name. For more usage please visit [Roles]()
+
+    language.Meta(&admin.Meta{Name: "name", Permission: roles.Allow(role.CRUD, "translator").Allow(role.Read, "user")})
+
+#### nested resources
+
+  A languages section will appears in user form as nested resource
+
+    language := Admin.AddResource(&Language{})
+    language.Meta(&admin.Meta{Name: "Name"})
+    user.Meta(&admin.Meta{Name: "Languages", Resource: language})
+
+#### alias
+
+// TODO: this option need a appropriate name
+Point to db field name when it is different with the name used in API. For example, if db field name is "name" but wants to use "fullname" in API. you need define {Name: "fullname", Alias: "name"}, **Alias point to db field name**.
