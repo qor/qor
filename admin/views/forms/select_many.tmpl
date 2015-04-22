@@ -1,10 +1,10 @@
 <div class="form-group">
   <label for="{{.InputId}}">{{.Label}}</label><br/>
-  <select class="form-control qor-select" id="{{.InputId}}" name="{{.InputName}}" multiple>
+  <select class="form-control qor-select" id="{{.InputId}}" data-toggle="qor.selector" name="{{.InputName}}" multiple>
     {{$current_values := .Value}}
     {{range $values := .CollectionValue}}
       {{if (has_primary_key $current_values (index $values 0))}}
-        <option value="{{index $values 0}}" selected="selected">{{index $values 1}}</option>
+        <option value="{{index $values 0}}" selected>{{index $values 1}}</option>
       {{else}}
         <option value="{{index $values 0}}">{{index $values 1}}</option>
       {{end}}
