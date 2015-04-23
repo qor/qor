@@ -68,7 +68,7 @@ func (w *Worker) indexPage(c *admin.Context) {
 	for _, j := range w.Jobs {
 		resource = j.Resource
 	}
-	qorJobs, err := c.SetResource(resource).FindAll()
+	qorJobs, err := c.SetResource(resource).FindMany()
 	if err != nil {
 		panic(err)
 	}

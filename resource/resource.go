@@ -8,23 +8,23 @@ import (
 )
 
 type Resource struct {
-	Name         string
-	StructType   string
-	primaryField *gorm.Field
-	Value        interface{}
-	Searcher     func(interface{}, *qor.Context) error
-	Finder       func(interface{}, *MetaValues, *qor.Context) error
-	Saver        func(interface{}, *qor.Context) error
-	Deleter      func(interface{}, *qor.Context) error
-	validators   []func(interface{}, *MetaValues, *qor.Context) error
-	processors   []func(interface{}, *MetaValues, *qor.Context) error
+	Name            string
+	StructType      string
+	primaryField    *gorm.Field
+	Value           interface{}
+	FindManyHandler func(interface{}, *qor.Context) error
+	FindOneHandler  func(interface{}, *MetaValues, *qor.Context) error
+	Saver           func(interface{}, *qor.Context) error
+	Deleter         func(interface{}, *qor.Context) error
+	validators      []func(interface{}, *MetaValues, *qor.Context) error
+	processors      []func(interface{}, *MetaValues, *qor.Context) error
 }
 
 type Resourcer interface {
 	GetResource() *Resource
 	GetMetas(...[]string) []Metaor
-	CallSearcher(interface{}, *qor.Context) error
-	CallFinder(interface{}, *MetaValues, *qor.Context) error
+	CallFindMany(interface{}, *qor.Context) error
+	CallFindOne(interface{}, *MetaValues, *qor.Context) error
 	CallSaver(interface{}, *qor.Context) error
 	CallDeleter(interface{}, *qor.Context) error
 	NewSlice() interface{}
@@ -39,7 +39,7 @@ func New(value interface{}, names ...string) *Resource {
 		name = n
 	}
 
-	res := &Resource{Value: value, Name: name, StructType: typeName, Saver: DefaultSaver, Finder: DefaultFinder, Searcher: DefaultSearcher, Deleter: DefaultDeleter}
+	res := &Resource{Value: value, Name: name, StructType: typeName, Saver: DefaultSaver, FindOneHandler: DefaultFinder, FindManyHandler: DefaultSearcher, Deleter: DefaultDeleter}
 	return res
 }
 
