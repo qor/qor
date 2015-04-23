@@ -372,7 +372,8 @@ func (context *Context) funcMap() template.FuncMap {
 	return funcMap
 }
 
-// PatchURL updates the query part of the current request url
+// PatchURL updates the query part of the current request url. You can
+// access it in template by `patch_url`.
 //     patch_url "key" "value"
 func (context *Context) PatchURL(parts ...interface{}) (u string, err error) {
 	url := *context.Request.URL
@@ -380,12 +381,12 @@ func (context *Context) PatchURL(parts ...interface{}) (u string, err error) {
 	for i := 0; i < len(parts)/2; i++ {
 		key, ok := parts[i*2].(string)
 		if !ok {
-			err = fmt.Errorf("%[1]s type is %[1]T, want string", parts[i*2])
+			err = fmt.Errorf("%[1]v type is %[1]T, want string", parts[i*2])
 			return
 		}
 		value, ok := parts[i*2+1].(string)
 		if !ok {
-			err = fmt.Errorf("%[1]s type is %[1]T, want string", parts[i*2+1])
+			err = fmt.Errorf("%[1]v type is %[1]T, want string", parts[i*2+1])
 			return
 		}
 		if value == "" {
