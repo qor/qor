@@ -100,14 +100,14 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	res.Config.Theme = "l10n"
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
-	searcher := res.Searcher
-	res.Searcher = func(result interface{}, context *qor.Context) error {
+	searcher := res.FindManyHandler
+	res.FindManyHandler = func(result interface{}, context *qor.Context) error {
 		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
 		return searcher(result, context)
 	}
 
-	finder := res.Finder
-	res.Finder = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+	finder := res.FindOneHandler
+	res.FindOneHandler = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
 		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
 		return finder(result, metaValues, context)
 	}

@@ -8,6 +8,7 @@ Admin:
     order.Deleter()
     order.Meta(&admin.Meta{Name: name, Valuer: func(), Setter: func()}) | Valuer (type, value, meta values), Setter
     order.Scope(&admin.Scope{Name: name, Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {}})
+    order.Search(func(db *gorm.DB, keyword *qor.Context) *gorm.DB {})
     order.Filter(&admin.Filter{Name: name, Handle: func(string, string, *gorm.DB, *qor.Context) *gorm.DB})
     order.Action(&admin.Action{Name: name, Handle: func(scope *gorm.DB, context *qor.Context) error {}, Inline, Metas})
 
