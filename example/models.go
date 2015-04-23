@@ -39,10 +39,10 @@ type Language struct {
 type User struct {
 	gorm.Model
 	Name         string
-	Gender       string
+	State        string
+	Avatar       media_library.FileSystem
 	Birthday     *time.Time
 	Description  string `sql:"size:622550"`
-	File         media_library.FileSystem
 	RoleID       uint
 	Languages    []Language `gorm:"many2many:user_languages;"`
 	CreditCard   CreditCard

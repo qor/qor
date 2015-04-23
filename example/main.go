@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 )
@@ -19,10 +20,16 @@ func main() {
 	creditcard.Meta(&admin.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
 	user := Admin.AddResource(&User{}, &admin.Config{Menu: []string{"Users Management"}})
+	user.Scope(&admin.Scope{Name: "Active", Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {
+		return db.Where("state = ?", "Active")
+	}})
+	user.Scope(&admin.Scope{Name: "Inactive", Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {
+		return db.Where("state = ?", "Inactive")
+	}})
 	user.Meta(&admin.Meta{Name: "CreditCard", Resource: creditcard})
 	user.Meta(&admin.Meta{Name: "fullname", Alias: "name"})
 
-	user.Meta(&admin.Meta{Name: "gender", Type: "select_one", Collection: []string{"M", "F", "U"}})
+	user.Meta(&admin.Meta{Name: "State", Type: "select_one", Collection: []string{"Active", "Inactive"}})
 	user.Meta(&admin.Meta{Name: "RoleID", Label: "Role", Type: "select_one",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if roles := []Role{}; !context.GetDB().Find(&roles).RecordNotFound() {
