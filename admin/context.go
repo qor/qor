@@ -372,7 +372,8 @@ func (context *Context) funcMap() template.FuncMap {
 	return funcMap
 }
 
-// PatchURL updates the query part
+// PatchURL updates the query part of the current request url
+//     patch_url "key" "value"
 func (context *Context) PatchURL(parts ...interface{}) (u string, err error) {
 	url := *context.Request.URL
 	q := url.Query()
