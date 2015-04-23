@@ -1,15 +1,21 @@
-<div class="collection-edit">
+<div class="collection-edit form-group" data-toggle="qor.replicator">
   <label for="{{.InputId}}">{{.Label}}</label>
   {{$meta := .Meta}}
   {{if .Value}}
     {{range $index, $value := .Value }}
       <fieldset>
+        <button type="button" class="close pull-right" data-toggle="delete.qor.replicator">&times;</button>
         {{render_form $value (edit_metas $meta.Resource) $index}}
       </fieldset>
     {{end}}
   {{end}}
 
   <fieldset class="new-record">
+    <button type="button" class="close pull-right" data-toggle="delete.qor.replicator">&times;</button>
     {{render_form $meta.Resource.GetResource.Value (new_metas $meta.Resource) (len .Value)}}
   </fieldset>
+
+  <button type="button" class="btn btn-default" data-toggle="insert.qor.replicator">
+    <span class="glyphicon glyphicon-plus"></span>
+  </button>
 </div>

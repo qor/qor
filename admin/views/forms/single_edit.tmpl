@@ -1,6 +1,6 @@
-<div class="signle-edit">
+<div class="signle-edit form-group">
   <label for="{{.InputId}}">{{.Label}}</label>
-  <fieldset>
+  <fieldset id="{{.InputId}}">
     {{render_form .Value (edit_metas .Meta.Resource)}}
   </fieldset>
 </div>
