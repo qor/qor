@@ -375,27 +375,34 @@ func (context *Context) funcMap() template.FuncMap {
 // PatchURL updates the query part of the current request url. You can
 // access it in template by `patch_url`.
 //     patch_url "key" "value"
-func (context *Context) PatchURL(parts ...interface{}) (u string, err error) {
+func (context *Context) PatchURL(params ...interface{}) (patchedURL string, err error) {
 	url := *context.Request.URL
-	q := url.Query()
-	for i := 0; i < len(parts)/2; i++ {
-		key, ok := parts[i*2].(string)
+	query := url.Query()
+
+	for i := 0; i < len(params)/2; i++ {
+
+		// Check if params is key&value pair
+		key, ok := params[i*2].(string)
 		if !ok {
-			err = fmt.Errorf("%[1]v type is %[1]T, want string", parts[i*2])
+			err = fmt.Errorf("%[1]v type is %[1]T, want string", params[i*2])
 			return
 		}
-		value, ok := parts[i*2+1].(string)
+
+		value, ok := params[i*2+1].(string)
 		if !ok {
-			err = fmt.Errorf("%[1]v type is %[1]T, want string", parts[i*2+1])
+			err = fmt.Errorf("%[1]v type is %[1]T, want string", params[i*2+1])
 			return
 		}
+
 		if value == "" {
-			q.Del(key)
+			query.Del(key)
 		} else {
-			q.Set(key, value)
+			query.Set(key, value)
 		}
 	}
-	url.RawQuery = q.Encode()
-	u = url.String()
+
+	url.RawQuery = query.Encode()
+	patchedURL = url.String()
+
 	return
 }
