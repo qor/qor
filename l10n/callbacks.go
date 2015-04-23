@@ -10,23 +10,21 @@ import (
 func BeforeQuery(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		quotedTableName := scope.QuotedTableName()
-		if locale, ok := getLocale(scope); ok { // is locale
-			switch mode, _ := scope.DB().Get("l10n:mode"); mode {
-			case "locale":
-				scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), locale)
-			case "global":
-				scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), Global)
-			default:
-				quotedPrimaryKey := scope.Quote(scope.PrimaryKey())
-				scope.Search.Unscoped = true
-				if scope.Fields()["deleted_at"] != nil {
-					scope.Search.Where(fmt.Sprintf("(%v NOT IN (SELECT DISTINCT(%v) FROM %v t2 WHERE t2.language_code = ? AND t2.deleted_at IS NULL) AND language_code = ?) OR (language_code = ? AND deleted_at IS NULL)", quotedPrimaryKey, quotedPrimaryKey, quotedTableName), locale, Global, locale)
-				} else {
-					scope.Search.Where(fmt.Sprintf("(%v NOT IN (SELECT DISTINCT(%v) FROM %v t2 WHERE t2.language_code = ?) AND language_code = ?) OR (language_code = ?)", quotedPrimaryKey, quotedPrimaryKey, quotedTableName), locale, Global, locale)
-				}
-			}
-		} else {
+		locale, _ := getLocale(scope)
+		switch mode, _ := scope.DB().Get("l10n:mode"); mode {
+		case "locale":
+			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), locale)
+		case "global":
 			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), Global)
+		case "mixed":
+		default:
+			quotedPrimaryKey := scope.Quote(scope.PrimaryKey())
+			scope.Search.Unscoped = true
+			if scope.Fields()["deleted_at"] != nil {
+				scope.Search.Where(fmt.Sprintf("(%v NOT IN (SELECT DISTINCT(%v) FROM %v t2 WHERE t2.language_code = ? AND t2.deleted_at IS NULL) AND language_code = ?) OR (language_code = ? AND deleted_at IS NULL)", quotedPrimaryKey, quotedPrimaryKey, quotedTableName), locale, Global, locale)
+			} else {
+				scope.Search.Where(fmt.Sprintf("(%v NOT IN (SELECT DISTINCT(%v) FROM %v t2 WHERE t2.language_code = ?) AND language_code = ?) OR (language_code = ?)", quotedPrimaryKey, quotedPrimaryKey, quotedTableName), locale, Global, locale)
+			}
 		}
 	}
 }

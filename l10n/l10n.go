@@ -153,7 +153,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	res.GetAdmin().RegisterFuncMap("locales_of_resource", func(resource interface{}, context admin.Context) []map[string]interface{} {
 		scope := context.GetDB().NewScope(resource)
 		var languageCodes []string
-		context.GetDB().New().Model(resource).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
+		context.GetDB().New().Set("l10n:mode", "mixed").Model(resource).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
 
 		var results []map[string]interface{}
 		availableLocales := GetAvailableLocales(context.Request, context.CurrentUser)
