@@ -363,10 +363,37 @@ func (context *Context) funcMap() template.FuncMap {
 		"javascript_tag":    context.JavaScriptTag,
 		"stylesheet_tag":    context.StyleSheetTag,
 		"equal":             Equal,
+		"patch_url":         context.PatchURL,
 	}
 
 	for key, value := range context.Admin.funcMaps {
 		funcMap[key] = value
 	}
 	return funcMap
+}
+
+// PatchURL updates the query part
+func (context *Context) PatchURL(parts ...interface{}) (u string, err error) {
+	url := *context.Request.URL
+	q := url.Query()
+	for i := 0; i < len(parts)/2; i++ {
+		key, ok := parts[i*2].(string)
+		if !ok {
+			err = fmt.Errorf("%[1]s type is %[1]T, want string", parts[i*2])
+			return
+		}
+		value, ok := parts[i*2+1].(string)
+		if !ok {
+			err = fmt.Errorf("%[1]s type is %[1]T, want string", parts[i*2+1])
+			return
+		}
+		if value == "" {
+			q.Del(key)
+		} else {
+			q.Set(key, value)
+		}
+	}
+	url.RawQuery = q.Encode()
+	u = url.String()
+	return
 }
