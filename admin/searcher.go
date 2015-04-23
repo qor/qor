@@ -3,7 +3,6 @@ package admin
 import (
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -109,7 +108,7 @@ func (s *Searcher) parseContext() *qor.Context {
 
 	if context != nil && context.Request != nil {
 		// parse scopes
-		scopes := strings.Split(context.Request.Form.Get("scopes"), "|")
+		scopes := context.Request.Form["scopes"]
 		searcher = searcher.Scope(scopes...)
 
 		// parse filters

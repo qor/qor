@@ -30,7 +30,7 @@
           <form action="{{url_for $resource}}" method="POST">
             <input name="_method" value="DELETE" type="hidden">
             <a class="btn md md-edit" href="{{url_for $resource}}"></a>
-            <button class="btn md md-delete" type="submit" data-confirm="Are you sure?"></button>
+            <button type="submit" class="btn md md-delete" data-toggle="qor.confirmer" data-message="Are you sure?"></button>
           </form>
         </td>
       </tr>

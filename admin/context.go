@@ -218,7 +218,11 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 		data["InputId"] = strings.Join(prefix, "")
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
-		data["Value"] = meta.Valuer(value, context.Context)
+		value := meta.Valuer(value, context.Context)
+		if rv := reflect.ValueOf(value); rv.Kind() == reflect.Ptr && !rv.IsNil() {
+			value = rv.Elem().Interface()
+		}
+		data["Value"] = value
 		if meta.GetCollection != nil {
 			data["CollectionValue"] = meta.GetCollection(value, context.Context)
 		}
@@ -297,6 +301,13 @@ func (context *Context) StyleSheetTag(name string) string {
 	return fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name)
 }
 
+func (context *Context) GetScopes() (scopes []string) {
+	for scope, _ := range context.Resource.scopes {
+		scopes = append(scopes, scope)
+	}
+	return
+}
+
 type Page struct {
 	Page       int
 	Current    bool
@@ -349,6 +360,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"is_new_record":     context.NewRecord,
 		"value_of":          context.ValueOf,
 		"primary_key_of":    context.PrimaryKeyOf,
+		"get_scopes":        context.GetScopes,
 		"has_primary_key":   context.HasPrimaryKey,
 		"all_metas":         context.AllMetas,
 		"index_metas":       context.IndexMetas,
