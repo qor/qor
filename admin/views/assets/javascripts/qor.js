@@ -802,7 +802,7 @@
 
   var QorComparator = function (element, options) {
         this.$element = $(element);
-        this.options = $.extend(true, {}, QorComparator.DEFAULTS, options);
+        this.options = $.extend({}, QorComparator.DEFAULTS, options);
         this.init();
       };
 
@@ -1159,7 +1159,7 @@
 
   var QorDatepicker = function (element, options) {
         this.$element = $(element);
-        this.options = $.extend(true, {}, QorDatepicker.DEFAULTS, options);
+        this.options = $.extend({}, QorDatepicker.DEFAULTS, options);
         this.date = null;
         this.formatDate = null;
         this.built = false;
@@ -1308,11 +1308,35 @@
 
       QorFilter = function (element, options) {
         this.$element = $(element);
-        this.options = $.extend(true, {}, QorFilter.DEFAULTS, options);
+        this.options = $.extend({}, QorFilter.DEFAULTS, options);
         this.init();
       };
 
-  function encodeSearch(data, removed) {
+  // Array: Extend a with b
+  function extend(a, b) {
+    $.each(b, function (i, n) {
+      if ($.inArray(n, a) === -1) {
+        a.push(n);
+      }
+    });
+
+    return a;
+  }
+
+  // Array: detach b from a
+  function detach(a, b) {
+    $.each(b, function (i, n) {
+      i = $.inArray(n, a);
+
+      if (i > -1) {
+        a.splice(i, 1);
+      }
+    });
+
+    return a;
+  }
+
+  function encodeSearch(data, detched) {
     var search = location.search,
         params = [],
         source;
@@ -1320,18 +1344,25 @@
     if ($.isPlainObject(data)) {
       source = decodeSearch(search);
 
-      $.each(data, function (i, n) {
-        if (removed) {
-          if (source.hasOwnProperty(i)) {
-            delete source[i];
+      $.each(data, function (name, values) {
+        if ($.isArray(source[name])) {
+          if (!detched) {
+            source[name] = extend(source[name], values);
+          } else {
+            source[name] = detach(source[name], values);
           }
+
         } else {
-          source[i] = n;
+          if (!detched) {
+            source[name] = values;
+          }
         }
       });
 
-      $.each(source, function (i, n) {
-        params.push(typeof n === 'undefined' ? i : [i, n].join('='));
+      $.each(source, function (name, values) {
+        params = params.concat($.map(values, function (value) {
+          return value === '' ? name : [name, value].join('=');
+        }));
       });
 
       search = '?' + params.join('&');
@@ -1355,9 +1386,16 @@
         params = search.split('&');
       }
 
-      $.each(params, function (i, param) {
-        param = param.split('=');
-        data[param[0]] = param[1];
+      $.each(params, function (i, n) {
+        var param = n.split('='),
+            name = param[0].toLowerCase(),
+            value = param[1] || '';
+
+        if ($.isArray(data[name])) {
+          data[name].push(value);
+        } else {
+          data[name] = [value];
+        }
       });
     }
 
@@ -1393,11 +1431,22 @@
         var $this = $(this),
             params = decodeSearch($this.attr('href'));
 
-        $.each(data, function (name) {
+        $.each(data, function (name, value) {
           var matched = false;
 
-          $.each(params, function (i) {
-            if (i === name) {
+          $.each(params, function (key, val) {
+            var equal = false;
+
+            if (key === name) {
+              $.each(val, function (i, n) {
+                if ($.inArray(n, value) > -1) {
+                  equal = true;
+                  return false;
+                }
+              });
+            }
+
+            if (equal) {
               matched = true;
               return false;
             }
@@ -1420,7 +1469,7 @@
       e.preventDefault();
 
       if ($target.hasClass(this.options.activeClass)) {
-        search = encodeSearch(data, true);
+        search = encodeSearch(data, true); // set `true` to detch
       } else {
         search = encodeSearch(data);
       }
@@ -1728,7 +1777,7 @@
 
   var QorReplicator = function (element, options) {
         this.$element = $(element);
-        this.options = $.extend(true, {}, QorReplicator.DEFAULTS, options);
+        this.options = $.extend({}, QorReplicator.DEFAULTS, options);
         this.index = 0;
         this.init();
       };

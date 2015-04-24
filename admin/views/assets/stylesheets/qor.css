@@ -362,3 +362,23 @@
   line-height: 63px; 
   border-radius: 32px;
 }
+
+.label-group {
+  min-height: 40px;
+  padding: 10px;
+  margin-right: 20px;
+  margin-left: 20px;
+  overflow: hidden; 
+  border: 1px solid #777;
+  border-radius: 2px;
+}
+
+.label-group .label {
+  display: inline-block;
+  color: #fff; 
+  vertical-align: middle;
+}
+
+.label-group .label + .label {
+  margin-left: 5px;
+}

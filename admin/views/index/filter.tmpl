@@ -5,9 +5,9 @@
       <a class="trigger md md-view-module" state="grid" href="javascript:;"></a>
     </section>
 
-    <section class="scopes">
+    <section class="qor-label-group label-group fl">
       {{range $scope := get_scopes}}
-        <a href="?scopes={{$scope}}">{{$scope}}</a>
+        <a class="label label-default" href="?scopes={{$scope}}">{{$scope}}</a>
       {{end}}
     </section>
 
