@@ -10,6 +10,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/qor/qor/utils"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/roles"
@@ -371,10 +373,16 @@ func (context *Context) funcMap() template.FuncMap {
 		"javascript_tag":    context.JavaScriptTag,
 		"stylesheet_tag":    context.StyleSheetTag,
 		"equal":             Equal,
+		"patch_current_url": context.PatchCurrentURL,
 	}
 
 	for key, value := range context.Admin.funcMaps {
 		funcMap[key] = value
 	}
 	return funcMap
+}
+
+// PatchCurrentURL is a convinent wrapper for qor/utils.PatchCurrentURL
+func (context *Context) PatchCurrentURL(params ...interface{}) (patchedURL string, err error) {
+	return utils.PatchURL(context.Request.URL.String(), params...)
 }

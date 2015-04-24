@@ -1,6 +1,11 @@
 package utils
 
-import "strings"
+import (
+	"fmt"
+	"net/url"
+
+	"strings"
+)
 
 // Humanize separates string based on capitalizd letters
 // e.g. "OrderItem" -> "Order Item"
@@ -47,4 +52,40 @@ func ToParamString(str string) string {
 	}
 
 	return strings.ToLower(string(result))
+}
+
+// PatchURL updates the query part of the current request url. You can
+// access it in template by `patch_url`.
+//     patch_url "key" "value"
+func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err error) {
+	url, err := url.Parse(originalURL)
+	if err != nil {
+		return
+	}
+
+	query := url.Query()
+	for i := 0; i < len(params)/2; i++ {
+		// Check if params is key&value pair
+		key, ok := params[i*2].(string)
+		if !ok {
+			err = fmt.Errorf("%[1]v type is %[1]T, want string", params[i*2])
+			return
+		}
+
+		value, ok := params[i*2+1].(string)
+		if !ok {
+			err = fmt.Errorf("%[1]v type is %[1]T, want string", params[i*2+1])
+			return
+		}
+
+		if value == "" {
+			query.Del(key)
+		} else {
+			query.Set(key, value)
+		}
+	}
+
+	url.RawQuery = query.Encode()
+	patchedURL = url.String()
+	return
 }

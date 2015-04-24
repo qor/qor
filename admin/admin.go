@@ -87,7 +87,7 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		filters:     map[string]*Filter{},
 		admin:       admin,
 	}
-	res.Finder = res.finder
+	res.FindOneHandler = res.finder
 
 	if configuration.PageCount == 0 {
 		configuration.PageCount = 10
