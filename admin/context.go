@@ -365,7 +365,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"javascript_tag":    context.JavaScriptTag,
 		"stylesheet_tag":    context.StyleSheetTag,
 		"equal":             Equal,
-		"patch_url":         context.PatchURL,
+		"patch_current_url": context.PatchURL,
 	}
 
 	for key, value := range context.Admin.funcMaps {
