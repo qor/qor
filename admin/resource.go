@@ -10,17 +10,19 @@ import (
 
 type Resource struct {
 	resource.Resource
-	admin       *Admin
-	Config      *Config
-	Metas       []*Meta
-	actions     []*Action
-	scopes      map[string]*Scope
-	filters     map[string]*Filter
-	indexAttrs  []string
-	newAttrs    []string
-	editAttrs   []string
-	showAttrs   []string
-	cachedMetas *map[string][]*Meta
+	admin         *Admin
+	Config        *Config
+	Metas         []*Meta
+	actions       []*Action
+	scopes        map[string]*Scope
+	filters       map[string]*Filter
+	searchAttrs   []string
+	indexAttrs    []string
+	newAttrs      []string
+	editAttrs     []string
+	showAttrs     []string
+	cachedMetas   *map[string][]*Meta
+	searchHandler func(db *gorm.DB, context *qor.Context) *gorm.DB
 }
 
 func (res *Resource) Meta(meta *Meta) {
@@ -63,6 +65,13 @@ func (res *Resource) EditAttrs(columns ...string) {
 
 func (res *Resource) ShowAttrs(columns ...string) {
 	res.showAttrs = columns
+}
+
+func (res *Resource) SearchAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.searchAttrs = columns
+	}
+	return res.searchAttrs
 }
 
 func (res *Resource) getCachedMetas(cacheKey string, fc func() []resource.Metaor) []*Meta {
