@@ -365,7 +365,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"javascript_tag":    context.JavaScriptTag,
 		"stylesheet_tag":    context.StyleSheetTag,
 		"equal":             Equal,
-		"patch_current_url": context.PatchURL,
+		"patch_current_url": context.PatchCurrentURL,
 	}
 
 	for key, value := range context.Admin.funcMaps {
@@ -374,7 +374,7 @@ func (context *Context) funcMap() template.FuncMap {
 	return funcMap
 }
 
-// PatchURL is a convinent wrapper for qor/utils.PatchURL
-func (context *Context) PatchURL(params ...interface{}) (patchedURL string, err error) {
+// PatchCurrentURL is a convinent wrapper for qor/utils.PatchCurrentURL
+func (context *Context) PatchCurrentURL(params ...interface{}) (patchedURL string, err error) {
 	return utils.PatchURL(context.Request.URL.String(), params...)
 }
