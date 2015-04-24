@@ -18,7 +18,7 @@ func checkHasErr(t *testing.T, err error) {
 
 func checkHasProductInLocale(db *gorm.DB, locale string, t *testing.T) {
 	var count int
-	if db.Where("language_code = ?", locale).Count(&count); count != 1 {
+	if db.Set("l10n:locale", locale).Count(&count); count != 1 {
 		t.Errorf("should has only one product for locale %v, but found %v", locale, count)
 	}
 }
