@@ -130,5 +130,5 @@ func TestResetLanguageCodeWithGlobalDB(t *testing.T) {
 
 func TestManyToManyRelations(t *testing.T) {
 	product := Product{Code: "Delete", Name: "global", Tags: []Tag{{Name: "tag1"}, {Name: "tag2"}}}
-	dbGlobal.Debug().Save(&product)
+	dbGlobal.Save(&product)
 }
