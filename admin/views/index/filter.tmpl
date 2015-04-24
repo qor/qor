@@ -5,6 +5,12 @@
       <a class="trigger md md-view-module" state="grid" href="javascript:;"></a>
     </section>
 
+    <section class="scopes">
+      {{range $scope := get_scopes}}
+        <a href="?scopes={{$scope}}">{{$scope}}</a>
+      {{end}}
+    </section>
+
     <section class="search-wrapper fr">
       <form role="form">
         <i class="md md-search"></i>

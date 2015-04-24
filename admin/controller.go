@@ -37,7 +37,7 @@ func (ac *controller) Dashboard(context *Context) {
 }
 
 func (ac *controller) Index(context *Context) {
-	if result, err := context.FindAll(); err == nil {
+	if result, err := context.FindMany(); err == nil {
 		responder.With("html", func() {
 			context.Execute("index", result)
 		}).With("json", func() {

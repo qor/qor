@@ -3,7 +3,6 @@ package admin
 import (
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -109,7 +108,7 @@ func (s *Searcher) parseContext() *qor.Context {
 
 	if context != nil && context.Request != nil {
 		// parse scopes
-		scopes := strings.Split(context.Request.Form.Get("scopes"), "|")
+		scopes := context.Request.Form["scopes"]
 		searcher = searcher.Scope(scopes...)
 
 		// parse filters
@@ -126,7 +125,7 @@ func (s *Searcher) parseContext() *qor.Context {
 	db := context.GetDB()
 	paginationDB := db.Select("count(*) total").Model(s.Resource.Value).InstantSet("gorm:query_destination", &s.Pagination)
 	context.SetDB(paginationDB)
-	s.Resource.CallSearcher(s.Resource.Value, context)
+	s.Resource.CallFindMany(s.Resource.Value, context)
 
 	if s.Pagination.CurrentPage == 0 {
 		if s.Context.Request != nil {
@@ -152,16 +151,16 @@ func (s *Searcher) parseContext() *qor.Context {
 	return context
 }
 
-func (s *Searcher) FindAll() (interface{}, error) {
+func (s *Searcher) FindMany() (interface{}, error) {
 	context := s.parseContext()
 	result := s.Resource.NewSlice()
-	err := s.Resource.CallSearcher(result, context)
+	err := s.Resource.CallFindMany(result, context)
 	return result, err
 }
 
 func (s *Searcher) FindOne() (interface{}, error) {
 	context := s.parseContext()
 	result := s.Resource.NewStruct()
-	err := s.Resource.CallFinder(result, nil, context)
+	err := s.Resource.CallFindOne(result, nil, context)
 	return result, err
 }

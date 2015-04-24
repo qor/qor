@@ -100,14 +100,14 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	res.Config.Theme = "l10n"
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
-	searcher := res.Searcher
-	res.Searcher = func(result interface{}, context *qor.Context) error {
+	searcher := res.FindManyHandler
+	res.FindManyHandler = func(result interface{}, context *qor.Context) error {
 		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
 		return searcher(result, context)
 	}
 
-	finder := res.Finder
-	res.Finder = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+	finder := res.FindOneHandler
+	res.FindOneHandler = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
 		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
 		return finder(result, metaValues, context)
 	}
@@ -153,7 +153,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	res.GetAdmin().RegisterFuncMap("locales_of_resource", func(resource interface{}, context admin.Context) []map[string]interface{} {
 		scope := context.GetDB().NewScope(resource)
 		var languageCodes []string
-		context.GetDB().New().Model(resource).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
+		context.GetDB().New().Set("l10n:mode", "mixed").Model(resource).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
 
 		var results []map[string]interface{}
 		availableLocales := GetAvailableLocales(context.Request, context.CurrentUser)

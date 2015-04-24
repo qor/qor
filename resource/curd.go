@@ -32,12 +32,12 @@ var DefaultDeleter = func(result interface{}, context *qor.Context) error {
 	return nil
 }
 
-func (res *Resource) CallFinder(result interface{}, metaValues *MetaValues, context *qor.Context) error {
-	return res.Finder(result, metaValues, context)
+func (res *Resource) CallFindOne(result interface{}, metaValues *MetaValues, context *qor.Context) error {
+	return res.FindOneHandler(result, metaValues, context)
 }
 
-func (res *Resource) CallSearcher(result interface{}, context *qor.Context) error {
-	return res.Searcher(result, context)
+func (res *Resource) CallFindMany(result interface{}, context *qor.Context) error {
+	return res.FindManyHandler(result, context)
 }
 
 func (res *Resource) CallSaver(result interface{}, context *qor.Context) error {
