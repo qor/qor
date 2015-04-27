@@ -22,7 +22,8 @@ func (admin *Admin) AddMenu(menu *Menu) {
 	admin.menus = appendMenu(admin.menus, menu.Ancestors, menu)
 }
 
-func (admin Admin) GetMenu(name string) (m *Menu) {
+// TODO: this is not used ?
+func (admin Admin) GetMenu(name string) *Menu {
 	return getMenu(admin.menus, name)
 }
 
