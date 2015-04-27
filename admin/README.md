@@ -1,27 +1,66 @@
-# Qor Admin
+## Introduction
 
-## Usage
+Qor admin provide easy-to-use interface for data management.
 
+## Quick example
 
-HTTP Mux
+Use 35 lines of code to setup & run Qor admin.
 
-```
-mux := http.NewServeMux()
-web := admin.New(&qor.Config{DB: &db})
-web.AddToMux("/admin", mux)
-http.ListenAndServe(":8080", mux)
-```
+    package main
 
-Gin
+    import (
+      "net/http"
 
-```
-mux := http.NewServeMux()
+      "github.com/jinzhu/gorm"
+      _ "github.com/mattn/go-sqlite3"
+      "github.com/qor/qor"
+      "github.com/qor/qor/admin"
+    )
 
-web := admin.New(&qor.Config{DB: &db.DB})
-web.AddToMux("/admin", mux)
+    type User struct {
+      gorm.Model
+      Name string
+    }
 
-router := gin.Default()
-// ...
-mux.Handle("/", router)
-http.ListenAndServe(":8080", mux)
-```
+    type Product struct {
+      gorm.Model
+      Name        string
+      Description string
+    }
+
+    func main() {
+      DB, _ := gorm.Open("sqlite3", "demo.db")
+      DB.AutoMigrate(&User{}, &Product{})
+
+      Admin := admin.New(&qor.Config{DB: &DB})
+      Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
+      Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
+
+      mux := http.NewServeMux()
+      Admin.MountTo("/admin", mux)
+      http.ListenAndServe(":9000", mux)
+    }
+
+// TODO: add screenshot after QOR admin UI finished
+`go run main.go` and visit `localhost:9000/admin` to see the result !
+
+You can view [qor example](https://github.com/theplant/qor3/tree/master/example) for a more detailed configuration example.
+
+## Features
+
+- CRUD of any resource
+- Search and filtering
+- Authentication
+- Authorization(detail)
+- Custom actions
+- Customizable view
+- Rich editor
+- Image crop
+- Integrate-able with [Publish](https://github.com/theplant/qor3/tree/master/publish)
+- Integrate-able with [l10n](https://github.com/theplant/qor3/tree/master/l10n)
+- JSON API supported
+- Extendable
+
+## Documentation
+
+https://github.com/theplant/qor3/wiki
