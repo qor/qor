@@ -1,0 +1,7 @@
+<div class="wrapper">
+  <h3 class="page-header">Edit {{.Resource.Name}} For {{current_locale .}}</h3>
+  <form class="form" action="{{url_for .Result}}" method="POST" enctype="multipart/form-data">
+    {{render_form .Result show_metas}}
+    <button class="btn btn-primary" type="submit">Save</button>
+  </form>
+</div>

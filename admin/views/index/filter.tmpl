@@ -5,16 +5,18 @@
       <a class="trigger md md-view-module" state="grid" href="javascript:;"></a>
     </section>
 
-    <section class="scopes">
+    {{if get_scopes}}
+    <section class="qor-label-group label-group fl">
       {{range $scope := get_scopes}}
-        <a href="?scopes={{$scope}}">{{$scope}}</a>
+        <a class="label label-default" href="?scopes={{$scope}}">{{$scope}}</a>
       {{end}}
     </section>
+    {{end}}
 
     <section class="search-wrapper fr">
       <form role="form">
         <i class="md md-search"></i>
-        <input type="search">
+        <input type="search" name="keyword">
         <!-- <i class="md md-close"></i> -->
       </form>
     </section>
