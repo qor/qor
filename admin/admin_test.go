@@ -35,3 +35,25 @@ func TestAddResourceWithInvisibleOption(t *testing.T) {
 		t.Error("invisible resource registered in menu")
 	}
 }
+
+func TestGetResource(t *testing.T) {
+	admin := New(&qor.Config{})
+	user := admin.AddResource(&User{})
+
+	if admin.GetResource("user") != user {
+		t.Error("resource not returned")
+	}
+}
+
+func TestNewResource(t *testing.T) {
+	admin := New(&qor.Config{})
+	user := admin.NewResource(&User{})
+
+	if user.Name != "User" {
+		t.Error("default resource name didn't set")
+	}
+
+	if user.Config.PageCount != DEFAULT_PAGE_COUNT {
+		t.Error("default page count didn't set")
+	}
+}

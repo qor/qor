@@ -9,6 +9,10 @@ import (
 	"github.com/qor/qor/utils"
 )
 
+const (
+	DEFAULT_PAGE_COUNT = 10
+)
+
 type Admin struct {
 	Config    *qor.Config
 	menus     []*Menu
@@ -90,7 +94,7 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 	res.FindOneHandler = res.finder
 
 	if configuration.PageCount == 0 {
-		configuration.PageCount = 10
+		configuration.PageCount = DEFAULT_PAGE_COUNT
 	}
 
 	if configuration.Name != "" {
