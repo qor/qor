@@ -22,7 +22,7 @@ p {
 }
 
 pre, code, kbd, samp {
-  font-family: monospace, 'courier new', serif;
+  font-family: monospace, "courier new", serif;
   font-size: 1em;
 }
 
@@ -50,15 +50,15 @@ del, s {
 
 q:before,
 q:after {
-  font-family: 'Zapf Dingbats';
+  font-family: "Zapf Dingbats";
   -webkit-font-smoothing: antialiased;
 }
 
 q:before {
-  content: '❝';
+  content: "❝";
 }
 q:after {
-  content: '❞';
+  content: "❞";
 }
 
 sub, sup {
