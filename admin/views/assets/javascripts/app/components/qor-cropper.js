@@ -31,7 +31,8 @@
           options = this.options,
           $parent,
           $image,
-          data;
+          data,
+          url;
 
       if (options.parent) {
         $parent = $this.closest(options.parent);
@@ -61,8 +62,20 @@
 
       this.$parent = $parent;
       this.$image = $image;
+      $this.on('change', $.proxy(this.read, this));
+
       this.data = data || {};
-      this.load($image.data('originalUrl') || $image.prop('src'));
+      url = $image.data('originalUrl');
+
+      if (!url) {
+        url = $image.prop('src');
+
+        if (url && $.isFunction(options.replace)) {
+          url = options.replace(url);
+        }
+      }
+
+      this.load(url);
       $this.on('change', $.proxy(this.read, this));
     },
 
@@ -214,17 +227,26 @@
   );
 
   $(function () {
-    $('.qor-file-input').each(function () {
+    if (!$.fn.cropper) {
+      return;
+    }
+
+    $('input[data-toggle="qor.cropper"]').each(function () {
       var $this = $(this);
 
       if (!$this.data('qor.cropper')) {
         $this.data('qor.cropper', new QorCropper(this, {
-          target: '.qor-file-image',
-          output: '.qor-file-options',
+          target: 'img',
+          output: 'textarea',
           parent: '.form-group',
           key: 'CropOption',
           data: {
             Crop: true
+          },
+          replace: function (url) {
+            return url.replace(/\.\w+$/, function (extension) {
+              return '.original' + extension;
+            });
           }
         }));
       }

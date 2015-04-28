@@ -209,7 +209,11 @@
   );
 
   $(function () {
-    $('.qor-text-editor').each(function () {
+    if (!$.fn.redactor) {
+      return;
+    }
+
+    $('textarea[data-toggle="qor.redactor"]').each(function () {
       var $this = $(this),
           data = $this.data();
 
@@ -253,7 +257,5 @@
       });
     });
   });
-
-  return QorRedactor;
 
 });

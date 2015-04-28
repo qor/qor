@@ -14,8 +14,18 @@
   'use strict';
 
   $(function () {
-    $('.qor-select').chosen({
-      allow_single_deselect: true
+    if (!$.fn.chosen) {
+      return;
+    }
+
+    $('select[data-toggle="qor.selector"]').each(function () {
+      var $this = $(this);
+
+      if (!$this.prop('multiple') && !$this.find('option[selected]').length) {
+        $this.prepend('<option value="" selected></option>');
+      }
+
+      $this.chosen();
     });
   });
 

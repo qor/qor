@@ -1,7 +1,7 @@
 (function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as anonymous module.
-    define('qor-datepicker', ['jquery'], factory);
+    define('qor-confirmer', ['jquery'], factory);
   } else if (typeof exports === 'object') {
     // Node / CommonJS
     factory(require('jquery'));
@@ -13,17 +13,12 @@
 
   'use strict';
 
-  $(function () {
-    var $daterange = $('.qor-daterange');
+  $(document).on('click.qor.confirmer', '[data-confirm]', function (e) {
+    var message = $(this).data('confirm');
 
-    $daterange.datepicker({
-      autoclose: true,
-      inputs: $daterange.find('input').toArray()
-    });
-
-    $('.qor-date').datepicker({
-      autoclose: true
-    });
+    if (message && !window.confirm(message)) {
+      e.preventDefault();
+    }
   });
 
 });
