@@ -13,7 +13,6 @@
   "regex-selectors": false,
   "shorthand": false,
   "text-indent": false,
-  "zero-units": false,
   "unique-headings": false,
   "universal-selector": false,
   "unqualified-attributes": false
