@@ -9,6 +9,77 @@ import (
 	"github.com/qor/qor/resource"
 )
 
+func TestTextInput(t *testing.T) {
+	user := Admin.AddResource(&User{})
+	meta := &admin.Meta{Name: "Name"}
+	user.Meta(meta)
+
+	if meta.Label != "Name" {
+		t.Error("default label not set")
+	}
+
+	if meta.Alias != "Name" {
+		t.Error("default Alias is not same as field Name")
+	}
+
+	if meta.Type != "string" {
+		t.Error("default Type is not string")
+	}
+
+	oldUserName := "old name"
+	newUserName := "new name"
+
+	// Valuer
+	userRecord := &User{Name: oldUserName}
+	db.Create(&userRecord)
+	value := meta.Valuer(userRecord, &qor.Context{Config: &qor.Config{DB: &db}})
+
+	if *value.(*string) != oldUserName {
+		t.Error("resource's value doesn't get")
+	}
+
+	// Setter
+	metaValue := &resource.MetaValue{
+		Name:  "User.Name",
+		Value: newUserName,
+		Meta:  meta,
+	}
+
+	meta.Setter(userRecord, metaValue, &qor.Context{Config: &qor.Config{DB: &db}})
+	if userRecord.Name != newUserName {
+		t.Error("resource's value doesn't set")
+	}
+}
+
+// TODO: there maybe a bug of file Type meta generation meta.go#L142
+func TestDefaultMetaType(t *testing.T) {
+	user := Admin.AddResource(&User{})
+	booleanMeta := &admin.Meta{Name: "Active"}
+	timeMeta := &admin.Meta{Name: "RegisteredAt"}
+	numberMeta := &admin.Meta{Name: "CreditCardId"}
+	// fileMeta := &admin.Meta{Name: "Avatar"}
+	user.Meta(booleanMeta)
+	user.Meta(timeMeta)
+	user.Meta(numberMeta)
+	// user.Meta(fileMeta)
+
+	if booleanMeta.Type != "checkbox" {
+		t.Error("boolean field doesn't set as checkbox")
+	}
+
+	if timeMeta.Type != "datetime" {
+		t.Error("time field doesn't set as datetime")
+	}
+
+	if numberMeta.Type != "number" {
+		t.Error("number field doesn't set as number")
+	}
+
+	// if fileMeta.Type != "file" {
+	// 	t.Error("file field doesn't set as file")
+	// }
+}
+
 func TestMeta(t *testing.T) {
 	profileModel := Profile{
 		Name:  "Qor",

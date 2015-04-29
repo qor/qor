@@ -9,6 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/media_library"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -32,10 +33,12 @@ type Language struct {
 }
 
 type User struct {
-	Id   int
-	Name string
-	Role string
-	// Avatar       media_library.FileSystem
+	Id           int
+	Name         string
+	Role         string
+	Active       bool
+	RegisteredAt time.Time
+	Avatar       media_library.FileSystem
 	CreditCard   CreditCard
 	CreditCardId int64
 	Addresses    []Address
