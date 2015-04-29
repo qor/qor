@@ -11,7 +11,7 @@
       <table state="list">
         <thead class="thead">
           <tr>
-            <th class="th">{{$res.Name}}</th>
+            <th class="th"><input class="qor-check-all" type="checkbox">{{$res.Name}}</th>
             {{range $meta := (index_metas $res)}}
             <th class="th">{{$meta.Label}}</th>
             {{end}}
