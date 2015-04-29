@@ -8,6 +8,7 @@ import (
 
 type User struct {
 	Name string
+	Id   uint64
 }
 
 func TestAddResource(t *testing.T) {
