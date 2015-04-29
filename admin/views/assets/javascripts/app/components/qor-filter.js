@@ -21,57 +21,21 @@
         this.init();
       };
 
-  // Array: Extend a with b
-  function extend(a, b) {
-    $.each(b, function (i, n) {
-      if ($.inArray(n, a) === -1) {
-        a.push(n);
-      }
-    });
-
-    return a;
-  }
-
-  // Array: detach b from a
-  function detach(a, b) {
-    $.each(b, function (i, n) {
-      i = $.inArray(n, a);
-
-      if (i > -1) {
-        a.splice(i, 1);
-      }
-    });
-
-    return a;
-  }
-
   function encodeSearch(data, detched) {
     var search = location.search,
-        params = [],
-        source;
+        params;
 
-    if ($.isPlainObject(data)) {
-      source = decodeSearch(search);
+    if ($.isArray(data)) {
+      params = decodeSearch(search);
 
-      $.each(data, function (name, values) {
-        if ($.isArray(source[name])) {
-          if (!detched) {
-            source[name] = extend(source[name], values);
-          } else {
-            source[name] = detach(source[name], values);
-          }
+      $.each(data, function (i, param) {
+        i = $.inArray(param, params);
 
-        } else {
-          if (!detched) {
-            source[name] = values;
-          }
+        if (i === -1) {
+          params.push(param);
+        } else if (detched) {
+          params.splice(i, 1);
         }
-      });
-
-      $.each(source, function (name, values) {
-        params = params.concat($.map(values, function (value) {
-          return value === '' ? name : [name, value].join('=');
-        }));
       });
 
       search = '?' + params.join('&');
@@ -81,8 +45,7 @@
   }
 
   function decodeSearch(search) {
-    var data = {},
-        params = [];
+    var data = [];
 
     if (search && search.indexOf('?') > -1) {
       search = search.split('?')[1];
@@ -92,20 +55,9 @@
       }
 
       if (search) {
-        params = search.split('&');
+        // search = search.toLowerCase();
+        data = search.split('&');
       }
-
-      $.each(params, function (i, n) {
-        var param = n.split('='),
-            name = param[0].toLowerCase(),
-            value = param[1] || '';
-
-        if ($.isArray(data[name])) {
-          data[name].push(value);
-        } else {
-          data[name] = [value];
-        }
-      });
     }
 
     return data;
@@ -134,32 +86,13 @@
 
     parse: function () {
       var options = this.options,
-          data = decodeSearch(location.search);
+          params = decodeSearch(location.search);
 
       this.$toggle.each(function () {
-        var $this = $(this),
-            params = decodeSearch($this.attr('href'));
+        var $this = $(this);
 
-        $.each(data, function (name, value) {
-          var matched = false;
-
-          $.each(params, function (key, val) {
-            var equal = false;
-
-            if (key === name) {
-              $.each(val, function (i, n) {
-                if ($.inArray(n, value) > -1) {
-                  equal = true;
-                  return false;
-                }
-              });
-            }
-
-            if (equal) {
-              matched = true;
-              return false;
-            }
-          });
+        $.each(decodeSearch($this.attr('href')), function (i, param) {
+          var matched = $.inArray(param, params) > -1;
 
           $this.toggleClass(options.activeClass, matched);
 
