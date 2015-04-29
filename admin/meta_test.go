@@ -80,6 +80,46 @@ func TestDefaultMetaType(t *testing.T) {
 	// }
 }
 
+func TestRelationFieldMetaType(t *testing.T) {
+	userRecord := &User{}
+	db.Create(userRecord)
+
+	user := Admin.AddResource(&User{})
+
+	userProfileMeta := &admin.Meta{Name: "Profile"}
+	user.Meta(userProfileMeta)
+
+	if userProfileMeta.Type != "single_edit" {
+		t.Error("has_one relation doesn't generate single_edit type meta")
+	}
+
+	userAddressesMeta := &admin.Meta{Name: "Addresses"}
+	user.Meta(userAddressesMeta)
+
+	if userAddressesMeta.Type != "collection_edit" {
+		t.Error("has_many relation doesn't generate collection_edit type meta")
+	}
+
+	userLanguagesMeta := &admin.Meta{Name: "Languages", Collection: []string{"Fake language"}}
+	user.Meta(userLanguagesMeta)
+
+	if userLanguagesMeta.Type != "select_many" {
+		t.Error("many_to_many relation doesn't generate select_many type meta")
+	}
+}
+
+func TestSetMetaValue(t *testing.T) {
+}
+
+func TestSetMetaCollection(t *testing.T) {
+}
+
+func TestMetaSetter(t *testing.T) {
+}
+
+func TestNestedField(t *testing.T) {
+}
+
 func TestMeta(t *testing.T) {
 	profileModel := Profile{
 		Name:  "Qor",
