@@ -1,3 +1,9 @@
-.qor-collection-group .alert {
-  margin-bottom: 0;
+.qor-collection-group {
+  > label {
+    display: block;
+  }
+
+  .alert {
+    margin-bottom: 0;
+  }
 }
