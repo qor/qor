@@ -89,7 +89,7 @@ func TestMeta(t *testing.T) {
 	userModel := &User{Profile: profileModel}
 	db.Create(userModel)
 
-	user := Admin.AddResource(&User{}, nil)
+	user := Admin.AddResource(&User{})
 	profileNameMeta := &admin.Meta{Name: "Profile.Name"}
 	user.Meta(profileNameMeta)
 	profileSexMeta := &admin.Meta{Name: "Profile.Sex"}

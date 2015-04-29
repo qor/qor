@@ -155,7 +155,7 @@ func (meta *Meta) updateMeta() {
 			} else if fieldType.Kind().String() == "slice" {
 				result = reflect.New(field.Field.Type().Elem()).Interface()
 			}
-			meta.Resource = meta.base.GetAdmin().NewResource(result, nil)
+			meta.Resource = meta.base.GetAdmin().NewResource(result)
 		}
 	}
 
