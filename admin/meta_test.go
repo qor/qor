@@ -28,17 +28,16 @@ func TestTextInput(t *testing.T) {
 	}
 }
 
-// TODO: there maybe a bug of file Type meta generation meta.go#L142
 func TestDefaultMetaType(t *testing.T) {
 	user := Admin.AddResource(&User{})
 	booleanMeta := &admin.Meta{Name: "Active"}
 	timeMeta := &admin.Meta{Name: "RegisteredAt"}
 	numberMeta := &admin.Meta{Name: "CreditCardId"}
-	// fileMeta := &admin.Meta{Name: "Avatar"}
+	fileMeta := &admin.Meta{Name: "Avatar"}
 	user.Meta(booleanMeta)
 	user.Meta(timeMeta)
 	user.Meta(numberMeta)
-	// user.Meta(fileMeta)
+	user.Meta(fileMeta)
 
 	if booleanMeta.Type != "checkbox" {
 		t.Error("boolean field doesn't set as checkbox")
@@ -52,9 +51,9 @@ func TestDefaultMetaType(t *testing.T) {
 		t.Error("number field doesn't set as number")
 	}
 
-	// if fileMeta.Type != "file" {
-	// 	t.Error("file field doesn't set as file")
-	// }
+	if fileMeta.Type != "file" {
+		t.Error("file field doesn't set as file")
+	}
 }
 
 func TestRelationFieldMetaType(t *testing.T) {

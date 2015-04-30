@@ -139,7 +139,7 @@ func (meta *Meta) updateMeta() {
 					meta.Type = "number"
 				} else if _, ok := reflect.New(fieldType).Interface().(*time.Time); ok {
 					meta.Type = "datetime"
-				} else if _, ok := reflect.New(fieldType).Interface().(*media_library.MediaLibrary); ok {
+				} else if _, ok := reflect.New(fieldType).Interface().(media_library.MediaLibrary); ok {
 					meta.Type = "file"
 				}
 			}
