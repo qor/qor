@@ -1,6 +1,7 @@
 package admin_test
 
 import (
+	"reflect"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -24,30 +25,6 @@ func TestTextInput(t *testing.T) {
 
 	if meta.Type != "string" {
 		t.Error("default Type is not string")
-	}
-
-	oldUserName := "old name"
-	newUserName := "new name"
-
-	// Valuer
-	userRecord := &User{Name: oldUserName}
-	db.Create(&userRecord)
-	value := meta.Valuer(userRecord, &qor.Context{Config: &qor.Config{DB: &db}})
-
-	if *value.(*string) != oldUserName {
-		t.Error("resource's value doesn't get")
-	}
-
-	// Setter
-	metaValue := &resource.MetaValue{
-		Name:  "User.Name",
-		Value: newUserName,
-		Meta:  meta,
-	}
-
-	meta.Setter(userRecord, metaValue, &qor.Context{Config: &qor.Config{DB: &db}})
-	if userRecord.Name != newUserName {
-		t.Error("resource's value doesn't set")
 	}
 }
 
@@ -108,13 +85,83 @@ func TestRelationFieldMetaType(t *testing.T) {
 	}
 }
 
-func TestSetMetaValue(t *testing.T) {
+func TestGetStringMetaValue(t *testing.T) {
+	user := Admin.AddResource(&User{})
+	stringMeta := &admin.Meta{Name: "Name"}
+	user.Meta(stringMeta)
+
+	UserName := "user name"
+	userRecord := &User{Name: UserName}
+	db.Create(&userRecord)
+	value := stringMeta.Valuer(userRecord, &qor.Context{Config: &qor.Config{DB: &db}})
+
+	if *value.(*string) != UserName {
+		t.Error("resource's value doesn't get")
+	}
+}
+
+func TestGetStructMetaValue(t *testing.T) {
+	user := Admin.AddResource(&User{})
+	structMeta := &admin.Meta{Name: "CreditCard"}
+	user.Meta(structMeta)
+
+	creditCard := CreditCard{
+		Number: "123456",
+		Issuer: "bank",
+	}
+
+	userRecord := &User{CreditCard: creditCard}
+	db.Create(&userRecord)
+
+	value := structMeta.Valuer(userRecord, &qor.Context{Config: &qor.Config{DB: &db}})
+	creditCardValue := reflect.Indirect(reflect.ValueOf(value))
+
+	if creditCardValue.FieldByName("Number").String() != "123456" || creditCardValue.FieldByName("Issuer").String() != "bank" {
+		t.Error("struct field value doesn't get")
+	}
+}
+
+func TestGetSliceMetaValue(t *testing.T) {
+	user := Admin.AddResource(&User{})
+	sliceMeta := &admin.Meta{Name: "Addresses"}
+	user.Meta(sliceMeta)
+
+	address1 := &Address{Address1: "an address"}
+	address2 := &Address{Address1: "another address"}
+
+	userRecord := &User{Addresses: []Address{*address1, *address2}}
+	db.Create(&userRecord)
+
+	value := sliceMeta.Valuer(userRecord, &qor.Context{Config: &qor.Config{DB: &db}})
+	addresses := reflect.Indirect(reflect.ValueOf(value))
+
+	if addresses.Index(0).FieldByName("Address1").String() != "an address" || addresses.Index(1).FieldByName("Address1").String() != "another address" {
+		t.Error("slice field value doesn't get")
+	}
 }
 
 func TestSetMetaCollection(t *testing.T) {
 }
 
-func TestMetaSetter(t *testing.T) {
+func TestStringMetaSetter(t *testing.T) {
+	user := Admin.AddResource(&User{})
+	meta := &admin.Meta{Name: "Name"}
+	user.Meta(meta)
+
+	UserName := "new name"
+	userRecord := &User{Name: UserName}
+	db.Create(&userRecord)
+
+	metaValue := &resource.MetaValue{
+		Name:  "User.Name",
+		Value: UserName,
+		Meta:  meta,
+	}
+
+	meta.Setter(userRecord, metaValue, &qor.Context{Config: &qor.Config{DB: &db}})
+	if userRecord.Name != UserName {
+		t.Error("resource's value doesn't set")
+	}
 }
 
 func TestNestedField(t *testing.T) {

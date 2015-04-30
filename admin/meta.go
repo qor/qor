@@ -159,7 +159,7 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
-	// Set Meta Value
+	// Set Meta Valuer
 	if meta.Valuer == nil {
 		if hasColumn {
 			meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
