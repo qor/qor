@@ -206,10 +206,33 @@ func TestStringMetaSetter(t *testing.T) {
 	}
 }
 
-func TestNestedField(t *testing.T) {
+// TODO: waiting for Juice to explain logic here. spent too much time on this..
+func TestManyToManyMetaSetter(t *testing.T) {
+	// userRecord := &User{Name: "A user"}
+	// db.Create(&userRecord)
+
+	// en := &Language{Name: "EN"}
+	// cn := &Language{Name: "CN"}
+	// db.Create(&en)
+	// db.Create(&cn)
+
+	// user := Admin.AddResource(&User{})
+	// meta := &admin.Meta{Name: "Languages", Type: "select_many", Collection: [][]string{{fmt.Sprintf("%v", en.Id), en.Name}, {fmt.Sprintf("%v", cn.Id), cn.Name}}}
+	// user.Meta(meta)
+
+	// metaValue := &resource.MetaValue{
+	// 	Name:  "User.Languages",
+	// 	Meta:  meta,
+	// 	Value: []int{en.Id, cn.Id},
+	// }
+	// meta.Setter(userRecord, metaValue, &qor.Context{Config: &qor.Config{DB: &db}})
+
+	// if len(userRecord.Languages) != 2 {
+	// 	t.Error("many to many resource's value doesn't set")
+	// }
 }
 
-func TestMeta(t *testing.T) {
+func TestNestedField(t *testing.T) {
 	profileModel := Profile{
 		Name:  "Qor",
 		Sex:   "Female",
