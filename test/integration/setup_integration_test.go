@@ -1,12 +1,13 @@
-package integration_test
+package main
 
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	"testing"
 
-	"github.com/qor/qor/test/integration"
+	. "github.com/onsi/gomega"
 	"github.com/sclevine/agouti"
 )
 
@@ -24,18 +25,27 @@ func TestMain(m *testing.M) {
 	var t *testing.T
 	var err error
 
-	driver := agouti.Selenium()
+	driver = agouti.Selenium()
 	driver.Start()
 
-	go integration.Start(PORT)
+	go Start(PORT)
 
 	page, err = driver.NewPage(agouti.Browser("chrome"))
 	if err != nil {
 		t.Error("Failed to open page.")
 	}
 
+	RegisterTestingT(t)
 	test := m.Run()
 
 	driver.Stop()
 	os.Exit(test)
+}
+
+func StopDriverOnPanic() {
+	if r := recover(); r != nil {
+		debug.PrintStack()
+		fmt.Println("Recovered in f", r)
+		driver.Stop()
+	}
 }
