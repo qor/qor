@@ -231,7 +231,7 @@
       return;
     }
 
-    $('input[data-toggle="qor.cropper"]').each(function () {
+    $('.qor-fileinput').each(function () {
       var $this = $(this);
 
       if (!$this.data('qor.cropper')) {

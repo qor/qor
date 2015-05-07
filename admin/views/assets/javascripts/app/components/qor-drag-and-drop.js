@@ -1,7 +1,7 @@
 (function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as anonymous module.
-    define('qor-dragger', ['jquery'], factory);
+    define('qor-drag-and-drop', ['jquery'], factory);
   } else if (typeof exports === 'object') {
     // Node / CommonJS
     factory(require('jquery'));
