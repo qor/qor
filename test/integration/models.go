@@ -9,6 +9,22 @@ import (
 
 type User struct {
 	gorm.Model
+	Name      string
+	Gender    string
+	Languages []Language `gorm:"many2many:user_languages;"`
+	Note      string
+
+	Profile Profile
+}
+
+type Profile struct {
+	gorm.Model
+	UserId  uint64
+	Address string
+}
+
+type Language struct {
+	gorm.Model
 	Name string
 }
 
@@ -26,7 +42,7 @@ var (
 	dbpwd   string
 )
 
-func init() {
+func PrepareDB() {
 	var err error
 
 	// Be able to start a server for develop test
@@ -49,6 +65,8 @@ func getTables() []interface{} {
 	return []interface{}{
 		&User{},
 		&Product{},
+		&Profile{},
+		&Language{},
 	}
 }
 
