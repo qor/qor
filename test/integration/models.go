@@ -2,12 +2,9 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"github.com/qor/qor"
-	"github.com/qor/qor/admin"
 )
 
 type User struct {
@@ -29,13 +26,7 @@ var (
 	dbpwd   string
 )
 
-func main() {
-	devMode = true
-
-	Start(3000)
-}
-
-func Start(port int) {
+func init() {
 	var err error
 
 	// Be able to start a server for develop test
@@ -52,15 +43,6 @@ func Start(port int) {
 	}
 
 	setupDb(!devMode) // Don't drop table in dev mode
-
-	Admin := admin.New(&qor.Config{DB: &DB})
-
-	Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
-	Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
-
-	mux := http.NewServeMux()
-	Admin.MountTo("/admin", mux)
-	http.ListenAndServe(fmt.Sprintf(":%v", port), mux)
 }
 
 func getTables() []interface{} {
