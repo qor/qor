@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -43,7 +45,10 @@ func TestForm(t *testing.T) {
 	page.Find("#QorResourceProfileAddress").Fill(address)
 
 	// Rich text
+	Expect(page.Find(".redactor-box")).To(BeFound())
+
 	// File upload
+	Expect(page.Find("input[name='QorResource.Avatar']").UploadFile("fixtures/ThePlant.png")).To(Succeed())
 
 	page.FindByButton("Save").Click()
 
@@ -64,5 +69,16 @@ func TestForm(t *testing.T) {
 
 	if user.Profile.Address != address {
 		t.Error("nested resource for profile not work")
+	}
+
+	avatarFile := fmt.Sprintf("public%v", user.Avatar.Url)
+	if _, err := os.Stat(avatarFile); os.IsNotExist(err) {
+		t.Error("file uploader for avatar not work")
+	} else {
+		os.Remove(avatarFile)
+		// Remove uploaded .original file
+		// File path looks like public/system/users/1/Avatar/ThePlant20150508172715879986152.original.png
+		filePaths := strings.Split(avatarFile, ".")
+		os.Remove(fmt.Sprintf("%v.%v.original.%v", filePaths[0], filePaths[1], filePaths[2]))
 	}
 }

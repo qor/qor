@@ -30,6 +30,8 @@ func AdminConfig() (mux *http.ServeMux) {
 		},
 	})
 	user.Meta(&admin.Meta{Name: "Profile"})
+	user.Meta(&admin.Meta{Name: "Note", Type: "rich_editor", Resource: Admin.NewResource(&admin.AssetManager{})})
+	user.Meta(&admin.Meta{Name: "Avatar"})
 
 	Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
 

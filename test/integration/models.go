@@ -5,6 +5,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/media_library"
 )
 
 type User struct {
@@ -13,6 +14,7 @@ type User struct {
 	Gender    string
 	Languages []Language `gorm:"many2many:user_languages;"`
 	Note      string
+	Avatar    media_library.FileSystem
 
 	Profile Profile
 }
