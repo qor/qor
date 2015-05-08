@@ -9,25 +9,21 @@ import (
 
 // Humanize separates string based on capitalizd letters
 // e.g. "OrderItem" -> "Order Item"
-
-var commonInitialisms = []string{"API", "ASCII", "CPU", "CSS", "DNS", "EOF", "GUID", "HTML", "HTTP", "HTTPS", "ID", "IP", "JSON", "LHS", "QPS", "RAM", "RHS", "RPC", "SLA", "SMTP", "SSH", "TLS", "TTL", "UI", "UID", "UUID", "URI", "URL", "UTF8", "VM", "XML", "XSRF", "XSS"}
-
 func HumanizeString(str string) string {
-	for _, initialism := range commonInitialisms {
-		if initialism == str {
-			return str
-		}
-	}
-
 	var human []rune
 	for i, l := range str {
-		if i > 0 && rune('A') <= l && l <= rune('Z') {
-			human = append(human, rune(' '), l)
-		} else {
-			human = append(human, l)
+		if i > 0 && isUppercase(byte(l)) {
+			if i > 0 && !isUppercase(str[i-1]) || i+1 < len(str) && !isUppercase(str[i+1]) {
+				human = append(human, rune(' '))
+			}
 		}
+		human = append(human, l)
 	}
 	return strings.Title(string(human))
+}
+
+func isUppercase(char byte) bool {
+	return 'A' <= char && char <= 'Z'
 }
 
 // ToParamString replaces spaces and separates words (by uppercase letters) with
