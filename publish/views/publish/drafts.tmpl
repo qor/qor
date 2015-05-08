@@ -2,8 +2,8 @@
   <h3 class="page-header">DRAFTS</h3>
   <form action="" method="POST">
     <div class="form-group btn-wrapper">
-      <button type="submit" name="publish_type" value="publish" class="btn btn-primary">PUBLISH</button>
-      <button type="submit" name="publish_type" value="discard" class="btn btn-danger">DISCARD</button>
+      <button type="submit" class="btn btn-primary" data-confirm="Are you sure?" name="publish_type" value="publish">PUBLISH</button>
+      <button type="submit" class="btn btn-danger" data-confirm="Are you sure?" name="publish_type" value="discard">DISCARD</button>
     </div>
 
     {{range $res, $records := .Result}}
@@ -11,7 +11,7 @@
       <table state="list">
         <thead class="thead">
           <tr>
-            <th class="th">{{$res.Name}}</th>
+            <th class="th"><input class="qor-check-all" type="checkbox"> {{$res.Name}}</th>
             {{range $meta := (index_metas $res)}}
             <th class="th">{{$meta.Label}}</th>
             {{end}}
