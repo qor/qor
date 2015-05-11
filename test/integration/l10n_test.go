@@ -10,7 +10,9 @@ import (
 )
 
 func TestL10n(t *testing.T) {
+	SetupDb(true)
 	defer StopDriverOnPanic()
+
 	var productCN Product
 
 	product := Product{Name: "Global product", Description: "Global product description", Code: "Global"}
@@ -65,6 +67,7 @@ func TestL10n(t *testing.T) {
 
 // Viewable locales []string{l10n.Global, "zh-CN", "JP", "EN", "DE"}
 func TestL10nFilter(t *testing.T) {
+	SetupDb(true)
 	defer StopDriverOnPanic()
 
 	product := Product{Name: "Global product", Description: "Global product description", Code: "Global"}

@@ -65,8 +65,6 @@ func PrepareDB() {
 
 	SetupDb(!devMode) // Don't drop table in dev mode
 
-	Login()
-
 	l10n.RegisterCallbacks(&DB)
 }
 
@@ -93,6 +91,8 @@ func SetupDb(dropBeforeCreate bool) {
 			panic(err)
 		}
 	}
+
+	Login()
 }
 
 func (User) ViewableLocales() []string {

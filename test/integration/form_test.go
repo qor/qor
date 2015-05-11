@@ -53,7 +53,7 @@ func TestForm(t *testing.T) {
 
 	page.FindByButton("Save").Click()
 
-	DB.Preload("Profile").First(&user)
+	DB.Preload("Profile").Last(&user)
 	DB.Model(&user).Related(&languages, "Languages")
 
 	if user.Name != userName {

@@ -25,7 +25,7 @@ func TestCreateUser(t *testing.T) {
 	page.Find("#QorResourceName").Fill(userName)
 	page.FindByButton("Save").Click()
 
-	DB.First(&user)
+	DB.Last(&user)
 
 	if user.Name != userName {
 		t.Error("user not created")
