@@ -60,7 +60,7 @@ func PrepareDB() {
 		panic(err)
 	}
 
-	setupDb(!devMode) // Don't drop table in dev mode
+	SetupDb(!devMode) // Don't drop table in dev mode
 }
 
 func getTables() []interface{} {
@@ -72,7 +72,7 @@ func getTables() []interface{} {
 	}
 }
 
-func setupDb(dropBeforeCreate bool) {
+func SetupDb(dropBeforeCreate bool) {
 	tables := getTables()
 
 	for _, table := range tables {

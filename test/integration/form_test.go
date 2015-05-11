@@ -11,6 +11,7 @@ import (
 )
 
 func TestForm(t *testing.T) {
+	SetupDb(true)
 	defer StopDriverOnPanic()
 
 	var user User
