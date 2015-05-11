@@ -5,6 +5,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/media_library"
 )
 
@@ -33,7 +34,8 @@ type Language struct {
 type Product struct {
 	gorm.Model
 	Name        string
-	Description string
+	Description string `l10n:"sync"`
+	l10n.Locale
 }
 
 var (
@@ -61,6 +63,10 @@ func PrepareDB() {
 	}
 
 	SetupDb(!devMode) // Don't drop table in dev mode
+
+	Login()
+
+	l10n.RegisterCallbacks(&DB)
 }
 
 func getTables() []interface{} {
@@ -83,6 +89,29 @@ func SetupDb(dropBeforeCreate bool) {
 		}
 
 		if err := DB.AutoMigrate(table).Error; err != nil {
+			panic(err)
+		}
+	}
+}
+
+func (User) ViewableLocales() []string {
+	return []string{l10n.Global, "zh-CN", "JP", "EN", "DE"}
+}
+
+func (user User) EditableLocales() []string {
+	return []string{l10n.Global, "zh-CN", "EN"}
+}
+
+func (u User) DisplayName() string {
+	return u.Name
+}
+
+// Set current user via db directly. see auth.go for detail. For test only
+func Login() {
+	currentUser := User{Name: "currentUser"}
+
+	if DB.Where("name = ?", "currentUser").First(&currentUser).RecordNotFound() {
+		if err := DB.Create(&currentUser).Error; err != nil {
 			panic(err)
 		}
 	}

@@ -16,6 +16,7 @@ func main() {
 
 func AdminConfig() (mux *http.ServeMux) {
 	Admin := admin.New(&qor.Config{DB: &DB})
+	Admin.SetAuth(&Auth{})
 
 	user := Admin.AddResource(&User{})
 	user.Meta(&admin.Meta{Name: "Gender", Type: "select_one", Collection: []string{"Male", "Female"}})
@@ -45,6 +46,7 @@ func AdminConfig() (mux *http.ServeMux) {
 
 func Start(port int) {
 	PrepareDB()
+
 	mux := AdminConfig()
 	http.ListenAndServe(fmt.Sprintf(":%v", port), mux)
 }
