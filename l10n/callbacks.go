@@ -45,13 +45,14 @@ func BeforeCreate(scope *gorm.Scope) {
 
 func BeforeUpdate(scope *gorm.Scope) {
 	if isLocalizable(scope) {
-		if locale, ok := getLocale(scope); ok { // is locale
-			scope.Search.Unscoped = true
-			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", scope.QuotedTableName()), locale)
-			setLocale(scope, locale)
+		locale, isLocale := getLocale(scope)
+
+		scope.Search.Unscoped = true
+		scope.Search.Where(fmt.Sprintf("%v.language_code = ?", scope.QuotedTableName()), locale)
+		setLocale(scope, locale)
+
+		if isLocale {
 			scope.Search.Omit(syncColumns(scope)...)
-		} else {
-			setLocale(scope, Global)
 		}
 	}
 }
