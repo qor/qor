@@ -5,9 +5,12 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/qor/qor/l10n"
+	. "github.com/sclevine/agouti/matchers"
 )
 
 func TestL10n(t *testing.T) {
+	defer StopDriverOnPanic()
 	var productCN Product
 
 	product := Product{Name: "Global product", Description: "Global product description", Code: "Global"}
@@ -58,5 +61,43 @@ func TestL10n(t *testing.T) {
 	if productCN.Name == modifiedProductName || productCN.Description == modifiedProductDescription {
 		t.Error("localized attribute has been changed")
 	}
-	// Test L10n filter
+}
+
+// Viewable locales []string{l10n.Global, "zh-CN", "JP", "EN", "DE"}
+func TestL10nFilter(t *testing.T) {
+	defer StopDriverOnPanic()
+
+	product := Product{Name: "Global product", Description: "Global product description", Code: "Global"}
+	DB.Create(&product)
+	product.Name = "CN product"
+	DB.Set("l10n:locale", "zh-CN").Create(&product)
+
+	Expect(page.Navigate(fmt.Sprintf("%v/product", baseUrl))).To(Succeed())
+
+	// Check l10n switcher
+	Expect(page.Find(".lang-selector")).To(BeFound(), "locale selector not visible")
+
+	viewableLocales := []string{l10n.Global, "zh-CN", "JP", "EN", "DE"}
+
+	for _, locale := range viewableLocales {
+		filterCSS := fmt.Sprintf(".lang-selector .dropdown-menu a[href='/admin/product?locale=%v']", locale)
+		Expect(page.Find(filterCSS)).To(BeFound(), "locale selector not visible")
+	}
+
+	// Check global product
+	Expect(page.Find(".lang-selector .dropdown-toggle").Text()).Should(BeEquivalentTo(l10n.Global), "Global locale isn't the default locale")
+	Expect(page.Find("td[title='Language Code']").Text()).Should(BeEquivalentTo(l10n.Global), "global product isn't visible")
+
+	// Switch to zh-CN
+	page.Find(".lang-selector .dropdown-toggle").Click()
+	Expect(page.Find(fmt.Sprintf(".lang-selector .dropdown-menu a[href='/admin/product?locale=%v']", "zh-CN")).Click()).To(Succeed())
+
+	Expect(page.Find(".lang-selector .dropdown-toggle").Text()).Should(BeEquivalentTo("zh-CN"), "zh-CN locale isn't visible in switcher")
+	Expect(page.Find("td[title='Language Code']").Text()).Should(BeEquivalentTo("zh-CN"), "zh-CN product isn't visible")
+
+	// Switch to JP
+	page.Find(".lang-selector .dropdown-toggle").Click()
+	Expect(page.Find(fmt.Sprintf(".lang-selector .dropdown-menu a[href='/admin/product?locale=%v']", "JP")).Click()).To(Succeed())
+
+	Expect(page.Find("td[title='Language Code']").Text()).Should(BeEquivalentTo(l10n.Global), "unlocalized product doesn't show global language code")
 }
