@@ -16,7 +16,7 @@ func BeforeQuery(scope *gorm.Scope) {
 			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), locale)
 		case "global":
 			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", quotedTableName), Global)
-		case "mixed":
+		case "unscoped":
 		default:
 			quotedPrimaryKey := scope.Quote(scope.PrimaryKey())
 			scope.Search.Unscoped = true
@@ -47,9 +47,13 @@ func BeforeUpdate(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		locale, isLocale := getLocale(scope)
 
-		scope.Search.Unscoped = true
-		scope.Search.Where(fmt.Sprintf("%v.language_code = ?", scope.QuotedTableName()), locale)
-		setLocale(scope, locale)
+		switch mode, _ := scope.DB().Get("l10n:mode"); mode {
+		case "unscoped":
+		default:
+			scope.Search.Unscoped = true
+			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", scope.QuotedTableName()), locale)
+			setLocale(scope, locale)
+		}
 
 		if isLocale {
 			scope.Search.Omit(syncColumns(scope)...)
@@ -68,7 +72,9 @@ func AfterUpdate(scope *gorm.Scope) {
 				}
 			}
 		} else if syncColumns := syncColumns(scope); len(syncColumns) > 0 { // is global
-			scope.NewDB().Where(fmt.Sprintf("%v = ?"), scope.PrimaryKeyValue).Select(syncColumns).Update(scope.Value)
+			if scope.DB().RowsAffected > 0 {
+				scope.NewDB().Set("l10n:mode", "unscoped").Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Select(syncColumns).Save(scope.Value)
+			}
 		}
 	}
 }

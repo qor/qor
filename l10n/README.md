@@ -66,7 +66,7 @@ find global record only
 
 find localized record only
 
-#### mixed // TODO: change name for this mode. it means append nothing to query
+#### unscoped
 
 append nothing in query
 
