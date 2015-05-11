@@ -34,7 +34,8 @@ type Language struct {
 type Product struct {
 	gorm.Model
 	Name        string
-	Description string `l10n:"sync"`
+	Description string
+	Code        string `l10n:"sync"`
 	l10n.Locale
 }
 
