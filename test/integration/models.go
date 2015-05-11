@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/media_library"
+	"github.com/qor/qor/publish"
 )
 
 type User struct {
@@ -37,14 +38,17 @@ type Product struct {
 	Description string
 	Code        string `l10n:"sync"`
 	l10n.Locale
+	publish.Status
 }
 
 var (
 	DB      gorm.DB
+	draftDB *gorm.DB
 	devMode bool
 	dbname  string
 	dbuser  string
 	dbpwd   string
+	Publish *publish.Publish
 )
 
 func PrepareDB() {
@@ -62,6 +66,10 @@ func PrepareDB() {
 	if err != nil {
 		panic(err)
 	}
+
+	Publish = publish.New(&DB)
+
+	draftDB = Publish.DraftDB()
 
 	SetupDb(!devMode) // Don't drop table in dev mode
 
@@ -85,7 +93,11 @@ func SetupDb(dropBeforeCreate bool) {
 			if err := DB.DropTableIfExists(table).Error; err != nil {
 				panic(err)
 			}
+
+			DB.Exec("DROP TABLE products_draft;")
 		}
+
+		Publish.Support(&Product{}).AutoMigrate()
 
 		if err := DB.AutoMigrate(table).Error; err != nil {
 			panic(err)

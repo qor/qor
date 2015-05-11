@@ -16,7 +16,7 @@ func TestL10n(t *testing.T) {
 	var productCN Product
 
 	product := Product{Name: "Global product", Description: "Global product description", Code: "Global"}
-	DB.Create(&product)
+	draftDB.Create(&product)
 
 	Expect(page.Navigate(fmt.Sprintf("%v/product", baseUrl))).To(Succeed())
 
@@ -31,7 +31,9 @@ func TestL10n(t *testing.T) {
 
 	page.FindByButton("Save").Click()
 
-	DB.Set("l10n:locale", "zh-CN").First(&productCN, product.ID)
+	if err := draftDB.Set("l10n:locale", "zh-CN").First(&productCN, product.ID).Error; err != nil {
+		panic(err)
+	}
 
 	if productCN.Name != cnProductName {
 		t.Error("cn product's description not set")
@@ -53,8 +55,8 @@ func TestL10n(t *testing.T) {
 	page.Find("#QorResourceCode").Fill(modifiedProductCode)
 	page.FindByButton("Save").Click()
 
-	DB.First(&product, product.ID)
-	DB.Set("l10n:locale", "zh-CN").First(&productCN, product.ID)
+	draftDB.First(&product, product.ID)
+	draftDB.Set("l10n:locale", "zh-CN").First(&productCN, product.ID)
 
 	if product.Code != productCN.Code {
 		t.Error("marked as sync attribute didn't change follow global change")
@@ -71,9 +73,9 @@ func TestL10nFilter(t *testing.T) {
 	defer StopDriverOnPanic()
 
 	product := Product{Name: "Global product", Description: "Global product description", Code: "Global"}
-	DB.Create(&product)
+	draftDB.Create(&product)
 	product.Name = "CN product"
-	DB.Set("l10n:locale", "zh-CN").Create(&product)
+	draftDB.Set("l10n:locale", "zh-CN").Create(&product)
 
 	Expect(page.Navigate(fmt.Sprintf("%v/product", baseUrl))).To(Succeed())
 
@@ -89,6 +91,7 @@ func TestL10nFilter(t *testing.T) {
 
 	// Check global product
 	Expect(page.Find(".lang-selector .dropdown-toggle").Text()).Should(BeEquivalentTo(l10n.Global), "Global locale isn't the default locale")
+	page.Screenshot("/Users/raven1/Desktop/l10n.png")
 	Expect(page.Find("td[title='Language Code']").Text()).Should(BeEquivalentTo(l10n.Global), "global product isn't visible")
 
 	// Switch to zh-CN

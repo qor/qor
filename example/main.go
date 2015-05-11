@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	Admin := admin.New(&qor.Config{DB: Publish.DraftDB()})
+	Admin := admin.New(&qor.Config{DB: draftDB})
 	Admin.SetAuth(&Auth{})
 
 	Admin.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})

@@ -15,8 +15,10 @@ func main() {
 }
 
 func AdminConfig() (mux *http.ServeMux) {
-	Admin := admin.New(&qor.Config{DB: &DB})
+	Admin := admin.New(&qor.Config{DB: Publish.DraftDB()})
 	Admin.SetAuth(&Auth{})
+
+	Admin.AddResource(Publish)
 
 	user := Admin.AddResource(&User{})
 	user.Meta(&admin.Meta{Name: "Gender", Type: "select_one", Collection: []string{"Male", "Female"}})
