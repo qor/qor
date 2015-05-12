@@ -93,15 +93,16 @@ func SetupDb(dropBeforeCreate bool) {
 			if err := DB.DropTableIfExists(table).Error; err != nil {
 				panic(err)
 			}
-
-			DB.Exec("DROP TABLE products_draft;")
 		}
-
-		Publish.Support(&Product{}).AutoMigrate()
 
 		if err := DB.AutoMigrate(table).Error; err != nil {
 			panic(err)
 		}
+	}
+
+	if dropBeforeCreate {
+		DB.Exec("DROP TABLE products_draft;")
+		Publish.Support(&Product{}).AutoMigrate()
 	}
 
 	Login()
