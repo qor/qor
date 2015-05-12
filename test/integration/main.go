@@ -15,7 +15,7 @@ func main() {
 }
 
 func AdminConfig() (mux *http.ServeMux) {
-	Admin := admin.New(&qor.Config{DB: Publish.DraftDB()})
+	Admin := admin.New(&qor.Config{DB: draftDB})
 	Admin.SetAuth(&Auth{})
 
 	Admin.AddResource(Publish)
