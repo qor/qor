@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -59,7 +60,11 @@ func PrepareDB() {
 	if devMode {
 		dbname = "qor_integration"
 	} else {
-		dbname = "qor_integration_test"
+		dbname = "qor_test"
+	}
+
+	if os.Getenv("TEST_ENV") == "CI" {
+		dbuser, dbpwd = os.Getenv("DB_USER"), os.Getenv("DB_PWD")
 	}
 
 	DB, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=True&loc=Local", dbuser, dbpwd, dbname))
