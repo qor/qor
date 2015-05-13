@@ -43,9 +43,11 @@ func TestMain(m *testing.M) {
 }
 
 func StopDriverOnPanic() {
+	var t *testing.T
 	if r := recover(); r != nil {
 		debug.PrintStack()
 		fmt.Println("Recovered in f", r)
 		driver.Stop()
+		t.Fail()
 	}
 }
