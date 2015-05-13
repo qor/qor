@@ -74,10 +74,9 @@ func PrepareDB() {
 
 	Publish = publish.New(&DB)
 
-	draftDB = Publish.DraftDB()
-
 	SetupDb(!devMode) // Don't drop table in dev mode
 
+	draftDB = Publish.DraftDB()
 	l10n.RegisterCallbacks(&DB)
 }
 
