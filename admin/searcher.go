@@ -123,7 +123,7 @@ func (s *Searcher) parseContext() *qor.Context {
 
 	// pagination
 	db := context.GetDB()
-	paginationDB := db.Select("count(*) total").Model(s.Resource.Value).InstantSet("gorm:query_destination", &s.Pagination)
+	paginationDB := db.Select("count(*) total").Model(s.Resource.Value).Set("gorm:query_destination", &s.Pagination)
 	context.SetDB(paginationDB)
 	s.Resource.CallFindMany(s.Resource.Value, context)
 
