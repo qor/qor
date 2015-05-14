@@ -1,6 +1,9 @@
 package admin
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -71,7 +74,14 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.searchAttrs = columns
 		res.SearchHandler = func(keyword string, context *qor.Context) *gorm.DB {
-			return context.GetDB().Where("name like ?", keyword)
+			db := context.GetDB()
+			var conditions []string
+			var keywords []interface{}
+			for _, column := range columns {
+				conditions = append(conditions, fmt.Sprintf("upper(%v) like upper(?)", db.NewScope(nil).Quote(column)))
+				keywords = append(keywords, "%"+keyword+"%")
+			}
+			return context.GetDB().Where(strings.Join(conditions, " OR "), keywords...)
 		}
 	}
 	return res.searchAttrs
