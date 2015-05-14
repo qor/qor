@@ -3,18 +3,23 @@ package admin
 import "path"
 
 type Menu struct {
-	Name   string
-	params string
-	Link   string
-	Items  []*Menu
+	Name      string
+	Link      string
+	Ancestors []string
+	subMenus  []*Menu
+	rawPath   string
 }
 
 func (admin Admin) GetMenus() []*Menu {
 	return admin.menus
 }
 
+func (menu *Menu) GetSubMenus() []*Menu {
+	return menu.subMenus
+}
+
 func (admin *Admin) AddMenu(menu *Menu) {
-	admin.menus = append(admin.menus, menu)
+	admin.menus = appendMenu(admin.menus, menu.Ancestors, menu)
 }
 
 func (admin Admin) GetMenu(name string) (m *Menu) {
@@ -27,8 +32,8 @@ func getMenu(menus []*Menu, name string) *Menu {
 			return m
 		}
 
-		if len(m.Items) > 0 {
-			if mc := getMenu(m.Items, name); mc != nil {
+		if len(m.subMenus) > 0 {
+			if mc := getMenu(m.subMenus, name); mc != nil {
 				return mc
 			}
 		}
@@ -37,47 +42,46 @@ func getMenu(menus []*Menu, name string) *Menu {
 	return nil
 }
 
-func (admin *Admin) linkMenus() {
-	relinkMenus(admin.menus, admin.router.Prefix)
+// Generate menu links by current route. e.g "/products" to "/admin/products"
+func (admin *Admin) generateMenuLinks() {
+	prefixMenuLinks(admin.menus, admin.router.Prefix)
 }
 
-func relinkMenus(menus []*Menu, prefix string) {
+func prefixMenuLinks(menus []*Menu, prefix string) {
 	for _, m := range menus {
-		if m.params != "" {
-			m.Link = path.Join(prefix, m.params)
+		if m.rawPath != "" {
+			m.Link = path.Join(prefix, m.rawPath)
 		}
-		if len(m.Items) > 0 {
-			relinkMenus(m.Items, prefix)
+		if len(m.subMenus) > 0 {
+			prefixMenuLinks(m.subMenus, prefix)
 		}
 	}
 }
 
-func newMenu(menus []string, res *Resource) (menu *Menu) {
-	menu = &Menu{params: res.ToParam(), Name: res.Name}
-
+func newMenu(menus []string, menu *Menu) *Menu {
 	menuCount := len(menus)
 	for index, _ := range menus {
-		menu = &Menu{Name: menus[menuCount-index-1], Items: []*Menu{menu}}
+		menu = &Menu{Name: menus[menuCount-index-1], subMenus: []*Menu{menu}}
 	}
 
-	return
+	return menu
 }
 
-func appendMenu(menus []*Menu, resMenus []string, res *Resource) []*Menu {
-	if len(resMenus) > 0 {
+func appendMenu(menus []*Menu, ancestors []string, menu *Menu) []*Menu {
+	if len(ancestors) > 0 {
 		for _, m := range menus {
-			if m.Name != resMenus[0] {
+			if m.Name != ancestors[0] {
 				continue
 			}
 
-			if len(resMenus) > 1 {
-				m.Items = appendMenu(m.Items, resMenus[1:], res)
+			if len(ancestors) > 1 {
+				m.subMenus = appendMenu(m.subMenus, ancestors[1:], menu)
 			} else {
-				m.Items = append(m.Items, newMenu(nil, res))
+				m.subMenus = append(m.subMenus, newMenu(nil, menu))
 			}
 			return menus
 		}
 	}
 
-	return append(menus, newMenu(resMenus, res))
+	return append(menus, newMenu(ancestors, menu))
 }

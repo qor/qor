@@ -109,7 +109,9 @@ func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource 
 	res := admin.NewResource(value, config...)
 
 	if !res.Config.Invisible {
-		admin.menus = appendMenu(admin.menus, res.Config.Menu, res)
+		// TODO: move Menu out of res.Config, make the API looks better
+		menu := &Menu{rawPath: res.ToParam(), Name: res.Name}
+		admin.menus = appendMenu(admin.menus, res.Config.Menu, menu)
 	}
 
 	admin.resources = append(admin.resources, res)

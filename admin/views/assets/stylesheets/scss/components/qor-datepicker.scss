@@ -1,0 +1,125 @@
+.qor-datepicker {
+  width: 282px;
+}
+
+.qor-datepicker .modal-content {
+  border-radius: 0;
+}
+
+.qor-datepicker .modal-body {
+  padding: 0;
+}
+
+.qor-datepicker .modal-footer {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.qor-datepicker .modal-footer .btn-link {
+  color: #009688;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.qor-datepicker-picked {
+  text-align: center;
+  color: #fff;
+}
+
+.qor-datepicker-week {
+  height: 32px;
+  background-color: #00796b;
+  font-size: 12px;
+  line-height: 32px;
+}
+
+.qor-datepicker-year,
+.qor-datepicker-month,
+.qor-datepicker-day {
+  background-color: #009688;
+  font-size: 22px;
+  line-height: 24px;
+}
+
+.qor-datepicker-month {
+  padding-top: 15px;
+}
+
+.qor-datepicker-day {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 58px;
+  line-height: 60px;
+}
+
+.qor-datepicker-year {
+  padding-bottom: 15px;
+  color: #8acfc8;
+}
+
+.qor-datepicker-embedded {
+  padding: 15px;
+}
+
+// Reset Datepicker CSS
+
+.qor-datepicker .datepicker-container {
+  float: none;
+  position: static;
+  line-height: 36px;
+}
+
+.qor-datepicker .datepicker-content {
+  width: 252px;
+  border: none;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+
+.qor-datepicker .datepicker-content li {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+}
+
+.qor-datepicker .datepicker-content .col-1 {
+  width: 36px;
+}
+
+.qor-datepicker .datepicker-content .col-2 {
+  width: 72px;
+}
+
+.qor-datepicker .datepicker-content .col-3 {
+  width: 108px;
+}
+
+.qor-datepicker .datepicker-content .col-4 {
+  width: 144px;
+}
+
+.qor-datepicker .datepicker-content .col-5 {
+  width: 180px;
+}
+
+.qor-datepicker .datepicker-content .col-6 {
+  width: 216px;
+}
+
+.qor-datepicker .datepicker-content .col-7 {
+  width: 252px;
+}
+
+.qor-datepicker .datepicker-content .selected,
+.qor-datepicker .datepicker-content .selected:hover {
+  background-color: #00796b;
+  color: #fff;
+}
+
+.qor-datepicker .datepicker-years li,
+.qor-datepicker .datepicker-months li {
+  width: 63px;
+  height: 63px;
+  border-radius: 32px;
+  line-height: 63px;
+}

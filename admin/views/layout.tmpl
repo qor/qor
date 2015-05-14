@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="">
   <!--
   ,-----.    ,-----.  ,------.
   '  .-.  '  '  .-.  ' |  .--. '
@@ -8,24 +8,30 @@
   `-----'--' `-----'  `--' '--'
   ENTERPRISE CONTENT MANAGEMENT SYSTEM
   -->
-
   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>Qor Admin</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <!-- Stylesheets -->
     {{stylesheet_tag "lib/bootstrap.min"}}
     {{stylesheet_tag "lib/redactor.min"}}
     {{stylesheet_tag "lib/cropper.min"}}
     {{stylesheet_tag "lib/chosen.min"}}
-    {{stylesheet_tag "fonts/css/material-design-iconic-font.min"}}
-    {{stylesheet_tag "qor"}}
+    {{stylesheet_tag "lib/material-design-iconic-font.min"}}
     {{stylesheet_tag "app"}}
-
   </head>
-
   <body>
+    <!--[if lt IE 10]>
+      <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+    <a class="sr-only" href="#content" tabindex="1">Skip to content</a>
+
     {{template "header" .}}
 
-    <div class="main">
+    <div class="main" id="content">
       {{.Content}}
     </div>
 
@@ -37,7 +43,6 @@
     {{javascript_tag "lib/redactor.min"}}
     {{javascript_tag "lib/cropper.min"}}
     {{javascript_tag "lib/chosen.jquery.min"}}
-    {{javascript_tag "qor"}}
-    {{javascript_tag "admin"}}
+    {{javascript_tag "app"}}
   </body>
 </html>

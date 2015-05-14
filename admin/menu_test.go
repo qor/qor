@@ -8,6 +8,10 @@ import (
 	"github.com/qor/qor/resource"
 )
 
+func generateResourceMenu(resource *Resource) *Menu {
+	return &Menu{rawPath: resource.ToParam(), Name: resource.Name}
+}
+
 func TestMenu(t *testing.T) {
 	var menus []*Menu
 	res1 := &Resource{
@@ -39,33 +43,33 @@ func TestMenu(t *testing.T) {
 		Config:   &Config{Menu: []string{"menu1", "menu1-1", "menu1-1-1"}},
 	}
 
-	menus = appendMenu(menus, res7.Config.Menu, res7)
-	menus = appendMenu(menus, res1.Config.Menu, res1)
-	menus = appendMenu(menus, res2.Config.Menu, res2)
-	menus = appendMenu(menus, res3.Config.Menu, res3)
-	menus = appendMenu(menus, res4.Config.Menu, res4)
-	menus = appendMenu(menus, res5.Config.Menu, res5)
-	menus = appendMenu(menus, res6.Config.Menu, res6)
-	relinkMenus(menus, "/admin")
+	menus = appendMenu(menus, res7.Config.Menu, generateResourceMenu(res7))
+	menus = appendMenu(menus, res1.Config.Menu, generateResourceMenu(res1))
+	menus = appendMenu(menus, res2.Config.Menu, generateResourceMenu(res2))
+	menus = appendMenu(menus, res3.Config.Menu, generateResourceMenu(res3))
+	menus = appendMenu(menus, res4.Config.Menu, generateResourceMenu(res4))
+	menus = appendMenu(menus, res5.Config.Menu, generateResourceMenu(res5))
+	menus = appendMenu(menus, res6.Config.Menu, generateResourceMenu(res6))
+	prefixMenuLinks(menus, "/admin")
 
 	expect := []*Menu{
-		&Menu{Name: "menu1", Items: []*Menu{
-			&Menu{Name: "menu1-1", Items: []*Menu{
-				&Menu{Name: "menu1-1-1", Items: []*Menu{
-					&Menu{Name: res7.Name, params: "res7", Link: "/admin/res7"},
+		&Menu{Name: "menu1", subMenus: []*Menu{
+			&Menu{Name: "menu1-1", subMenus: []*Menu{
+				&Menu{Name: "menu1-1-1", subMenus: []*Menu{
+					&Menu{Name: res7.Name, rawPath: "res7", Link: "/admin/res7"},
 				}},
-				&Menu{Name: res3.Name, params: "res3", Link: "/admin/res3"},
+				&Menu{Name: res3.Name, rawPath: "res3", Link: "/admin/res3"},
 			}},
-			&Menu{Name: res1.Name, params: "res1", Link: "/admin/res1"},
-			&Menu{Name: res2.Name, params: "res2", Link: "/admin/res2"},
-			&Menu{Name: "menu1-2", Items: []*Menu{
-				&Menu{Name: res6.Name, params: "res6", Link: "/admin/res6"},
+			&Menu{Name: res1.Name, rawPath: "res1", Link: "/admin/res1"},
+			&Menu{Name: res2.Name, rawPath: "res2", Link: "/admin/res2"},
+			&Menu{Name: "menu1-2", subMenus: []*Menu{
+				&Menu{Name: res6.Name, rawPath: "res6", Link: "/admin/res6"},
 			}},
 		}},
-		&Menu{Name: "menu2", Items: []*Menu{
-			&Menu{Name: res4.Name, params: "res4", Link: "/admin/res4"},
+		&Menu{Name: "menu2", subMenus: []*Menu{
+			&Menu{Name: res4.Name, rawPath: "res4", Link: "/admin/res4"},
 		}},
-		&Menu{Name: res5.Name, params: "res5", Link: "/admin/res5"},
+		&Menu{Name: res5.Name, rawPath: "res5", Link: "/admin/res5"},
 	}
 
 	if !reflect.DeepEqual(expect, menus) {
@@ -85,5 +89,51 @@ func TestMenu(t *testing.T) {
 		t.Error("failed to get menu")
 	} else if menu.Name != "res6" {
 		t.Error("failed to get correct menu")
+	}
+}
+
+func TestAddSubMenuViaParents(t *testing.T) {
+	var menus []*Menu
+	subMenuName := "Dashboard-subMenu"
+	sub2MenuName := "Dashboard-subMenu-subMenu"
+
+	pMenu1 := "pMenu1"
+	pMenu2 := "pMenu2"
+	pMenu1_1 := "pMenu1_1"
+
+	menus = appendMenu(menus, []string{}, &Menu{Name: "Dashboard"})
+	menus = appendMenu(menus, []string{"Dashboard"}, &Menu{Name: subMenuName})
+	menus = appendMenu(menus, []string{"Dashboard", subMenuName}, &Menu{Name: sub2MenuName})
+
+	menus = appendMenu(menus, []string{}, &Menu{Name: "Product"})
+	menus = appendMenu(menus, []string{"Product"}, &Menu{Name: pMenu1})
+	menus = appendMenu(menus, []string{"Product"}, &Menu{Name: pMenu2})
+	menus = appendMenu(menus, []string{"Product", pMenu1}, &Menu{Name: pMenu1_1})
+
+	expected := []*Menu{
+		&Menu{Name: "Dashboard", subMenus: []*Menu{
+			&Menu{Name: subMenuName, subMenus: []*Menu{
+				&Menu{Name: sub2MenuName},
+			}},
+		}},
+
+		&Menu{Name: "Product", subMenus: []*Menu{
+			&Menu{Name: pMenu1, subMenus: []*Menu{
+				&Menu{Name: pMenu1_1},
+			}},
+			&Menu{Name: pMenu2},
+		}},
+	}
+
+	if !reflect.DeepEqual(expected, menus) {
+		g, err := json.MarshalIndent(menus, "", "  ")
+		if err != nil {
+			t.Error(err)
+		}
+		w, err := json.MarshalIndent(expected, "", "  ")
+		if err != nil {
+			t.Error(err)
+		}
+		t.Errorf("add menu errors: got %s; expected %s", g, w)
 	}
 }

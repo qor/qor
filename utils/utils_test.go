@@ -5,6 +5,25 @@ import (
 	"testing"
 )
 
+func TestHumanizeString(t *testing.T) {
+	cases := []struct {
+		input string
+		want  string
+	}{
+		{"API", "API"},
+		{"OrderID", "Order ID"},
+		{"OrderItem", "Order Item"},
+		{"orderItem", "Order Item"},
+		{"OrderIDItem", "Order ID Item"},
+		{"OrderItemID", "Order Item ID"},
+	}
+	for _, c := range cases {
+		if got := HumanizeString(c.input); got != c.want {
+			t.Errorf("HumanizeString(%q) = %q; want %q", c.input, got, c.want)
+		}
+	}
+}
+
 func TestToParamString(t *testing.T) {
 	cases := [][2]string{
 		{"OrderItem", "order_item"},
