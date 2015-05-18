@@ -310,6 +310,14 @@ func (context *Context) GetScopes() (scopes []string) {
 	return
 }
 
+func (context *Context) HasCreatePermission(meta *Meta) bool {
+	return meta.HasPermission(roles.Create, context.GetContext())
+}
+
+func (context *Context) HasReadPermission(meta *Meta) bool {
+	return meta.HasPermission(roles.Read, context.GetContext())
+}
+
 func (context *Context) HasUpdatePermission(meta *Meta) bool {
 	return meta.HasPermission(roles.Update, context.GetContext())
 }
@@ -382,6 +390,8 @@ func (context *Context) funcMap() template.FuncMap {
 		"stylesheet_tag":        context.StyleSheetTag,
 		"equal":                 Equal,
 		"patch_current_url":     context.PatchCurrentURL,
+		"has_create_permission": context.HasCreatePermission,
+		"has_read_permission":   context.HasReadPermission,
 		"has_update_permission": context.HasUpdatePermission,
 		"has_delete_permission": context.HasDeletePermission,
 	}

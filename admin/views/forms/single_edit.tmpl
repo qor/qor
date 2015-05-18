@@ -1,6 +1,8 @@
 <div class="signle-edit form-group">
   <label for="{{.InputId}}">{{.Label}}</label>
+  {{if (or (and (is_new_record .Value) (has_create_permission .Meta)) (has_update_permission .Meta))}}
   <fieldset id="{{.InputId}}">
     {{render_form .Value (edit_metas .Meta.Resource)}}
   </fieldset>
+  {{end}}
 </div>
