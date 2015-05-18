@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	. "github.com/sclevine/agouti/matchers"
 )
 
 func TestPublishProduct(t *testing.T) {
@@ -47,6 +48,7 @@ func TestPublishProduct(t *testing.T) {
 		t.Error("confirm box not accepted")
 	}
 
+	Eventually(page).Should(HaveURL(fmt.Sprintf("%v/publish", baseUrl)))
 	unpublishedCount, _ := page.Find(fmt.Sprintf("#product__%v", product.ID)).Count()
 	if unpublishedCount != 0 {
 		t.Error("smoke test, there should be no unpublished product")
