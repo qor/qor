@@ -74,7 +74,7 @@ func PrepareDB() {
 
 	Publish = publish.New(&DB)
 
-	SetupDb(!devMode) // Don't drop table in dev mode
+	SetupDb(true)
 
 	draftDB = Publish.DraftDB()
 	l10n.RegisterCallbacks(&DB)
@@ -127,7 +127,6 @@ func (u User) DisplayName() string {
 // Set current user via db directly. see auth.go for detail. For test only
 func Login() {
 	currentUser := User{Name: "currentUser"}
-
 	if DB.Where("name = ?", "currentUser").First(&currentUser).RecordNotFound() {
 		if err := DB.Create(&currentUser).Error; err != nil {
 			panic(err)

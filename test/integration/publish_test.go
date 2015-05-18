@@ -44,6 +44,11 @@ func TestPublishProduct(t *testing.T) {
 
 	page.Session().AcceptAlert() // ConfirmPopup function doesn't work on CI. So use this function to confirm popup
 
+	unpublishedCount, _ := page.Find(fmt.Sprintf("#product__%v", product.ID)).Count()
+	if unpublishedCount != 0 {
+		t.Error("smoke test, there should be no unpublished product")
+	}
+
 	draftDB.First(&product, product.ID)
 	found := DB.Last(&publishedProduct).Error
 
