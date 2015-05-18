@@ -42,7 +42,10 @@ func TestPublishProduct(t *testing.T) {
 
 	Expect(page.FirstByButton("PUBLISH").Click()).To(Succeed())
 
-	page.Session().AcceptAlert() // ConfirmPopup function doesn't work on CI. So use this function to confirm popup
+	alertErr := page.Session().AcceptAlert() // ConfirmPopup function doesn't work on CI. So use this function to confirm popup
+	if alertErr != nil {
+		t.Error("confirm box not accepted")
+	}
 
 	unpublishedCount, _ := page.Find(fmt.Sprintf("#product__%v", product.ID)).Count()
 	if unpublishedCount != 0 {
