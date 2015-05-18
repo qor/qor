@@ -64,7 +64,12 @@ func TestDeleteUser(t *testing.T) {
 
 	deleteLinkSelector := fmt.Sprintf("form[action='/admin/user/%v'] button.md-delete", user.ID)
 	Expect(page.Find(deleteLinkSelector).Click()).To(Succeed())
-	page.Session().AcceptAlert()
+	alertErr := page.Session().AcceptAlert() // ConfirmPopup function doesn't work on CI. So use this function to confirm popup
+	if alertErr != nil {
+		t.Error("confirm box not accepted")
+	}
+
+	Eventually(page).Should(HaveURL(fmt.Sprintf("%v/user", baseUrl)))
 
 	err := DB.First(&user, user.ID).Error
 
