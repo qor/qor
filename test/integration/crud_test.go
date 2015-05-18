@@ -64,7 +64,7 @@ func TestDeleteUser(t *testing.T) {
 
 	deleteLinkSelector := fmt.Sprintf("form[action='/admin/user/%v'] button.md-delete", user.ID)
 	Expect(page.Find(deleteLinkSelector).Click()).To(Succeed())
-	Expect(page.ConfirmPopup()).To(Succeed())
+	page.Session().AcceptAlert()
 
 	err := DB.First(&user, user.ID).Error
 

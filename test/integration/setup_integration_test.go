@@ -25,12 +25,12 @@ func TestMain(m *testing.M) {
 	var t *testing.T
 	var err error
 
-	driver = agouti.Selenium()
+	driver = agouti.ChromeDriver()
 	driver.Start()
 
 	go Start(PORT)
 
-	page, err = driver.NewPage(agouti.Browser("chrome"))
+	page, err = driver.NewPage()
 	if err != nil {
 		t.Error("Failed to open page.")
 	}

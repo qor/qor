@@ -41,7 +41,8 @@ func TestPublishProduct(t *testing.T) {
 	Expect(page.Find(productCheckbox).Check()).To(Succeed())
 
 	Expect(page.FirstByButton("PUBLISH").Click()).To(Succeed())
-	Expect(page.ConfirmPopup()).To(Succeed())
+
+	page.Session().AcceptAlert() // ConfirmPopup function doesn't work on CI. So use this function to confirm popup
 
 	draftDB.First(&product, product.ID)
 	found := DB.Last(&publishedProduct).Error
