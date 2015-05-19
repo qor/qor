@@ -60,7 +60,7 @@ func PrepareDB() {
 	if devMode {
 		dbname = "qor_integration"
 	} else {
-		dbname = "qor_test"
+		dbname = "qor_integration_test"
 	}
 
 	if os.Getenv("TEST_ENV") == "CI" {
