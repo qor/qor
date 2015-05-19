@@ -5,6 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/l10n"
+	"github.com/qor/qor/test/utils"
 )
 
 type Product struct {
@@ -47,14 +48,11 @@ type Tag struct {
 var dbGlobal, dbCN, dbEN *gorm.DB
 
 func init() {
-	// CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
-	// CREATE DATABASE qor_l10n;
-	// GRANT ALL ON qor_l10n.* TO 'gorm'@'localhost';
-	db, _ := gorm.Open("mysql", "qor:qor@/qor_l10n?charset=utf8&parseTime=True")
+	db := utils.TestDB()
 	l10n.RegisterCallbacks(&db)
 
-	db.DropTable(&Product{})
-	db.DropTable(&Tag{})
+	db.DropTableIfExists(&Product{})
+	db.DropTableIfExists(&Tag{})
 	db.Exec("drop table product_tags;")
 	db.AutoMigrate(&Product{})
 	db.AutoMigrate(&Tag{})

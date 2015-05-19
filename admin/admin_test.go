@@ -1,101 +1,90 @@
-package admin_test
+package admin
 
 import (
-	"net/http"
-	"net/http/httptest"
-	"strconv"
-	"time"
+	"testing"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
-	"github.com/qor/qor/admin"
-
-	_ "github.com/mattn/go-sqlite3"
 )
-
-type CreditCard struct {
-	Id     int
-	Number string
-	Issuer string
-}
-
-type Address struct {
-	Id       int
-	UserId   int64
-	Address1 string
-	Address2 string
-}
-
-type Language struct {
-	Id   int
-	Name string
-}
 
 type User struct {
-	Id   int
 	Name string
-	Role string
-	// Avatar       media_library.FileSystem
-	CreditCard   CreditCard
-	CreditCardId int64
-	Addresses    []Address
-	Languages    []Language `gorm:"many2many:user_languages;"`
-
-	Profile Profile
+	Id   uint64
 }
 
-type Profile struct {
-	Id        uint64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
+func TestAddResource(t *testing.T) {
+	admin := New(&qor.Config{})
+	user := admin.AddResource(&User{})
 
-	UserId uint64
-	Name   string
-	Sex    string
-
-	Phone Phone
-}
-
-type Phone struct {
-	Id        uint64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
-
-	ProfileId uint64
-	Num       string
-}
-
-var (
-	server *httptest.Server
-	db     gorm.DB
-	Admin  *admin.Admin
-)
-
-func init() {
-	admin.DisableLogging = true
-	mux := http.NewServeMux()
-	db, _ = gorm.Open("sqlite3", "/tmp/qor_test.db")
-	models := []interface{}{&User{}, &CreditCard{}, &Address{}, &Language{}, &Profile{}, &Phone{}}
-	for _, value := range models {
-		db.DropTable(value)
-		db.AutoMigrate(value)
+	if user != admin.resources[0] {
+		t.Error("resource not added")
 	}
 
-	Admin = admin.New(&qor.Config{DB: &db})
-	user := Admin.AddResource(&User{}, nil)
-	user.Meta(&admin.Meta{Name: "Languages", Type: "select_many",
-		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
-			if languages := []Language{}; !context.GetDB().Find(&languages).RecordNotFound() {
-				for _, language := range languages {
-					results = append(results, []string{strconv.Itoa(language.Id), language.Name})
-				}
-			}
-			return
-		}})
+	if admin.GetMenus()[0].Name != "User" {
+		t.Error("resource not added to menu")
+	}
+}
 
-	Admin.MountTo("/admin", mux)
+func TestAddResourceWithInvisibleOption(t *testing.T) {
+	admin := New(&qor.Config{})
+	user := admin.AddResource(&User{}, &Config{Invisible: true})
 
-	server = httptest.NewServer(mux)
+	if user != admin.resources[0] {
+		t.Error("resource not added")
+	}
+
+	if len(admin.GetMenus()) != 0 {
+		t.Error("invisible resource registered in menu")
+	}
+}
+
+func TestGetResource(t *testing.T) {
+	admin := New(&qor.Config{})
+	user := admin.AddResource(&User{})
+
+	if admin.GetResource("user") != user {
+		t.Error("resource not returned")
+	}
+}
+
+func TestNewResource(t *testing.T) {
+	admin := New(&qor.Config{})
+	user := admin.NewResource(&User{})
+
+	if user.Name != "User" {
+		t.Error("default resource name didn't set")
+	}
+
+	if user.Config.PageCount != DEFAULT_PAGE_COUNT {
+		t.Error("default page count didn't set")
+	}
+}
+
+type UserWithCustomizedName struct{}
+
+func (u *UserWithCustomizedName) ResourceName() string {
+	return "CustomizedName"
+}
+
+func TestNewResourceWithCustomizedName(t *testing.T) {
+	admin := New(&qor.Config{})
+	user := admin.NewResource(&UserWithCustomizedName{})
+
+	if user.Name != "CustomizedName" {
+		t.Error("customize resource name didn't set")
+	}
+}
+
+type UserWithInjector struct{}
+
+func (u *UserWithInjector) InjectQorAdmin(res *Resource) {
+	res.Config.PageCount = DEFAULT_PAGE_COUNT + 10
+}
+
+func TestNewResourceWithInjector(t *testing.T) {
+	admin := New(&qor.Config{})
+	user := admin.NewResource(&UserWithInjector{})
+
+	if user.Config.PageCount != DEFAULT_PAGE_COUNT+10 {
+		t.Error("injected page count didn't set")
+	}
 }

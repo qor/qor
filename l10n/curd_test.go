@@ -79,7 +79,7 @@ func TestQuery(t *testing.T) {
 	var productCN Product
 	dbCN.First(&productCN, product.ID)
 	if productCN.LanguageCode != "zh" {
-		t.Error("Should find localized zh product with mixed mode")
+		t.Error("Should find localized zh product with unscoped mode")
 	}
 
 	if dbCN.Set("l10n:mode", "locale").First(&productCN, product.ID).RecordNotFound() {
@@ -93,7 +93,7 @@ func TestQuery(t *testing.T) {
 	var productEN Product
 	dbEN.First(&productEN, product.ID)
 	if productEN.LanguageCode != l10n.Global {
-		t.Error("Should find global product for en with mixed mode")
+		t.Error("Should find global product for en with unscoped mode")
 	}
 
 	if !dbEN.Set("l10n:mode", "locale").First(&productEN, product.ID).RecordNotFound() {

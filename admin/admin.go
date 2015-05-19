@@ -9,6 +9,10 @@ import (
 	"github.com/qor/qor/utils"
 )
 
+const (
+	DEFAULT_PAGE_COUNT = 20
+)
+
 type I18n interface {
 	Locale(string) I18n
 	T(string, ...interface{}) string
@@ -96,7 +100,7 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 	res.FindOneHandler = res.finder
 
 	if configuration.PageCount == 0 {
-		configuration.PageCount = 10
+		configuration.PageCount = DEFAULT_PAGE_COUNT
 	}
 
 	if configuration.Name != "" {

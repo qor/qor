@@ -1,46 +1,42 @@
-package roles_test
+package roles
 
-import (
-	"github.com/qor/qor/roles"
-
-	"testing"
-)
+import "testing"
 
 func TestAllow(t *testing.T) {
-	permission := roles.Allow(roles.Read, "api")
+	permission := Allow(Read, "api")
 
-	if !permission.HasPermission(roles.Read, "api") {
+	if !permission.HasPermission(Read, "api") {
 		t.Errorf("API should has permission to Read")
 	}
 
-	if permission.HasPermission(roles.Update, "api") {
+	if permission.HasPermission(Update, "api") {
 		t.Errorf("API should has no permission to Update")
 	}
 }
 
 func TestCRUD(t *testing.T) {
-	permission := roles.Allow(roles.CRUD, "admin")
-	if !permission.HasPermission(roles.Read, "admin") {
+	permission := Allow(CRUD, "admin")
+	if !permission.HasPermission(Read, "admin") {
 		t.Errorf("Admin should has permission to Read")
 	}
 
-	if !permission.HasPermission(roles.Update, "admin") {
+	if !permission.HasPermission(Update, "admin") {
 		t.Errorf("Admin should has permission to Update")
 	}
 }
 
 func TestDeny(t *testing.T) {
-	permission := roles.Deny(roles.Create, "api")
+	permission := Deny(Create, "api")
 
-	if !permission.HasPermission(roles.Read, "api") {
+	if !permission.HasPermission(Read, "api") {
 		t.Errorf("API should has permission to Read")
 	}
 
-	if !permission.HasPermission(roles.Update, "api") {
+	if !permission.HasPermission(Update, "api") {
 		t.Errorf("API should has no permission to Update")
 	}
 
-	if permission.HasPermission(roles.Create, "api") {
+	if permission.HasPermission(Create, "api") {
 		t.Errorf("API should has no permission to Update")
 	}
 }

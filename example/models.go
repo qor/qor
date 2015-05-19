@@ -69,7 +69,7 @@ func (u User) DisplayName() string {
 
 type Product struct {
 	gorm.Model
-	Name         *string
+	Name         *string `l10n:"sync"`
 	Description  *string
 	CollectionID uint
 	l10n.Locale
