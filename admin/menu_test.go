@@ -5,11 +5,35 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
 
 func generateResourceMenu(resource *Resource) *Menu {
 	return &Menu{rawPath: resource.ToParam(), Name: resource.Name}
+}
+
+func TestAddMenuAndGetMenus(t *testing.T) {
+	admin := New(&qor.Config{})
+	menu := &Menu{Name: "Dashboard", Link: "/admin"}
+	admin.AddMenu(menu)
+
+	if menu != admin.GetMenus()[0] {
+		t.Error("menu not added")
+	}
+}
+
+func TestAddMenuWithAncestorsAndGetSubMenus(t *testing.T) {
+	admin := New(&qor.Config{})
+	admin.AddMenu(&Menu{Name: "Dashboard", Link: "/admin"})
+	admin.AddMenu(&Menu{Name: "dashboard-sub", Link: "/link", Ancestors: []string{"Dashboard"}})
+
+	menu := admin.GetMenus()[0]
+	subMenu := menu.GetSubMenus()[0]
+
+	if subMenu.Name != "dashboard-sub" || subMenu.Link != "/link" {
+		t.Error("sub menu not added")
+	}
 }
 
 func TestMenu(t *testing.T) {

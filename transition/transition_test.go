@@ -2,11 +2,13 @@ package transition_test
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/test/utils"
 	"github.com/qor/qor/transition"
 )
 
@@ -18,14 +20,7 @@ type Order struct {
 }
 
 var (
-	testdb = func() *gorm.DB {
-		db, err := gorm.Open("sqlite3", "/tmp/qor_transition_test.db")
-		if err != nil {
-			panic(err)
-		}
-
-		return &db
-	}()
+	testdb gorm.DB
 
 	tables []interface{}
 
@@ -40,6 +35,7 @@ func getTables() {
 
 }
 
+// TODO: truncate existing table rather than drop&create table to speed up test ?
 func ResetDb() {
 	getTables()
 
@@ -67,12 +63,17 @@ const (
 	OrderEventCancel   = "cancel"
 )
 
-func init() {
+func TestMain(m *testing.M) {
+	testdb = utils.TestDB()
 	ResetDb()
 
 	OrderStateMachine.Initial(OrderStateDraft)
 
 	OrderStateMachine.Event(OrderEventCheckout).To(OrderStatePaying).From(OrderStateDraft)
+
+	test := m.Run()
+
+	os.Exit(test)
 }
 
 func CreateOrderAndExecuteTransition(order *Order, event string, t *testing.T, raiseTriggerError bool) {
@@ -80,14 +81,12 @@ func CreateOrderAndExecuteTransition(order *Order, event string, t *testing.T, r
 		t.Errorf(err.Error())
 	}
 
-	if err := OrderStateMachine.Trigger(event, order, testdb); err != nil && raiseTriggerError {
+	if err := OrderStateMachine.Trigger(event, order, &testdb); err != nil && raiseTriggerError {
 		t.Errorf(err.Error())
 	}
 }
 
 func TestStateTransition(t *testing.T) {
-	defer ResetDb()
-
 	order := &Order{}
 	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, true)
 
@@ -97,8 +96,6 @@ func TestStateTransition(t *testing.T) {
 }
 
 func TestStateChangeLog(t *testing.T) {
-	defer ResetDb()
-
 	order := &Order{}
 	CreateOrderAndExecuteTransition(order, OrderEventCheckout, t, true)
 
@@ -115,8 +112,6 @@ func TestStateChangeLog(t *testing.T) {
 }
 
 func TestMultipleTransitionWithOneEvent(t *testing.T) {
-	defer ResetDb()
-
 	cancellEvent := OrderStateMachine.Event(OrderEventCancel)
 	cancellEvent.To(OrderStateCancelled).From(OrderStateDraft, OrderStatePaying)
 	cancellEvent.To(OrderStateCancelledAfterPaid).From(OrderStatePaid, OrderStateProcessed)
@@ -139,8 +134,6 @@ func TestMultipleTransitionWithOneEvent(t *testing.T) {
 }
 
 func TestStateEnterCallback(t *testing.T) {
-	defer ResetDb()
-
 	addressAfterCheckout := "I'm an address should be set after checkout"
 	OrderStateMachine.State(OrderStatePaying).Enter(func(order interface{}, tx *gorm.DB) (err error) {
 		order.(*Order).Address = addressAfterCheckout
@@ -156,8 +149,6 @@ func TestStateEnterCallback(t *testing.T) {
 }
 
 func TestStateExitCallback(t *testing.T) {
-	defer ResetDb()
-
 	var prevState string
 	OrderStateMachine.State(OrderStateDraft).Exit(func(order interface{}, tx *gorm.DB) (err error) {
 		prevState = order.(*Order).State
@@ -174,8 +165,6 @@ func TestStateExitCallback(t *testing.T) {
 }
 
 func TestEventBeforeCallback(t *testing.T) {
-	defer ResetDb()
-
 	var prevState string
 	OrderStateMachine.Event(OrderEventCheckout).To(OrderStatePaying).From(OrderStateDraft).Before(func(order interface{}, tx *gorm.DB) (err error) {
 		prevState = order.(*Order).State
@@ -192,8 +181,6 @@ func TestEventBeforeCallback(t *testing.T) {
 }
 
 func TestEventAfterCallback(t *testing.T) {
-	defer ResetDb()
-
 	addressAfterCheckout := "I'm an address should be set after checkout"
 	OrderStateMachine.Event(OrderEventCheckout).To(OrderStatePaying).From(OrderStateDraft).After(func(order interface{}, tx *gorm.DB) (err error) {
 		order.(*Order).Address = addressAfterCheckout
@@ -209,8 +196,6 @@ func TestEventAfterCallback(t *testing.T) {
 }
 
 func TestRollbackTransitionOnEnterCallbackError(t *testing.T) {
-	defer ResetDb()
-
 	OrderStateMachine.State(OrderStatePaying).Enter(func(order interface{}, tx *gorm.DB) (err error) {
 		order.(*Order).Address = "an address"
 		return errors.New("intentional error")
@@ -231,8 +216,6 @@ func TestRollbackTransitionOnEnterCallbackError(t *testing.T) {
 }
 
 func TestRollbackTransitionOnExitCallbackError(t *testing.T) {
-	defer ResetDb()
-
 	OrderStateMachine.State(OrderStateDraft).Exit(func(order interface{}, tx *gorm.DB) (err error) {
 		order.(*Order).Address = "an address"
 		return errors.New("intentional error")
@@ -253,8 +236,6 @@ func TestRollbackTransitionOnExitCallbackError(t *testing.T) {
 }
 
 func TestRollbackTransitionOnBeforeCallbackError(t *testing.T) {
-	defer ResetDb()
-
 	OrderStateMachine.Event(OrderEventCheckout).To(OrderStatePaying).From(OrderStateDraft).Before(func(order interface{}, tx *gorm.DB) (err error) {
 		order.(*Order).Address = "an address"
 		return errors.New("intentional error")
@@ -275,8 +256,6 @@ func TestRollbackTransitionOnBeforeCallbackError(t *testing.T) {
 }
 
 func TestRollbackTransitionOnAfterCallbackError(t *testing.T) {
-	defer ResetDb()
-
 	OrderStateMachine.Event(OrderEventCheckout).To(OrderStatePaying).From(OrderStateDraft).After(func(order interface{}, tx *gorm.DB) (err error) {
 		order.(*Order).Address = "an address"
 		return errors.New("intentional error")

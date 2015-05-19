@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/qor/qor/publish"
+	"github.com/qor/qor/test/utils"
 )
 
 var pb *publish.Publish
@@ -14,7 +15,7 @@ var pbdraft *gorm.DB
 var pbprod *gorm.DB
 
 func init() {
-	db, _ := gorm.Open("sqlite3", "/tmp/qor_publish_test.db")
+	db := utils.TestDB()
 	pb = publish.New(&db)
 	pb.Support(&Product{})
 	pbdraft = pb.DraftDB()
