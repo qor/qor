@@ -9,8 +9,14 @@ import (
 	"github.com/qor/qor/utils"
 )
 
+type I18n interface {
+	Locale(string) I18n
+	T(string, ...interface{}) string
+}
+
 type Admin struct {
 	Config    *qor.Config
+	I18n      I18n
 	menus     []*Menu
 	resources []*Resource
 	auth      Auth

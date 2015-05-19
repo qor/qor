@@ -6,12 +6,12 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
+	"github.com/qor/qor/utils"
 )
 
 var Global = "global"
@@ -68,16 +68,8 @@ func GetEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 }
 
 func getLocaleFromContext(context *qor.Context) string {
-	if locale := context.Request.Form.Get("locale"); locale != "" {
-		if context.Writer != nil {
-			cookie := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0), Path: "/"}
-			http.SetCookie(context.Writer, &cookie)
-		}
+	if locale := utils.GetLocale(context); locale != "" {
 		return locale
-	}
-
-	if locale, err := context.Request.Cookie("locale"); err == nil {
-		return locale.Value
 	}
 
 	return Global

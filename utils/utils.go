@@ -2,7 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
+	"time"
+
+	"github.com/qor/qor"
 
 	"strings"
 )
@@ -84,4 +88,20 @@ func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err
 	url.RawQuery = query.Encode()
 	patchedURL = url.String()
 	return
+}
+
+func GetLocale(context *qor.Context) string {
+	if locale := context.Request.Form.Get("locale"); locale != "" {
+		if context.Writer != nil {
+			cookie := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0), Path: "/"}
+			http.SetCookie(context.Writer, &cookie)
+		}
+		return locale
+	}
+
+	if locale, err := context.Request.Cookie("locale"); err == nil {
+		return locale.Value
+	}
+
+	return ""
 }
