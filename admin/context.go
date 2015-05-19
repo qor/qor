@@ -310,6 +310,22 @@ func (context *Context) GetScopes() (scopes []string) {
 	return
 }
 
+func (context *Context) HasCreatePermission(meta *Meta) bool {
+	return meta.HasPermission(roles.Create, context.GetContext())
+}
+
+func (context *Context) HasReadPermission(meta *Meta) bool {
+	return meta.HasPermission(roles.Read, context.GetContext())
+}
+
+func (context *Context) HasUpdatePermission(meta *Meta) bool {
+	return meta.HasPermission(roles.Update, context.GetContext())
+}
+
+func (context *Context) HasDeletePermission(meta *Meta) bool {
+	return meta.HasPermission(roles.Delete, context.GetContext())
+}
+
 type Page struct {
 	Page       int
 	Current    bool
@@ -351,29 +367,33 @@ func Equal(a, b interface{}) bool {
 
 func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
-		"menus":             context.Admin.GetMenus,
-		"current_user":      func() qor.CurrentUser { return context.CurrentUser },
-		"render":            context.Render,
-		"render_form":       context.RenderForm,
-		"url_for":           context.UrlFor,
-		"link_to":           context.LinkTo,
-		"new_resource_path": context.NewResourcePath,
-		"new_resource":      context.NewResource,
-		"is_new_record":     context.NewRecord,
-		"value_of":          context.ValueOf,
-		"primary_key_of":    context.PrimaryKeyOf,
-		"get_scopes":        context.GetScopes,
-		"has_primary_key":   context.HasPrimaryKey,
-		"all_metas":         context.AllMetas,
-		"index_metas":       context.IndexMetas,
-		"edit_metas":        context.EditMetas,
-		"show_metas":        context.ShowMetas,
-		"new_metas":         context.NewMetas,
-		"pagination":        context.Pagination,
-		"javascript_tag":    context.JavaScriptTag,
-		"stylesheet_tag":    context.StyleSheetTag,
-		"equal":             Equal,
-		"patch_current_url": context.PatchCurrentURL,
+		"menus":                 context.Admin.GetMenus,
+		"current_user":          func() qor.CurrentUser { return context.CurrentUser },
+		"render":                context.Render,
+		"render_form":           context.RenderForm,
+		"url_for":               context.UrlFor,
+		"link_to":               context.LinkTo,
+		"new_resource_path":     context.NewResourcePath,
+		"new_resource":          context.NewResource,
+		"is_new_record":         context.NewRecord,
+		"value_of":              context.ValueOf,
+		"primary_key_of":        context.PrimaryKeyOf,
+		"get_scopes":            context.GetScopes,
+		"has_primary_key":       context.HasPrimaryKey,
+		"all_metas":             context.AllMetas,
+		"index_metas":           context.IndexMetas,
+		"edit_metas":            context.EditMetas,
+		"show_metas":            context.ShowMetas,
+		"new_metas":             context.NewMetas,
+		"pagination":            context.Pagination,
+		"javascript_tag":        context.JavaScriptTag,
+		"stylesheet_tag":        context.StyleSheetTag,
+		"equal":                 Equal,
+		"patch_current_url":     context.PatchCurrentURL,
+		"has_create_permission": context.HasCreatePermission,
+		"has_read_permission":   context.HasReadPermission,
+		"has_update_permission": context.HasUpdatePermission,
+		"has_delete_permission": context.HasDeletePermission,
 	}
 
 	for key, value := range context.Admin.funcMaps {

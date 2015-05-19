@@ -1,6 +1,9 @@
 package admin
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -10,17 +13,19 @@ import (
 
 type Resource struct {
 	resource.Resource
-	admin       *Admin
-	Config      *Config
-	Metas       []*Meta
-	actions     []*Action
-	scopes      map[string]*Scope
-	filters     map[string]*Filter
-	indexAttrs  []string
-	newAttrs    []string
-	editAttrs   []string
-	showAttrs   []string
-	cachedMetas *map[string][]*Meta
+	admin         *Admin
+	Config        *Config
+	Metas         []*Meta
+	actions       []*Action
+	scopes        map[string]*Scope
+	filters       map[string]*Filter
+	searchAttrs   []string
+	indexAttrs    []string
+	newAttrs      []string
+	editAttrs     []string
+	showAttrs     []string
+	cachedMetas   *map[string][]*Meta
+	SearchHandler func(keyword string, context *qor.Context) *gorm.DB
 }
 
 func (res *Resource) Meta(meta *Meta) {
@@ -63,6 +68,23 @@ func (res *Resource) EditAttrs(columns ...string) {
 
 func (res *Resource) ShowAttrs(columns ...string) {
 	res.showAttrs = columns
+}
+
+func (res *Resource) SearchAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.searchAttrs = columns
+		res.SearchHandler = func(keyword string, context *qor.Context) *gorm.DB {
+			db := context.GetDB()
+			var conditions []string
+			var keywords []interface{}
+			for _, column := range columns {
+				conditions = append(conditions, fmt.Sprintf("upper(%v) like upper(?)", db.NewScope(nil).Quote(column)))
+				keywords = append(keywords, "%"+keyword+"%")
+			}
+			return context.GetDB().Where(strings.Join(conditions, " OR "), keywords...)
+		}
+	}
+	return res.searchAttrs
 }
 
 func (res *Resource) getCachedMetas(cacheKey string, fc func() []resource.Metaor) []*Meta {

@@ -4,13 +4,14 @@ Admin:
 
     order := Admin.AddResource(&order{}, admin.Config{Name: string, Menus: []string, Invisible: bool, Permission, PageCount: 20})
     order.IndexAttrs("Id", "Amount", "Email")
-    order.Finder()
-    order.Deleter()
     order.Meta(&admin.Meta{Name: name, Valuer: func(), Setter: func()}) | Valuer (type, value, meta values), Setter
     order.Scope(&admin.Scope{Name: name, Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {}})
-    order.Search(func(db *gorm.DB, keyword *qor.Context) *gorm.DB {})
     order.Filter(&admin.Filter{Name: name, Handle: func(string, string, *gorm.DB, *qor.Context) *gorm.DB})
     order.Action(&admin.Action{Name: name, Handle: func(scope *gorm.DB, context *qor.Context) error {}, Inline, Metas})
+
+    order.SearchColumns "name", "order_items.products.name"
+    order.SearchHandler(func(db, keyword) db) {
+    })
 
     Admin.GetResource(name string) *Resource
     Admin.SetAuth(Auth{CurrentUser, Login, Logout})

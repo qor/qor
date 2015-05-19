@@ -95,6 +95,13 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	}
 
 	context.SetDB(db)
+
+	// call search
+	if keyword := context.Request.Form.Get("keyword"); keyword != "" {
+		if s.Resource.SearchHandler != nil {
+			context.SetDB(s.Resource.SearchHandler(keyword, context))
+		}
+	}
 	return context
 }
 
@@ -123,7 +130,7 @@ func (s *Searcher) parseContext() *qor.Context {
 
 	// pagination
 	db := context.GetDB()
-	paginationDB := db.Select("count(*) total").Model(s.Resource.Value).InstantSet("gorm:query_destination", &s.Pagination)
+	paginationDB := db.Select("count(*) total").Model(s.Resource.Value).Set("gorm:query_destination", &s.Pagination)
 	context.SetDB(paginationDB)
 	s.Resource.CallFindMany(s.Resource.Value, context)
 
