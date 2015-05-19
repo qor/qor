@@ -8,6 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/i18n"
 )
 
 func main() {
@@ -71,6 +72,8 @@ func main() {
 	Admin.AddResource(&Order{}, &admin.Config{Menu: []string{"Orders Management"}})
 
 	Admin.AddResource(Publish)
+	Publish.DraftDB().AutoMigrate(&i18n.I18n{})
+	Admin.AddResource(&i18n.I18n{})
 
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)

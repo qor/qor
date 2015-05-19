@@ -9,7 +9,9 @@ import (
 )
 
 type I18n struct {
-	Default string
+	Key          string `gorm:"primary_key"`
+	LanguageCode string `gorm:"primary_key"`
+	Value        string `sql"size:4294967295"`
 }
 
 func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
