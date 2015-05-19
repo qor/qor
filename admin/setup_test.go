@@ -10,6 +10,7 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/media_library"
+	"github.com/qor/qor/test/utils"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -79,10 +80,10 @@ var (
 func init() {
 	admin.DisableLogging = true
 	mux := http.NewServeMux()
-	db, _ = gorm.Open("sqlite3", "/tmp/qor_test.db")
+	db = utils.TestDB()
 	models := []interface{}{&User{}, &CreditCard{}, &Address{}, &Language{}, &Profile{}, &Phone{}}
 	for _, value := range models {
-		db.DropTable(value)
+		db.DropTableIfExists(value)
 		db.AutoMigrate(value)
 	}
 

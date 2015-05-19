@@ -1,12 +1,11 @@
 package l10n_test
 
 import (
-	"fmt"
-	"os"
 	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/l10n"
+	"github.com/qor/qor/test/utils"
 )
 
 type Product struct {
@@ -49,14 +48,7 @@ type Tag struct {
 var dbGlobal, dbCN, dbEN *gorm.DB
 
 func init() {
-	// CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
-	// CREATE DATABASE qor_l10n;
-	// GRANT ALL ON qor_l10n.* TO 'gorm'@'localhost';
-	dbuser, dbpwd := "qor", "qor"
-	if os.Getenv("TEST_ENV") == "CI" {
-		dbuser, dbpwd = os.Getenv("DB_USER"), os.Getenv("DB_PWD")
-	}
-	db, _ := gorm.Open("mysql", fmt.Sprintf("%s:%s@/qor_test?charset=utf8&parseTime=True&loc=Local", dbuser, dbpwd))
+	db := utils.TestDB()
 	l10n.RegisterCallbacks(&db)
 
 	db.DropTableIfExists(&Product{})

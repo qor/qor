@@ -8,6 +8,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/test/utils"
 	"github.com/qor/qor/transition"
 )
 
@@ -19,14 +20,7 @@ type Order struct {
 }
 
 var (
-	testdb = func() *gorm.DB {
-		db, err := gorm.Open("sqlite3", "/tmp/qor_transition_test.db")
-		if err != nil {
-			panic(err)
-		}
-
-		return &db
-	}()
+	testdb gorm.DB
 
 	tables []interface{}
 
@@ -70,6 +64,7 @@ const (
 )
 
 func TestMain(m *testing.M) {
+	testdb = utils.TestDB()
 	ResetDb()
 
 	OrderStateMachine.Initial(OrderStateDraft)
@@ -86,7 +81,7 @@ func CreateOrderAndExecuteTransition(order *Order, event string, t *testing.T, r
 		t.Errorf(err.Error())
 	}
 
-	if err := OrderStateMachine.Trigger(event, order, testdb); err != nil && raiseTriggerError {
+	if err := OrderStateMachine.Trigger(event, order, &testdb); err != nil && raiseTriggerError {
 		t.Errorf(err.Error())
 	}
 }
