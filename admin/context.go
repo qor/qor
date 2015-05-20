@@ -334,14 +334,20 @@ type Page struct {
 	IsNext     bool
 }
 
+const (
+	VISIBLE_PREV_PAGES = 4
+	MAX_VISIBLE_PAGES  = 8
+)
+
 func (context *Context) Pagination() []Page {
 	pagination := context.Searcher.Pagination
-	start := pagination.CurrentPage
-	if start-5 < 1 {
+
+	start := pagination.CurrentPage - VISIBLE_PREV_PAGES
+	if start < 1 {
 		start = 1
 	}
 
-	end := start + 9
+	end := start + MAX_VISIBLE_PAGES - 1 // -1 for "start page" itself
 	if end > pagination.Pages {
 		end = pagination.Pages
 	}
