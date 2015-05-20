@@ -15,18 +15,22 @@ type I18n struct {
 
 type Backend interface {
 	LoadTransations() []Translation
+	UpdateTranslation(Translation)
+	DeleteTranslation(Translation)
 }
 
 type Translation struct {
-	Key    string
-	Locale string
-	Value  string
+	Key     string
+	Locale  string
+	Value   string
+	Backend Backend
 }
 
 func New(backends ...Backend) *I18n {
 	i18n := &I18n{Backends: backends, Translations: map[string]map[string]Translation{}}
 	for _, backend := range backends {
 		for _, translation := range backend.LoadTransations() {
+			translation.Backend = backend
 			i18n.AddTransaltion(translation)
 		}
 	}
@@ -42,10 +46,12 @@ func (i18n *I18n) AddTransaltion(translation Translation) {
 
 func (i18n *I18n) UpdateTransaltion(translation Translation) {
 	i18n.Translations[translation.Locale][translation.Key] = translation
+	translation.Backend.UpdateTranslation(translation)
 }
 
 func (i18n *I18n) DeleteTransaltion(translation Translation) {
 	delete(i18n.Translations[translation.Locale], translation.Key)
+	translation.Backend.DeleteTranslation(translation)
 }
 
 func (i18n *I18n) T(locale, key string, args ...interface{}) string {
