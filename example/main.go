@@ -72,7 +72,6 @@ func main() {
 	Admin.AddResource(&Order{}, &admin.Config{Menu: []string{"Orders Management"}})
 
 	Admin.AddResource(Publish)
-	Publish.DraftDB().AutoMigrate(&i18n.I18n{})
 	Admin.AddResource(&i18n.I18n{})
 
 	mux := http.NewServeMux()
