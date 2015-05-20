@@ -2,11 +2,7 @@
 
 ### Install required drivers
 
-You need install
-
-- phantomjs
-- chromedriver
-- selenium-server-standalone
+You need execute-able chromedriver in your PATH.
 
 ### Prepare mysql database
 
