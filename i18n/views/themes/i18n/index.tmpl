@@ -1,0 +1,44 @@
+{{render "index/filter"}}
+
+<div class="table-wrapper wrapper">
+<table state="list">
+  <thead class="thead">
+    <tr>
+      <th class="th col-act" data-col="col-act">
+        Original Text
+      </th>
+      <th class="th col-act" data-col="col-act">
+        Translated Text
+      </th>
+      <th class="th col-act" data-col="col-act">
+      </th>
+    </tr>
+  </thead>
+  <tbody class="tbody">
+    {{range $resource := .Result}}
+      <tr class="record-item tr transition">
+        {{range $index, $meta := index_metas}}
+          {{$text := value_of $resource $meta}}
+          <td title="{{$meta.Label}}" class="td col-{{$index}}">
+            {{if $index}}
+              {{$text}}
+            {{else}}
+              {{link_to $text $resource}}
+            {{end}}
+          </td>
+        {{end}}
+
+        <td class="td col-act">
+          <form action="{{url_for $resource}}" method="POST">
+            <input name="_method" value="DELETE" type="hidden">
+            <a class="btn md md-edit" href="{{url_for $resource}}"></a>
+            <button type="submit" class="btn md md-delete" data-confirm="Are you sure?"></button>
+          </form>
+        </td>
+      </tr>
+    {{end}}
+  </tbody>
+</table>
+</div>
+
+{{render "index/pagination"}}
