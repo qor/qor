@@ -406,7 +406,7 @@ func (context *Context) funcMap() template.FuncMap {
 			if context.Admin.I18n == nil {
 				return key
 			} else {
-				return context.Admin.I18n.Locale(locale).T(strings.Join([]string{"qor_admin", key}, "."), values...)
+				return context.Admin.I18n.T(locale, strings.Join([]string{"qor_admin", key}, "."), values...)
 			}
 		},
 
@@ -414,7 +414,7 @@ func (context *Context) funcMap() template.FuncMap {
 			if context.Admin.I18n == nil {
 				return key
 			} else {
-				return context.Admin.I18n.Locale(locale).T(strings.Join([]string{"qor_admin", resource.Name, key}, "."), values...)
+				return context.Admin.I18n.T(locale, strings.Join([]string{"qor_admin", resource.Name, key}, "."), values...)
 			}
 		},
 	}

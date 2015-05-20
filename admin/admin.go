@@ -14,8 +14,7 @@ const (
 )
 
 type I18n interface {
-	Locale(string) I18n
-	T(string, ...interface{}) string
+	T(locale string, key string, args ...interface{}) string
 }
 
 type Admin struct {
