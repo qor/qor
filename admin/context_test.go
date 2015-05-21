@@ -72,22 +72,21 @@ func TestPagination(t *testing.T) {
 	}
 
 	// +1 for "Next page" link which is a "Page" too
-	if len(pages) > admin.MAX_VISIBLE_PAGES+1 {
-		t.Error("visible pages in current context beyond the bound of MAX_VISIBLE_PAGES")
+	if len(pages) != admin.VISIBLE_PAGE_COUNT+1 {
+		t.Error("visible pages in current context beyond the bound of VISIBLE_PAGE_COUNT")
 	}
 
 	// Test current page 8 => the length between start and end less than MAX_VISIBLE_PAGES
 	context.Searcher.Pagination.CurrentPage = 8
 	pages = context.Pagination()
 
-	// +1 for "Prev page" link
-	currentPageIndex := admin.VISIBLE_PREV_PAGES + 1
-	if !pages[currentPageIndex].Current {
+	if !pages[6].Current {
 		t.Error("visible previous pages count incorrect")
 	}
 
-	if len(pages) > admin.MAX_VISIBLE_PAGES+1 {
-		t.Error("visible pages in current context beyond the bound of MAX_VISIBLE_PAGES")
+	// 1 for "Prev"
+	if len(pages) != admin.VISIBLE_PAGE_COUNT+1 {
+		t.Error("visible pages in current context beyond the bound of VISIBLE_PAGE_COUNT")
 	}
 
 	// Test current page at last
@@ -98,8 +97,16 @@ func TestPagination(t *testing.T) {
 		t.Error("last page is not the current page")
 	}
 
-	// +2, one for "Prev page", one for Current page
-	if len(pages) != admin.VISIBLE_PREV_PAGES+2 {
-		t.Error("current last page don't have visible previous page")
+	if len(pages) != admin.VISIBLE_PAGE_COUNT+1 {
+		t.Error("visible pages count is incorrect")
+	}
+
+	// Test current page at last but total page count less than VISIBLE_PAGE_COUNT
+	context.Searcher.Pagination.Pages = 5
+	context.Searcher.Pagination.CurrentPage = 5
+	pages = context.Pagination()
+
+	if len(pages) != 5 {
+		t.Error("incorrect pages count")
 	}
 }
