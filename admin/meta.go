@@ -257,8 +257,7 @@ func (meta *Meta) updateMeta() {
 						field.SetFloat(utils.ToFloat(value))
 					case reflect.Bool:
 						// TODO: add test
-						texts, ok := value.([]string)
-						if ok && len(texts) > 0 && texts[0] == "true" {
+						if utils.ToString(value) == "true" {
 							field.SetBool(true)
 						} else {
 							field.SetBool(false)
