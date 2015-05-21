@@ -1,11 +1,10 @@
 package admin
 
 import (
-	"regexp"
-	"strconv"
-
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
+	"regexp"
+	"strconv"
 )
 
 type scopeFunc func(db *gorm.DB, context *qor.Context) *gorm.DB
