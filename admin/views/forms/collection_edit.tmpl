@@ -4,7 +4,7 @@
   {{if .Value}}
     {{range $index, $value := .Value }}
       <fieldset class="qor-collection">
-        {{if has_delete_permission .Meta}}
+        {{if has_delete_permission $meta}}
           <button type="button" class="qor-collection-del close pull-right">&times;</button>
         {{end}}
         {{render_form $value (edit_metas $meta.Resource) $index}}
