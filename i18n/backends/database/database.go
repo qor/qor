@@ -19,12 +19,12 @@ type Backend struct {
 	DB *gorm.DB
 }
 
-func (*Backend) LoadTransations() []i18n.Translation {
-	return []i18n.Translation{}
+func (*Backend) LoadTranslations() []*i18n.Translation {
+	return []*i18n.Translation{}
 }
 
-func (*Backend) UpdateTranslation(i18n.Translation) {
+func (*Backend) UpdateTranslation(*i18n.Translation) {
 }
 
-func (*Backend) DeleteTranslation(i18n.Translation) {
+func (*Backend) DeleteTranslation(*i18n.Translation) {
 }

@@ -10,13 +10,13 @@ import (
 
 type I18n struct {
 	Backends     []Backend
-	Translations map[string]map[string]Translation
+	Translations map[string]map[string]*Translation
 }
 
 type Backend interface {
-	LoadTransations() []Translation
-	UpdateTranslation(Translation)
-	DeleteTranslation(Translation)
+	LoadTranslations() []*Translation
+	UpdateTranslation(*Translation)
+	DeleteTranslation(*Translation)
 }
 
 type Translation struct {
@@ -27,9 +27,9 @@ type Translation struct {
 }
 
 func New(backends ...Backend) *I18n {
-	i18n := &I18n{Backends: backends, Translations: map[string]map[string]Translation{}}
+	i18n := &I18n{Backends: backends, Translations: map[string]map[string]*Translation{}}
 	for _, backend := range backends {
-		for _, translation := range backend.LoadTransations() {
+		for _, translation := range backend.LoadTranslations() {
 			translation.Backend = backend
 			i18n.AddTransaltion(translation)
 		}
@@ -37,25 +37,30 @@ func New(backends ...Backend) *I18n {
 	return i18n
 }
 
-func (i18n *I18n) AddTransaltion(translation Translation) {
+func (i18n *I18n) AddTransaltion(translation *Translation) {
 	if i18n.Translations[translation.Locale] == nil {
-		i18n.Translations[translation.Locale] = map[string]Translation{}
+		i18n.Translations[translation.Locale] = map[string]*Translation{}
 	}
 	i18n.Translations[translation.Locale][translation.Key] = translation
 }
 
-func (i18n *I18n) UpdateTransaltion(translation Translation) {
+func (i18n *I18n) UpdateTransaltion(translation *Translation) {
 	i18n.Translations[translation.Locale][translation.Key] = translation
 	translation.Backend.UpdateTranslation(translation)
 }
 
-func (i18n *I18n) DeleteTransaltion(translation Translation) {
+func (i18n *I18n) DeleteTransaltion(translation *Translation) {
 	delete(i18n.Translations[translation.Locale], translation.Key)
 	translation.Backend.DeleteTranslation(translation)
 }
 
 func (i18n *I18n) T(locale, key string, args ...interface{}) string {
-	return key // TODO cldr
+	if translations := i18n.Translations[locale]; translations != nil {
+		if translation := translations[key]; translation != nil {
+			return translation.Value // TODO cldr
+		}
+	}
+	return key
 }
 
 func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
