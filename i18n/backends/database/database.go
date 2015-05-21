@@ -6,9 +6,9 @@ import (
 )
 
 type Translation struct {
-	Key          string `gorm:"primary_key"`
-	LanguageCode string `gorm:"primary_key"`
-	Value        string `sql"size:4294967295"`
+	Key    string `gorm:"primary_key"`
+	Locale string `gorm:"primary_key"`
+	Value  string `sql"size:4294967295"`
 }
 
 func New(db *gorm.DB) i18n.Backend {
@@ -19,12 +19,16 @@ type Backend struct {
 	DB *gorm.DB
 }
 
-func (*Backend) LoadTranslations() []*i18n.Translation {
-	return []*i18n.Translation{}
+func (backend *Backend) LoadTranslations() []*i18n.Translation {
+	var translations []*i18n.Translation
+	backend.DB.Find(&translations)
+	return translations
 }
 
-func (*Backend) UpdateTranslation(*i18n.Translation) {
+func (backend *Backend) UpdateTranslation(t *i18n.Translation) {
+	backend.DB.Save(&Translation{Key: t.Key, Locale: t.Locale, Value: t.Value})
 }
 
-func (*Backend) DeleteTranslation(*i18n.Translation) {
+func (backend *Backend) DeleteTranslation(t *i18n.Translation) {
+	backend.DB.Where(Translation{Key: t.Key, Locale: t.Locale}).Delete(&Translation{})
 }
