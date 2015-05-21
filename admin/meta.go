@@ -255,6 +255,14 @@ func (meta *Meta) updateMeta() {
 						field.SetUint(utils.ToUint(value))
 					case reflect.Float32, reflect.Float64:
 						field.SetFloat(utils.ToFloat(value))
+					case reflect.Bool:
+						// TODO: add test
+						texts, ok := value.([]string)
+						if ok && len(texts) > 0 && texts[0] == "true" {
+							field.SetBool(true)
+						} else {
+							field.SetBool(false)
+						}
 					default:
 						if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
 							if scanner.Scan(value) != nil {

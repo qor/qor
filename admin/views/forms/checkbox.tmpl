@@ -1,0 +1,5 @@
+<div class="form-group">
+  <label for="{{.InputId}}">{{.Label}}</label>
+  <input class="form-control" id="{{.InputId}}" name="{{.InputName}}" {{if .Value}}checked{{end}} value="true" type="checkbox" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
+  <input name="{{.InputName}}" value="false" type="hidden">
+</div>
