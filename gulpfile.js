@@ -62,9 +62,9 @@ gulp.task('jslib', function () {
 
 gulp.task('sass', function () {
   return gulp.src(styles.src)
-  .pipe(plugins.sourcemaps.init())
+  // .pipe(plugins.sourcemaps.init())
   .pipe(plugins.sass())
-  .pipe(plugins.sourcemaps.write('./'))
+  // .pipe(plugins.sourcemaps.write('./'))
   .pipe(gulp.dest(styles.dest));
 });
 
