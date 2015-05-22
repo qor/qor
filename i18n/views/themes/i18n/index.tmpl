@@ -48,7 +48,7 @@
           <div class="col-md-6">
             <div class="lang-origin">
               <div class="translation-value">
-                {{lt $primary_locale $key}}
+                {{lt $primary_locale $key true}}
               </div>
               <div class="translation-key">
                 {{$key}}
@@ -61,7 +61,7 @@
               <form action="" method="POST">
                 <input type="hidden" name="Locale" value="{{$editing_locale}}">
                 <textarea style="display:none;" name="Key">{{ $key }}</textarea>
-                <textarea name="Value">{{lt $editing_locale $key }}</textarea>
+                <textarea name="Value">{{lt $editing_locale $key false}}</textarea>
               </form>
             </div>
           </div>

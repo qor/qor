@@ -14,7 +14,7 @@ import (
 	"github.com/qor/qor/utils"
 )
 
-var Global = "global"
+var Global = "en-US"
 
 type Interface interface {
 	IsGlobal() bool

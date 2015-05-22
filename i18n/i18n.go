@@ -131,9 +131,9 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	res.Config.Theme = "i18n"
 	res.GetAdmin().I18n = i18n
 
-	res.GetAdmin().RegisterFuncMap("lt", func(locale, key string) string {
+	res.GetAdmin().RegisterFuncMap("lt", func(locale, key string, withDefault bool) string {
 		translations := i18n.Translations[locale]
-		if translations == nil {
+		if (translations == nil) && withDefault {
 			translations = i18n.Translations[Default]
 		}
 
