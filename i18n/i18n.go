@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sort"
 	"strings"
 
 	"github.com/qor/qor"
@@ -131,11 +132,37 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	router := res.GetAdmin().GetRouter()
 	router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Index)
 
+	res.GetAdmin().RegisterFuncMap("lt", func(locale, key string) string {
+		return i18n.Translations[locale][key].Value
+	})
+
+	res.GetAdmin().RegisterFuncMap("i18n_available_keys", func() (keys []string) {
+		translations := i18n.Translations[Default]
+		if translations == nil {
+			for _, values := range i18n.Translations {
+				translations = values
+				break
+			}
+		}
+
+		for key := range translations {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		return keys
+	})
+
 	res.GetAdmin().RegisterFuncMap("i18n_primary_locale", func(context admin.Context) string {
+		if locale := context.Request.Form.Get("primary_locale"); locale != "" {
+			return locale
+		}
 		return getLocaleFromContext(context.Context)
 	})
 
-	res.GetAdmin().RegisterFuncMap("i18n_edting_locale", func(context admin.Context) string {
+	res.GetAdmin().RegisterFuncMap("i18n_editing_locale", func(context admin.Context) string {
+		if locale := context.Request.Form.Get("to_locale"); locale != "" {
+			return locale
+		}
 		return getLocaleFromContext(context.Context)
 	})
 

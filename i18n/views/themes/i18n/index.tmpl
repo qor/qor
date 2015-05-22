@@ -1,6 +1,9 @@
 {{stylesheet_tag "translation"}}
 {{javascript_tag "translation"}}
 
+{{$primary_locale := (i18n_primary_locale .)}}
+{{$editing_locale := (i18n_editing_locale .)}}
+
 <article class="article">
   <div class="wrapper">
     <div class="translation-wrapper">
@@ -10,13 +13,15 @@
         <div class="col-md-6">
           <div class="dropdown select origin">
             <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
-              <span class="selected">English</span>
+              <span class="selected">{{i18n_primary_locale .}}</span>
               <span class="md md-expand-more"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
-              <li role="presentation"><a class="dropdown-option" data-value="EN" role="menuitem" tabindex="-1" href="javascript:;">English</a></li>
-              <li role="presentation"><a class="dropdown-option" data-value="JA" role="menuitem" tabindex="-1" href="javascript:;">Japanese</a></li>
-              <li role="presentation"><a class="dropdown-option" data-value="ZH" role="menuitem" tabindex="-1" href="javascript:;">Chinese</a></li>
+              {{range $locale := (i18n_viewable_locales .)}}
+                <li role="presentation">
+                  <a class="dropdown-option" data-value="{{$locale}}" role="menuitem" tabindex="-1" href="javascript:;">{{t $locale}}</a>
+                </li>
+              {{end}}
             </ul>
             <input class="selectedInput" type="hidden" name="OriginLanguage">
           </div>
@@ -24,13 +29,15 @@
         <div class="col-md-6">
           <div class="dropdown select target">
             <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
-              <span class="selected">English</span>
+              <span class="selected">{{i18n_editing_locale .}}</span>
               <span class="md md-expand-more"></span>
             </button>
             <ul class="dropdown-menu" role="menu">
-              <li role="presentation"><a class="dropdown-option" data-value="EN" role="menuitem" tabindex="-1" href="javascript:;">English</a></li>
-              <li role="presentation"><a class="dropdown-option" data-value="JA" role="menuitem" tabindex="-1" href="javascript:;">Japanese</a></li>
-              <li role="presentation"><a class="dropdown-option" data-value="ZH" role="menuitem" tabindex="-1" href="javascript:;">Chinese</a></li>
+              {{range $locale := (i18n_editable_locales .)}}
+                <li role="presentation">
+                  <a class="dropdown-option" data-value="{{$locale}}" role="menuitem" tabindex="-1" href="javascript:;">{{t $locale}}</a>
+                </li>
+              {{end}}
             </ul>
             <input class="selectedInput" type="hidden" name="TargetLanguage">
           </div>
@@ -38,15 +45,13 @@
       </section>
 
       <ul class="translation-body clearfix">
-        {{range $locale, $translations := .Result.Translations}}
-        {{range $translation := $translations}}
+        {{range $key := i18n_available_keys}}
         <li class="translation-entry clearfix">
           <div class="col-md-6">
             <div class="lang-origin">
-              {{$translation.Value}}
-
+              {{lt $primary_locale $key}}
               <div class="translation-key">
-                {{$translation.Key}}
+                {{$key}}
               </div>
             </div>
           </div>
@@ -54,12 +59,11 @@
           <div class="col-md-6">
             <div class="lang-target">
               <input type="hidden" name="TranslationEntryId">
-              <textarea name=""></textarea>
+              <textarea name="">{{lt $editing_locale $key}}</textarea>
             </div>
           </div>
-          {{end}}
-        {{end}}
         </li>
+        {{end}}
       </ul>
       </form>
     </div>
