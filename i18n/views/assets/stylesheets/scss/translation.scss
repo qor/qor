@@ -19,6 +19,12 @@
 .translation-entry {
   padding: 16px 0;
   background-color: #FFF;
+
+  .translation-key {
+    color: #999;
+    margin: 0.5em 0;
+  }
+
   textarea {
     display: block;
     box-sizing: border-box;
