@@ -12,6 +12,7 @@ type Translation struct {
 }
 
 func New(db *gorm.DB) i18n.Backend {
+	db.AutoMigrate(&Translation{})
 	return &Backend{DB: db}
 }
 
@@ -26,7 +27,7 @@ func (backend *Backend) LoadTranslations() []*i18n.Translation {
 }
 
 func (backend *Backend) SaveTranslation(t *i18n.Translation) {
-	backend.DB.Save(&Translation{Key: t.Key, Locale: t.Locale, Value: t.Value})
+	backend.DB.Where(Translation{Key: t.Key, Locale: t.Locale}).Assign(Translation{Value: t.Value}).FirstOrCreate(&Translation{})
 }
 
 func (backend *Backend) DeleteTranslation(t *i18n.Translation) {

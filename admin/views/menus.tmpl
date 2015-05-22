@@ -2,7 +2,7 @@
   {{if .GetSubMenus}}
     <li class="dropdown item" role="presentation">
       <a class="dropdown-toggle" href="{{.Link}}" aria-expanded="false" role="button">
-        {{.Name}} <span class="md md-expand-more"></span>
+        {{t .Name}} <span class="md md-expand-more"></span>
       </a>
       <ul class="dropdown-menu" role="menu">
         {{render "menus" .GetSubMenus}}
@@ -10,7 +10,7 @@
     </li>
   {{else}}
     <li class="item" role="presentation">
-      {{link_to .Name .Link}}
+      {{link_to (t .Name) .Link}}
     </li>
   {{end}}
 {{end}}

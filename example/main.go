@@ -9,6 +9,7 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/i18n"
+	"github.com/qor/qor/i18n/backends/database"
 )
 
 func main() {
@@ -72,7 +73,9 @@ func main() {
 	Admin.AddResource(&Order{}, &admin.Config{Menu: []string{"Orders Management"}})
 
 	Admin.AddResource(Publish)
-	Admin.AddResource(&i18n.I18n{})
+
+	I18n := i18n.New(database.New(Publish.DraftDB()))
+	Admin.AddResource(I18n)
 
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)

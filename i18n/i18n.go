@@ -47,6 +47,9 @@ func (i18n *I18n) AddTransaltion(translation *Translation) {
 }
 
 func (i18n *I18n) SaveTransaltion(translation *Translation) {
+	if i18n.Translations[translation.Locale] == nil {
+		i18n.Translations[translation.Locale] = map[string]*Translation{}
+	}
 	i18n.Translations[translation.Locale][translation.Key] = translation
 	translation.Backend.SaveTranslation(translation)
 }
@@ -57,12 +60,17 @@ func (i18n *I18n) DeleteTransaltion(translation *Translation) {
 }
 
 func (i18n *I18n) T(locale, key string, args ...interface{}) string {
+	var value string
+
 	if translations := i18n.Translations[locale]; translations != nil && translations[key] != nil {
-		if str, err := cldr.Parse(locale, translations[key].Value, args...); err == nil {
-			return str
-		}
+		value = translations[key].Value
 	} else {
 		i18n.SaveTransaltion(&Translation{Key: key, Locale: locale, Value: key, Backend: i18n.Backends[0]})
+		value = key
+	}
+
+	if str, err := cldr.Parse(locale, value, args...); err == nil {
+		return str
 	}
 	return key
 }
