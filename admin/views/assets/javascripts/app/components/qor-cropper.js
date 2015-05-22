@@ -227,14 +227,10 @@
   );
 
   $(function () {
-    if (!$.fn.cropper) {
-      return;
-    }
-
-    $('.qor-fileinput').each(function () {
+    function initialize() {
       var $this = $(this);
 
-      if (!$this.data('qor.cropper')) {
+      if ($.fn.cropper && !$this.data('qor.cropper')) {
         $this.data('qor.cropper', new QorCropper(this, {
           target: 'img',
           output: 'textarea',
@@ -250,7 +246,10 @@
           }
         }));
       }
-    });
+    }
+
+    $('.qor-fileinput').each(initialize);
+    $(document).on('click', '.qor-fileinput', initialize);
   });
 
   return QorCropper;
