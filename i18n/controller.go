@@ -11,8 +11,9 @@ func (controller *I18nController) Index(context *admin.Context) {
 }
 
 func (controller *I18nController) Update(context *admin.Context) {
-	var translation Translation
-	context.Resource.Decode(context, &translation)
+	form := context.Request.Form
+	translation := Translation{Key: form.Get("Key"), Locale: form.Get("Locale"), Value: form.Get("Value")}
+
 	if results := controller.I18n.Translations[translation.Locale]; results != nil {
 		if result := results[translation.Key]; result != nil {
 			translation.Backend = result.Backend
