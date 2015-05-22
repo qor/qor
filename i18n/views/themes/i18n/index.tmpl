@@ -58,8 +58,11 @@
 
           <div class="col-md-6">
             <div class="lang-target">
-              <input type="hidden" name="TranslationEntryId">
-              <textarea name="">{{lt $editing_locale $key}}</textarea>
+              <form action="" method="POST">
+                <input type="hidden" name="Locale" value="{{$editing_locale}}">
+                <textarea style="display:none;" name="Key">{{ $key }}</textarea>
+                <textarea name="Value">{{lt $editing_locale $key }}</textarea>
+              </form>
             </div>
           </div>
         </li>

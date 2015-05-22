@@ -57,7 +57,9 @@ func (i18n *I18n) SaveTransaltion(translation *Translation) {
 		i18n.Translations[translation.Locale] = map[string]*Translation{}
 	}
 	i18n.Translations[translation.Locale][translation.Key] = translation
-	translation.Backend.SaveTranslation(translation)
+	if backend := translation.Backend; backend != nil {
+		backend.SaveTranslation(translation)
+	}
 }
 
 func (i18n *I18n) DeleteTransaltion(translation *Translation) {
