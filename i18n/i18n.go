@@ -17,7 +17,7 @@ type I18n struct {
 
 type Backend interface {
 	LoadTranslations() []*Translation
-	UpdateTranslation(*Translation)
+	SaveTranslation(*Translation)
 	DeleteTranslation(*Translation)
 }
 
@@ -46,9 +46,9 @@ func (i18n *I18n) AddTransaltion(translation *Translation) {
 	i18n.Translations[translation.Locale][translation.Key] = translation
 }
 
-func (i18n *I18n) UpdateTransaltion(translation *Translation) {
+func (i18n *I18n) SaveTransaltion(translation *Translation) {
 	i18n.Translations[translation.Locale][translation.Key] = translation
-	translation.Backend.UpdateTranslation(translation)
+	translation.Backend.SaveTranslation(translation)
 }
 
 func (i18n *I18n) DeleteTransaltion(translation *Translation) {
@@ -57,12 +57,12 @@ func (i18n *I18n) DeleteTransaltion(translation *Translation) {
 }
 
 func (i18n *I18n) T(locale, key string, args ...interface{}) string {
-	if translations := i18n.Translations[locale]; translations != nil {
-		if translation := translations[key]; translation != nil {
-			if str, err := cldr.Parse(locale, translation.Value, args...); err == nil {
-				return str
-			}
+	if translations := i18n.Translations[locale]; translations != nil && translations[key] != nil {
+		if str, err := cldr.Parse(locale, translations[key].Value, args...); err == nil {
+			return str
 		}
+	} else {
+		i18n.SaveTransaltion(&Translation{Key: key, Locale: locale, Value: key, Backend: i18n.Backends[0]})
 	}
 	return key
 }

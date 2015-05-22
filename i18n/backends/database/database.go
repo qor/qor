@@ -25,7 +25,7 @@ func (backend *Backend) LoadTranslations() []*i18n.Translation {
 	return translations
 }
 
-func (backend *Backend) UpdateTranslation(t *i18n.Translation) {
+func (backend *Backend) SaveTranslation(t *i18n.Translation) {
 	backend.DB.Save(&Translation{Key: t.Key, Locale: t.Locale, Value: t.Value})
 }
 
