@@ -72,10 +72,10 @@ func main() {
 	Admin.AddResource(&Collection{}, &admin.Config{Menu: []string{"Products Management"}})
 	Admin.AddResource(&Order{}, &admin.Config{Menu: []string{"Orders Management"}})
 
-	Admin.AddResource(Publish)
-
 	I18n := i18n.New(database.New(Publish.DraftDB()))
 	Admin.AddResource(I18n)
+
+	Admin.AddResource(Publish)
 
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)
