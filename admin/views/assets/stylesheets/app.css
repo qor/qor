@@ -698,8 +698,11 @@ table tr td .label-default.label-primary:focus, table tr td .label-default.label
   display: block;
   margin: 0 auto;
   line-height: 4.2rem;
-  font-family: Existence, "Poiret One", "Code Light";
-  font-size: 3.2rem; }
+  font-size: 3.2rem;
+  text-indent: -999em;
+  background: url(../images/qor.svg) 0 center no-repeat;
+  height: 4.4rem;
+  width: 6.8rem; }
 
 .header {
   border-top: 3px #333 solid;
@@ -798,30 +801,6 @@ table tr td .label-default.label-primary:focus, table tr td .label-default.label
   background-image: linear-gradient(top, #41d2fe, #2a9be9);
   box-shadow: 0 0 8px 1px #41d2fe;
   border: 1px solid #4991E3; }
-
-.translation-wrapper {
-  border-radius: 2px;
-  box-shadow: 0 1px 12px -1px rgba(0, 0, 0, 0.25); }
-  .translation-wrapper .btn-wrapper {
-    padding: 16px;
-    background-color: #F7F7F7; }
-    .translation-wrapper .btn-wrapper .btn-danger {
-      margin-right: 16px; }
-
-.translation-header {
-  padding: 16px 0;
-  background-color: #F7F7F7; }
-
-.translation-entry {
-  padding: 16px 0;
-  background-color: #FFF; }
-  .translation-entry textarea {
-    display: block;
-    box-sizing: border-box;
-    padding: 4px 8px;
-    width: 100%;
-    height: 80px;
-    border: 1px solid #DDD; }
 
 /* ==========================================================================
    Browser Upgrade Prompt

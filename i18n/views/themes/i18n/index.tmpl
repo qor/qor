@@ -23,7 +23,7 @@
                 </li>
               {{end}}
             </ul>
-            <input class="selectedInput" type="hidden" name="OriginLanguage">
+            <input class="selectedInput" type="hidden" name="OriginLanguage" value="{{i18n_primary_locale .}}">
           </div>
         </div>
         <div class="col-md-6">
@@ -39,7 +39,7 @@
                 </li>
               {{end}}
             </ul>
-            <input class="selectedInput" type="hidden" name="TargetLanguage">
+            <input class="selectedInput" type="hidden" name="TargetLanguage" value="{{i18n_editing_locale .}}">
           </div>
         </div>
       </section>
