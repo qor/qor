@@ -14,4 +14,18 @@ $(function () {
 
     location.replace(path);
   });
+
+  $('.translation-entry textarea').on('change', function() {
+    var value = $.trim($(this).val());
+    if (value) {
+      var data = $($(this)[0].form).serializeArray();
+      $.ajax({
+        url: location.pathname,
+        type: 'POST',
+        cache: false,
+        timeout: 7777,
+        data: data
+      });
+    }
+  });
 });
