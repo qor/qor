@@ -74,14 +74,15 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 		value = translations[key].Value
 	} else {
 		values := strings.Split(key, ".")
-		i18n.SaveTransaltion(&Translation{Key: key, Locale: locale, Value: values[len(values)-1], Backend: i18n.Backends[0]})
-		value = key
+		translation := Translation{Key: key, Locale: locale, Value: values[len(values)-1], Backend: i18n.Backends[0]}
+		i18n.SaveTransaltion(&translation)
+		value = translation.Value
 	}
 
 	if str, err := cldr.Parse(locale, value, args...); err == nil {
 		return str
 	}
-	return key
+	return value
 }
 
 func getLocaleFromContext(context *qor.Context) string {
@@ -131,7 +132,16 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	res.GetAdmin().I18n = i18n
 
 	res.GetAdmin().RegisterFuncMap("lt", func(locale, key string) string {
-		return i18n.Translations[locale][key].Value
+		translations := i18n.Translations[locale]
+		if translations == nil {
+			translations = i18n.Translations[Default]
+		}
+
+		if translation := translations[key]; translation != nil {
+			return translation.Value
+		}
+
+		return ""
 	})
 
 	res.GetAdmin().RegisterFuncMap("i18n_available_keys", func() (keys []string) {
