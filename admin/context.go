@@ -333,19 +333,41 @@ type Page struct {
 	IsNext     bool
 }
 
+const (
+	VISIBLE_PAGE_COUNT = 8
+)
+
+// Keep VISIBLE_PAGE_COUNT's pages visible, exclude prev and next link
+// Assume there are 12 pages in total.
+// When current page is 1
+// [current, 2, 3, 4, 5, 6, 7, 8, next]
+// When current page is 6
+// [prev, 2, 3, 4, 5, current, 7, 8, 9, 10, next]
+// When current page is 10
+// [prev, 5, 6, 7, 8, 9, current, 11, 12]
+// If total page count less than VISIBLE_PAGE_COUNT, always show all pages
 func (context *Context) Pagination() []Page {
 	pagination := context.Searcher.Pagination
-	start := pagination.CurrentPage
-	if start-5 < 1 {
+
+	start := pagination.CurrentPage - VISIBLE_PAGE_COUNT/2
+	if start < 1 {
 		start = 1
 	}
 
-	end := start + 9
+	end := start + VISIBLE_PAGE_COUNT - 1 // -1 for "start page" itself
 	if end > pagination.Pages {
 		end = pagination.Pages
 	}
 
+	if (end-start) < VISIBLE_PAGE_COUNT && start != 1 {
+		start = end - VISIBLE_PAGE_COUNT + 1
+	}
+	if start < 1 {
+		start = 1
+	}
+
 	var pages []Page
+	// Append prev link
 	if start > 1 {
 		pages = append(pages, Page{Page: start - 1, IsPrevious: true})
 	}
@@ -354,6 +376,7 @@ func (context *Context) Pagination() []Page {
 		pages = append(pages, Page{Page: i, Current: pagination.CurrentPage == i})
 	}
 
+	// Append next link
 	if end < pagination.Pages {
 		pages = append(pages, Page{Page: end + 1, IsNext: true})
 	}
