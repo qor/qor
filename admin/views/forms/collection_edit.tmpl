@@ -1,5 +1,5 @@
 <div class="qor-collection-group collection-edit form-group">
-  <label for="{{.InputId}}">{{.Label}}</label>
+  <label for="{{.InputId}}">{{rt .Base .Label }}</label>
   {{$meta := .Meta}}
   {{if .Value}}
     {{range $index, $value := .Value }}

@@ -217,6 +217,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 
 	if tmpl, err := context.findTemplate(tmpl, fmt.Sprintf("forms/%v.tmpl", meta.Type)); err == nil {
 		data := map[string]interface{}{}
+		data["Base"] = meta.base
 		data["InputId"] = strings.Join(prefix, "")
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
@@ -414,7 +415,7 @@ func (context *Context) funcMap() template.FuncMap {
 			if context.Admin.I18n == nil {
 				return key
 			} else {
-				return context.Admin.I18n.T(locale, strings.Join([]string{"qor_admin", resource.Name, key}, "."), values...)
+				return context.Admin.I18n.T(locale, strings.Join([]string{"qor_admin", resource.ToParam(), key}, "."), values...)
 			}
 		},
 	}
