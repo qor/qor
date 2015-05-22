@@ -18,4 +18,14 @@ $(function () {
     $('.grid-trigger-wrapper .trigger').removeClass('cur');
     $(this).addClass('cur');
   });
+
+  $('.dropdown.select .dropdown-option').on('click', function() {
+    var text = $(this).text(),
+        value = $(this).data('value'),
+        $parent = $(this).parents('.dropdown');
+
+    $parent.find('.selectedInput').val(value);
+    $parent.find('.selected').text(text);
+
+  });
 });
