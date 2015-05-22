@@ -1,11 +1,13 @@
 package i18n
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
 
 	"github.com/qor/qor/admin"
+	"github.com/theplant/cldr"
 )
 
 type I18n struct {
@@ -57,7 +59,9 @@ func (i18n *I18n) DeleteTransaltion(translation *Translation) {
 func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 	if translations := i18n.Translations[locale]; translations != nil {
 		if translation := translations[key]; translation != nil {
-			return translation.Value // TODO cldr
+			if str, err := cldr.Parse(locale, translation.Value, args...); err == nil {
+				return str
+			}
 		}
 	}
 	return key
@@ -66,6 +70,10 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	res.Config.Theme = "i18n"
 	res.GetAdmin().I18n = i18n
+
+	controller := I18nController{i18n}
+	router := res.GetAdmin().GetRouter()
+	router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Index)
 
 	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/i18n/views"))
