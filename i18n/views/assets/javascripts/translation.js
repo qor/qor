@@ -25,7 +25,12 @@ $(function () {
         cache: false,
         timeout: 7777,
         data: data
+      }).done(function() {
+        $(this).parent().addClass('done');
       });
     }
+  }).on('keypress', function() {
+    var me = this;
+    $(me).parent().removeClass('done');
   });
 });

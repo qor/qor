@@ -34,3 +34,30 @@
     border: 1px solid #DDD;
   }
 }
+
+.lang-target {
+  i {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    line-height: 100%;
+    background-color: #73EBA9;
+    color: #FFF;
+    width: 1.6rem;
+    text-align: center;
+    opacity: 0;
+    &:before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 16px;
+      margin: auto;
+    }
+  }
+  .done i {
+    opacity: 1;
+  }
+}
