@@ -1,5 +1,5 @@
 <div class="form-group">
-  <label for="{{.InputId}}">{{.Label}}</label><br/>
+  <label for="{{.InputId}}">{{rt .Base .Label }}</label>
   <select class="form-control" id="{{.InputId}}" data-toggle="qor.selector" name="{{.InputName}}" multiple {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
     {{$current_values := .Value}}
     {{range $values := .CollectionValue}}

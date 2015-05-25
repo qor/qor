@@ -8,6 +8,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/i18n"
+	"github.com/qor/qor/i18n/backends/database"
 )
 
 func main() {
@@ -69,6 +71,9 @@ func main() {
 	})
 	Admin.AddResource(&Collection{}, &admin.Config{Menu: []string{"Products Management"}})
 	Admin.AddResource(&Order{}, &admin.Config{Menu: []string{"Orders Management"}})
+
+	I18n := i18n.New(database.New(Publish.DraftDB()))
+	Admin.AddResource(I18n)
 
 	Admin.AddResource(Publish)
 

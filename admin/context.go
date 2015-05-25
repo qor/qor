@@ -217,6 +217,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 
 	if tmpl, err := context.findTemplate(tmpl, fmt.Sprintf("forms/%v.tmpl", meta.Type)); err == nil {
 		data := map[string]interface{}{}
+		data["Base"] = meta.base
 		data["InputId"] = strings.Join(prefix, "")
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
@@ -389,34 +390,57 @@ func Equal(a, b interface{}) bool {
 }
 
 func (context *Context) funcMap() template.FuncMap {
+	locale := utils.GetLocale(context.GetContext())
+
 	funcMap := template.FuncMap{
-		"menus":                 context.Admin.GetMenus,
-		"current_user":          func() qor.CurrentUser { return context.CurrentUser },
-		"render":                context.Render,
-		"render_form":           context.RenderForm,
-		"url_for":               context.UrlFor,
-		"link_to":               context.LinkTo,
-		"new_resource_path":     context.NewResourcePath,
-		"new_resource":          context.NewResource,
-		"is_new_record":         context.NewRecord,
-		"value_of":              context.ValueOf,
-		"primary_key_of":        context.PrimaryKeyOf,
-		"get_scopes":            context.GetScopes,
-		"has_primary_key":       context.HasPrimaryKey,
-		"all_metas":             context.AllMetas,
-		"index_metas":           context.IndexMetas,
-		"edit_metas":            context.EditMetas,
-		"show_metas":            context.ShowMetas,
-		"new_metas":             context.NewMetas,
-		"pagination":            context.Pagination,
-		"javascript_tag":        context.JavaScriptTag,
-		"stylesheet_tag":        context.StyleSheetTag,
-		"equal":                 Equal,
-		"patch_current_url":     context.PatchCurrentURL,
+		"equal": Equal,
+
+		"current_user":    func() qor.CurrentUser { return context.CurrentUser },
+		"new_resource":    context.NewResource,
+		"is_new_record":   context.NewRecord,
+		"has_primary_key": context.HasPrimaryKey,
+		"primary_key_of":  context.PrimaryKeyOf,
+		"value_of":        context.ValueOf,
+
+		"menus":      context.Admin.GetMenus,
+		"get_scopes": context.GetScopes,
+
+		"render":            context.Render,
+		"render_form":       context.RenderForm,
+		"url_for":           context.UrlFor,
+		"link_to":           context.LinkTo,
+		"patch_current_url": context.PatchCurrentURL,
+		"new_resource_path": context.NewResourcePath,
+		"javascript_tag":    context.JavaScriptTag,
+		"stylesheet_tag":    context.StyleSheetTag,
+		"pagination":        context.Pagination,
+
+		"all_metas":   context.AllMetas,
+		"index_metas": context.IndexMetas,
+		"edit_metas":  context.EditMetas,
+		"show_metas":  context.ShowMetas,
+		"new_metas":   context.NewMetas,
+
 		"has_create_permission": context.HasCreatePermission,
 		"has_read_permission":   context.HasReadPermission,
 		"has_update_permission": context.HasUpdatePermission,
 		"has_delete_permission": context.HasDeletePermission,
+
+		"t": func(key string, values ...interface{}) string {
+			if context.Admin.I18n == nil {
+				return key
+			} else {
+				return context.Admin.I18n.T(locale, strings.Join([]string{"qor_admin", key}, "."), values...)
+			}
+		},
+
+		"rt": func(resource *Resource, key string, values ...interface{}) string {
+			if context.Admin.I18n == nil {
+				return key
+			} else {
+				return context.Admin.I18n.T(locale, strings.Join([]string{"qor_admin", resource.ToParam(), key}, "."), values...)
+			}
+		},
 	}
 
 	for key, value := range context.Admin.funcMaps {

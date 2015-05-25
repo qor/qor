@@ -1,4 +1,4 @@
 <div class="form-group">
-  <label for="{{.InputId}}">{{.Label}}</label>
+  <label for="{{.InputId}}">{{rt .Base .Label }}</label>
   <input class="form-control" id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}" type="number" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
 </div>

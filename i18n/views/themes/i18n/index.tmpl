@@ -1,0 +1,74 @@
+{{stylesheet_tag "translation"}}
+{{javascript_tag "translation"}}
+
+{{$primary_locale := (i18n_primary_locale .)}}
+{{$editing_locale := (i18n_editing_locale .)}}
+
+<article class="article">
+  <div class="wrapper">
+    <div class="translation-wrapper">
+      <section class="translation-header clearfix">
+        <div class="col-md-6">
+          <div class="dropdown select origin">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+              <span class="selected">{{i18n_primary_locale .}}</span>
+              <span class="md md-expand-more"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              {{range $locale := (i18n_viewable_locales .)}}
+                <li role="presentation">
+                  <a class="dropdown-option" data-value="{{$locale}}" role="menuitem" tabindex="-1" href="javascript:;">{{t $locale}}</a>
+                </li>
+              {{end}}
+            </ul>
+            <input class="selectedInput" type="hidden" name="OriginLanguage" value="{{i18n_primary_locale .}}">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="dropdown select target">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+              <span class="selected">{{i18n_editing_locale .}}</span>
+              <span class="md md-expand-more"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              {{range $locale := (i18n_editable_locales .)}}
+                <li role="presentation">
+                  <a class="dropdown-option" data-value="{{$locale}}" role="menuitem" tabindex="-1" href="javascript:;">{{t $locale}}</a>
+                </li>
+              {{end}}
+            </ul>
+            <input class="selectedInput" type="hidden" name="TargetLanguage" value="{{i18n_editing_locale .}}">
+          </div>
+        </div>
+      </section>
+
+      <ul class="translation-body clearfix">
+        {{range $key := i18n_available_keys}}
+        <li class="translation-entry clearfix">
+          <div class="col-md-6">
+            <div class="lang-origin">
+              <div class="translation-value">
+                {{lt $primary_locale $key true}}
+              </div>
+              <div class="translation-key">
+                {{$key}}
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="lang-target">
+              <form action="" method="POST">
+                <input type="hidden" name="Locale" value="{{$editing_locale}}">
+                <textarea style="display:none;" name="Key">{{ $key }}</textarea>
+                <textarea name="Value">{{lt $editing_locale $key false}}</textarea><i class="md md-check transition"></i>
+              </form>
+            </div>
+          </div>
+        </li>
+        {{end}}
+      </ul>
+
+    </div>
+  </div>
+</article>

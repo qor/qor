@@ -1,7 +1,7 @@
 <div class="wrapper">
-  <h3 class="page-header">Edit {{.Resource.Name}} For {{current_locale .}}</h3>
+  <h3 class="page-header">{{t (printf "Edit {{.Name}} For %s" (current_locale .)) .Resource}}</h3>
   <form class="form" action="{{url_for .Result}}" method="POST" enctype="multipart/form-data">
     {{render_form .Result show_metas}}
-    <button class="btn btn-primary" type="submit">Save</button>
+    <button class="btn btn-primary" type="submit">{{t "Save"}}</button>
   </form>
 </div>

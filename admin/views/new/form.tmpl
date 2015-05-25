@@ -2,5 +2,5 @@
 
 <form action="{{url_for .Resource}}" method="POST" enctype="multipart/form-data">
   {{render_form .Result new_metas}}
-  <button class="btn btn-primary" type="submit">Save</button>
+  <button class="btn btn-primary" type="submit">{{t "Save"}}</button>
 </form>

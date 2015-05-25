@@ -1,5 +1,5 @@
 <div class="form-group">
-  <label for="{{.InputId}}">{{.Label}}</label>
+  <label for="{{.InputId}}">{{rt .Base .Label }}</label>
   {{if .Meta.Resource}}
     <textarea class="form-control" id="{{.InputId}}" data-toggle="qor.redactor" data-upload-url="{{url_for .Meta.Resource}}/upload" data-crop-url="{{url_for .Meta.Resource}}/crop" name="{{.InputName}}" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>{{.Value}}</textarea>
   {{else}}
