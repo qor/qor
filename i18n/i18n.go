@@ -82,9 +82,18 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil {
 		value = translations[translationKey].Value
 	} else {
-		translation := Translation{Key: translationKey, Locale: locale, Value: key, Backend: i18n.Backends[0]}
-		i18n.SaveTransaltion(&translation)
-		value = translation.Value
+		// Save translations
+		i18n.SaveTransaltion(&Translation{Key: translationKey, Locale: locale, Backend: i18n.Backends[0]})
+	}
+
+	if value == "" {
+		// Get default translation if not translated
+		if translations := i18n.Translations[Default]; translations != nil && translations[translationKey] != nil {
+			value = translations[translationKey].Value
+		}
+		if value == "" {
+			value = key
+		}
 	}
 
 	if str, err := cldr.Parse(locale, value, args...); err == nil {
