@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"html"
 	"os"
 	"path"
 	"reflect"
@@ -405,6 +406,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"menus":      context.Admin.GetMenus,
 		"get_scopes": context.GetScopes,
 
+		"escape":            html.EscapeString,
 		"render":            context.Render,
 		"render_form":       context.RenderForm,
 		"url_for":           context.UrlFor,

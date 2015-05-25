@@ -48,7 +48,7 @@
           <div class="col-md-6">
             <div class="lang-origin">
               <div class="translation-value">
-                {{lt $primary_locale $key true}}
+                {{escape (lt $primary_locale $key true)}}
               </div>
               <div class="translation-key">
                 {{$key}}
