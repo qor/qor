@@ -114,21 +114,32 @@
     },
 
     build: function () {
+      var $cropper,
+          $toggle,
+          $modal;
+
       if (this.built) {
         return;
       }
 
       this.built = true;
 
-      this.$cropper = $(QorCropper.TEMPLATE).prepend(this.$image).appendTo(this.$parent);
-      this.$cropper.find('.modal').on({
+      this.$cropper = $cropper = $(QorCropper.TEMPLATE).prepend(this.$image).appendTo(this.$parent);
+      this.$toggle = $toggle = $cropper.find('.qor-cropper-toggle');
+      this.$modal = $modal = $cropper.find('.qor-cropper-modal');
+
+      $modal.on({
         'shown.bs.modal': $.proxy(this.start, this),
         'hidden.bs.modal': $.proxy(this.stop, this)
+      });
+
+      $toggle.on('click', function () {
+        $modal.modal();
       });
     },
 
     start: function () {
-      var $modal = this.$cropper.find('.modal'),
+      var $modal = this.$modal,
           $clone = $('<img>').attr('src', this.url),
           data = this.data,
           key = this.options.key,
@@ -182,7 +193,7 @@
     },
 
     stop: function () {
-      this.$cropper.find('.modal-body > img').cropper('destroy').remove();
+      this.$modal.find('.modal-body > img').cropper('destroy').remove();
     },
 
     output: function (url) {
@@ -194,7 +205,11 @@
 
     destroy: function () {
       this.$element.off('change');
-      this.$cropper.find('.modal').off('shown.bs.modal hidden.bs.modal');
+
+      if (this.built) {
+        this.$toggle.off('click');
+        this.$modal.off('shown.bs.modal hidden.bs.modal');
+      }
     }
   };
 
@@ -208,12 +223,12 @@
 
   QorCropper.TEMPLATE = (
     '<div class="qor-cropper">' +
-      '<a class="qor-cropper-toggle" data-toggle="modal" href="#qorCropperModal" title="Crop the image"><span class="sr-only">Toggle Cropper<span></a>' +
-      '<div class="modal fade qor-cropper-modal" id="qorCropperModal" tabindex="-1" role="dialog" aria-labelledby="qorCropperModalLabel" aria-hidden="true">' +
+      '<a class="qor-cropper-toggle" title="Crop the image"><span class="sr-only">Toggle Cropper<span></a>' +
+      '<div class="modal fade qor-cropper-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
         '<div class="modal-dialog">' +
           '<div class="modal-content">' +
             '<div class="modal-header">' +
-              '<h5 class="modal-title" id="qorCropperModalLabel">Crop the image</h5>' +
+              '<h5 class="modal-title">Crop the image</h5>' +
             '</div>' +
             '<div class="modal-body"></div>' +
             '<div class="modal-footer">' +
