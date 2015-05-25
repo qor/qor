@@ -16,7 +16,8 @@ $(function () {
   });
 
   $('.translation-entry textarea').on('change', function() {
-    var value = $.trim($(this).val());
+    var me = this,
+        value = $.trim($(this).val());
     if (value) {
       var data = $($(this)[0].form).serializeArray();
       $.ajax({
@@ -26,7 +27,7 @@ $(function () {
         timeout: 7777,
         data: data
       }).done(function() {
-        $(this).parent().addClass('done');
+        $(me).parent().addClass('done');
       });
     }
   }).on('keypress', function() {
