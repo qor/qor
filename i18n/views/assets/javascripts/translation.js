@@ -30,7 +30,7 @@ $(function () {
         $(me).parent().addClass('done');
       });
     }
-  }).on('keypress', function() {
+  }).on('keyup', function() {
     var me = this;
     $(me).parent().removeClass('done');
   });
