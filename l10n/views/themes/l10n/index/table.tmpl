@@ -34,7 +34,7 @@
           <td class="td col-lang">
             {{range $resource_locale := locales_of_resource $resource $context}}
               <a class="label label-{{if $resource_locale.localized}}primary{{else}}default{{end}}" href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
-                {{$resource_locale.locale}}
+                {{t $resource_locale.locale}}
               </a>
             {{end}}
           </td>
