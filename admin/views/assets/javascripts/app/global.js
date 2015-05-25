@@ -18,4 +18,5 @@ $(function () {
     $('.grid-trigger-wrapper .trigger').removeClass('cur');
     $(this).addClass('cur');
   });
+
 });

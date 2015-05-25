@@ -52,14 +52,14 @@ type User struct {
 }
 
 func (User) ViewableLocales() []string {
-	return []string{l10n.Global, "zh-CN", "JP", "EN", "DE"}
+	return []string{l10n.Global, "zh-CN", "JP", "DE"}
 }
 
 func (user User) EditableLocales() []string {
 	if user.Name == "global_admin" {
-		return []string{l10n.Global, "zh-CN", "EN"}
+		return []string{l10n.Global, "zh-CN", "JP"}
 	} else {
-		return []string{"zh-CN", "EN"}
+		return []string{"zh-CN", "JP"}
 	}
 }
 

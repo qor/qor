@@ -44,7 +44,7 @@ func TestL10n(t *testing.T) {
 
 	// Update global product, CN product's code should be changed too because it is `l10n:"sync"` attribute, but others should have no change
 	Expect(page.Navigate(fmt.Sprintf("%v/product", baseUrl))).To(Succeed())
-	Expect(page.Find(fmt.Sprintf("a[href='/admin/product/%v?locale=global']", product.ID)).Click()).To(Succeed())
+	Expect(page.Find(fmt.Sprintf("a[href='/admin/product/%v?locale=%v']", product.ID, l10n.Global)).Click()).To(Succeed())
 
 	modifiedProductName := "modified name"
 	modifiedProductDescription := "modified description"

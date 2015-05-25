@@ -6,14 +6,14 @@
       <tr>
         {{range $index, $meta := index_metas}}
           <th class="th col-{{$index}}" data-col="col-{{$index}}">
-            <a href="javascript:;" title="{{$meta.Label}}">{{$meta.Label}}</a>
+            <a href="javascript:;" title="{{$meta.Label}}">{{rt $context.Resource $meta.Label}}</a>
           </th>
         {{end}}
         <th class="th col-lang" data-col="col-lang">
-          <a href="javascript:;" title="Languages">Languages</a>
+          <a href="javascript:;" title="Languages">{{rt $context.Resource "Languages"}}</a>
         </th>
         <th class="th col-act" data-col="col-act">
-          <a href="javascript:;" title="Actions">Actions</a>
+          <a href="javascript:;" title="Actions">{{t "Actions"}}</a>
         </th>
       </tr>
     </thead>
@@ -34,7 +34,7 @@
           <td class="td col-lang">
             {{range $resource_locale := locales_of_resource $resource $context}}
               <a class="label label-{{if $resource_locale.localized}}primary{{else}}default{{end}}" href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
-                {{$resource_locale.locale}}
+                {{t $resource_locale.locale}}
               </a>
             {{end}}
           </td>
@@ -43,7 +43,7 @@
             <form action="{{url_for $resource}}" method="POST">
               <input name="_method" value="DELETE" type="hidden">
               <a class="btn md md-edit" href="{{url_for $resource}}"></a>
-              <button class="btn md md-delete" type="submit" data-confirm="Are you sure?"></button>
+              <button class="btn md md-delete" type="submit" data-confirm="{{t "Are you sure?"}}"></button>
             </form>
           </td>
         </tr>

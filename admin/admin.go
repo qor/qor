@@ -10,11 +10,16 @@ import (
 )
 
 const (
-	DEFAULT_PAGE_COUNT = 10
+	DEFAULT_PAGE_COUNT = 20
 )
+
+type I18n interface {
+	T(locale string, key string, args ...interface{}) string
+}
 
 type Admin struct {
 	Config    *qor.Config
+	I18n      I18n
 	menus     []*Menu
 	resources []*Resource
 	auth      Auth
