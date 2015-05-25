@@ -17,6 +17,7 @@ import (
 var Default = "en-US"
 
 type I18n struct {
+	scope        string
 	Backends     []Backend
 	Translations map[string]map[string]*Translation
 }
@@ -67,14 +68,21 @@ func (i18n *I18n) DeleteTransaltion(translation *Translation) {
 	translation.Backend.DeleteTranslation(translation)
 }
 
+func (i18n *I18n) Scope(scope string) admin.I18n {
+	return &I18n{Translations: i18n.Translations, scope: scope, Backends: i18n.Backends}
+}
+
 func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 	var value string
+	var translationKey = key
+	if i18n.scope != "" {
+		translationKey = strings.Join([]string{i18n.scope, key}, ".")
+	}
 
-	if translations := i18n.Translations[locale]; translations != nil && translations[key] != nil {
-		value = translations[key].Value
+	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil {
+		value = translations[translationKey].Value
 	} else {
-		values := strings.Split(key, ".")
-		translation := Translation{Key: key, Locale: locale, Value: values[len(values)-1], Backend: i18n.Backends[0]}
+		translation := Translation{Key: translationKey, Locale: locale, Value: key, Backend: i18n.Backends[0]}
 		i18n.SaveTransaltion(&translation)
 		value = translation.Value
 	}

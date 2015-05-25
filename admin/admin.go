@@ -14,6 +14,7 @@ const (
 )
 
 type I18n interface {
+	Scope(scope string) I18n
 	T(locale string, key string, args ...interface{}) string
 }
 
