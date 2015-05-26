@@ -14,8 +14,21 @@ const (
 	DIRTY     = true
 )
 
+type Interface interface {
+	GetPublishStatus() bool
+	SetPublishStatus(bool)
+}
+
 type Status struct {
 	PublishStatus bool
+}
+
+func (s Status) GetPublishStatus() bool {
+	return s.PublishStatus
+}
+
+func (s *Status) SetPublishStatus(status bool) {
+	s.PublishStatus = status
 }
 
 type Publish struct {
@@ -72,6 +85,7 @@ func (publish *Publish) Support(models ...interface{}) *Publish {
 				qor.ExitWithMsg("%v has no %v column", model, column)
 			}
 		}
+
 		tableName := scope.TableName()
 		publish.DB.SetTableNameHandler(model, func(db *gorm.DB) string {
 			if db != nil {
@@ -102,9 +116,10 @@ func (publish *Publish) Support(models ...interface{}) *Publish {
 	return publish
 }
 
-func (db *Publish) AutoMigrate() {
-	for _, value := range db.SupportedModels {
-		db.DraftDB().AutoMigrate(value)
+func (db *Publish) AutoMigrate(values ...interface{}) {
+	for _, value := range values {
+		tableName := db.DB.NewScope(value).TableName()
+		db.DraftDB().Table(DraftTableName(tableName)).AutoMigrate(value)
 	}
 }
 

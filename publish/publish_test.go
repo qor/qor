@@ -25,7 +25,7 @@ func init() {
 		pbprod.Exec(fmt.Sprintf("drop table %v", table))
 	}
 	pbprod.AutoMigrate(&Product{}, &Color{})
-	pb.AutoMigrate()
+	pb.AutoMigrate(&Product{})
 }
 
 type Product struct {

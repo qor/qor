@@ -30,14 +30,8 @@ func IncludeValue(value string, values []string) bool {
 }
 
 func (resolver *Resolver) SupportModel(model interface{}) bool {
-	var supportedModels []string
-	var reflectType = modelType(model)
-
-	if value, ok := resolver.DB.DB.Get("publish:support_models"); ok {
-		supportedModels = value.([]string)
-	}
-
-	return IncludeValue(reflectType.String(), supportedModels)
+	_, ok := model.(Interface)
+	return ok
 }
 
 func (resolver *Resolver) AddDependency(dependency *Dependency) {
@@ -153,7 +147,7 @@ func (resolver *Resolver) Publish() {
 		resolver.DB.DB.Exec(publishSql, dependency.PrimaryKeys)
 
 		updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v.%v IN (?)", draftTable, draftTable, primaryKey)
-		resolver.DB.DB.Exec(updateStateSql, PUBLISHED, dependency.PrimaryKeys)
+		resolver.DB.DB.Exec(updateStateSql, bool(PUBLISHED), dependency.PrimaryKeys)
 	}
 }
 
