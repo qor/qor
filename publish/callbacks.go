@@ -7,7 +7,7 @@ import (
 )
 
 func isDraftMode(scope *gorm.Scope) bool {
-	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok {
+	if draftMode, ok := scope.Get("publish:draft_mode"); ok {
 		if isDraft, ok := draftMode.(bool); ok && isDraft {
 			return true
 		}
@@ -33,7 +33,7 @@ func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
 				scope.InstanceSet("publish:supported_model", true)
 
 				if update {
-					scope.Set("qor_publish:force_draft_mode", true)
+					scope.Set("publish:force_draft_mode", true)
 					scope.Search.Table(DraftTableName(scope.TableName()))
 				}
 
@@ -47,7 +47,7 @@ func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
 }
 
 func GetModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
-	if draftMode, ok := scope.Get("qor_publish:draft_mode"); ok && !draftMode.(bool) {
+	if draftMode, ok := scope.Get("publish:draft_mode"); ok && !draftMode.(bool) {
 		if _, ok := scope.InstanceGet("publish:supported_model"); ok {
 			table := OriginalTableName(scope.TableName())
 			clone := scope.New(scope.Value)
@@ -79,7 +79,7 @@ func SyncToProductionAfterDelete(scope *gorm.Scope) {
 func Delete(scope *gorm.Scope) {
 	if !scope.HasError() {
 		_, supportedModel := scope.InstanceGet("publish:supported_model")
-		isDraftMode, ok := scope.Get("qor_publish:draft_mode")
+		isDraftMode, ok := scope.Get("publish:draft_mode")
 
 		if supportedModel && (ok && isDraftMode.(bool)) {
 			scope.Raw(

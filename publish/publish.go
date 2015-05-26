@@ -90,13 +90,13 @@ func (publish *Publish) Support(models ...interface{}) *Publish {
 		publish.DB.SetTableNameHandler(model, func(db *gorm.DB) string {
 			if db != nil {
 				var forceDraftMode = false
-				if forceMode, ok := db.Get("qor_publish:force_draft_mode"); ok {
+				if forceMode, ok := db.Get("publish:force_draft_mode"); ok {
 					if forceMode, ok := forceMode.(bool); ok && forceMode {
 						forceDraftMode = true
 					}
 				}
 
-				if draftMode, ok := db.Get("qor_publish:draft_mode"); ok {
+				if draftMode, ok := db.Get("publish:draft_mode"); ok {
 					if isDraft, ok := draftMode.(bool); ok && isDraft || forceDraftMode {
 						return DraftTableName(tableName)
 					}
@@ -124,11 +124,11 @@ func (db *Publish) AutoMigrate(values ...interface{}) {
 }
 
 func (db *Publish) ProductionDB() *gorm.DB {
-	return db.DB.Set("qor_publish:draft_mode", false)
+	return db.DB.Set("publish:draft_mode", false)
 }
 
 func (db *Publish) DraftDB() *gorm.DB {
-	return db.DB.Set("qor_publish:draft_mode", true)
+	return db.DB.Set("publish:draft_mode", true)
 }
 
 func (db *Publish) NewResolver(records ...interface{}) *Resolver {
