@@ -31,5 +31,4 @@ func FilenameWithLineNum() string {
 func ExitWithMsg(str string, value ...interface{}) {
 	fmt.Printf("\n"+FilenameWithLineNum()+"\n"+str+"\n", value...)
 	debug.PrintStack()
-	os.Exit(1)
 }
