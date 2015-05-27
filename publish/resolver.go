@@ -29,11 +29,6 @@ func IncludeValue(value string, values []string) bool {
 	return false
 }
 
-func (resolver *Resolver) SupportModel(model interface{}) bool {
-	_, ok := model.(Interface)
-	return ok
-}
-
 func (resolver *Resolver) AddDependency(dependency *Dependency) {
 	name := dependency.Type.String()
 	var newPrimaryKeys []string
@@ -62,7 +57,7 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 	draftDB := resolver.DB.DraftDB().Unscoped()
 	for _, field := range fromScope.Fields() {
 		if relationship := field.Relationship; relationship != nil {
-			if resolver.SupportModel(field.Field.Interface()) {
+			if IsPublishableModel(field.Field.Interface()) {
 				toType := modelType(field.Field.Interface())
 				toScope := draftDB.NewScope(reflect.New(toType).Interface())
 				draftTable := DraftTableName(toScope.TableName())
@@ -103,7 +98,7 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 
 func (resolver *Resolver) GenerateDependencies() {
 	for _, record := range resolver.Records {
-		if resolver.SupportModel(record) {
+		if IsPublishableModel(record) {
 			scope := &gorm.Scope{Value: record}
 			dependency := Dependency{Type: modelType(record), PrimaryKeys: []string{fmt.Sprintf("%v", scope.PrimaryKeyValue())}}
 			resolver.AddDependency(&dependency)

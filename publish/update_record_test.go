@@ -25,10 +25,6 @@ func TestUpdateStructFromDraft(t *testing.T) {
 
 	if pbdraft.Model(&product).Related(&product.Color); product.Color.Name != name {
 		t.Errorf("should be able to find related struct")
-	} else {
-		if product.Color.PublishStatus {
-			t.Errorf("Color's publish status should be PUBLISHED because it is not publishable")
-		}
 	}
 }
 
@@ -58,9 +54,5 @@ func TestUpdateStructFromProduction(t *testing.T) {
 
 	if pbprod.Model(&product).Related(&product.Color); product.Color.Name != name {
 		t.Errorf("should be able to find related struct")
-	} else {
-		if product.Color.PublishStatus {
-			t.Errorf("Color's publish status should be PUBLISHED because it is not publishable")
-		}
 	}
 }

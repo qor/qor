@@ -50,7 +50,35 @@ func modelType(value interface{}) reflect.Type {
 	return reflectValue.Type()
 }
 
+func IsPublishableModel(model interface{}) bool {
+	_, ok := reflect.New(modelType(model)).Interface().(Interface)
+	return ok
+}
+
 func New(db *gorm.DB) *Publish {
+	tableHandler := gorm.DefaultTableNameHandler
+	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
+		tableName := tableHandler(db, defaultTableName)
+
+		if db != nil {
+			if IsPublishableModel(db.Value) {
+				var forceDraftMode = false
+				if forceMode, ok := db.Get("publish:force_draft_mode"); ok {
+					if forceMode, ok := forceMode.(bool); ok && forceMode {
+						forceDraftMode = true
+					}
+				}
+
+				if draftMode, ok := db.Get("publish:draft_mode"); ok {
+					if isDraft, ok := draftMode.(bool); ok && isDraft || forceDraftMode {
+						return DraftTableName(tableName)
+					}
+				}
+			}
+		}
+		return tableName
+	}
+
 	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production_after_create", SyncToProductionAfterCreate)
@@ -85,25 +113,6 @@ func (publish *Publish) Support(models ...interface{}) *Publish {
 				qor.ExitWithMsg("%v has no %v column", model, column)
 			}
 		}
-
-		tableName := scope.TableName()
-		publish.DB.SetTableNameHandler(model, func(db *gorm.DB) string {
-			if db != nil {
-				var forceDraftMode = false
-				if forceMode, ok := db.Get("publish:force_draft_mode"); ok {
-					if forceMode, ok := forceMode.(bool); ok && forceMode {
-						forceDraftMode = true
-					}
-				}
-
-				if draftMode, ok := db.Get("publish:draft_mode"); ok {
-					if isDraft, ok := draftMode.(bool); ok && isDraft || forceDraftMode {
-						return DraftTableName(tableName)
-					}
-				}
-			}
-			return tableName
-		})
 	}
 
 	publish.SupportedModels = append(publish.SupportedModels, models...)

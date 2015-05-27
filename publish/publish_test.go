@@ -40,5 +40,4 @@ type Product struct {
 type Color struct {
 	Id   int
 	Name string
-	publish.Status
 }

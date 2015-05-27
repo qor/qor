@@ -48,7 +48,6 @@ type User struct {
 	CreditCard   CreditCard
 	CreditCardID uint
 	Addresses    []Address
-	publish.Status
 }
 
 func (User) ViewableLocales() []string {
