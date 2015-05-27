@@ -49,9 +49,11 @@ func modelType(value interface{}) reflect.Type {
 	return reflectValue.Type()
 }
 
-func IsPublishableModel(model interface{}) bool {
-	_, ok := reflect.New(modelType(model)).Interface().(Interface)
-	return ok
+func IsPublishableModel(model interface{}) (ok bool) {
+	if model != nil {
+		_, ok = reflect.New(modelType(model)).Interface().(Interface)
+	}
+	return
 }
 
 func New(db *gorm.DB) *Publish {
