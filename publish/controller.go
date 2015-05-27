@@ -17,13 +17,10 @@ type PublishController struct {
 
 func (db *PublishController) Preview(context *admin.Context) {
 	drafts := make(map[*admin.Resource]interface{})
-	for _, model := range db.SupportedModels {
-		var name = modelType(model).Name()
-		if res := context.Admin.GetResource(strings.ToLower(name)); res != nil {
-			results := res.NewSlice()
-			if db.DraftDB().Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
-				drafts[res] = results
-			}
+	for _, res := range context.Admin.GetResources() {
+		results := res.NewSlice()
+		if db.DraftDB().Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
+			drafts[res] = results
 		}
 	}
 	context.Execute("publish/drafts", drafts)

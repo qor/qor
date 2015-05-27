@@ -48,7 +48,6 @@ type User struct {
 	CreditCard   CreditCard
 	CreditCardID uint
 	Addresses    []Address
-	publish.Status
 }
 
 func (User) ViewableLocales() []string {
@@ -117,7 +116,7 @@ func init() {
 	DB.AutoMigrate(&User{}, &CreditCard{}, &Address{}, &Role{}, &Language{}, &Product{}, &Collection{}, &Order{}, &OrderItem{}, &admin.AssetManager{})
 
 	Publish = publish.New(&DB)
-	Publish.Support(&Product{}).AutoMigrate()
+	Publish.AutoMigrate(&Product{})
 
 	l10n.RegisterCallbacks(&DB)
 

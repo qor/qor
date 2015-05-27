@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/qor/qor"
 
 	"reflect"
 )
@@ -14,8 +13,21 @@ const (
 	DIRTY     = true
 )
 
+type Interface interface {
+	GetPublishStatus() bool
+	SetPublishStatus(bool)
+}
+
 type Status struct {
 	PublishStatus bool
+}
+
+func (s Status) GetPublishStatus() bool {
+	return s.PublishStatus
+}
+
+func (s *Status) SetPublishStatus(status bool) {
+	s.PublishStatus = status
 }
 
 type Publish struct {
@@ -37,7 +49,37 @@ func modelType(value interface{}) reflect.Type {
 	return reflectValue.Type()
 }
 
+func IsPublishableModel(model interface{}) (ok bool) {
+	if model != nil {
+		_, ok = reflect.New(modelType(model)).Interface().(Interface)
+	}
+	return
+}
+
 func New(db *gorm.DB) *Publish {
+	tableHandler := gorm.DefaultTableNameHandler
+	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
+		tableName := tableHandler(db, defaultTableName)
+
+		if db != nil {
+			if IsPublishableModel(db.Value) {
+				var forceDraftMode = false
+				if forceMode, ok := db.Get("publish:force_draft_mode"); ok {
+					if forceMode, ok := forceMode.(bool); ok && forceMode {
+						forceDraftMode = true
+					}
+				}
+
+				if draftMode, ok := db.Get("publish:draft_mode"); ok {
+					if isDraft, ok := draftMode.(bool); ok && isDraft || forceDraftMode {
+						return DraftTableName(tableName)
+					}
+				}
+			}
+		}
+		return tableName
+	}
+
 	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production_after_create", SyncToProductionAfterCreate)
@@ -64,56 +106,19 @@ func OriginalTableName(table string) string {
 	return strings.TrimSuffix(table, "_draft")
 }
 
-func (publish *Publish) Support(models ...interface{}) *Publish {
-	for _, model := range models {
-		scope := gorm.Scope{Value: model}
-		for _, column := range []string{"DeletedAt", "PublishStatus"} {
-			if !scope.HasColumn(column) {
-				qor.ExitWithMsg("%v has no %v column", model, column)
-			}
-		}
-		tableName := scope.TableName()
-		publish.DB.SetTableNameHandler(model, func(db *gorm.DB) string {
-			if db != nil {
-				var forceDraftMode = false
-				if forceMode, ok := db.Get("qor_publish:force_draft_mode"); ok {
-					if forceMode, ok := forceMode.(bool); ok && forceMode {
-						forceDraftMode = true
-					}
-				}
-
-				if draftMode, ok := db.Get("qor_publish:draft_mode"); ok {
-					if isDraft, ok := draftMode.(bool); ok && isDraft || forceDraftMode {
-						return DraftTableName(tableName)
-					}
-				}
-			}
-			return tableName
-		})
-	}
-
-	publish.SupportedModels = append(publish.SupportedModels, models...)
-
-	var supportedModels []string
-	for _, model := range publish.SupportedModels {
-		supportedModels = append(supportedModels, modelType(model).String())
-	}
-	publish.DB.InstantSet("publish:support_models", supportedModels)
-	return publish
-}
-
-func (db *Publish) AutoMigrate() {
-	for _, value := range db.SupportedModels {
-		db.DraftDB().AutoMigrate(value)
+func (db *Publish) AutoMigrate(values ...interface{}) {
+	for _, value := range values {
+		tableName := db.DB.NewScope(value).TableName()
+		db.DraftDB().Table(DraftTableName(tableName)).AutoMigrate(value)
 	}
 }
 
 func (db *Publish) ProductionDB() *gorm.DB {
-	return db.DB.Set("qor_publish:draft_mode", false)
+	return db.DB.Set("publish:draft_mode", false)
 }
 
 func (db *Publish) DraftDB() *gorm.DB {
-	return db.DB.Set("qor_publish:draft_mode", true)
+	return db.DB.Set("publish:draft_mode", true)
 }
 
 func (db *Publish) NewResolver(records ...interface{}) *Resolver {

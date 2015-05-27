@@ -17,7 +17,6 @@ var pbprod *gorm.DB
 func init() {
 	db := utils.TestDB()
 	pb = publish.New(&db)
-	pb.Support(&Product{})
 	pbdraft = pb.DraftDB()
 	pbprod = pb.ProductionDB()
 
@@ -25,7 +24,7 @@ func init() {
 		pbprod.Exec(fmt.Sprintf("drop table %v", table))
 	}
 	pbprod.AutoMigrate(&Product{}, &Color{})
-	pb.AutoMigrate()
+	pb.AutoMigrate(&Product{})
 }
 
 type Product struct {
@@ -40,5 +39,4 @@ type Product struct {
 type Color struct {
 	Id   int
 	Name string
-	publish.Status
 }
