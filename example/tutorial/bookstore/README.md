@@ -20,7 +20,7 @@ We want to create a simple bookstore application. We will start by building a ca
 
 ### Create a database and a db user for the tutorial
 
-    mysql> CREATE DATABASE qor_bookstore;
+    mysql> CREATE DATABASE qor_bookstore DEFAULT CHARACTER SET utf8mb4_general_ci;
     Query OK, 1 row affected (0.16 sec)
 
     mysql> use qor_bookstore
@@ -74,3 +74,7 @@ The Bookmodel has a few more fields:
 The only interesting part here is the gorm struct tag: `gorm:one2many:authors` ... TODO
 
 That's almost it: If you [look at](https://github.com/fvbock/qor/tree/master/example/tutorial/models.go) you can see an `init()` function at the end
+
+...
+
+### Admin
