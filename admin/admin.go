@@ -136,3 +136,7 @@ func (admin *Admin) GetResource(name string) *Resource {
 	}
 	return nil
 }
+
+func (admin *Admin) GetResources() []*Resource {
+	return admin.resources
+}

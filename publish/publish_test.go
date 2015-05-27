@@ -17,7 +17,6 @@ var pbprod *gorm.DB
 func init() {
 	db := utils.TestDB()
 	pb = publish.New(&db)
-	pb.Support(&Product{})
 	pbdraft = pb.DraftDB()
 	pbprod = pb.ProductionDB()
 

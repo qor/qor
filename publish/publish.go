@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/qor/qor"
 
 	"reflect"
 )
@@ -103,26 +102,6 @@ func DraftTableName(table string) string {
 
 func OriginalTableName(table string) string {
 	return strings.TrimSuffix(table, "_draft")
-}
-
-func (publish *Publish) Support(models ...interface{}) *Publish {
-	for _, model := range models {
-		scope := gorm.Scope{Value: model}
-		for _, column := range []string{"DeletedAt", "PublishStatus"} {
-			if !scope.HasColumn(column) {
-				qor.ExitWithMsg("%v has no %v column", model, column)
-			}
-		}
-	}
-
-	publish.SupportedModels = append(publish.SupportedModels, models...)
-
-	var supportedModels []string
-	for _, model := range publish.SupportedModels {
-		supportedModels = append(supportedModels, modelType(model).String())
-	}
-	publish.DB.InstantSet("publish:support_models", supportedModels)
-	return publish
 }
 
 func (db *Publish) AutoMigrate(values ...interface{}) {

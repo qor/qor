@@ -21,26 +21,16 @@ func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
 			return
 		}
 
-		currentModel := scope.GetModelStruct().ModelType.String()
+		if IsPublishableModel(scope.Value) {
+			scope.InstanceSet("publish:supported_model", true)
 
-		var supportedModels []string
-		if value, ok := scope.Get("publish:support_models"); ok {
-			supportedModels = value.([]string)
-		}
+			if update {
+				scope.Set("publish:force_draft_mode", true)
+				scope.Search.Table(DraftTableName(scope.TableName()))
+			}
 
-		for _, model := range supportedModels {
-			if model == currentModel {
-				scope.InstanceSet("publish:supported_model", true)
-
-				if update {
-					scope.Set("publish:force_draft_mode", true)
-					scope.Search.Table(DraftTableName(scope.TableName()))
-				}
-
-				if isDraftMode(scope) && update {
-					scope.SetColumn("PublishStatus", DIRTY)
-				}
-				break
+			if isDraftMode(scope) && update {
+				scope.SetColumn("PublishStatus", DIRTY)
 			}
 		}
 	}
