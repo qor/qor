@@ -20,7 +20,7 @@ First set `publish.Status` as field in the resource you want to use Publish
 Then initialize Publish and set which resource(table) needs Publish support.
 
     publish := publish.New(&DB)
-    publish.Support(&Product{}).AutoMigrate()
+    publish.AutoMigrate(&Product{})
 
 Now, you have two tables for product. "products" and "products_draft", all changes made on product will be saved in "products_draft"
 
