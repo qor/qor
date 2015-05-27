@@ -12,6 +12,7 @@ import (
 	"text/template"
 
 	"github.com/qor/qor/utils"
+	"github.com/theplant/cldr"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -430,6 +431,9 @@ func (context *Context) funcMap() template.FuncMap {
 
 		"t": func(key string, values ...interface{}) string {
 			if context.Admin.I18n == nil {
+				if result, err := cldr.Parse(locale, key, values); err == nil {
+					return result
+				}
 				return key
 			} else {
 				return context.Admin.I18n.Scope("qor_admin").T(locale, key, values...)
@@ -438,6 +442,9 @@ func (context *Context) funcMap() template.FuncMap {
 
 		"rt": func(resource *Resource, key string, values ...interface{}) string {
 			if context.Admin.I18n == nil {
+				if result, err := cldr.Parse(locale, key, values); err == nil {
+					return result
+				}
 				return key
 			} else {
 				return context.Admin.I18n.Scope(strings.Join([]string{"qor_admin", resource.ToParam()}, ".")).T(locale, key, values...)
