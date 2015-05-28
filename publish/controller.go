@@ -19,8 +19,10 @@ func (db *PublishController) Preview(context *admin.Context) {
 	drafts := make(map[*admin.Resource]interface{})
 	for _, res := range context.Admin.GetResources() {
 		results := res.NewSlice()
-		if db.DraftDB().Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
-			drafts[res] = results
+		if IsPublishableModel(res.Value) {
+			if db.DraftDB().Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
+				drafts[res] = results
+			}
 		}
 	}
 	context.Execute("publish/drafts", drafts)
