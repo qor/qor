@@ -27,13 +27,11 @@ We want to create a simple bookstore application. We will start by building a ca
     mysql> CREATE DATABASE qor_bookstore DEFAULT CHARACTER SET utf8mb4;
     Query OK, 1 row affected (0.16 sec)
 
-    mysql> use qor_bookstore
-    Database changed
-
-    mysql> CREATE USER 'qor_tutorial'@'%' IDENTIFIED BY 'qor_tutorial';
+    mysql> CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
+    mysql> CREATE USER 'qor'@'%' IDENTIFIED BY 'qor';
     Query OK, 0 rows affected (0.00 sec)
 
-    mysql> GRANT ALL ON qor_bookstore.* TO 'qor_tutorial'@'localhost';
+    mysql> GRANT ALL ON qor_bookstore.* TO 'qor'@'localhost';
     Query OK, 0 rows affected (0.00 sec)
 
     mysql> FLUSH PRIVILEGES;
@@ -41,7 +39,7 @@ We want to create a simple bookstore application. We will start by building a ca
 
 You should now be able to connect to your database from the console like this:
 
-    $ mysql -uqor_tutorial -p --database qor_bookstore
+    $ mysql -uqor -p --database qor_bookstore
 
 ### Create the basic models
 
@@ -87,9 +85,28 @@ insert screenshots
 
 ### First frontend
 
+You can create your frontend for you QOR based application with <insert example frameworks/libraries>....
+
+We are going to use the stl `html.template`...
+
+TODO: florian
 
 
 #### List of Books
+
+
+#### Add images
+
+qor/media_library
+
+`Base` is the low level object to deal with images offering cropping, resizing, and URL contruction for images.
+
+
+
+#### Add Locales && translations
+
+
+-- later
 
 ### Add customers (model)
 

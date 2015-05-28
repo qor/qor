@@ -54,5 +54,12 @@ func main() {
 		}
 	})
 	Admin.MountTo("/admin", mux)
+
+	// Chapter 3: serve static files
+	mux.Handle(
+		"/system/",
+		http.FileServer(http.Dir("public")),
+	)
+
 	http.ListenAndServe(":9000", mux)
 }

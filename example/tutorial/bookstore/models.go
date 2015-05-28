@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/media_library"
 )
 
 type Author struct {
@@ -22,7 +23,21 @@ type Book struct {
 	ReleaseDate time.Time
 	Authors     []*Author `gorm:"many2many:book_authors"`
 	Price       float64
-	// add locale stuff here...
+
+	//	tutorial step 3
+	CoverImage media_library.FileSystem
+
+	// //	tutorial step 3
+	// CoverImages []ProductImage // product image has BookId => handles relation
+
+	// tutorial step 4 - translation
+
+}
+
+type ProductImage struct {
+	gorm.Model
+	BookId     uint
+	CoverImage media_library.FileSystem
 }
 
 // type User struct {
