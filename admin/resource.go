@@ -77,8 +77,13 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 			db := context.GetDB()
 			var conditions []string
 			var keywords []interface{}
+			scope := db.NewScope(res.Value)
+
 			for _, column := range columns {
-				conditions = append(conditions, fmt.Sprintf("upper(%v) like upper(?)", db.NewScope(nil).Quote(column)))
+				if field, ok := scope.FieldByName(column); ok {
+					conditions = append(conditions, fmt.Sprintf("upper(%v) like upper(?)", scope.Quote(field.DBName)))
+				}
+
 				keywords = append(keywords, "%"+keyword+"%")
 			}
 			return context.GetDB().Where(strings.Join(conditions, " OR "), keywords...)
