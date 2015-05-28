@@ -20,7 +20,7 @@ type Book struct {
 	Title       string
 	Synopsis    string
 	ReleaseDate time.Time
-	Authors     []Author `gorm:many2many:book_authors`
+	Authors     []*Author `gorm:"many2many:book_authors"`
 	Price       float64
 	// add locale stuff here...
 }

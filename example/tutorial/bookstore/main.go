@@ -10,8 +10,20 @@ import (
 
 func main() {
 	Admin := admin.New(&qor.Config{DB: &DB})
-	Admin.AddResource(&Author{}, &admin.Config{Menu: []string{"Author Management"}})
-	book := Admin.AddResource(&Book{}, &admin.Config{Menu: []string{"Book Management"}})
+	Admin.AddResource(
+		&Author{},
+		&admin.Config{Menu: []string{
+			"Author Management"},
+			Name: "Author",
+		},
+	)
+	book := Admin.AddResource(
+		&Book{},
+		&admin.Config{
+			Menu: []string{"Book Management"},
+			Name: "Book",
+		},
+	)
 
 	book.Meta(&admin.Meta{Name: "Authors", Label: "Authors", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {

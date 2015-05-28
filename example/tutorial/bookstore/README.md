@@ -6,6 +6,10 @@
 
 * Install qor `git clone https://github.com/qor/qor.git`
 
+NB: I you clone qor and use it from your own account you will have to create a symlink like this:
+
+    go/src/github.com/qor [qor] $ ln -s ../YOUR_GITHUB_USRNAME/qor/ qor
+
 * A database - for example PostgreSQL or MySQL
 
 * [Pak](https://github.com/theplant/pak) being installed:
@@ -67,11 +71,11 @@ The Bookmodel has a few more fields:
     	Title       string
     	Synopsis    string
     	ReleaseDate time.Time
-    	Authors     []*Author `gorm:one2many:authors`
+    	Authors     []*Author `gorm:"many2many:book_authors"`
     	Price       float64
     }
 
-The only interesting part here is the gorm struct tag: `gorm:one2many:authors` ... TODO
+The only interesting part here is the gorm struct tag: `gorm:"one2many:authors"` ... TODO
 
 That's almost it: If you [look at](https://github.com/fvbock/qor/tree/master/example/tutorial/models.go) you can see an `init()` function at the end
 
