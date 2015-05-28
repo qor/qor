@@ -39,7 +39,8 @@
         $template = $all.last();
       }
 
-      this.template = $template.prop('outerHTML');
+      this.$template = $template;
+      this.template = $template.clone().removeClass('hide').prop('outerHTML');
       this.parse();
       this.bind();
     },
@@ -73,7 +74,15 @@
     },
 
     add: function (e) {
-      var $target = $(e.target).closest(this.options.addClass);
+      var $template = this.$template,
+          $target;
+
+      if ($template.hasClass('hide')) {
+        $template.removeClass('hide');
+        return;
+      }
+
+      $target = $(e.target).closest(this.options.addClass);
 
       if ($target.length) {
         $target.before(this.template.replace(/\{\{index\}\}/g, ++this.index));
