@@ -2,7 +2,8 @@
    <body>
      <h1>{{.title}}</h1>
      {{range $book := .books}}
-        {{$book.Title}}
+        <a href="/book/{{$book.ID}}">{{$book.Title}}</a>
+        <img src="{{$book.CoverImage}}" />
      {{end}}
    </body>
 </html>
