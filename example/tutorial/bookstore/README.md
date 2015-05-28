@@ -24,7 +24,7 @@ We want to create a simple bookstore application. We will start by building a ca
 
 ### Create a database and a db user for the tutorial
 
-    mysql> CREATE DATABASE qor_bookstore DEFAULT CHARACTER SET utf8mb4_general_ci;
+    mysql> CREATE DATABASE qor_bookstore DEFAULT CHARACTER SET utf8mb4;
     Query OK, 1 row affected (0.16 sec)
 
     mysql> use qor_bookstore
@@ -82,3 +82,15 @@ That's almost it: If you [look at](https://github.com/fvbock/qor/tree/master/exa
 ...
 
 ### Admin
+
+insert screenshots
+
+### First frontend
+
+
+
+#### List of Books
+
+### Add customers (model)
+
+### Add orders

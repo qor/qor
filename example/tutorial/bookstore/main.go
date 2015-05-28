@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 )
@@ -41,4 +42,17 @@ func main() {
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)
 	http.ListenAndServe(":9000", mux)
+
+	// first frontend
+
+	router := gin.Default()
+	// load all templates
+	router.LoadHTMLGlob("templates/*")
+	router.GET("/books", func(c *gin.Context) {
+		obj := gin.H{
+			"title": "List of Books",
+		}
+
+		c.HTML(http.StatusOK, "list.tmpl", obj)
+	})
 }
