@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 )
@@ -40,19 +40,19 @@ func main() {
 	// Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
 
 	mux := http.NewServeMux()
-	Admin.MountTo("/admin", mux)
-	http.ListenAndServe(":9000", mux)
+	mux.HandleFunc("/books", func(res http.ResponseWriter, req *http.Request) {
+		var books []Book
+		DB.Find(&books)
 
-	// first frontend
-
-	router := gin.Default()
-	// load all templates
-	router.LoadHTMLGlob("templates/*")
-	router.GET("/books", func(c *gin.Context) {
-		obj := gin.H{
+		values := map[string]interface{}{
 			"title": "List of Books",
+			"books": books,
 		}
 
-		c.HTML(http.StatusOK, "list.tmpl", obj)
+		if tmpl, err := template.ParseFiles("templates/list.tmpl"); err == nil {
+			tmpl.Execute(res, values)
+		}
 	})
+	Admin.MountTo("/admin", mux)
+	http.ListenAndServe(":9000", mux)
 }

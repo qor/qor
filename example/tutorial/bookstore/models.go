@@ -34,7 +34,7 @@ var DB gorm.DB
 
 func init() {
 	var err error
-	dbuser, dbpwd := "qor_tutorial", "qor_tutorial"
+	dbuser, dbpwd := "qor", "qor"
 
 	// if os.Getenv("WEB_ENV") == "online" {
 	// 	dbuser, dbpwd = os.Getenv("DB_USER"), os.Getenv("DB_PWD")
