@@ -1,4 +1,7 @@
 <div class="wrapper">
   <h3 class="page-header">{{t (printf "New %s {{.Name}}" (current_locale .)) .Resource}}</h3>
-  {{render "new/form"}}
+  <form action="{{patch_url (url_for .Resource) "locale" (current_locale .)}}" method="POST" enctype="multipart/form-data">
+    {{render_form .Result new_metas}}
+    <button class="btn btn-primary" type="submit">{{t "Save"}}</button>
+  </form>
 </div>
