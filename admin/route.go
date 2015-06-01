@@ -22,8 +22,9 @@ type (
 )
 
 type Router struct {
-	Prefix  string
-	routers map[string][]Handler
+	Prefix      string
+	routers     map[string][]Handler
+	middlewares []*Middleware
 }
 
 func newRouter() *Router {
@@ -33,6 +34,21 @@ func newRouter() *Router {
 		"POST":   []Handler{},
 		"DELETE": []Handler{},
 	}}
+}
+
+type Middleware struct {
+	Handler func(*Context, *Middleware)
+	next    *Middleware
+}
+
+func (middleware Middleware) Next(context *Context) {
+	if next := middleware.next; next != nil {
+		next.Handler(context, next)
+	}
+}
+
+func (r *Router) Use(handler func(*Context, *Middleware)) {
+	r.middlewares = append(r.middlewares, &Middleware{Handler: handler})
 }
 
 func (r *Router) Get(path string, handle Handle) {
@@ -72,6 +88,50 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
 
 	admin.generateMenuLinks()
+
+	admin.compile()
+}
+
+func (admin *Admin) compile() {
+	router := admin.GetRouter()
+
+	router.Use(func(context *Context, middleware *Middleware) {
+		w := context.Writer
+		req := context.Request
+
+		// 128 MB
+		req.ParseMultipartForm(32 << 22)
+		if len(req.Form["_method"]) > 0 {
+			req.Method = strings.ToUpper(req.Form["_method"][0])
+		}
+
+		var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*`))
+		var matches = pathMatch.FindStringSubmatch(req.URL.Path)
+		if len(matches) > 1 {
+			context.SetResource(admin.GetResource(matches[1]))
+			if len(matches) > 2 {
+				context.ResourceID = matches[2]
+			}
+		}
+
+		handlers := router.routers[strings.ToUpper(req.Method)]
+		relativePath := strings.TrimPrefix(req.URL.Path, router.Prefix)
+		for _, handler := range handlers {
+			if handler.Path.MatchString(relativePath) {
+				handler.Handle(context)
+				return
+			}
+		}
+		http.NotFound(w, req)
+	})
+
+	for index, middleware := range router.middlewares {
+		var next *Middleware
+		if len(router.middlewares) > index+1 {
+			next = router.middlewares[index+1]
+		}
+		middleware.next = next
+	}
 }
 
 func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
@@ -89,45 +149,16 @@ func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context 
 	return &context
 }
 
-var DisableLogging bool
-
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	defer func() func() {
-		if DisableLogging {
-			return func() {}
-		}
 		begin := time.Now()
 		log.Printf("Start [%s] %s\n", req.Method, req.RequestURI)
+
 		return func() {
 			log.Printf("Finish [%s] %s Took %.2fms\n", req.Method, req.RequestURI, time.Now().Sub(begin).Seconds()*1000)
 		}
 	}()()
 
-	// 128 MB
-	req.ParseMultipartForm(32 << 22)
-	if len(req.Form["_method"]) > 0 {
-		req.Method = strings.ToUpper(req.Form["_method"][0])
-	}
-
-	var router = admin.router
-	var context = admin.NewContext(w, req)
-
-	var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*`))
-	var matches = pathMatch.FindStringSubmatch(req.URL.Path)
-	if len(matches) > 1 {
-		context.SetResource(admin.GetResource(matches[1]))
-		if len(matches) > 2 {
-			context.ResourceID = matches[2]
-		}
-	}
-
-	routers := router.routers[strings.ToUpper(req.Method)]
-	relativePath := strings.TrimPrefix(req.URL.Path, router.Prefix)
-	for _, handler := range routers {
-		if handler.Path.MatchString(relativePath) {
-			handler.Handle(context)
-			return
-		}
-	}
-	http.NotFound(w, req)
+	firstStack := admin.router.middlewares[0]
+	firstStack.Handler(admin.NewContext(w, req), firstStack.next)
 }

@@ -78,7 +78,6 @@ var (
 )
 
 func init() {
-	admin.DisableLogging = true
 	mux := http.NewServeMux()
 	db = utils.TestDB()
 	models := []interface{}{&User{}, &CreditCard{}, &Address{}, &Language{}, &Profile{}, &Phone{}}
