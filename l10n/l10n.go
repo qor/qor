@@ -9,7 +9,6 @@ import (
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
 )
@@ -92,29 +91,11 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	res.Config.Theme = "l10n"
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
-	searcher := res.FindManyHandler
-	res.FindManyHandler = func(result interface{}, context *qor.Context) error {
-		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
-		return searcher(result, context)
-	}
-
-	finder := res.FindOneHandler
-	res.FindOneHandler = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
-		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
-		return finder(result, metaValues, context)
-	}
-
-	saver := res.Saver
-	res.Saver = func(result interface{}, context *qor.Context) error {
-		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
-		return saver(result, context)
-	}
-
-	deleter := res.Deleter
-	res.Deleter = func(result interface{}, context *qor.Context) error {
-		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
-		return deleter(result, context)
-	}
+	router := res.GetAdmin().GetRouter()
+	router.Use(func(context *admin.Context, middleware *admin.Middleware) {
+		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context.Context)))
+		middleware.Next(context)
+	})
 
 	res.GetAdmin().RegisterFuncMap("current_locale", func(context admin.Context) string {
 		return getLocaleFromContext(context.Context)
