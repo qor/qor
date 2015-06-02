@@ -73,7 +73,6 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	router.Prefix = prefix
 
 	controller := &controller{admin}
-	router.Get("^/assets/.*$", controller.Asset)
 	router.Get("^/?$", controller.Dashboard)
 	router.Get("^/[^/]+/new$", controller.New)
 	router.Post("^/[^/]+$", controller.Create)
@@ -150,6 +149,14 @@ func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context 
 }
 
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	context := admin.NewContext(w, req)
+	relativePath := strings.TrimPrefix(req.URL.Path, admin.router.Prefix)
+
+	if regexp.MustCompile("^/assets/.*$").MatchString(relativePath) {
+		(&controller{admin}).Asset(context)
+		return
+	}
+
 	defer func() func() {
 		begin := time.Now()
 		log.Printf("Start [%s] %s\n", req.Method, req.RequestURI)
@@ -160,5 +167,5 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}()()
 
 	firstStack := admin.router.middlewares[0]
-	firstStack.Handler(admin.NewContext(w, req), firstStack.next)
+	firstStack.Handler(context, firstStack.next)
 }
