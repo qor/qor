@@ -12,6 +12,7 @@ import (
 	"text/template"
 
 	"github.com/qor/qor/utils"
+	"github.com/theplant/cldr"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -412,6 +413,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"url_for":           context.UrlFor,
 		"link_to":           context.LinkTo,
 		"patch_current_url": context.PatchCurrentURL,
+		"patch_url":         context.PatchURL,
 		"new_resource_path": context.NewResourcePath,
 		"javascript_tag":    context.JavaScriptTag,
 		"stylesheet_tag":    context.StyleSheetTag,
@@ -430,6 +432,9 @@ func (context *Context) funcMap() template.FuncMap {
 
 		"t": func(key string, values ...interface{}) string {
 			if context.Admin.I18n == nil {
+				if result, err := cldr.Parse(locale, key, values); err == nil {
+					return result
+				}
 				return key
 			} else {
 				return context.Admin.I18n.Scope("qor_admin").T(locale, key, values...)
@@ -438,6 +443,9 @@ func (context *Context) funcMap() template.FuncMap {
 
 		"rt": func(resource *Resource, key string, values ...interface{}) string {
 			if context.Admin.I18n == nil {
+				if result, err := cldr.Parse(locale, key, values); err == nil {
+					return result
+				}
 				return key
 			} else {
 				return context.Admin.I18n.Scope(strings.Join([]string{"qor_admin", resource.ToParam()}, ".")).T(locale, key, values...)
@@ -451,7 +459,12 @@ func (context *Context) funcMap() template.FuncMap {
 	return funcMap
 }
 
-// PatchCurrentURL is a convinent wrapper for qor/utils.PatchCurrentURL
+// PatchCurrentURL is a convinent wrapper for qor/utils.PatchURL
 func (context *Context) PatchCurrentURL(params ...interface{}) (patchedURL string, err error) {
 	return utils.PatchURL(context.Request.URL.String(), params...)
+}
+
+// PatchURL is a convinent wrapper for qor/utils.PatchURL
+func (context *Context) PatchURL(url string, params ...interface{}) (patchedURL string, err error) {
+	return utils.PatchURL(url, params...)
 }

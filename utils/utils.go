@@ -91,7 +91,13 @@ func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err
 }
 
 func GetLocale(context *qor.Context) string {
-	if locale := context.Request.Form.Get("locale"); locale != "" {
+	var locale = context.Request.URL.Query().Get("locale")
+
+	if locale == "" {
+		locale = context.Request.Form.Get("locale")
+	}
+
+	if locale != "" {
 		if context.Writer != nil {
 			cookie := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0), Path: "/"}
 			http.SetCookie(context.Writer, &cookie)

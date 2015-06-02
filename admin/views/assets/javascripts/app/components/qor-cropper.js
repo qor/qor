@@ -147,34 +147,11 @@
 
       $modal.find('.modal-body').html($clone);
       $clone.cropper({
+        data: data[key],
         background: false,
         zoomable: false,
         rotatable: false,
-
         built: function () {
-          var previous = data[key],
-              scaled = {},
-              scaledRatio,
-              imageData,
-              canvasData;
-
-          if ($.isPlainObject(previous)) {
-            imageData = $clone.cropper('getImageData');
-            canvasData = $clone.cropper('getCanvasData');
-            scaledRatio = imageData.width / imageData.naturalWidth;
-
-            $.each(previous, function (key, val) {
-              scaled[String(key).toLowerCase()] = val * scaledRatio;
-            });
-
-            $clone.cropper('setCropBoxData', {
-              left: scaled.x + canvasData.left,
-              top: scaled.y + canvasData.top,
-              width: scaled.width,
-              height: scaled.height
-            });
-          }
-
           $modal.find('.qor-cropper-save').one('click', function () {
             var cropData = $clone.cropper('getData');
 
@@ -242,7 +219,9 @@
   );
 
   $(function () {
-    function initialize() {
+    var initialize;
+
+    $('.qor-fileinput').each((initialize = function () {
       var $this = $(this);
 
       if ($.fn.cropper && !$this.data('qor.cropper')) {
@@ -261,9 +240,8 @@
           }
         }));
       }
-    }
+    }));
 
-    $('.qor-fileinput').each(initialize);
     $(document).on('click', '.qor-fileinput', initialize);
   });
 

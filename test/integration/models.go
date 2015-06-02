@@ -106,7 +106,7 @@ func SetupDb(dropBeforeCreate bool) {
 
 	if dropBeforeCreate {
 		DB.Exec("DROP TABLE IF EXISTS products_draft;")
-		Publish.Support(&Product{}).AutoMigrate()
+		Publish.AutoMigrate(&Product{})
 	}
 
 	Login()

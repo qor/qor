@@ -7,9 +7,9 @@ var gulp = require('gulp'),
     },
     scripts = {
       src: [
-        path('javascripts/app/components/*.js'),
         path('javascripts/app/*.js')
       ],
+      component: path('javascripts/app/components/*.js'),
       dest: path('javascripts'),
       all: path('javascripts/app/**/*.js'),
       lib: path('javascripts/lib')
@@ -24,24 +24,39 @@ var gulp = require('gulp'),
     };
 
 gulp.task('jshint', function () {
-  return gulp.src(scripts.src)
+  return gulp.src(scripts.all)
   .pipe(plugins.jshint(path('javascripts/app/.jshintrc')))
   .pipe(plugins.jshint.reporter('default'));
 });
 
 gulp.task('jscs', function () {
-  return gulp.src(scripts.src)
+  return gulp.src(scripts.all)
   .pipe(plugins.jscs(path('javascripts/app/.jscsrc')));
 });
 
-gulp.task('js', ['jshint', 'jscs'], function () {
+gulp.task('jscomponent', function () {
+  return gulp.src(scripts.component)
+  .pipe(plugins.concat('component.js'))
+  .pipe(plugins.uglify())
+  .pipe(gulp.dest(scripts.dest));
+});
+
+gulp.task('js', ['jscomponent'], function () {
   return gulp.src(scripts.src)
   .pipe(plugins.concat('app.js'))
   .pipe(plugins.uglify())
   .pipe(gulp.dest(scripts.dest));
 });
 
-gulp.task('concat', function () {
+gulp.task('jsconcat.component', function () {
+  return gulp.src(scripts.component)
+  .pipe(plugins.sourcemaps.init())
+  .pipe(plugins.concat('component.js'))
+  .pipe(plugins.sourcemaps.write('./'))
+  .pipe(gulp.dest(scripts.dest));
+});
+
+gulp.task('jsconcat', function () {
   return gulp.src(scripts.src)
   .pipe(plugins.sourcemaps.init())
   .pipe(plugins.concat('app.js'))
@@ -82,21 +97,21 @@ gulp.task('css', ['csslint'], function () {
   .pipe(gulp.dest(styles.dest));
 });
 
-gulp.task('fonts', function () {
+gulp.task('csslib.fonts', function () {
   return gulp.src([
     'bower_components/bootstrap/fonts/*'
   ])
   .pipe(gulp.dest(styles.fonts));
 });
 
-gulp.task('redactor', function () {
+gulp.task('csslib.redactor', function () {
   return gulp.src('bower_components/redactor/redactor.css')
   .pipe(plugins.rename('redactor.min.css'))
   .pipe(plugins.minifyCss())
   .pipe(gulp.dest('bower_components/redactor'));
 });
 
-gulp.task('csslib', ['fonts', 'redactor'], function () {
+gulp.task('csslib', ['csslib.fonts', 'csslib.redactor'], function () {
   return gulp.src([
     'bower_components/bootstrap/dist/css/bootstrap.min.css',
     'bower_components/redactor/redactor.min.css',
@@ -109,7 +124,8 @@ gulp.task('csslib', ['fonts', 'redactor'], function () {
 });
 
 gulp.task('watch', function () {
-  gulp.watch(scripts.all, ['concat']);
+  gulp.watch(scripts.src, ['jsconcat']);
+  gulp.watch(scripts.component, ['jsconcat.component']);
   gulp.watch(styles.all, ['sass']);
 });
 

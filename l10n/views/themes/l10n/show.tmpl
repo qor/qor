@@ -1,6 +1,8 @@
 <div class="wrapper">
   <h3 class="page-header">{{t (printf "Edit {{.Name}} For %s" (current_locale .)) .Resource}}</h3>
-  <form class="form" action="{{url_for .Result}}" method="POST" enctype="multipart/form-data">
+
+  <form class="form" action="{{patch_current_url "locale" (current_locale .)}}"
+    method="POST" enctype="multipart/form-data">
     {{render_form .Result show_metas}}
     <button class="btn btn-primary" type="submit">{{t "Save"}}</button>
   </form>

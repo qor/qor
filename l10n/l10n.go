@@ -9,7 +9,6 @@ import (
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
 )
@@ -92,43 +91,29 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	res.Config.Theme = "l10n"
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
-	searcher := res.FindManyHandler
-	res.FindManyHandler = func(result interface{}, context *qor.Context) error {
-		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
-		return searcher(result, context)
-	}
+	Admin := res.GetAdmin()
 
-	finder := res.FindOneHandler
-	res.FindOneHandler = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
-		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
-		return finder(result, metaValues, context)
-	}
+	// Middleware
+	router := Admin.GetRouter()
+	router.Use(func(context *admin.Context, middleware *admin.Middleware) {
+		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context.Context)))
+		middleware.Next(context)
+	})
 
-	saver := res.Saver
-	res.Saver = func(result interface{}, context *qor.Context) error {
-		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
-		return saver(result, context)
-	}
-
-	deleter := res.Deleter
-	res.Deleter = func(result interface{}, context *qor.Context) error {
-		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context)))
-		return deleter(result, context)
-	}
-
-	res.GetAdmin().RegisterFuncMap("current_locale", func(context admin.Context) string {
+	// FunMap
+	Admin.RegisterFuncMap("current_locale", func(context admin.Context) string {
 		return getLocaleFromContext(context.Context)
 	})
 
-	res.GetAdmin().RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
+	Admin.RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
 		return GetAvailableLocales(context.Request, context.CurrentUser)
 	})
 
-	res.GetAdmin().RegisterFuncMap("editable_locales", func(context admin.Context) []string {
+	Admin.RegisterFuncMap("editable_locales", func(context admin.Context) []string {
 		return GetEditableLocales(context.Request, context.CurrentUser)
 	})
 
-	res.GetAdmin().RegisterFuncMap("createable_locales", func(context admin.Context) []string {
+	Admin.RegisterFuncMap("createable_locales", func(context admin.Context) []string {
 		editableLocales := GetEditableLocales(context.Request, context.CurrentUser)
 		if _, ok := context.Resource.Value.(LocaleCreateableInterface); ok {
 			return editableLocales
@@ -142,7 +127,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		return []string{}
 	})
 
-	res.GetAdmin().RegisterFuncMap("locales_of_resource", func(resource interface{}, context admin.Context) []map[string]interface{} {
+	Admin.RegisterFuncMap("locales_of_resource", func(resource interface{}, context admin.Context) []map[string]interface{} {
 		scope := context.GetDB().NewScope(resource)
 		var languageCodes []string
 		context.GetDB().New().Set("l10n:mode", "unscoped").Model(resource).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
@@ -162,6 +147,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		return results
 	})
 
+	// Roles
 	role := res.Config.Permission.Role
 	if _, ok := role.Get("locale_admin"); !ok {
 		role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {

@@ -46,10 +46,10 @@
 
     if (nums && nums.length === 4) {
       data = {
-        x: nums[0],
-        y: nums[1],
-        width: nums[2],
-        height: nums[3]
+        x: Number(nums[0]),
+        y: Number(nums[1]),
+        width: Number(nums[2]),
+        height: Number(nums[3])
       };
     }
 
@@ -114,28 +114,12 @@
 
       $modal.one('shown.bs.modal', function () {
         $clone.cropper({
+          data: decodeCropData($image.attr('data-crop-option')),
           background: false,
           zoomable: false,
           rotatable: false,
 
           built: function () {
-            var data = decodeCropData($image.attr('data-crop-option')),
-                canvasData,
-                imageData;
-
-            if ($.isPlainObject(data)) {
-              imageData = $clone.cropper('getImageData');
-              canvasData = $clone.cropper('getCanvasData');
-              imageData.ratio = imageData.width / imageData.naturalWidth;
-
-              $clone.cropper('setCropBoxData', {
-                left: data.x * imageData.ratio + canvasData.left,
-                top: data.y * imageData.ratio + canvasData.top,
-                width: data.width * imageData.ratio,
-                height: data.height * imageData.ratio
-              });
-            }
-
             $modal.find('.qor-cropper-save').one('click', function () {
               var cropData = {};
 
