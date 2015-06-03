@@ -68,6 +68,8 @@ func (r *Router) Delete(path string, handle Handle) {
 }
 
 func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
+	admin.compile()
+
 	prefix = "/" + strings.Trim(prefix, "/")
 	router := admin.router
 	router.Prefix = prefix
@@ -85,10 +87,6 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
-
-	admin.generateMenuLinks()
-
-	admin.compile()
 }
 
 type Injector interface {
@@ -96,6 +94,8 @@ type Injector interface {
 }
 
 func (admin *Admin) compile() {
+	admin.generateMenuLinks()
+
 	router := admin.GetRouter()
 
 	for _, res := range admin.resources {
