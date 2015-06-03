@@ -79,44 +79,69 @@ var injected bool
 func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	Admin := res.GetAdmin()
 
+	res.Config.Theme = "l10n"
+	if res.Config.Permission == nil {
+		res.Config.Permission = roles.NewPermission()
+	}
+	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
+
+	res.Meta(&admin.Meta{Name: "LanguageCode", Type: "hidden"})
+
+	// Set meta permissions
+	for _, field := range Admin.Config.DB.NewScope(res.Value).Fields() {
+		if isSyncField(field.StructField) {
+			if meta := res.GetMeta(field.Name); meta != nil {
+				permission := meta.Permission
+				if permission == nil {
+					permission = roles.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")
+				} else {
+					permission = permission.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")
+				}
+
+				meta.Permission = permission
+			} else {
+				res.Meta(&admin.Meta{Name: field.Name, Permission: roles.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")})
+			}
+		}
+	}
+
+	// Roles
+	role := res.Config.Permission.Role
+	if _, ok := role.Get("locale_admin"); !ok {
+		role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
+			for _, locale := range GetEditableLocales(req, currentUser) {
+				if locale == currentLocale {
+					return true
+				}
+			}
+			return false
+		})
+	}
+
+	if _, ok := role.Get("global_admin"); !ok {
+		role.Register("global_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			return getLocaleFromContext(&qor.Context{Request: req}) == Global
+		})
+	}
+
+	if _, ok := role.Get("locale_reader"); !ok {
+		role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
+			for _, locale := range GetAvailableLocales(req, currentUser) {
+				if locale == currentLocale {
+					return true
+				}
+			}
+			return false
+		})
+	}
+
 	// Inject for l10n
 	if !injected {
 		injected = true
-
 		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/l10n/views"))
-		}
-
-		// Roles
-		role := res.Config.Permission.Role
-		if _, ok := role.Get("locale_admin"); !ok {
-			role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
-				currentLocale := getLocaleFromContext(&qor.Context{Request: req})
-				for _, locale := range GetEditableLocales(req, currentUser) {
-					if locale == currentLocale {
-						return true
-					}
-				}
-				return false
-			})
-		}
-
-		if _, ok := role.Get("global_admin"); !ok {
-			role.Register("global_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
-				return getLocaleFromContext(&qor.Context{Request: req}) == Global
-			})
-		}
-
-		if _, ok := role.Get("locale_reader"); !ok {
-			role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
-				currentLocale := getLocaleFromContext(&qor.Context{Request: req})
-				for _, locale := range GetAvailableLocales(req, currentUser) {
-					if locale == currentLocale {
-						return true
-					}
-				}
-				return false
-			})
 		}
 
 		router := Admin.GetRouter()
@@ -173,31 +198,5 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 			}
 			return results
 		})
-	}
-
-	res.Config.Theme = "l10n"
-	if res.Config.Permission == nil {
-		res.Config.Permission = roles.NewPermission()
-	}
-	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
-
-	res.Meta(&admin.Meta{Name: "LanguageCode", Type: "hidden"})
-
-	// Set meta permissions
-	for _, field := range Admin.Config.DB.NewScope(res.Value).Fields() {
-		if isSyncField(field.StructField) {
-			if meta := res.GetMeta(field.Name); meta != nil {
-				permission := meta.Permission
-				if permission == nil {
-					permission = roles.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")
-				} else {
-					permission = permission.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")
-				}
-
-				meta.Permission = permission
-			} else {
-				res.Meta(&admin.Meta{Name: field.Name, Permission: roles.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")})
-			}
-		}
 	}
 }

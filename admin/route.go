@@ -177,5 +177,5 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}()()
 
 	firstStack := admin.router.middlewares[0]
-	firstStack.Handler(context, firstStack.next)
+	firstStack.Handler(context, firstStack)
 }
