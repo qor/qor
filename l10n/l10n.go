@@ -93,10 +93,62 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 
 	Admin := res.GetAdmin()
 
+	// Roles
+	role := res.Config.Permission.Role
+	if _, ok := role.Get("locale_admin"); !ok {
+		role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
+			for _, locale := range GetEditableLocales(req, currentUser) {
+				if locale == currentLocale {
+					return true
+				}
+			}
+			return false
+		})
+	}
+
+	if _, ok := role.Get("global_admin"); !ok {
+		role.Register("global_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			return getLocaleFromContext(&qor.Context{Request: req}) == Global
+		})
+	}
+
+	if _, ok := role.Get("locale_reader"); !ok {
+		role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
+			for _, locale := range GetAvailableLocales(req, currentUser) {
+				if locale == currentLocale {
+					return true
+				}
+			}
+			return false
+		})
+	}
+
 	// Middleware
 	router := Admin.GetRouter()
 	router.Use(func(context *admin.Context, middleware *admin.Middleware) {
 		context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context.Context)))
+
+		// Set meta permissions
+		scope := Admin.Config.DB.NewScope(res.Value)
+		for _, field := range scope.Fields() {
+			if isSyncField(field.StructField) {
+				if meta := res.GetMeta(field.Name); meta != nil {
+					permission := meta.Permission
+					if permission == nil {
+						permission = roles.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")
+					} else {
+						permission = permission.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")
+					}
+
+					meta.Permission = permission
+				} else {
+					res.Meta(&admin.Meta{Name: field.Name, Permission: roles.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")})
+				}
+			}
+		}
+
 		middleware.Next(context)
 	})
 
@@ -146,28 +198,4 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		}
 		return results
 	})
-
-	// Roles
-	role := res.Config.Permission.Role
-	if _, ok := role.Get("locale_admin"); !ok {
-		role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
-			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
-			for _, locale := range GetEditableLocales(req, currentUser) {
-				if locale == currentLocale {
-					return true
-				}
-			}
-			return false
-		})
-
-		role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
-			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
-			for _, locale := range GetAvailableLocales(req, currentUser) {
-				if locale == currentLocale {
-					return true
-				}
-			}
-			return false
-		})
-	}
 }

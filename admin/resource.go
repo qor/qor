@@ -175,6 +175,15 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 	return metas
 }
 
+func (res *Resource) GetMeta(name string) *Meta {
+	for _, meta := range res.Metas {
+		if meta.Name == name || meta.GetFieldName() == name {
+			return meta
+		}
+	}
+	return nil
+}
+
 func (res *Resource) IndexMetas() []*Meta {
 	return res.getCachedMetas("index_metas", func() []resource.Metaor {
 		return res.GetMetas(res.indexAttrs, res.showAttrs)
