@@ -91,8 +91,18 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	admin.compile()
 }
 
+type Injector interface {
+	InjectQorAdmin(*Resource)
+}
+
 func (admin *Admin) compile() {
 	router := admin.GetRouter()
+
+	for _, res := range admin.resources {
+		if injector, ok := res.Value.(Injector); ok {
+			injector.InjectQorAdmin(res)
+		}
+	}
 
 	router.Use(func(context *Context, middleware *Middleware) {
 		w := context.Writer

@@ -28,10 +28,6 @@ type Admin struct {
 	funcMaps  template.FuncMap
 }
 
-type Injector interface {
-	InjectQorAdmin(*Resource)
-}
-
 type ResourceNamer interface {
 	ResourceName() string
 }
@@ -107,10 +103,6 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		res.Name = configuration.Name
 	} else if namer, ok := value.(ResourceNamer); ok {
 		res.Name = namer.ResourceName()
-	}
-
-	if injector, ok := value.(Injector); ok {
-		injector.InjectQorAdmin(res)
 	}
 	return res
 }
