@@ -68,11 +68,11 @@ func (r *Router) Delete(path string, handle Handle) {
 }
 
 func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
-	admin.compile()
-
 	prefix = "/" + strings.Trim(prefix, "/")
 	router := admin.router
 	router.Prefix = prefix
+
+	admin.compile()
 
 	controller := &controller{admin}
 	router.Get("^/?$", controller.Dashboard)
