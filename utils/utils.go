@@ -66,17 +66,8 @@ func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err
 	query := url.Query()
 	for i := 0; i < len(params)/2; i++ {
 		// Check if params is key&value pair
-		key, ok := params[i*2].(string)
-		if !ok {
-			err = fmt.Errorf("%[1]v type is %[1]T, want string", params[i*2])
-			return
-		}
-
-		value, ok := params[i*2+1].(string)
-		if !ok {
-			err = fmt.Errorf("%[1]v type is %[1]T, want string", params[i*2+1])
-			return
-		}
+		key := fmt.Sprintf("%v", params[i*2])
+		value := fmt.Sprintf("%v", params[i*2+1])
 
 		if value == "" {
 			query.Del(key)
