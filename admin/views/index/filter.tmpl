@@ -17,7 +17,7 @@
     <section class="search-wrapper fr">
       <form role="form">
         <i class="md md-search"></i>
-        <input type="search" name="keyword">
+        <input type="search" name="keyword" value="{{ .Context.Request.URL.Query.Get "keyword" }}">
         <!-- <i class="md md-close"></i> -->
       </form>
     </section>
