@@ -6,18 +6,20 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/media_library"
 )
 
 type Author struct {
 	gorm.Model
-	// Id   int64 // gets created by gorm automatically
 	Name string
+	// // step 6- maybe...: l10n
+	// ShortBiography string
+	// l10n.Locale
 }
 
 type Book struct {
 	gorm.Model
-	// Id          int64 // gets created by gorm automatically
 	Title       string
 	Synopsis    string
 	ReleaseDate time.Time
@@ -40,10 +42,16 @@ type ProductImage struct {
 	CoverImage media_library.FileSystem
 }
 
-// type User struct {
-// 	gorm.Model
-// 	Name string
-// }
+// step 4 - add users
+
+type User struct {
+	gorm.Model
+	Name string
+}
+
+func (u User) DisplayName() string {
+	return u.Name
+}
 
 var DB gorm.DB
 
@@ -63,7 +71,12 @@ func init() {
 		panic(err)
 	}
 
-	// DB.AutoMigrate(&Author{}, &Book{}, &User{})
-	DB.AutoMigrate(&Author{}, &Book{})
+	// step 1-3
+	// DB.AutoMigrate(&Author{}, &Book{})
+	// step 5:
+	DB.AutoMigrate(&Author{}, &Book{}, &User{})
 	DB.LogMode(true)
+
+	// step 4
+	l10n.RegisterCallbacks(&DB)
 }
