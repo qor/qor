@@ -73,18 +73,3 @@ func TestNewResourceWithCustomizedName(t *testing.T) {
 		t.Error("customize resource name didn't set")
 	}
 }
-
-type UserWithInjector struct{}
-
-func (u *UserWithInjector) InjectQorAdmin(res *Resource) {
-	res.Config.PageCount = DEFAULT_PAGE_COUNT + 10
-}
-
-func TestNewResourceWithInjector(t *testing.T) {
-	admin := New(&qor.Config{})
-	user := admin.NewResource(&UserWithInjector{})
-
-	if user.Config.PageCount != DEFAULT_PAGE_COUNT+10 {
-		t.Error("injected page count didn't set")
-	}
-}
