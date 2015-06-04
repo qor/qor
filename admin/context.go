@@ -55,10 +55,10 @@ func (context *Context) NewResource(name ...string) *Context {
 
 // Template
 func (context *Context) getViewPaths() (paths []string) {
-	dirs := []string{context.ResourcePath(), path.Join("themes", "default"), "."}
+	var dirs = []string{path.Join("themes", "default"), "."}
 	if context.Resource != nil && context.Resource.Config != nil && context.Resource.Config.Theme != "" {
 		themePath := path.Join("themes", context.Resource.Config.Theme)
-		dirs = append([]string{path.Join(themePath, context.ResourcePath()), themePath}, dirs...)
+		dirs = append([]string{path.Join(themePath, context.ResourcePath()), context.ResourcePath(), themePath}, dirs...)
 	}
 
 	for _, p := range dirs {
