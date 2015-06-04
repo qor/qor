@@ -398,6 +398,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"equal": Equal,
 
 		"current_user":    func() qor.CurrentUser { return context.CurrentUser },
+		"keyword":         context.Keyword,
 		"new_resource":    context.NewResource,
 		"is_new_record":   context.NewRecord,
 		"has_primary_key": context.HasPrimaryKey,
@@ -457,6 +458,10 @@ func (context *Context) funcMap() template.FuncMap {
 		funcMap[key] = value
 	}
 	return funcMap
+}
+
+func (context *Context) Keyword() string {
+	return context.Request.FormValue("keyword")
 }
 
 // PatchCurrentURL is a convinent wrapper for qor/utils.PatchURL
