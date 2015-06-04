@@ -32,13 +32,13 @@
     <![endif]-->
     <a class="sr-only" href="#content" tabindex="1">Skip to content</a>
 
-    {{template "header" .}}
+    {{render "header" .}}
 
     <div class="main" id="content">
       {{.Content}}
     </div>
 
-    {{template "footer" .}}
+    {{render "footer" .}}
 
     <!-- JavaScripts -->
     {{javascript_tag "lib/bootstrap.min"}}
