@@ -124,12 +124,12 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 		structFields := scope.GetModelStruct().StructFields
 		attrs = []string{}
 
-	StructFields:
+	Fields:
 		for _, field := range structFields {
 			for _, meta := range res.Metas {
 				if field.Name == meta.Alias {
 					attrs = append(attrs, meta.Name)
-					continue StructFields
+					continue Fields
 				}
 			}
 
@@ -139,7 +139,7 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 			for _, value := range []string{"CreatedAt", "UpdatedAt", "DeletedAt"} {
 				if value == field.Name {
-					continue StructFields
+					continue Fields
 				}
 			}
 
@@ -149,7 +149,7 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 	MetaIncluded:
 		for _, meta := range res.Metas {
 			for _, attr := range attrs {
-				if attr == meta.Alias {
+				if attr == meta.Alias || attr == meta.Name {
 					continue MetaIncluded
 				}
 			}

@@ -32,34 +32,18 @@ func main() {
 	user.Meta(&admin.Meta{Name: "fullname", Alias: "name"})
 
 	user.Meta(&admin.Meta{Name: "State", Type: "select_one", Collection: []string{"Active", "Inactive"}})
-	user.Meta(&admin.Meta{Name: "RoleID", Label: "Role", Type: "select_one",
-		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
-			if roles := []Role{}; !context.GetDB().Find(&roles).RecordNotFound() {
-				for _, role := range roles {
-					results = append(results, []string{fmt.Sprintf("%v", role.ID), role.Name})
-				}
-			}
-			return
-		},
-	})
+	user.Meta(&admin.Meta{Name: "Role", Type: "select_one"})
 
 	user.Meta(&admin.Meta{Name: "Languages", Type: "select_many"})
 
 	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: Admin.NewResource(&admin.AssetManager{})})
 
 	Admin.AddResource(&Language{}, &admin.Config{Name: "Locales", Menu: []string{"Products Management"}})
+
 	product := Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Products Management"}})
 	product.SearchAttrs("Name", "Description")
-	product.Meta(&admin.Meta{Name: "CollectionID", Label: "Collection", Type: "select_one",
-		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
-			if collections := []Collection{}; !context.GetDB().Find(&collections).RecordNotFound() {
-				for _, collection := range collections {
-					results = append(results, []string{fmt.Sprintf("%v", collection.ID), collection.Name})
-				}
-			}
-			return
-		},
-	})
+	product.Meta(&admin.Meta{Name: "Collection", Type: "select_one"})
+
 	Admin.AddResource(&Collection{}, &admin.Config{Menu: []string{"Products Management"}})
 	Admin.AddResource(&Order{}, &admin.Config{Menu: []string{"Orders Management"}})
 
