@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 
 	"strings"
@@ -101,4 +102,20 @@ func GetLocale(context *qor.Context) string {
 	}
 
 	return ""
+}
+
+func Stringify(object interface{}) string {
+	if obj, ok := object.(interface {
+		Stringify() string
+	}); ok {
+		return obj.Stringify()
+	}
+
+	scope := gorm.Scope{Value: object}
+	for _, column := range []string{"Name", "Title"} {
+		if field, ok := scope.FieldByName(column); ok {
+			return fmt.Sprintf("%v", field.Field.Interface())
+		}
+	}
+	return fmt.Sprintf("%v", object)
 }
