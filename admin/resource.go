@@ -145,6 +145,16 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 			attrs = append(attrs, field.Name)
 		}
+
+	MetaIncluded:
+		for _, meta := range res.Metas {
+			for _, attr := range attrs {
+				if attr == meta.Alias {
+					continue MetaIncluded
+				}
+			}
+			attrs = append(attrs, meta.Name)
+		}
 	}
 
 	primaryKey := res.PrimaryFieldName()
