@@ -56,9 +56,13 @@ func (context *Context) NewResource(name ...string) *Context {
 // Template
 func (context *Context) getViewPaths() (paths []string) {
 	var dirs = []string{path.Join("themes", "default"), "."}
-	if context.Resource != nil && context.Resource.Config != nil && context.Resource.Config.Theme != "" {
-		themePath := path.Join("themes", context.Resource.Config.Theme)
-		dirs = append([]string{path.Join(themePath, context.ResourcePath()), context.ResourcePath(), themePath}, dirs...)
+	if context.Resource != nil {
+		if context.Resource.Config != nil && context.Resource.Config.Theme != "" {
+			themePath := path.Join("themes", context.Resource.Config.Theme)
+			dirs = append([]string{path.Join(themePath, context.ResourcePath()), context.ResourcePath(), themePath}, dirs...)
+		} else {
+			dirs = append([]string{context.ResourcePath()}, dirs...)
+		}
 	}
 
 	for _, p := range dirs {
