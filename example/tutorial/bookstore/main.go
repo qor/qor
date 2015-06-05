@@ -37,16 +37,7 @@ func main() {
 		},
 	)
 
-	book.Meta(&admin.Meta{Name: "Authors", Label: "Authors", Type: "select_many",
-		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
-			if authors := []Author{}; !context.GetDB().Find(&authors).RecordNotFound() {
-				for _, author := range authors {
-					results = append(results, []string{fmt.Sprintf("%v", author.ID), author.Name})
-				}
-			}
-			return
-		},
-	})
+	book.Meta(&admin.Meta{Name: "Authors", Type: "select_many"})
 
 	// Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
 
