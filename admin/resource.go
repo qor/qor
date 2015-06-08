@@ -236,3 +236,10 @@ func (res *Resource) AllowedMetas(attrs []*Meta, context *Context, roles ...role
 	}
 	return metas
 }
+
+func (res *Resource) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
+	if res.Config == nil || res.Config.Permission == nil {
+		return true
+	}
+	return res.Config.Permission.HasPermission(mode, context.Roles...)
+}

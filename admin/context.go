@@ -43,6 +43,10 @@ func (context *Context) SetResource(res *Resource) *Context {
 	return context
 }
 
+func (context *Context) GetResource(name string) *Resource {
+	return context.Admin.GetResource(name)
+}
+
 func (context *Context) NewResource(name ...string) *Context {
 	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result}
 	if len(name) > 0 {
@@ -320,20 +324,24 @@ func (context *Context) GetScopes() (scopes []string) {
 	return
 }
 
-func (context *Context) HasCreatePermission(meta *Meta) bool {
-	return meta.HasPermission(roles.Create, context.GetContext())
+type permissioner interface {
+	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
 
-func (context *Context) HasReadPermission(meta *Meta) bool {
-	return meta.HasPermission(roles.Read, context.GetContext())
+func (context *Context) HasCreatePermission(permissioner permissioner) bool {
+	return permissioner.HasPermission(roles.Create, context.GetContext())
 }
 
-func (context *Context) HasUpdatePermission(meta *Meta) bool {
-	return meta.HasPermission(roles.Update, context.GetContext())
+func (context *Context) HasReadPermission(permissioner permissioner) bool {
+	return permissioner.HasPermission(roles.Read, context.GetContext())
 }
 
-func (context *Context) HasDeletePermission(meta *Meta) bool {
-	return meta.HasPermission(roles.Delete, context.GetContext())
+func (context *Context) HasUpdatePermission(permissioner permissioner) bool {
+	return permissioner.HasPermission(roles.Update, context.GetContext())
+}
+
+func (context *Context) HasDeletePermission(permissioner permissioner) bool {
+	return permissioner.HasPermission(roles.Delete, context.GetContext())
 }
 
 type Page struct {
@@ -405,6 +413,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"equal": Equal,
 
 		"current_user":    func() qor.CurrentUser { return context.CurrentUser },
+		"get_resource":    context.GetResource,
 		"new_resource":    context.NewResource,
 		"is_new_record":   context.NewRecord,
 		"has_primary_key": context.HasPrimaryKey,
