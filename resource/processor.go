@@ -4,7 +4,9 @@ import (
 	"errors"
 	"reflect"
 
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
+	"github.com/qor/qor/roles"
 )
 
 var (
@@ -18,10 +20,12 @@ type processor struct {
 	Context    *qor.Context
 	MetaValues *MetaValues
 	SkipLeft   bool
+	newRecord  bool
 }
 
 func DecodeToResource(res Resourcer, result interface{}, metaValues *MetaValues, context *qor.Context) *processor {
-	return &processor{Resource: res, Result: result, Context: context, MetaValues: metaValues}
+	scope := &gorm.Scope{Value: result}
+	return &processor{Resource: res, Result: result, Context: context, MetaValues: metaValues, newRecord: scope.PrimaryKeyZero()}
 }
 
 func (processor *processor) checkSkipLeft(errs ...error) bool {
@@ -68,6 +72,12 @@ func (processor *processor) decode() (errors []error) {
 	for _, metaValue := range processor.MetaValues.Values {
 		meta := metaValue.Meta
 		if meta == nil {
+			continue
+		}
+
+		if processor.newRecord && !meta.HasPermission(roles.Create, processor.Context) {
+			continue
+		} else if !meta.HasPermission(roles.Update, processor.Context) {
 			continue
 		}
 
