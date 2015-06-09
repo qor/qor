@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html"
+	"os"
 	"path"
 	"reflect"
 	"strings"
@@ -301,6 +302,36 @@ func (context *Context) themesClass() (result string) {
 	return strings.Join(results, " ")
 }
 
+func (context *Context) LoadThemeStyleSheets() string {
+	var results []string
+	if context.Resource != nil {
+		for _, theme := range context.Resource.Config.Themes {
+			for _, view := range context.getViewPaths() {
+				file := path.Join("assets", "stylesheets", theme+".css")
+				if _, err := os.Stat(path.Join(view, file)); err == nil {
+					results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+				}
+			}
+		}
+	}
+	return strings.Join(results, " ")
+}
+
+func (context *Context) LoadThemeJavaScripts() string {
+	var results []string
+	if context.Resource != nil {
+		for _, theme := range context.Resource.Config.Themes {
+			for _, view := range context.getViewPaths() {
+				file := path.Join("assets", "javascripts", theme+".js")
+				if _, err := os.Stat(path.Join(view, file)); err == nil {
+					results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+				}
+			}
+		}
+	}
+	return strings.Join(results, " ")
+}
+
 func (context *Context) funcMap() template.FuncMap {
 	locale := utils.GetLocale(context.GetContext())
 
@@ -318,18 +349,20 @@ func (context *Context) funcMap() template.FuncMap {
 		"menus":      context.Admin.GetMenus,
 		"get_scopes": context.GetScopes,
 
-		"escape":            html.EscapeString,
-		"render":            context.Render,
-		"render_form":       context.RenderForm,
-		"url_for":           context.UrlFor,
-		"link_to":           context.LinkTo,
-		"patch_current_url": context.PatchCurrentURL,
-		"patch_url":         context.PatchURL,
-		"new_resource_path": context.NewResourcePath,
-		"qor_theme_class":   context.themesClass,
-		"javascript_tag":    context.JavaScriptTag,
-		"stylesheet_tag":    context.StyleSheetTag,
-		"pagination":        context.Pagination,
+		"escape":                 html.EscapeString,
+		"render":                 context.Render,
+		"render_form":            context.RenderForm,
+		"url_for":                context.UrlFor,
+		"link_to":                context.LinkTo,
+		"patch_current_url":      context.PatchCurrentURL,
+		"patch_url":              context.PatchURL,
+		"new_resource_path":      context.NewResourcePath,
+		"qor_theme_class":        context.themesClass,
+		"javascript_tag":         context.JavaScriptTag,
+		"stylesheet_tag":         context.StyleSheetTag,
+		"load_theme_stylesheets": context.LoadThemeStyleSheets,
+		"load_theme_javascripts": context.LoadThemeJavaScripts,
+		"pagination":             context.Pagination,
 
 		"all_metas":   context.AllMetas,
 		"index_metas": context.IndexMetas,

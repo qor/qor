@@ -43,18 +43,24 @@ func (context *Context) GetResource(name string) *Resource {
 // Template
 func (context *Context) getViewPaths() (paths []string) {
 	var dirs = []string{path.Join("themes", "default"), "."}
-	if context.Resource != nil {
-		if context.Resource.Config != nil {
-			for _, theme := range context.Resource.Config.Themes {
-				themePath := path.Join("themes", theme)
-				dirs = append([]string{path.Join(themePath, context.ResourcePath()), context.ResourcePath(), themePath}, dirs...)
-			}
-		} else {
-			dirs = append([]string{context.ResourcePath()}, dirs...)
+
+	var themes []string
+
+	if context.Request != nil {
+		if theme := context.Request.URL.Query().Get("theme"); theme != "" {
+			themePath := path.Join("themes", theme)
+			themes = append(themes, []string{path.Join(themePath, context.ResourcePath()), context.ResourcePath(), themePath}...)
 		}
 	}
 
-	for _, p := range dirs {
+	if context.Resource != nil {
+		for _, theme := range context.Resource.Config.Themes {
+			themePath := path.Join("themes", theme)
+			themes = append(themes, []string{path.Join(themePath, context.ResourcePath()), context.ResourcePath(), themePath}...)
+		}
+	}
+
+	for _, p := range append(themes, dirs...) {
 		for _, d := range viewPaths {
 			if isExistingDir(path.Join(d, p)) {
 				paths = append(paths, path.Join(d, p))
