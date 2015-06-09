@@ -79,7 +79,7 @@ var injected bool
 func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	Admin := res.GetAdmin()
 
-	res.Config.Theme = "l10n"
+	res.Config.Themes = append([]string{"l10n"}, res.Config.Themes...)
 	if res.Config.Permission == nil {
 		res.Config.Permission = roles.NewPermission()
 	}

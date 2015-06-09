@@ -7,6 +7,6 @@ type Config struct {
 	Menu       []string
 	Invisible  bool
 	Permission *roles.Permission
-	Theme      string
+	Themes     []string
 	PageCount  int
 }
