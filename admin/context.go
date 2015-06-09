@@ -47,7 +47,7 @@ func (context *Context) GetResource(name string) *Resource {
 	return context.Admin.GetResource(name)
 }
 
-func (context *Context) NewResource(name ...string) *Context {
+func (context *Context) NewResourceContext(name ...string) *Context {
 	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result}
 	if len(name) > 0 {
 		clone.SetResource(context.Admin.GetResource(name[0]))
@@ -412,13 +412,13 @@ func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"equal": Equal,
 
-		"current_user":    func() qor.CurrentUser { return context.CurrentUser },
-		"get_resource":    context.GetResource,
-		"new_resource":    context.NewResource,
-		"is_new_record":   context.NewRecord,
-		"has_primary_key": context.HasPrimaryKey,
-		"primary_key_of":  context.PrimaryKeyOf,
-		"value_of":        context.ValueOf,
+		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
+		"get_resource":         context.GetResource,
+		"new_resource_context": context.NewResourceContext,
+		"is_new_record":        context.NewRecord,
+		"has_primary_key":      context.HasPrimaryKey,
+		"primary_key_of":       context.PrimaryKeyOf,
+		"value_of":             context.ValueOf,
 
 		"menus":      context.Admin.GetMenus,
 		"get_scopes": context.GetScopes,
