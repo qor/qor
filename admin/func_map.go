@@ -291,6 +291,16 @@ func (context *Context) PatchURL(url string, params ...interface{}) (patchedURL 
 	return utils.PatchURL(url, params...)
 }
 
+func (context *Context) themesClass() (result string) {
+	var results []string
+	if context.Resource != nil {
+		for _, theme := range context.Resource.Config.Themes {
+			results = append(results, "qor-theme-"+theme)
+		}
+	}
+	return strings.Join(results, " ")
+}
+
 func (context *Context) funcMap() template.FuncMap {
 	locale := utils.GetLocale(context.GetContext())
 
@@ -316,6 +326,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"patch_current_url": context.PatchCurrentURL,
 		"patch_url":         context.PatchURL,
 		"new_resource_path": context.NewResourcePath,
+		"qor_theme_class":   context.themesClass,
 		"javascript_tag":    context.JavaScriptTag,
 		"stylesheet_tag":    context.StyleSheetTag,
 		"pagination":        context.Pagination,
