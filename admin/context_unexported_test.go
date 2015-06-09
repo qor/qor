@@ -3,6 +3,8 @@ package admin
 import (
 	"fmt"
 	"os"
+	"path"
+	"strings"
 	"testing"
 
 	"github.com/qor/qor"
@@ -26,8 +28,13 @@ func TestGetDefaultViewPaths(t *testing.T) {
 }
 
 func TestGetCustomizeViewPaths(t *testing.T) {
+	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+		RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/admin/tests/views"))
+	}
+
 	Admin := New(&qor.Config{})
 	context := &Context{Admin: Admin}
+
 	customizeTheme := "theme_for_test"
 	userWithCustomizeTheme := Admin.AddResource(&User{}, &Config{Theme: customizeTheme})
 
@@ -36,7 +43,7 @@ func TestGetCustomizeViewPaths(t *testing.T) {
 	viewPaths := context.getViewPaths()
 	currentFilePath, _ := os.Getwd()
 
-	if viewPaths[0] != fmt.Sprintf("%v/views/themes/%v/user", currentFilePath, customizeTheme) {
+	if viewPaths[0] != fmt.Sprintf("%v/tests/views/themes/%v/user", currentFilePath, customizeTheme) {
 		t.Error("customize view path not returned")
 	}
 }
