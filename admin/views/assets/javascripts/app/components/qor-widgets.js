@@ -23,10 +23,28 @@
 
   Widgets.confirm = function () {
     $(document).on('click.qor.confirmer', '[data-confirm]', function (e) {
-      var message = $(this).data('confirm');
+      var $this = $(this),
+          data = $this.data(),
+          url;
 
-      if (message && !window.confirm(message)) {
-        e.preventDefault();
+      if (data.confirm) {
+        if (window.confirm(data.confirm)) {
+          if (/DELETE/i.test(data.method)) {
+            e.preventDefault();
+
+            url = data.url || $this.attr('href');
+            data = $.extend({}, data, {
+              _method: 'DELETE'
+            });
+
+            $.post(url, data, function () {
+              window.location.reload();
+            });
+
+          }
+        } else {
+          e.preventDefault();
+        }
       }
     });
   };
