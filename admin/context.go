@@ -42,21 +42,20 @@ func (context *Context) GetResource(name string) *Resource {
 
 // Template
 func (context *Context) getViewPaths() (paths []string) {
-	var dirs = []string{path.Join("themes", "default"), "."}
-
+	var dirs = []string{context.ResourcePath(), path.Join("themes", "default"), "."}
 	var themes []string
 
 	if context.Request != nil {
 		if theme := context.Request.URL.Query().Get("theme"); theme != "" {
 			themePath := path.Join("themes", theme)
-			themes = append(themes, []string{path.Join(themePath, context.ResourcePath()), context.ResourcePath(), themePath}...)
+			themes = append(themes, []string{path.Join(themePath, context.ResourcePath()), themePath}...)
 		}
 	}
 
 	if context.Resource != nil {
 		for _, theme := range context.Resource.Config.Themes {
 			themePath := path.Join("themes", theme)
-			themes = append(themes, []string{path.Join(themePath, context.ResourcePath()), context.ResourcePath(), themePath}...)
+			themes = append(themes, []string{path.Join(themePath, context.ResourcePath()), themePath}...)
 		}
 	}
 
