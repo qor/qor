@@ -36,7 +36,7 @@ func TestGetCustomizeViewPaths(t *testing.T) {
 	context := &Context{Admin: Admin}
 
 	customizeTheme := "theme_for_test"
-	userWithCustomizeTheme := Admin.AddResource(&User{}, &Config{Theme: customizeTheme})
+	userWithCustomizeTheme := Admin.AddResource(&User{}, &Config{Themes: []string{customizeTheme}})
 
 	context.SetResource(userWithCustomizeTheme)
 
