@@ -86,8 +86,7 @@ func (publish *Publish) InjectQorAdmin(res *admin.Resource) {
 			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))
 		}
 	}
-
-	res.Config.Themes = append([]string{"publish"}, res.Config.Themes...)
+	res.UseTheme("publish")
 
 	controller := PublishController{publish}
 	router := res.GetAdmin().GetRouter()

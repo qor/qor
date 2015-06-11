@@ -145,7 +145,7 @@ func GetEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 }
 
 func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
-	res.Config.Themes = append([]string{"i18n"}, res.Config.Themes...)
+	res.UseTheme("i18n")
 	res.GetAdmin().I18n = i18n
 
 	res.GetAdmin().RegisterFuncMap("lt", func(locale, key string, withDefault bool) string {

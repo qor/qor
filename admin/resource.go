@@ -42,6 +42,14 @@ func (res Resource) ToParam() string {
 	return utils.ToParamString(res.Name)
 }
 
+func (res Resource) UseTheme(theme string) []string {
+	if res.Config != nil {
+		res.Config.Themes = append(res.Config.Themes, theme)
+		return res.Config.Themes
+	}
+	return []string{}
+}
+
 func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}, metas []*Meta) interface{} {
 	var metaors []resource.Metaor
 	for _, meta := range metas {
