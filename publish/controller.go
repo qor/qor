@@ -87,6 +87,8 @@ func (publish *Publish) InjectQorAdmin(res *admin.Resource) {
 		}
 	}
 
+	res.Config.Themes = append([]string{"publish"}, res.Config.Themes...)
+
 	controller := PublishController{publish}
 	router := res.GetAdmin().GetRouter()
 	router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
