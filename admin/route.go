@@ -144,22 +144,23 @@ func (admin *Admin) compile() {
 }
 
 func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
-	var currentUser qor.CurrentUser
 	context := Context{Context: &qor.Context{Config: admin.Config, Request: r, Writer: w}, Admin: admin}
-	if admin.auth != nil {
-		if currentUser = admin.auth.GetCurrentUser(&context); currentUser == nil {
-			admin.auth.Login(&context)
-		} else {
-			context.CurrentUser = currentUser
-		}
-	}
-	context.Roles = roles.MatchedRoles(r, currentUser)
 
 	return &context
 }
 
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	var currentUser qor.CurrentUser
 	context := admin.NewContext(w, req)
+	if admin.auth != nil {
+		if currentUser = admin.auth.GetCurrentUser(context); currentUser == nil {
+			admin.auth.Login(context)
+			return
+		} else {
+			context.CurrentUser = currentUser
+		}
+	}
+	context.Roles = roles.MatchedRoles(req, currentUser)
 	relativePath := strings.TrimPrefix(req.URL.Path, admin.router.Prefix)
 
 	if regexp.MustCompile("^/assets/.*$").MatchString(relativePath) {
