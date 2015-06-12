@@ -90,7 +90,7 @@ func (ac *controller) Create(context *Context) {
 			res.CallSaver(result, context.Context)
 			responder.With("html", func() {
 				primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
-				http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
+				http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path, primaryKey), http.StatusFound)
 			}).With("json", func() {
 				res := context.Resource
 				js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.ShowMetas()))
