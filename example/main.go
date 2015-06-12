@@ -35,8 +35,8 @@ func main() {
 	user.Meta(&admin.Meta{Name: "Role", Type: "select_one"})
 
 	user.Meta(&admin.Meta{Name: "Languages", Type: "select_many"})
-
-	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: Admin.NewResource(&admin.AssetManager{})})
+	Asset := Admin.AddResource(&admin.AssetManager{})
+	user.Meta(&admin.Meta{Name: "description", Type: "rich_editor", Resource: Asset})
 
 	Admin.AddResource(&Language{}, &admin.Config{Name: "Locales", Menu: []string{"Products Management"}})
 

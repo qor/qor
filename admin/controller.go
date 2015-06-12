@@ -34,7 +34,7 @@ func renderError(context *Context, err error) {
 }
 
 func (context *Context) CheckResourcePermission(permission roles.PermissionMode) bool {
-	if context.Resource.HasPermission(permission, context.Context) {
+	if context.Resource == nil || context.Resource.HasPermission(permission, context.Context) {
 		return true
 	}
 	context.Writer.Write([]byte("Permission denied"))
