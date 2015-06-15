@@ -24,6 +24,10 @@
 
   QorDatepicker.prototype = {
     init: function () {
+      if (!$.fn.datepicker) {
+        return;
+      }
+
       this.$element.on('click', $.proxy(this.show, this));
 
       if (this.options.show) {
@@ -114,33 +118,53 @@
     '</div>'
   );
 
-  if (!$.fn.datepicker) {
-    return;
-  }
+  QorDatepicker.plugin = function (options) {
+    var args = [].slice.call(arguments, 1),
+        result;
 
-  $(document).on('click.qor.datepicker', '[data-toggle="qor.datepicker"]', function () {
-    var $this = $(this),
-        data = $this.data('qor.datepicker');
+    this.each(function () {
+      var $this = $(this),
+          data = $this.data('qor.datepicker'),
+          fn;
 
-    if (!data) {
-      $this.data('qor.datepicker', (data = new QorDatepicker(this, {
-        show: false
-      })));
+      if (!data) {
+        $this.data('qor.datepicker', (data = new QorDatepicker(this, options)));
+      } else {
+        options = 'show';
+      }
+
+      if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
+        result = fn.apply(data, args);
+      }
+    });
+
+    return typeof result === 'undefined' ? this : result;
+  };
+
+  $(function () {
+    if (!$.fn.datepicker) {
+      return;
     }
 
-    data.show();
+    $(document).on('click.qor.datepicker.initiator', '[data-toggle="qor.datepicker"]', function () {
+      var $this = $(this);
+
+      QorDatepicker.plugin.call($this, $this.data());
+    });
+
+    $(document).on('click.datepicker.initiator', '[data-toggle="datepicker"]', function () {
+      var $this = $(this);
+
+      if (!$this.data('datepicker')) {
+        $this.datepicker({
+          autoClose: true
+        });
+      }
+
+      $this.datepicker('show');
+    });
   });
 
-  $(document).on('click.datepicker', '[data-toggle="datepicker"]', function () {
-    var $this = $(this);
-
-    if (!$this.data('datepicker')) {
-      $this.datepicker({
-        autoClose: true
-      });
-    }
-
-    $this.datepicker('show');
-  });
+  return QorDatepicker;
 
 });

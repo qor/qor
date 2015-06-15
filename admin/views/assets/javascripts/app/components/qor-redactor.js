@@ -192,21 +192,20 @@
     '</div>'
   );
 
-  $(function () {
-    if (!$.fn.redactor) {
-      return;
-    }
-
-    $('textarea[data-toggle="qor.redactor"]').each(function () {
+  QorRedactor.plugin = function (/* options */) {
+    return this.each(function () {
       var $this = $(this),
-          data = $this.data();
+          data;
 
-      $this.redactor({
-        imageUpload: data.uploadUrl,
-        fileUpload: data.uploadUrl,
+      if (!$this.data('qor.redactor')) {
+        $this.data('qor.redactor', true);
+        data = $this.data();
 
-        initCallback: function () {
-          if (!$this.data('qor.redactor')) {
+        $this.redactor({
+          imageUpload: data.uploadUrl,
+          fileUpload: data.uploadUrl,
+
+          initCallback: function () {
             $this.data('qor.redactor', new QorRedactor($this, {
               remote: data.cropUrl,
               toggle: '.redactor-image-cropper',
@@ -220,26 +219,44 @@
                 this.code.sync();
               }, this)
             }));
+          },
+
+          focusCallback: function (/*e*/) {
+            $this.triggerHandler(EVENT_FOCUS);
+          },
+
+          blurCallback: function (/*e*/) {
+            $this.triggerHandler(EVENT_BLUR);
+          },
+
+          imageUploadCallback: function (/*image, json*/) {
+            $this.triggerHandler(EVENT_IMAGE_UPLOAD, arguments[0]);
+          },
+
+          imageDeleteCallback: function (/*url, image*/) {
+            $this.triggerHandler(EVENT_IMAGE_DELETE, arguments[1]);
           }
-        },
-
-        focusCallback: function (/*e*/) {
-          $this.triggerHandler(EVENT_FOCUS);
-        },
-
-        blurCallback: function (/*e*/) {
-          $this.triggerHandler(EVENT_BLUR);
-        },
-
-        imageUploadCallback: function (/*image, json*/) {
-          $this.triggerHandler(EVENT_IMAGE_UPLOAD, arguments[0]);
-        },
-
-        imageDeleteCallback: function (/*url, image*/) {
-          $this.triggerHandler(EVENT_IMAGE_DELETE, arguments[1]);
-        }
-      });
+        });
+      }
     });
+  };
+
+  $(function () {
+    if (!$.fn.redactor) {
+      return;
+    }
+
+    $(document)
+      .on('renew.qor.initiator', function (e) {
+        var $element = $('textarea[data-toggle="qor.redactor"]', e.target);
+
+        if ($element.length) {
+          QorRedactor.plugin.call($element);
+        }
+      })
+      .triggerHandler('renew.qor.initiator');
   });
+
+  return QorRedactor;
 
 });

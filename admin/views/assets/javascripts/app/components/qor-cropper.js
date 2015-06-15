@@ -218,14 +218,30 @@
     '</div>'
   );
 
+  QorCropper.plugin = function (options) {
+    var args = [].slice.call(arguments, 1),
+        result;
+
+    this.each(function () {
+      var $this = $(this),
+          data = $this.data('qor.cropper'),
+          fn;
+
+      if (!data) {
+        $this.data('qor.cropper', (data = new QorCropper(this, options)));
+      }
+
+      if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
+        result = fn.apply(data, args);
+      }
+    });
+
+    return typeof result === 'undefined' ? this : result;
+  };
+
   $(function () {
-    var initialize;
-
-    $('.qor-fileinput').each((initialize = function () {
-      var $this = $(this);
-
-      if ($.fn.cropper && !$this.data('qor.cropper')) {
-        $this.data('qor.cropper', new QorCropper(this, {
+    var selector = '.qor-fileinput',
+        options = {
           target: 'img',
           output: 'textarea',
           parent: '.form-group',
@@ -238,11 +254,20 @@
               return '.original' + extension;
             });
           }
-        }));
-      }
-    }));
+        };
 
-    $(document).on('click', '.qor-fileinput', initialize);
+    $(document)
+      .on('click.qor.cropper.initiator', selector, function () {
+        QorCropper.plugin.call($(this), options);
+      })
+      .on('renew.qor.initiator', function (e) {
+        var $element = $(selector, e.target);
+
+        if ($element.length) {
+          QorCropper.plugin.call($element, options);
+        }
+      })
+      .triggerHandler('renew.qor.initiator');
   });
 
   return QorCropper;
