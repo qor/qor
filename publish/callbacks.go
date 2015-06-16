@@ -57,6 +57,9 @@ func SyncToProductionAfterCreate(scope *gorm.Scope) {
 func SyncToProductionAfterUpdate(scope *gorm.Scope) {
 	if ok, clone := GetModeAndNewScope(scope); ok {
 		if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
+			table := OriginalTableName(scope.TableName())
+			clone.Search = scope.Search
+			clone.Search.Table(table)
 			clone.InstanceSet("gorm:update_attrs", updateAttrs)
 		}
 		gorm.Update(clone)
