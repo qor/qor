@@ -32,6 +32,7 @@ type Product struct {
 	Name      string
 	Color     Color
 	ColorId   int
+	Quantity  uint
 	DeletedAt time.Time
 	publish.Status
 }
