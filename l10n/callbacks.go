@@ -66,7 +66,7 @@ func AfterUpdate(scope *gorm.Scope) {
 		if locale, ok := getLocale(scope); ok {
 			if scope.DB().RowsAffected == 0 { //is locale and nothing updated
 				var count int
-				var query = fmt.Sprintf("language_code = ? AND %v = ?", scope.PrimaryKey())
+				var query = fmt.Sprintf("%v.language_code = ? AND %v.%v = ?", scope.QuotedTableName(), scope.QuotedTableName(), scope.PrimaryKey())
 				if scope.NewDB().Table(scope.TableName()).Where(query, locale, scope.PrimaryKeyValue()).Count(&count); count == 0 {
 					scope.DB().Create(scope.Value)
 				}
@@ -87,7 +87,7 @@ func AfterUpdate(scope *gorm.Scope) {
 							}
 						}
 						if len(syncAttrs) > 0 {
-							scope.DB().Model(scope.Value).Set("l10n:mode", "unscoped").Where("language_code <> ?", Global).UpdateColumns(syncAttrs)
+							scope.DB().Model(scope.Value).Set("l10n:mode", "unscoped").Where(fmt.Sprintf("%v.language_code <> ?", scope.QuotedTableName()), Global).UpdateColumns(syncAttrs)
 						}
 					} else {
 						scope.NewDB().Set("l10n:mode", "unscoped").Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), primaryKey).Select(syncColumns).Save(scope.Value)
@@ -101,7 +101,7 @@ func AfterUpdate(scope *gorm.Scope) {
 func BeforeDelete(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		if locale, ok := getLocale(scope); ok { // is locale
-			scope.Search.Where("language_code = ?", locale)
+			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", scope.QuotedTableName()), locale)
 		}
 	}
 }
