@@ -11,6 +11,7 @@ import (
 type Product struct {
 	ID              int    `gorm:"primary_key"`
 	Code            string `l10n:"sync"`
+	Quantity        uint   `l10n:"sync"`
 	Name            string
 	DeletedAt       *time.Time
 	ColorVariations []ColorVariation
