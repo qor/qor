@@ -8,7 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func TestDB() gorm.DB {
+func TestDB() *gorm.DB {
 	dbuser, dbpwd, dbname := "qor", "qor", "qor_test"
 
 	if os.Getenv("TEST_ENV") == "CI" {
@@ -20,5 +20,5 @@ func TestDB() gorm.DB {
 		panic(err)
 	}
 
-	return db
+	return &db
 }

@@ -56,7 +56,7 @@ func TestUpdateStructFromProduction(t *testing.T) {
 		t.Errorf("should be able to find related struct")
 	}
 
-	pbprod.Model(&Product{}).Where("id = ?", product.Id).UpdateColumns(map[string]interface{}{"quantity": 5})
+	db.Model(&Product{}).Where("id = ?", product.Id).UpdateColumns(map[string]interface{}{"quantity": 5})
 	var newProduct, newDraftProduct Product
 	pbprod.Find(&newProduct, product.Id)
 	pbprod.Find(&newDraftProduct, product.Id)

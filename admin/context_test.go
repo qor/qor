@@ -48,7 +48,7 @@ func TestUrlForResourceName(t *testing.T) {
 	db.Create(&user)
 
 	context := &admin.Context{Admin: Admin, Context: &qor.Context{}}
-	context.SetDB(&db)
+	context.SetDB(db)
 
 	userLink := context.UrlFor(user)
 

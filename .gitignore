@@ -11,6 +11,8 @@ worker_data
 /example/public
 /example/harp.json
 
+/admin/public/
+
 # Front end
 bower_components
 node_modules
