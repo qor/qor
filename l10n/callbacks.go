@@ -51,7 +51,7 @@ func BeforeUpdate(scope *gorm.Scope) {
 		case "unscoped":
 		default:
 			scope.Search.Unscoped = true
-			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", scope.QuotedTableName()), locale)
+			scope.Search.Where("language_code = ?", locale)
 			setLocale(scope, locale)
 		}
 
