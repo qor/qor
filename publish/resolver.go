@@ -133,16 +133,18 @@ func (resolver *Resolver) Publish() {
 			draftColumns = append(draftColumns, fmt.Sprintf("%v.%v", draftTable, column))
 		}
 
-		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (?)", productionTable, productionTable, primaryKey)
-		resolver.DB.DB.Exec(deleteSql, dependency.PrimaryKeys)
+		if len(dependency.PrimaryKeys) > 0 {
+			deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (?)", productionTable, productionTable, primaryKey)
+			resolver.DB.DB.Exec(deleteSql, dependency.PrimaryKeys)
 
-		publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (?)",
-			productionTable, strings.Join(productionColumns, " ,"), strings.Join(draftColumns, " ,"),
-			draftTable, draftTable, primaryKey)
-		resolver.DB.DB.Exec(publishSql, dependency.PrimaryKeys)
+			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (?)",
+				productionTable, strings.Join(productionColumns, " ,"), strings.Join(draftColumns, " ,"),
+				draftTable, draftTable, primaryKey)
+			resolver.DB.DB.Exec(publishSql, dependency.PrimaryKeys)
 
-		updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v.%v IN (?)", draftTable, draftTable, primaryKey)
-		resolver.DB.DB.Exec(updateStateSql, bool(PUBLISHED), dependency.PrimaryKeys)
+			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v.%v IN (?)", draftTable, draftTable, primaryKey)
+			resolver.DB.DB.Exec(updateStateSql, bool(PUBLISHED), dependency.PrimaryKeys)
+		}
 	}
 }
 
