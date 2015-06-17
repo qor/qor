@@ -52,7 +52,7 @@ func (ac *controller) Index(context *Context) {
 				context.Execute("index", result)
 			}).With("json", func() {
 				res := context.Resource
-				js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.IndexMetas()))
+				js, _ := json.Marshal(res.ConvertObjectToMap(context, result, "index"))
 				context.Writer.Write(js)
 			}).Respond(context.Writer, context.Request)
 		} else {
@@ -69,7 +69,7 @@ func (ac *controller) Show(context *Context) {
 			context.Execute("show", result)
 		}).With("json", func() {
 			res := context.Resource
-			js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.ShowMetas()))
+			js, _ := json.Marshal(res.ConvertObjectToMap(context, result, "show"))
 			context.Writer.Write(js)
 		}).Respond(context.Writer, context.Request)
 	}
@@ -93,7 +93,7 @@ func (ac *controller) Create(context *Context) {
 				http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path, primaryKey), http.StatusFound)
 			}).With("json", func() {
 				res := context.Resource
-				js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.ShowMetas()))
+				js, _ := json.Marshal(res.ConvertObjectToMap(context, result, "show"))
 				context.Writer.Write(js)
 			}).Respond(context.Writer, context.Request)
 		}
@@ -112,7 +112,7 @@ func (ac *controller) Update(context *Context) {
 					http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 				}).With("json", func() {
 					res := context.Resource
-					js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.ShowMetas()))
+					js, _ := json.Marshal(res.ConvertObjectToMap(context, result, "show"))
 					context.Writer.Write(js)
 				}).Respond(context.Writer, context.Request)
 			}

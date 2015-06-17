@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -50,12 +51,37 @@ func (res Resource) UseTheme(theme string) []string {
 	return []string{}
 }
 
-func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}, metas []*Meta) interface{} {
-	var metaors []resource.Metaor
-	for _, meta := range metas {
-		metaors = append(metaors, meta)
+func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}, kind string) interface{} {
+	reflectValue := reflect.Indirect(reflect.ValueOf(value))
+	switch reflectValue.Kind() {
+	case reflect.Slice:
+		values := []interface{}{}
+		for i := 0; i < reflectValue.Len(); i++ {
+			values = append(values, res.ConvertObjectToMap(context, reflectValue.Index(i).Interface(), kind))
+		}
+		return values
+	case reflect.Struct:
+		var metas []*Meta
+		if kind == "index" {
+			metas = res.IndexMetas()
+		} else if kind == "show" {
+			metas = res.ShowMetas()
+		}
+
+		values := map[string]interface{}{}
+		for _, meta := range metas {
+			if meta.HasPermission(roles.Read, context.GetContext()) {
+				value := meta.GetValuer()(value, context.GetContext())
+				if meta.Resource != nil {
+					value = meta.Resource.(*Resource).ConvertObjectToMap(context, value, kind)
+				}
+				values[meta.GetName()] = value
+			}
+		}
+		return values
+	default:
+		panic(fmt.Sprintf("Can't convert %v (%v) to map", reflectValue, reflectValue.Kind()))
 	}
-	return resource.ConvertObjectToMap(context, value, metaors)
 }
 
 func (res *Resource) Decode(contextor qor.Contextor, value interface{}) (errs []error) {
