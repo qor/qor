@@ -36,7 +36,24 @@ func (context *Context) IsNewRecord(value interface{}) bool {
 }
 
 func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
-	return meta.Valuer(value, context.Context)
+	result := meta.Valuer(value, context.Context)
+
+	if reflectValue := reflect.ValueOf(result); reflectValue.IsValid() {
+		if reflectValue.Kind() == reflect.Ptr {
+			if reflectValue.IsNil() || !reflectValue.Elem().IsValid() {
+				return nil
+			}
+
+			result = reflectValue.Elem().Interface()
+		}
+
+		if context.IsNewRecord(value) && reflect.DeepEqual(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
+			return nil
+		}
+		return result
+	}
+
+	return nil
 }
 
 func (context *Context) NewResourcePath(value interface{}) string {
@@ -107,12 +124,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 		data["InputId"] = strings.Join(prefix, "")
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
-
-		value := meta.Valuer(value, context.Context)
-		if reflectValue := reflect.ValueOf(value); reflectValue.Kind() == reflect.Ptr && !reflectValue.IsNil() {
-			value = reflectValue.Elem().Interface()
-		}
-		data["Value"] = value
+		data["Value"] = context.ValueOf(value, meta)
 
 		if meta.GetCollection != nil {
 			data["CollectionValue"] = meta.GetCollection(value, context.Context)
