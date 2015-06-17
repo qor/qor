@@ -316,7 +316,7 @@ func (context *Context) themesClass() (result string) {
 	return strings.Join(results, " ")
 }
 
-func (context *Context) LoadThemeStyleSheets() string {
+func (context *Context) LoadThemeStyleSheets() template.HTML {
 	var results []string
 	if context.Resource != nil {
 		for _, theme := range context.Resource.Config.Themes {
@@ -328,7 +328,7 @@ func (context *Context) LoadThemeStyleSheets() string {
 			}
 		}
 	}
-	return strings.Join(results, " ")
+	return template.HTML(strings.Join(results, " "))
 }
 
 func (context *Context) LoadThemeJavaScripts() template.HTML {
