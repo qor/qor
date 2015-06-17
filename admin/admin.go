@@ -2,7 +2,7 @@ package admin
 
 import (
 	"fmt"
-	"text/template"
+	"html/template"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"

@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"html/template"
 	"os"
 	"path"
 	"strings"
-	"text/template"
 
 	"github.com/qor/qor"
 )
@@ -19,7 +19,7 @@ type Context struct {
 	Admin       *Admin
 	CurrentUser qor.CurrentUser
 	Result      interface{}
-	Content     string
+	Content     template.HTML
 }
 
 // Resource
@@ -91,7 +91,7 @@ func (context *Context) findTemplate(tmpl *template.Template, layout string) (*t
 	return tmpl, errors.New("template not found")
 }
 
-func (context *Context) Render(name string, results ...interface{}) string {
+func (context *Context) Render(name string, results ...interface{}) template.HTML {
 	var err error
 	names := strings.Split(name, "/")
 	tmpl := template.New(names[len(names)-1] + ".tmpl").Funcs(context.funcMap())
@@ -104,7 +104,7 @@ func (context *Context) Render(name string, results ...interface{}) string {
 		if err := tmpl.Execute(result, context); err != nil {
 			fmt.Println(err)
 		}
-		return result.String()
+		return template.HTML(result.String())
 	}
 
 	return ""

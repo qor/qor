@@ -42,7 +42,7 @@ func (db *PublishController) Diff(context *admin.Context) {
 
 	results := map[string]interface{}{"Production": production, "Draft": draft, "Resource": res}
 
-	fmt.Fprintf(context.Writer, context.Render("publish/diff", results))
+	fmt.Fprintf(context.Writer, string(context.Render("publish/diff", results)))
 }
 
 func (db *PublishController) PublishOrDiscard(context *admin.Context) {

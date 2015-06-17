@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"html"
+	"html/template"
 	"os"
 	"path"
 	"reflect"
 	"strings"
-	"text/template"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -81,18 +81,18 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 	return url
 }
 
-func (context *Context) LinkTo(text interface{}, link interface{}) string {
+func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML {
 	text = reflect.Indirect(reflect.ValueOf(text)).Interface()
 	if linkStr, ok := link.(string); ok {
-		return fmt.Sprintf(`<a href="%v">%v</a>`, linkStr, text)
+		return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, linkStr, text))
 	}
-	return fmt.Sprintf(`<a href="%v">%v</a>`, context.UrlFor(link), text)
+	return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, context.UrlFor(link), text))
 }
 
-func (context *Context) RenderForm(value interface{}, metas []*Meta) string {
+func (context *Context) RenderForm(value interface{}, metas []*Meta) template.HTML {
 	var result = bytes.NewBufferString("")
 	context.renderForm(result, value, metas, []string{"QorResource"})
-	return result.String()
+	return template.HTML(result.String())
 }
 
 func (context *Context) renderForm(result *bytes.Buffer, value interface{}, metas []*Meta, prefix []string) {
@@ -105,7 +105,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := context.funcMap()
-	funcsMap["render_form"] = func(value interface{}, metas []*Meta, index ...int) string {
+	funcsMap["render_form"] = func(value interface{}, metas []*Meta, index ...int) template.HTML {
 		var result = bytes.NewBufferString("")
 		newPrefix := append([]string{}, prefix...)
 
@@ -115,7 +115,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 		}
 
 		context.renderForm(result, value, metas, newPrefix)
-		return result.String()
+		return template.HTML(result.String())
 	}
 
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
@@ -197,14 +197,14 @@ func (context *Context) NewMetas(resources ...*Resource) []*Meta {
 	return res.AllowedMetas(res.NewMetas(), context, roles.Create)
 }
 
-func (context *Context) JavaScriptTag(name string) string {
+func (context *Context) JavaScriptTag(name string) template.HTML {
 	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "javascripts", name+".js")
-	return fmt.Sprintf(`<script src="%s"></script>`, name)
+	return template.HTML(fmt.Sprintf(`<script src="%s"></script>`, name))
 }
 
-func (context *Context) StyleSheetTag(name string) string {
+func (context *Context) StyleSheetTag(name string) template.HTML {
 	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "stylesheets", name+".css")
-	return fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name)
+	return template.HTML(fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
 }
 
 func (context *Context) GetScopes() (scopes []string) {
@@ -331,7 +331,7 @@ func (context *Context) LoadThemeStyleSheets() string {
 	return strings.Join(results, " ")
 }
 
-func (context *Context) LoadThemeJavaScripts() string {
+func (context *Context) LoadThemeJavaScripts() template.HTML {
 	var results []string
 	if context.Resource != nil {
 		for _, theme := range context.Resource.Config.Themes {
@@ -343,7 +343,7 @@ func (context *Context) LoadThemeJavaScripts() string {
 			}
 		}
 	}
-	return strings.Join(results, " ")
+	return template.HTML(strings.Join(results, " "))
 }
 
 func (context *Context) funcMap() template.FuncMap {
