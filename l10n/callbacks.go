@@ -87,7 +87,7 @@ func AfterUpdate(scope *gorm.Scope) {
 							}
 						}
 						if len(syncAttrs) > 0 {
-							scope.DB().Model(scope.Value).Set("l10n:mode", "unscoped").Where(fmt.Sprintf("%v.language_code <> ?", scope.QuotedTableName()), Global).UpdateColumns(syncAttrs)
+							scope.DB().Model(scope.Value).Set("l10n:mode", "unscoped").Where("language_code <> ?", Global).UpdateColumns(syncAttrs)
 						}
 					} else {
 						scope.NewDB().Set("l10n:mode", "unscoped").Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), primaryKey).Select(syncColumns).Save(scope.Value)
