@@ -150,18 +150,8 @@ func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context 
 }
 
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	var currentUser qor.CurrentUser
-	context := admin.NewContext(w, req)
-	if admin.auth != nil {
-		if currentUser = admin.auth.GetCurrentUser(context); currentUser == nil {
-			admin.auth.Login(context)
-			return
-		} else {
-			context.CurrentUser = currentUser
-		}
-	}
-	context.Roles = roles.MatchedRoles(req, currentUser)
-	relativePath := strings.TrimPrefix(req.URL.Path, admin.router.Prefix)
+	var relativePath = strings.TrimPrefix(req.URL.Path, admin.router.Prefix)
+	var context = admin.NewContext(w, req)
 
 	if regexp.MustCompile("^/assets/.*$").MatchString(relativePath) {
 		(&controller{admin}).Asset(context)
@@ -176,6 +166,17 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			log.Printf("Finish [%s] %s Took %.2fms\n", req.Method, req.RequestURI, time.Now().Sub(begin).Seconds()*1000)
 		}
 	}()()
+
+	var currentUser qor.CurrentUser
+	if admin.auth != nil {
+		if currentUser = admin.auth.GetCurrentUser(context); currentUser == nil {
+			admin.auth.Login(context)
+			return
+		} else {
+			context.CurrentUser = currentUser
+		}
+	}
+	context.Roles = roles.MatchedRoles(req, currentUser)
 
 	firstStack := admin.router.middlewares[0]
 	firstStack.Handler(context, firstStack)
