@@ -109,7 +109,7 @@ func (ac *controller) Update(context *Context) {
 					return
 				}
 				responder.With("html", func() {
-					http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
+					context.Execute("show", result)
 				}).With("json", func() {
 					res := context.Resource
 					js, _ := json.Marshal(res.ConvertObjectToMap(context, result, "show"))
