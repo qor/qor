@@ -257,13 +257,12 @@ func (meta *Meta) updateMeta() {
 			}
 
 			if field.IsValid() && field.CanAddr() {
-				var relationship string
+				// Save relationships
 				if scopeField != nil && scopeField.Relationship != nil {
-					relationship = scopeField.Relationship.Kind
-				}
-				if relationship == "many_to_many" {
 					context.GetDB().Where(utils.ToArray(value)).Find(field.Addr().Interface())
-					if !scope.PrimaryKeyZero() {
+
+					// Handle many 2 many relations
+					if scopeField.Relationship.Kind == "many_to_many" && !scope.PrimaryKeyZero() {
 						context.GetDB().Model(resource).Association(meta.Alias).Replace(field.Interface())
 					}
 				} else {
