@@ -5,6 +5,7 @@ gin-bin
 tmp
 worker_data
 *.exe
+/test/integration/integration
 
 # Example
 /example/example

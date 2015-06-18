@@ -135,10 +135,10 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 		data["Meta"] = meta
 
 		if err := tmpl.Execute(writer, data); err != nil {
-			fmt.Println(err)
+			panic(err)
 		}
 	} else {
-		fmt.Printf("%v: form type %v not supported\n", meta.Name, meta.Type)
+		panic(fmt.Sprintf("%v: form type %v not supported", meta.Name, meta.Type))
 	}
 }
 
@@ -151,14 +151,18 @@ func (context *Context) IsIncluded(value interface{}, primaryKey interface{}) bo
 				scope := &gorm.Scope{Value: reflectValue.Index(i).Interface()}
 				primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
 			} else {
-				primaryKeys = append(primaryKeys, reflect.Indirect(reflectValue.Index(i)).Interface())
+				if reflectValue.Index(i).IsValid() {
+					primaryKeys = append(primaryKeys, reflect.Indirect(reflectValue.Index(i)).Interface())
+				}
 			}
 		}
 	} else if reflectValue.Kind() == reflect.Struct {
 		scope := &gorm.Scope{Value: value}
 		primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
 	} else {
-		primaryKeys = append(primaryKeys, reflect.Indirect(reflectValue).Interface())
+		if reflectValue.IsValid() {
+			primaryKeys = append(primaryKeys, reflect.Indirect(reflectValue).Interface())
+		}
 	}
 
 	for _, key := range primaryKeys {
