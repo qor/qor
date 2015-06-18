@@ -142,20 +142,23 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 	}
 }
 
-func (context *Context) HasPrimaryKey(value interface{}, primaryKey interface{}) bool {
+func (context *Context) IsIncluded(value interface{}, primaryKey interface{}) bool {
 	primaryKeys := []interface{}{}
-	reflectValue := reflect.ValueOf(value)
-	if reflectValue.Kind() == reflect.Ptr {
-		reflectValue = reflectValue.Elem()
-	}
+	reflectValue := reflect.Indirect(reflect.ValueOf(value))
 	if reflectValue.Kind() == reflect.Slice {
 		for i := 0; i < reflectValue.Len(); i++ {
-			scope := &gorm.Scope{Value: reflectValue.Index(i).Interface()}
-			primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
+			if reflectValue.Index(i).Kind() == reflect.Struct {
+				scope := &gorm.Scope{Value: reflectValue.Index(i).Interface()}
+				primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
+			} else {
+				primaryKeys = append(primaryKeys, reflect.Indirect(reflectValue.Index(i)).Interface())
+			}
 		}
 	} else if reflectValue.Kind() == reflect.Struct {
 		scope := &gorm.Scope{Value: value}
 		primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
+	} else {
+		primaryKeys = append(primaryKeys, reflect.Indirect(reflectValue).Interface())
 	}
 
 	for _, key := range primaryKeys {
@@ -356,7 +359,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"get_resource":         context.GetResource,
 		"new_resource_context": context.NewResourceContext,
 		"is_new_record":        context.IsNewRecord,
-		"has_primary_key":      context.HasPrimaryKey,
+		"is_included":          context.IsIncluded,
 		"primary_key_of":       context.PrimaryKeyOf,
 		"value_of":             context.ValueOf,
 

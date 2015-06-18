@@ -3,7 +3,7 @@
   <select class="form-control" id="{{.InputId}}" data-toggle="qor.selector" name="{{.InputName}}" multiple {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
     {{$current_values := .Value}}
     {{range $values := .CollectionValue}}
-      {{if (has_primary_key $current_values (index $values 0))}}
+      {{if (is_included $current_values (index $values 0))}}
         <option value="{{index $values 0}}" selected>{{index $values 1}}</option>
       {{else}}
         <option value="{{index $values 0}}">{{index $values 1}}</option>
