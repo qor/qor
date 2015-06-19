@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/utils"
 
 	"reflect"
 )
@@ -56,6 +57,8 @@ func IsPublishableModel(model interface{}) (ok bool) {
 	return
 }
 
+var injectedJoinTableHandler = map[reflect.Type]bool{}
+
 func New(db *gorm.DB) *Publish {
 	tableHandler := gorm.DefaultTableNameHandler
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
@@ -63,6 +66,18 @@ func New(db *gorm.DB) *Publish {
 
 		if db != nil {
 			if IsPublishableModel(db.Value) {
+				typ := modelType(db.Value)
+				if !injectedJoinTableHandler[typ] {
+					injectedJoinTableHandler[typ] = true
+					scope := db.NewScope(db.Value)
+					for _, field := range scope.GetModelStruct().StructFields {
+						if many2many := utils.ParseTagOption(field.Tag.Get("gorm"))["MANY2MANY"]; many2many != "" {
+							db.SetJoinTableHandler(db.Value, field.Name, &PublishJoinTableHandler{})
+							db.AutoMigrate(db.Value)
+						}
+					}
+				}
+
 				var forceDraftMode = false
 				if forceMode, ok := db.Get("publish:force_draft_mode"); ok {
 					if forceMode, ok := forceMode.(bool); ok && forceMode {
