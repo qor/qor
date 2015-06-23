@@ -37,10 +37,10 @@ func TestForm(t *testing.T) {
 
 	// Select many
 	page.Find("#QorResourceLanguages_chosen .search-field input").Click()
-	page.Find("#QorResourceLanguages_chosen .chosen-drop ul.chosen-results li[data-option-array-index='0']").Click()
+	page.Find("#QorResourceLanguages_chosen .chosen-drop ul.chosen-results li[data-option-array-index]:nth-child(1)").Click()
 
 	page.Find("#QorResourceLanguages_chosen").Click()
-	Expect(page.Find("#QorResourceLanguages_chosen .chosen-drop ul.chosen-results li[data-option-array-index='1']").Click()).To(Succeed())
+	Expect(page.Find("#QorResourceLanguages_chosen .chosen-drop ul.chosen-results li[data-option-array-index]:nth-child(2)").Click()).To(Succeed())
 
 	// Nested resource
 	page.Find("#QorResourceProfileAddress").Fill(address)
