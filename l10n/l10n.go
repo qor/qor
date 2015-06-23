@@ -85,7 +85,9 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	}
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
-	res.Meta(&admin.Meta{Name: "LanguageCode", Type: "hidden"})
+	if res.GetMeta("LanguageCode") == nil {
+		res.Meta(&admin.Meta{Name: "LanguageCode", Type: "hidden"})
+	}
 
 	// Set meta permissions
 	for _, field := range Admin.Config.DB.NewScope(res.Value).Fields() {

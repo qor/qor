@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -99,6 +100,15 @@ func (admin *Admin) compile() {
 	router := admin.GetRouter()
 
 	for _, res := range admin.resources {
+		modelType := admin.Config.DB.NewScope(res.Value).GetModelStruct().ModelType
+		for i := 0; i < modelType.NumField(); i++ {
+			if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
+				if injector, ok := reflect.New(fieldStruct.Type).Interface().(Injector); ok {
+					injector.InjectQorAdmin(res)
+				}
+			}
+		}
+
 		if injector, ok := res.Value.(Injector); ok {
 			injector.InjectQorAdmin(res)
 		}

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/admin"
 	"github.com/qor/qor/utils"
 
 	"reflect"
@@ -29,6 +30,12 @@ func (s Status) GetPublishStatus() bool {
 
 func (s *Status) SetPublishStatus(status bool) {
 	s.PublishStatus = status
+}
+
+func (s Status) InjectQorAdmin(res *admin.Resource) {
+	if res.GetMeta("PublishStatus") == nil {
+		res.Meta(&admin.Meta{Name: "PublishStatus", Type: "hidden"})
+	}
 }
 
 type Publish struct {
