@@ -331,6 +331,7 @@ func (context *Context) LoadThemeStyleSheets() template.HTML {
 				file := path.Join("assets", "stylesheets", theme+".css")
 				if _, err := os.Stat(path.Join(view, file)); err == nil {
 					results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+					break
 				}
 			}
 		}
@@ -346,6 +347,7 @@ func (context *Context) LoadThemeJavaScripts() template.HTML {
 				file := path.Join("assets", "javascripts", theme+".js")
 				if _, err := os.Stat(path.Join(view, file)); err == nil {
 					results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+					break
 				}
 			}
 		}
