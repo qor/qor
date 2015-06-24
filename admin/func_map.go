@@ -355,6 +355,13 @@ func (context *Context) LoadThemeJavaScripts() template.HTML {
 	return template.HTML(strings.Join(results, " "))
 }
 
+func (context *Context) LogoutURL() string {
+	if context.Admin.auth != nil {
+		return context.Admin.auth.LogoutURL(context)
+	}
+	return ""
+}
+
 func (context *Context) funcMap() template.FuncMap {
 	locale := utils.GetLocale(context.GetContext())
 
@@ -397,6 +404,8 @@ func (context *Context) funcMap() template.FuncMap {
 		"has_read_permission":   context.HasReadPermission,
 		"has_update_permission": context.HasUpdatePermission,
 		"has_delete_permission": context.HasDeletePermission,
+
+		"logout_url": context.LogoutURL,
 
 		"t": func(key string, values ...interface{}) string {
 			if context.Admin.I18n == nil {

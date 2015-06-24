@@ -180,7 +180,7 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var currentUser qor.CurrentUser
 	if admin.auth != nil {
 		if currentUser = admin.auth.GetCurrentUser(context); currentUser == nil {
-			admin.auth.Login(context)
+			http.Redirect(w, req, admin.auth.LoginURL(context), http.StatusSeeOther)
 			return
 		} else {
 			context.CurrentUser = currentUser
