@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/jinzhu/gorm"
 )
 
 type Resolver struct {
@@ -33,6 +31,7 @@ func (resolver *Resolver) AddDependency(dependency *Dependency) {
 	name := dependency.Type.String()
 	var newPrimaryKeys []string
 
+	// append primary keys to dependency
 	if dep, ok := resolver.Dependencies[name]; ok {
 		for _, primaryKey := range dependency.PrimaryKeys {
 			if !IncludeValue(primaryKey, dep.PrimaryKeys) {
@@ -79,6 +78,7 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 
 					rows, err = draftDB.Table(draftTable).Select(toTable+"."+toPrimaryKey).Where(sql, primaryKeys, DIRTY).Rows()
 				} else if relationship.Kind == "many_to_many" {
+					relationship.JoinTableHandler.Table(draftDB)
 				}
 
 				if rows != nil && err == nil {
@@ -99,15 +99,16 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 func (resolver *Resolver) GenerateDependencies() {
 	for _, record := range resolver.Records {
 		if IsPublishableModel(record) {
-			scope := &gorm.Scope{Value: record}
+			scope := resolver.DB.DB.NewScope(record)
 			dependency := Dependency{Type: modelType(record), PrimaryKeys: []string{fmt.Sprintf("%v", scope.PrimaryKeyValue())}}
 			resolver.AddDependency(&dependency)
 		}
 	}
 }
 
-func (resolver *Resolver) Publish() {
+func (resolver *Resolver) Publish() error {
 	resolver.GenerateDependencies()
+	tx := resolver.DB.DB.Begin()
 
 	for _, dependency := range resolver.Dependencies {
 		value := reflect.New(dependency.Type).Elem()
@@ -135,21 +136,29 @@ func (resolver *Resolver) Publish() {
 
 		if len(dependency.PrimaryKeys) > 0 {
 			deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (?)", productionTable, productionTable, primaryKey)
-			resolver.DB.DB.Exec(deleteSql, dependency.PrimaryKeys)
+			tx.Exec(deleteSql, dependency.PrimaryKeys)
 
 			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (?)",
 				productionTable, strings.Join(productionColumns, " ,"), strings.Join(draftColumns, " ,"),
 				draftTable, draftTable, primaryKey)
-			resolver.DB.DB.Exec(publishSql, dependency.PrimaryKeys)
+			tx.Exec(publishSql, dependency.PrimaryKeys)
 
 			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v.%v IN (?)", draftTable, draftTable, primaryKey)
-			resolver.DB.DB.Exec(updateStateSql, bool(PUBLISHED), dependency.PrimaryKeys)
+			tx.Exec(updateStateSql, bool(PUBLISHED), dependency.PrimaryKeys)
 		}
+	}
+
+	if err := tx.Error; err == nil {
+		return tx.Commit().Error
+	} else {
+		tx.Rollback()
+		return err
 	}
 }
 
-func (resolver *Resolver) Discard() {
+func (resolver *Resolver) Discard() error {
 	resolver.GenerateDependencies()
+	tx := resolver.DB.DB.Begin()
 
 	for _, dependency := range resolver.Dependencies {
 		value := reflect.New(dependency.Type).Elem()
@@ -176,11 +185,18 @@ func (resolver *Resolver) Discard() {
 		}
 
 		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (?)", draftTable, draftTable, primaryKey)
-		resolver.DB.DB.Exec(deleteSql, dependency.PrimaryKeys)
+		tx.Exec(deleteSql, dependency.PrimaryKeys)
 
 		discardSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (?)",
 			draftTable, strings.Join(draftColumns, " ,"), strings.Join(productionColumns, " ,"),
 			productionTable, productionTable, primaryKey)
-		resolver.DB.DB.Exec(discardSql, dependency.PrimaryKeys)
+		tx.Exec(discardSql, dependency.PrimaryKeys)
+	}
+
+	if err := tx.Error; err == nil {
+		return tx.Commit().Error
+	} else {
+		tx.Rollback()
+		return err
 	}
 }
