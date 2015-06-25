@@ -30,6 +30,10 @@ type Resource struct {
 }
 
 func (res *Resource) Meta(meta *Meta) {
+	if res.GetMeta(meta.Name) != nil {
+		qor.ExitWithMsg("Duplicated meta %v defined for resource %v", meta.Name, res.Name)
+	}
+
 	meta.base = res
 	meta.updateMeta()
 	res.Metas = append(res.Metas, meta)
