@@ -261,8 +261,11 @@ const (
 // When current page is 10
 // [prev, 5, 6, 7, 8, 9, current, 11, 12]
 // If total page count less than VISIBLE_PAGE_COUNT, always show all pages
-func (context *Context) Pagination() []Page {
+func (context *Context) Pagination() *[]Page {
 	pagination := context.Searcher.Pagination
+	if context.Searcher.Pagination.Total == 1 {
+		return nil
+	}
 
 	start := pagination.CurrentPage - VISIBLE_PAGE_COUNT/2
 	if start < 1 {
@@ -296,7 +299,7 @@ func (context *Context) Pagination() []Page {
 		pages = append(pages, Page{Page: end + 1, IsNext: true})
 	}
 
-	return pages
+	return &pages
 }
 
 func Equal(a, b interface{}) bool {
