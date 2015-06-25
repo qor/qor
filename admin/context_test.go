@@ -64,8 +64,7 @@ func TestPagination(t *testing.T) {
 	// Test no pagination if only has one page
 	context.Searcher.Pagination.Pages = 1
 	context.Searcher.Pagination.CurrentPage = 1
-	pages := *context.Pagination()
-	if pages != nil {
+	if context.Pagination() != nil {
 		t.Error("Don't display pagination if only has one page")
 	}
 
@@ -73,7 +72,7 @@ func TestPagination(t *testing.T) {
 	context.Searcher.Pagination.Pages = 10
 	context.Searcher.Pagination.CurrentPage = 1
 
-	pages = *context.Pagination()
+	pages := *context.Pagination()
 
 	if !pages[0].Current {
 		t.Error("first page not set as current page")

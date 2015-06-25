@@ -1,3 +1,4 @@
+{{if pagination}}
 <nav class="pagination-wrapper">
   <ul class="pagination clearfix">
     {{range $index, $page := pagination}}
@@ -22,3 +23,4 @@
     <li class="show_all"><a href="{{patch_current_url "page" "-1" }}">{{t "show all"}}</a></li>
   </ul>
 </nav>
+{{end}}
