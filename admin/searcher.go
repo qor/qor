@@ -1,10 +1,11 @@
 package admin
 
 import (
-	"github.com/jinzhu/gorm"
-	"github.com/qor/qor"
 	"regexp"
 	"strconv"
+
+	"github.com/jinzhu/gorm"
+	"github.com/qor/qor"
 )
 
 type scopeFunc func(db *gorm.DB, context *qor.Context) *gorm.DB
@@ -151,7 +152,10 @@ func (s *Searcher) parseContext() *qor.Context {
 
 	s.Pagination.Pages = (s.Pagination.Total-1)/s.Pagination.PrePage + 1
 
-	db = db.Limit(s.Pagination.PrePage).Offset((s.Pagination.CurrentPage - 1) * s.Pagination.PrePage)
+	if s.Pagination.CurrentPage > 0 {
+		db = db.Limit(s.Pagination.PrePage).Offset((s.Pagination.CurrentPage - 1) * s.Pagination.PrePage)
+	}
+
 	context.SetDB(db)
 
 	return context
