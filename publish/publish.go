@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/admin"
+	"github.com/qor/qor/utils"
 
 	"reflect"
 )
@@ -28,6 +30,12 @@ func (s Status) GetPublishStatus() bool {
 
 func (s *Status) SetPublishStatus(status bool) {
 	s.PublishStatus = status
+}
+
+func (s Status) InjectQorAdmin(res *admin.Resource) {
+	if res.GetMeta("PublishStatus") == nil {
+		res.Meta(&admin.Meta{Name: "PublishStatus", Type: "hidden"})
+	}
 }
 
 type Publish struct {
@@ -56,6 +64,8 @@ func IsPublishableModel(model interface{}) (ok bool) {
 	return
 }
 
+var injectedJoinTableHandler = map[reflect.Type]bool{}
+
 func New(db *gorm.DB) *Publish {
 	tableHandler := gorm.DefaultTableNameHandler
 	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
@@ -72,6 +82,18 @@ func New(db *gorm.DB) *Publish {
 
 				if draftMode, ok := db.Get("publish:draft_mode"); ok {
 					if isDraft, ok := draftMode.(bool); ok && isDraft || forceDraftMode {
+						typ := modelType(db.Value)
+						if !injectedJoinTableHandler[typ] {
+							injectedJoinTableHandler[typ] = true
+							scope := db.NewScope(db.Value)
+							for _, field := range scope.GetModelStruct().StructFields {
+								if many2many := utils.ParseTagOption(field.Tag.Get("gorm"))["MANY2MANY"]; many2many != "" {
+									db.SetJoinTableHandler(db.Value, field.Name, &PublishJoinTableHandler{})
+									db.AutoMigrate(db.Value)
+								}
+							}
+						}
+
 						return DraftTableName(tableName)
 					}
 				}

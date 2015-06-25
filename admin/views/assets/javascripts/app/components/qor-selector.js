@@ -13,20 +13,30 @@
 
   'use strict';
 
+  function QorSelector() {
+    var $this = $(this);
+
+    if (!$this.prop('multiple') && !$this.find('option[selected]').length) {
+      $this.prepend('<option value="" selected></option>');
+    }
+
+    $this.chosen();
+  }
+
   $(function () {
     if (!$.fn.chosen) {
       return;
     }
 
-    $('select[data-toggle="qor.selector"]').each(function () {
-      var $this = $(this);
+    $(document)
+      .on('renew.qor.initiator', function (e) {
+        var $element = $('select[data-toggle="qor.selector"]', e.target);
 
-      if (!$this.prop('multiple') && !$this.find('option[selected]').length) {
-        $this.prepend('<option value="" selected></option>');
-      }
-
-      $this.chosen();
-    });
+        if ($element.length) {
+          QorSelector.call($element);
+        }
+      })
+      .triggerHandler('renew.qor.initiator');
   });
 
 });

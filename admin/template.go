@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"text/template"
+	"html/template"
 )
 
 var layouts = map[string]*template.Template{}

@@ -13,10 +13,11 @@ import (
 var pb *publish.Publish
 var pbdraft *gorm.DB
 var pbprod *gorm.DB
+var db *gorm.DB
 
 func init() {
-	db := utils.TestDB()
-	pb = publish.New(&db)
+	db = utils.TestDB()
+	pb = publish.New(db)
 	pbdraft = pb.DraftDB()
 	pbprod = pb.ProductionDB()
 
@@ -32,6 +33,7 @@ type Product struct {
 	Name      string
 	Color     Color
 	ColorId   int
+	Quantity  uint
 	DeletedAt time.Time
 	publish.Status
 }

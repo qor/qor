@@ -1,0 +1,20 @@
+---
+engines:
+  eslint:
+    enabled: true
+  csslint:
+    enabled: true
+  gofmt:
+    enabled: true
+  govet:
+    enabled: true
+  golint:
+    enabled: true
+ratings:
+  paths:
+  - "**.js"
+  - "**.jsx"
+  - "**.css"
+  - "**.go"
+exclude_paths:
+- test/**/*

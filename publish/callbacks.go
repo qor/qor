@@ -15,7 +15,7 @@ func isDraftMode(scope *gorm.Scope) bool {
 	return false
 }
 
-func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
+func SetTableAndPublishStatus(ensureDraftMode bool) func(*gorm.Scope) {
 	return func(scope *gorm.Scope) {
 		if scope.Value == nil {
 			return
@@ -24,12 +24,12 @@ func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
 		if IsPublishableModel(scope.Value) {
 			scope.InstanceSet("publish:supported_model", true)
 
-			if update {
+			if ensureDraftMode {
 				scope.Set("publish:force_draft_mode", true)
 				scope.Search.Table(DraftTableName(scope.TableName()))
 			}
 
-			if isDraftMode(scope) && update {
+			if isDraftMode(scope) && ensureDraftMode {
 				scope.SetColumn("PublishStatus", DIRTY)
 			}
 		}
@@ -37,7 +37,7 @@ func SetTableAndPublishStatus(update bool) func(*gorm.Scope) {
 }
 
 func GetModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
-	if draftMode, ok := scope.Get("publish:draft_mode"); ok && !draftMode.(bool) {
+	if draftMode, ok := scope.Get("publish:draft_mode"); !ok || !draftMode.(bool) {
 		if _, ok := scope.InstanceGet("publish:supported_model"); ok {
 			table := OriginalTableName(scope.TableName())
 			clone := scope.New(scope.Value)
@@ -56,6 +56,12 @@ func SyncToProductionAfterCreate(scope *gorm.Scope) {
 
 func SyncToProductionAfterUpdate(scope *gorm.Scope) {
 	if ok, clone := GetModeAndNewScope(scope); ok {
+		if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
+			table := OriginalTableName(scope.TableName())
+			clone.Search = scope.Search
+			clone.Search.Table(table)
+			clone.InstanceSet("gorm:update_attrs", updateAttrs)
+		}
 		gorm.Update(clone)
 	}
 }

@@ -23,22 +23,24 @@
     {{stylesheet_tag "lib/material-design-iconic-font.min"}}
     {{stylesheet_tag "component"}}
     {{stylesheet_tag "app"}}
+    {{load_theme_stylesheets}}
 
     {{javascript_tag "lib/jquery.min"}}
   </head>
-  <body>
+
+  <body {{if qor_theme_class}}class="{{qor_theme_class}}"{{end}}>
     <!--[if lt IE 10]>
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
     <a class="sr-only" href="#content" tabindex="1">Skip to content</a>
 
-    {{template "header" .}}
+    {{render "header" .}}
 
     <div class="main" id="content">
       {{.Content}}
     </div>
 
-    {{template "footer" .}}
+    {{render "footer" .}}
 
     <!-- JavaScripts -->
     {{javascript_tag "lib/bootstrap.min"}}
@@ -47,5 +49,6 @@
     {{javascript_tag "lib/chosen.jquery.min"}}
     {{javascript_tag "component"}}
     {{javascript_tag "app"}}
+    {{load_theme_javascripts}}
   </body>
 </html>

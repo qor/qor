@@ -10,8 +10,9 @@ Admin:
     order.Action(&admin.Action{Name: name, Handle: func(scope *gorm.DB, context *qor.Context) error {}, Inline, Metas})
 
     order.SearchColumns "name", "order_items.products.name"
-    order.SearchHandler(func(db, keyword) db) {
-    })
+    order.SearchHandler = func(keyword string, context *qor.Context) *gorm.DB {
+      # TODO
+    }
 
     Admin.GetResource(name string) *Resource
     Admin.SetAuth(Auth{CurrentUser, Login, Logout})

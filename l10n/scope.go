@@ -2,9 +2,9 @@ package l10n
 
 import (
 	"reflect"
-	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/utils"
 )
 
 func isLocalizable(scope *gorm.Scope) (isLocalizable bool) {
@@ -41,23 +41,8 @@ func getLocale(scope *gorm.Scope) (locale string, ok bool) {
 	return Global, false
 }
 
-func parseTagOption(str string) map[string]string {
-	tags := strings.Split(str, ";")
-	setting := map[string]string{}
-	for _, value := range tags {
-		v := strings.Split(value, ":")
-		k := strings.TrimSpace(strings.ToUpper(v[0]))
-		if len(v) == 2 {
-			setting[k] = v[1]
-		} else {
-			setting[k] = k
-		}
-	}
-	return setting
-}
-
 func isSyncField(field *gorm.StructField) bool {
-	if _, ok := parseTagOption(field.Tag.Get("l10n"))["SYNC"]; ok {
+	if _, ok := utils.ParseTagOption(field.Tag.Get("l10n"))["SYNC"]; ok {
 		return true
 	}
 	return false

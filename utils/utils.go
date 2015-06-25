@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 
 	"strings"
@@ -66,17 +67,8 @@ func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err
 	query := url.Query()
 	for i := 0; i < len(params)/2; i++ {
 		// Check if params is key&value pair
-		key, ok := params[i*2].(string)
-		if !ok {
-			err = fmt.Errorf("%[1]v type is %[1]T, want string", params[i*2])
-			return
-		}
-
-		value, ok := params[i*2+1].(string)
-		if !ok {
-			err = fmt.Errorf("%[1]v type is %[1]T, want string", params[i*2+1])
-			return
-		}
+		key := fmt.Sprintf("%v", params[i*2])
+		value := fmt.Sprintf("%v", params[i*2+1])
 
 		if value == "" {
 			query.Del(key)
@@ -110,4 +102,35 @@ func GetLocale(context *qor.Context) string {
 	}
 
 	return ""
+}
+
+func Stringify(object interface{}) string {
+	if obj, ok := object.(interface {
+		Stringify() string
+	}); ok {
+		return obj.Stringify()
+	}
+
+	scope := gorm.Scope{Value: object}
+	for _, column := range []string{"Name", "Title"} {
+		if field, ok := scope.FieldByName(column); ok {
+			return fmt.Sprintf("%v", field.Field.Interface())
+		}
+	}
+	return fmt.Sprintf("%v", object)
+}
+
+func ParseTagOption(str string) map[string]string {
+	tags := strings.Split(str, ";")
+	setting := map[string]string{}
+	for _, value := range tags {
+		v := strings.Split(value, ":")
+		k := strings.TrimSpace(strings.ToUpper(v[0]))
+		if len(v) == 2 {
+			setting[k] = v[1]
+		} else {
+			setting[k] = k
+		}
+	}
+	return setting
 }

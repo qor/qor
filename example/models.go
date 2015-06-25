@@ -44,6 +44,7 @@ type User struct {
 	Birthday     *time.Time
 	Description  string `sql:"size:622550"`
 	RoleID       uint
+	Role         Role
 	Languages    []Language `gorm:"many2many:user_languages;"`
 	CreditCard   CreditCard
 	CreditCardID uint
@@ -71,6 +72,7 @@ type Product struct {
 	Name         *string `l10n:"sync"`
 	Description  *string
 	CollectionID uint
+	Collection   Collection
 	l10n.Locale
 	publish.Status
 }

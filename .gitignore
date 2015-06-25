@@ -5,10 +5,15 @@ gin-bin
 tmp
 worker_data
 *.exe
+/test/integration/integration
+/test/integration/public
 
 # Example
+/example/example
 /example/public
 /example/harp.json
+
+/admin/public/
 
 # Front end
 bower_components

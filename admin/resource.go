@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -42,12 +43,45 @@ func (res Resource) ToParam() string {
 	return utils.ToParamString(res.Name)
 }
 
-func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}, metas []*Meta) interface{} {
-	var metaors []resource.Metaor
-	for _, meta := range metas {
-		metaors = append(metaors, meta)
+func (res Resource) UseTheme(theme string) []string {
+	if res.Config != nil {
+		res.Config.Themes = append(res.Config.Themes, theme)
+		return res.Config.Themes
 	}
-	return resource.ConvertObjectToMap(context, value, metaors)
+	return []string{}
+}
+
+func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}, kind string) interface{} {
+	reflectValue := reflect.Indirect(reflect.ValueOf(value))
+	switch reflectValue.Kind() {
+	case reflect.Slice:
+		values := []interface{}{}
+		for i := 0; i < reflectValue.Len(); i++ {
+			values = append(values, res.ConvertObjectToMap(context, reflectValue.Index(i).Interface(), kind))
+		}
+		return values
+	case reflect.Struct:
+		var metas []*Meta
+		if kind == "index" {
+			metas = res.IndexMetas()
+		} else if kind == "show" {
+			metas = res.ShowMetas()
+		}
+
+		values := map[string]interface{}{}
+		for _, meta := range metas {
+			if meta.HasPermission(roles.Read, context.GetContext()) {
+				value := meta.GetValuer()(value, context.GetContext())
+				if meta.Resource != nil {
+					value = meta.Resource.(*Resource).ConvertObjectToMap(context, value, kind)
+				}
+				values[meta.GetName()] = value
+			}
+		}
+		return values
+	default:
+		panic(fmt.Sprintf("Can't convert %v (%v) to map", reflectValue, reflectValue.Kind()))
+	}
 }
 
 func (res *Resource) Decode(contextor qor.Contextor, value interface{}) (errs []error) {
@@ -124,12 +158,12 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 		structFields := scope.GetModelStruct().StructFields
 		attrs = []string{}
 
-	StructFields:
+	Fields:
 		for _, field := range structFields {
 			for _, meta := range res.Metas {
 				if field.Name == meta.Alias {
 					attrs = append(attrs, meta.Name)
-					continue StructFields
+					continue Fields
 				}
 			}
 
@@ -139,11 +173,21 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 			for _, value := range []string{"CreatedAt", "UpdatedAt", "DeletedAt"} {
 				if value == field.Name {
-					continue StructFields
+					continue Fields
 				}
 			}
 
 			attrs = append(attrs, field.Name)
+		}
+
+	MetaIncluded:
+		for _, meta := range res.Metas {
+			for _, attr := range attrs {
+				if attr == meta.Alias || attr == meta.Name {
+					continue MetaIncluded
+				}
+			}
+			attrs = append(attrs, meta.Name)
 		}
 	}
 
@@ -173,6 +217,15 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 	}
 
 	return metas
+}
+
+func (res *Resource) GetMeta(name string) *Meta {
+	for _, meta := range res.Metas {
+		if meta.Name == name || meta.GetFieldName() == name {
+			return meta
+		}
+	}
+	return nil
 }
 
 func (res *Resource) IndexMetas() []*Meta {
@@ -216,4 +269,11 @@ func (res *Resource) AllowedMetas(attrs []*Meta, context *Context, roles ...role
 		}
 	}
 	return metas
+}
+
+func (res *Resource) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
+	if res.Config == nil || res.Config.Permission == nil {
+		return true
+	}
+	return res.Config.Permission.HasPermission(mode, context.Roles...)
 }

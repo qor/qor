@@ -23,6 +23,10 @@
     constructor: QorComparator,
 
     init: function () {
+      if (!$.fn.modal) {
+        return;
+      }
+
       this.$modal = $(QorComparator.TEMPLATE.replace(/\{\{key\}\}/g, Date.now())).appendTo('body');
       this.$modal.modal(this.options);
     },
@@ -36,7 +40,7 @@
     keyboard: true,
     backdrop: true,
     remote: false,
-    show: false
+    show: true
   };
 
   QorComparator.TEMPLATE = (
@@ -52,21 +56,43 @@
     '</div>'
   );
 
-  if (!$.fn.modal) {
-    return;
-  }
+  QorComparator.plugin = function (options) {
+    var args = [].slice.call(arguments, 1),
+        result;
 
-  $(document).on('click.qor.comparator', '[data-toggle="qor.comparator"]', function (e) {
-    var $this = $(this),
-        data = $this.data('qor.comparator');
+    this.each(function () {
+      var $this = $(this),
+          data = $this.data('qor.comparator'),
+          fn;
 
-    e.preventDefault();
+      if (!data) {
+        $this.data('qor.comparator', (data = new QorComparator(this, options)));
+      } else {
+        options = 'show';
+      }
 
-    if (!data) {
-      $this.data('qor.comparator', (data = new QorComparator(this, $this.data())));
+      if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
+        result = fn.apply(data, args);
+      }
+    });
+
+    return typeof result === 'undefined' ? this : result;
+  };
+
+  $(function () {
+    if (!$.fn.modal) {
+      return;
     }
 
-    data.show();
+    $(document)
+      .on('click.qor.comparator.initiator', '[data-toggle="qor.comparator"]', function (e) {
+        var $this = $(this);
+
+        e.preventDefault();
+        QorComparator.plugin.call($this, $this.data());
+      });
   });
+
+  return QorComparator;
 
 });

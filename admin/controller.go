@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/qor/qor/responder"
+	"github.com/qor/qor/roles"
 )
 
 type controller struct {
@@ -32,92 +33,113 @@ func renderError(context *Context, err error) {
 	}).Respond(context.Writer, context.Request)
 }
 
+func (context *Context) CheckResourcePermission(permission roles.PermissionMode) bool {
+	if context.Resource == nil || context.Resource.HasPermission(permission, context.Context) {
+		return true
+	}
+	context.Writer.Write([]byte("Permission denied"))
+	return false
+}
+
 func (ac *controller) Dashboard(context *Context) {
 	context.Execute("dashboard", nil)
 }
 
 func (ac *controller) Index(context *Context) {
-	if result, err := context.FindMany(); err == nil {
-		responder.With("html", func() {
-			context.Execute("index", result)
-		}).With("json", func() {
-			res := context.Resource
-			js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.IndexMetas()))
-			context.Writer.Write(js)
-		}).Respond(context.Writer, context.Request)
-	} else {
-		http.NotFound(context.Writer, context.Request)
+	if context.CheckResourcePermission(roles.Read) {
+		if result, err := context.FindMany(); err == nil {
+			responder.With("html", func() {
+				context.Execute("index", result)
+			}).With("json", func() {
+				res := context.Resource
+				js, _ := json.Marshal(res.ConvertObjectToMap(context, result, "index"))
+				context.Writer.Write(js)
+			}).Respond(context.Writer, context.Request)
+		} else {
+			http.NotFound(context.Writer, context.Request)
+		}
 	}
 }
 
 func (ac *controller) Show(context *Context) {
-	result, _ := context.FindOne()
+	if context.CheckResourcePermission(roles.Read) {
+		result, _ := context.FindOne()
 
-	responder.With("html", func() {
-		context.Execute("show", result)
-	}).With("json", func() {
-		res := context.Resource
-		js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.ShowMetas()))
-		context.Writer.Write(js)
-	}).Respond(context.Writer, context.Request)
-}
-
-func (ac *controller) New(context *Context) {
-	context.Execute("new", nil)
-}
-
-func (ac *controller) Create(context *Context) {
-	res := ac.GetResource(context.ResourcePath())
-	result := res.NewStruct()
-	if errs := res.Decode(context, result); len(errs) == 0 {
-		res.CallSaver(result, context.Context)
 		responder.With("html", func() {
-			primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
-			http.Redirect(context.Writer, context.Request, path.Join(context.Request.RequestURI, primaryKey), http.StatusFound)
+			context.Execute("show", result)
 		}).With("json", func() {
 			res := context.Resource
-			js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.ShowMetas()))
+			js, _ := json.Marshal(res.ConvertObjectToMap(context, result, "show"))
 			context.Writer.Write(js)
 		}).Respond(context.Writer, context.Request)
 	}
 }
 
-func (ac *controller) Update(context *Context) {
-	if result, err := context.FindOne(); err == nil {
-		if errs := context.Resource.Decode(context, result); len(errs) == 0 {
-			if err := context.Resource.CallSaver(result, context.Context); err != nil {
-				renderError(context, err)
-				return
-			}
+func (ac *controller) New(context *Context) {
+	if context.CheckResourcePermission(roles.Create) {
+		context.Execute("new", nil)
+	}
+}
+
+func (ac *controller) Create(context *Context) {
+	if context.CheckResourcePermission(roles.Create) {
+		res := context.Resource
+
+		result := res.NewStruct()
+		if errs := res.Decode(context, result); len(errs) == 0 {
+			res.CallSaver(result, context.Context)
 			responder.With("html", func() {
-				http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
+				primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
+				http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path, primaryKey), http.StatusFound)
 			}).With("json", func() {
 				res := context.Resource
-				js, _ := json.Marshal(res.ConvertObjectToMap(context, result, res.ShowMetas()))
+				js, _ := json.Marshal(res.ConvertObjectToMap(context, result, "show"))
 				context.Writer.Write(js)
 			}).Respond(context.Writer, context.Request)
 		}
-	} else {
-		renderError(context, err)
+	}
+}
+
+func (ac *controller) Update(context *Context) {
+	if context.CheckResourcePermission(roles.Update) {
+		if result, err := context.FindOne(); err == nil {
+			if errs := context.Resource.Decode(context, result); len(errs) == 0 {
+				if err := context.Resource.CallSaver(result, context.Context); err != nil {
+					renderError(context, err)
+					return
+				}
+				responder.With("html", func() {
+					context.Execute("show", result)
+				}).With("json", func() {
+					res := context.Resource
+					js, _ := json.Marshal(res.ConvertObjectToMap(context, result, "show"))
+					context.Writer.Write(js)
+				}).Respond(context.Writer, context.Request)
+			}
+		} else {
+			renderError(context, err)
+		}
 	}
 }
 
 func (ac *controller) Delete(context *Context) {
-	res := ac.GetResource(context.ResourcePath())
+	if context.CheckResourcePermission(roles.Delete) {
+		res := context.Resource
 
-	responder.With("html", func() {
-		if res.CallDeleter(res.NewStruct(), context.Context) == nil {
-			http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), http.StatusFound)
-		} else {
-			http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), http.StatusNotFound)
-		}
-	}).With("json", func() {
-		if res.CallDeleter(res.NewStruct(), context.Context) == nil {
-			context.Writer.WriteHeader(http.StatusOK)
-		} else {
-			context.Writer.WriteHeader(http.StatusNotFound)
-		}
-	}).Respond(context.Writer, context.Request)
+		responder.With("html", func() {
+			if res.CallDeleter(res.NewStruct(), context.Context) == nil {
+				http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), http.StatusFound)
+			} else {
+				http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), http.StatusNotFound)
+			}
+		}).With("json", func() {
+			if res.CallDeleter(res.NewStruct(), context.Context) == nil {
+				context.Writer.WriteHeader(http.StatusOK)
+			} else {
+				context.Writer.WriteHeader(http.StatusNotFound)
+			}
+		}).Respond(context.Writer, context.Request)
+	}
 }
 
 func (ac *controller) Action(context *Context) {

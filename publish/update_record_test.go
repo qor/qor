@@ -55,4 +55,13 @@ func TestUpdateStructFromProduction(t *testing.T) {
 	if pbprod.Model(&product).Related(&product.Color); product.Color.Name != name {
 		t.Errorf("should be able to find related struct")
 	}
+
+	db.Model(&Product{}).Where("id = ?", product.Id).UpdateColumns(map[string]interface{}{"quantity": 5})
+	var newProduct, newDraftProduct Product
+	pbprod.Find(&newProduct, product.Id)
+	pbprod.Find(&newDraftProduct, product.Id)
+
+	if newProduct.Quantity != 5 || newDraftProduct.Quantity != 5 || newProduct.Name != newName || newDraftProduct.Name != newName {
+		t.Errorf("Sync update columns during production & draft db")
+	}
 }

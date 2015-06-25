@@ -11,6 +11,7 @@ import (
 type Product struct {
 	ID              int    `gorm:"primary_key"`
 	Code            string `l10n:"sync"`
+	Quantity        uint   `l10n:"sync"`
 	Name            string
 	DeletedAt       *time.Time
 	ColorVariations []ColorVariation
@@ -49,7 +50,7 @@ var dbGlobal, dbCN, dbEN *gorm.DB
 
 func init() {
 	db := utils.TestDB()
-	l10n.RegisterCallbacks(&db)
+	l10n.RegisterCallbacks(db)
 
 	db.DropTableIfExists(&Product{})
 	db.DropTableIfExists(&Tag{})
@@ -57,7 +58,7 @@ func init() {
 	db.AutoMigrate(&Product{})
 	db.AutoMigrate(&Tag{})
 
-	dbGlobal = &db
+	dbGlobal = db
 	dbCN = dbGlobal.Set("l10n:locale", "zh")
 	dbEN = dbGlobal.Set("l10n:locale", "en")
 }

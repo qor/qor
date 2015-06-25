@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -72,6 +73,8 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	router := admin.router
 	router.Prefix = prefix
 
+	admin.compile()
+
 	controller := &controller{admin}
 	router.Get("^/?$", controller.Dashboard)
 	router.Get("^/[^/]+/new$", controller.New)
@@ -85,14 +88,31 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
+}
 
-	admin.generateMenuLinks()
-
-	admin.compile()
+type Injector interface {
+	InjectQorAdmin(*Resource)
 }
 
 func (admin *Admin) compile() {
+	admin.generateMenuLinks()
+
 	router := admin.GetRouter()
+
+	for _, res := range admin.resources {
+		modelType := admin.Config.DB.NewScope(res.Value).GetModelStruct().ModelType
+		for i := 0; i < modelType.NumField(); i++ {
+			if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
+				if injector, ok := reflect.New(fieldStruct.Type).Interface().(Injector); ok {
+					injector.InjectQorAdmin(res)
+				}
+			}
+		}
+
+		if injector, ok := res.Value.(Injector); ok {
+			injector.InjectQorAdmin(res)
+		}
+	}
 
 	router.Use(func(context *Context, middleware *Middleware) {
 		w := context.Writer
@@ -134,23 +154,14 @@ func (admin *Admin) compile() {
 }
 
 func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
-	var currentUser qor.CurrentUser
 	context := Context{Context: &qor.Context{Config: admin.Config, Request: r, Writer: w}, Admin: admin}
-	if admin.auth != nil {
-		if currentUser = admin.auth.GetCurrentUser(&context); currentUser == nil {
-			admin.auth.Login(&context)
-		} else {
-			context.CurrentUser = currentUser
-		}
-	}
-	context.Roles = roles.MatchedRoles(r, currentUser)
 
 	return &context
 }
 
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	context := admin.NewContext(w, req)
-	relativePath := strings.TrimPrefix(req.URL.Path, admin.router.Prefix)
+	var relativePath = strings.TrimPrefix(req.URL.Path, admin.router.Prefix)
+	var context = admin.NewContext(w, req)
 
 	if regexp.MustCompile("^/assets/.*$").MatchString(relativePath) {
 		(&controller{admin}).Asset(context)
@@ -166,6 +177,17 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}()()
 
+	var currentUser qor.CurrentUser
+	if admin.auth != nil {
+		if currentUser = admin.auth.GetCurrentUser(context); currentUser == nil {
+			http.Redirect(w, req, admin.auth.LoginURL(context), http.StatusSeeOther)
+			return
+		} else {
+			context.CurrentUser = currentUser
+		}
+	}
+	context.Roles = roles.MatchedRoles(req, currentUser)
+
 	firstStack := admin.router.middlewares[0]
-	firstStack.Handler(context, firstStack.next)
+	firstStack.Handler(context, firstStack)
 }

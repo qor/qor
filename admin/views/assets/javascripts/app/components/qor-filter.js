@@ -125,17 +125,31 @@
     activeClass: 'active'
   };
 
-  $(function () {
-    $('.qor-label-group').each(function () {
+  QorFilter.plugin = function (options) {
+    return this.each(function () {
       var $this = $(this);
 
       if (!$this.data('qor.filter')) {
-        $this.data('qor.filter', new QorFilter(this, {
-          toggle: '.label',
-          activeClass: 'label-primary'
-        }));
+        $this.data('qor.filter', new QorFilter(this, options));
       }
     });
+  };
+
+  $(function () {
+    $(document)
+      .on('renew.qor.initiator', function (e) {
+        var $element = $('.qor-label-group', e.target);
+
+        if ($element.length) {
+          QorFilter.plugin.call($element, {
+            toggle: '.label',
+            activeClass: 'label-primary'
+          });
+        }
+      })
+      .triggerHandler('renew.qor.initiator');
   });
+
+  return QorFilter;
 
 });

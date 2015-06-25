@@ -42,7 +42,7 @@ func (db *PublishController) Diff(context *admin.Context) {
 
 	results := map[string]interface{}{"Production": production, "Draft": draft, "Resource": res}
 
-	fmt.Fprintf(context.Writer, context.Render("publish/diff", results))
+	fmt.Fprintf(context.Writer, string(context.Render("publish/diff", results)))
 }
 
 func (db *PublishController) PublishOrDiscard(context *admin.Context) {
@@ -77,14 +77,20 @@ func (db *PublishController) PublishOrDiscard(context *admin.Context) {
 	http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 }
 
+var injected bool
+
 func (publish *Publish) InjectQorAdmin(res *admin.Resource) {
+	if !injected {
+		injected = true
+		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))
+		}
+	}
+	res.UseTheme("publish")
+
 	controller := PublishController{publish}
 	router := res.GetAdmin().GetRouter()
 	router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
 	router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Preview)
 	router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.PublishOrDiscard)
-
-	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))
-	}
 }

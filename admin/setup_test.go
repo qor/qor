@@ -73,7 +73,7 @@ type Phone struct {
 
 var (
 	server *httptest.Server
-	db     gorm.DB
+	db     *gorm.DB
 	Admin  *admin.Admin
 )
 
@@ -86,7 +86,7 @@ func init() {
 		db.AutoMigrate(value)
 	}
 
-	Admin = admin.New(&qor.Config{DB: &db})
+	Admin = admin.New(&qor.Config{DB: db})
 	user := Admin.AddResource(&User{})
 	user.Meta(&admin.Meta{Name: "Languages", Type: "select_many",
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {

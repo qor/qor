@@ -69,6 +69,17 @@ func TestUpdate(t *testing.T) {
 	product.Code = "NewCode // should be ignored when update"
 	dbEN.Save(&product)
 	checkHasProductInLocale(sharedDB.Where("name = ?", "New English Name"), "en", t)
+
+	dbGlobal.Model(&Product{}).Where("id = ?", product.ID).UpdateColumns(map[string]interface{}{"quantity": gorm.Expr("quantity + ?", 2)})
+
+	var newGlobalProduct Product
+	var newENProduct Product
+	dbGlobal.Find(&newGlobalProduct, product.ID)
+	dbEN.Find(&newENProduct, product.ID)
+
+	if newGlobalProduct.Quantity != product.Quantity+2 || newENProduct.Quantity != product.Quantity+2 {
+		t.Errorf("should sync update columns results correctly")
+	}
 }
 
 func TestQuery(t *testing.T) {

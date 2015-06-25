@@ -22,16 +22,7 @@ func AdminConfig() (mux *http.ServeMux) {
 
 	user := Admin.AddResource(&User{})
 	user.Meta(&admin.Meta{Name: "Gender", Type: "select_one", Collection: []string{"Male", "Female"}})
-	user.Meta(&admin.Meta{Name: "Languages", Type: "select_many",
-		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
-			if languages := []Language{}; !context.GetDB().Find(&languages).RecordNotFound() {
-				for _, language := range languages {
-					results = append(results, []string{fmt.Sprintf("%v", language.ID), language.Name})
-				}
-			}
-			return
-		},
-	})
+	user.Meta(&admin.Meta{Name: "Languages", Type: "select_many"})
 	user.Meta(&admin.Meta{Name: "Profile"})
 	user.Meta(&admin.Meta{Name: "Note", Type: "rich_editor", Resource: Admin.NewResource(&admin.AssetManager{})})
 	user.Meta(&admin.Meta{Name: "Avatar"})

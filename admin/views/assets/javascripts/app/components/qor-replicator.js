@@ -124,21 +124,41 @@
     alertTemplate: ''
   };
 
-  $(function () {
-    $('.qor-collection-group').each(function () {
+  QorReplicator.plugin = function (options) {
+    return this.each(function () {
       var $this = $(this);
 
       if (!$this.data('qor.replicator')) {
-        $this.data('qor.replicator', new QorReplicator(this, {
+        $this.data('qor.replicator', new QorReplicator(this, options));
+      }
+    });
+  };
+
+  $(function () {
+    var selector = '.qor-collection-group',
+        options = {
           itemClass: '.qor-collection',
           newClass: '.qor-collection-new',
           addClass: '.qor-collection-add',
           delClass: '.qor-collection-del',
           undoClass: '.qor-collection-undo',
-          alertTemplate: '<div class="alert alert-danger"><input type="hidden" name="{{name}}._destroy" value="1"><a href="javascript:void(0);" class="alert-link qor-collection-undo">Undo Delete</a></div>'
-        }));
-      }
-    });
+          alertTemplate: ('<div class="alert alert-danger"><input type="hidden" name="{{name}}._destroy" value="1"><a href="javascript:void(0);" class="alert-link qor-collection-undo">Undo Delete</a></div>')
+        };
+
+    $(document)
+      .on('click.qor.replicator.initiator', selector, function () {
+        QorReplicator.plugin.call($(this), options);
+      })
+      .on('renew.qor.initiator', function (e) {
+        var $element = $(selector, e.target);
+
+        if ($element.length) {
+          QorReplicator.plugin.call($element, options);
+        }
+      })
+      .triggerHandler('renew.qor.initiator');
   });
+
+  return QorReplicator;
 
 });

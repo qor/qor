@@ -2,7 +2,7 @@ package admin
 
 import (
 	"fmt"
-	"text/template"
+	"html/template"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -26,10 +26,6 @@ type Admin struct {
 	auth      Auth
 	router    *Router
 	funcMaps  template.FuncMap
-}
-
-type Injector interface {
-	InjectQorAdmin(*Resource)
 }
 
 type ResourceNamer interface {
@@ -107,10 +103,6 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		res.Name = configuration.Name
 	} else if namer, ok := value.(ResourceNamer); ok {
 		res.Name = namer.ResourceName()
-	}
-
-	if injector, ok := value.(Injector); ok {
-		injector.InjectQorAdmin(res)
 	}
 	return res
 }

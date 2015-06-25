@@ -20,7 +20,7 @@ type Order struct {
 }
 
 var (
-	testdb gorm.DB
+	testdb *gorm.DB
 
 	tables []interface{}
 
@@ -81,7 +81,7 @@ func CreateOrderAndExecuteTransition(order *Order, event string, t *testing.T, r
 		t.Errorf(err.Error())
 	}
 
-	if err := OrderStateMachine.Trigger(event, order, &testdb); err != nil && raiseTriggerError {
+	if err := OrderStateMachine.Trigger(event, order, testdb); err != nil && raiseTriggerError {
 		t.Errorf(err.Error())
 	}
 }

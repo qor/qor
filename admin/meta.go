@@ -192,6 +192,8 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
+	scopeField, _ := scope.FieldByName(meta.Alias)
+
 	// Set Meta Collection
 	if meta.Collection != nil {
 		if maps, ok := meta.Collection.([]string); ok {
@@ -211,10 +213,27 @@ func (meta *Meta) updateMeta() {
 			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Value))
 		}
 	} else if meta.Type == "select_one" || meta.Type == "select_many" {
-		qor.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
-	}
+		if scopeField.Relationship != nil {
+			fieldType := scopeField.StructField.Struct.Type
+			if fieldType.Kind() == reflect.Slice {
+				fieldType = fieldType.Elem()
+			}
 
-	scopeField, _ := scope.FieldByName(meta.Alias)
+			meta.GetCollection = func(value interface{}, context *qor.Context) (results [][]string) {
+				values := reflect.New(reflect.SliceOf(fieldType)).Interface()
+				context.GetDB().Find(values)
+				reflectValues := reflect.Indirect(reflect.ValueOf(values))
+				for i := 0; i < reflectValues.Len(); i++ {
+					scope := scope.New(reflectValues.Index(i).Interface())
+					primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
+					results = append(results, []string{primaryKey, utils.Stringify(reflectValues.Index(i).Interface())})
+				}
+				return
+			}
+		} else {
+			qor.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
+		}
+	}
 
 	if meta.Setter == nil {
 		meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
@@ -238,13 +257,12 @@ func (meta *Meta) updateMeta() {
 			}
 
 			if field.IsValid() && field.CanAddr() {
-				var relationship string
+				// Save relationships
 				if scopeField != nil && scopeField.Relationship != nil {
-					relationship = scopeField.Relationship.Kind
-				}
-				if relationship == "many_to_many" {
 					context.GetDB().Where(utils.ToArray(value)).Find(field.Addr().Interface())
-					if !scope.PrimaryKeyZero() {
+
+					// Handle many 2 many relations
+					if scopeField.Relationship.Kind == "many_to_many" && !scope.PrimaryKeyZero() {
 						context.GetDB().Model(resource).Association(meta.Alias).Replace(field.Interface())
 					}
 				} else {

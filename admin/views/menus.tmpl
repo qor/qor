@@ -1,6 +1,6 @@
 {{range .Result}}
   {{if .GetSubMenus}}
-    <li class="dropdown item" role="presentation">
+    <li class="dropdown item" role="presentation" data-menu-name="{{.Name}}">
       <a class="dropdown-toggle" href="{{.Link}}" aria-expanded="false" role="button">
         {{t .Name}} <span class="md md-expand-more"></span>
       </a>
@@ -9,7 +9,7 @@
       </ul>
     </li>
   {{else}}
-    <li class="item" role="presentation">
+    <li class="item" role="presentation" data-menu-name="{{.Name}}">
       {{link_to (t .Name) .Link}}
     </li>
   {{end}}
