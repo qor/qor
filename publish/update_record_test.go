@@ -10,7 +10,7 @@ func TestUpdateStructFromDraft(t *testing.T) {
 
 	pbdraft.Model(&product).Update("name", newName)
 
-	pbdraft.First(&product, product.Id)
+	pbdraft.First(&product, product.ID)
 	if !product.PublishStatus {
 		t.Errorf("Product's publish status should be DIRTY when updated from draft db")
 	}
@@ -56,10 +56,10 @@ func TestUpdateStructFromProduction(t *testing.T) {
 		t.Errorf("should be able to find related struct")
 	}
 
-	db.Model(&Product{}).Where("id = ?", product.Id).UpdateColumns(map[string]interface{}{"quantity": 5})
+	db.Model(&Product{}).Where("id = ?", product.ID).UpdateColumns(map[string]interface{}{"quantity": 5})
 	var newProduct, newDraftProduct Product
-	pbprod.Find(&newProduct, product.Id)
-	pbprod.Find(&newDraftProduct, product.Id)
+	pbprod.Find(&newProduct, product.ID)
+	pbprod.Find(&newDraftProduct, product.ID)
 
 	if newProduct.Quantity != 5 || newDraftProduct.Quantity != 5 || newProduct.Name != newName || newDraftProduct.Name != newName {
 		t.Errorf("Sync update columns during production & draft db")
