@@ -34,7 +34,7 @@ func TestSaveIntoFileSystem(t *testing.T) {
 
 			var newUser User
 			db.First(&newUser, user.ID)
-			newUser.Avatar.Scan(`{"CropOption": {"X": 5, "Y": 5, "Height": 50, "Width": 50}, "Crop": true}`)
+			newUser.Avatar.Scan(`{"CropOption": {"X": 5, "Y": 5, "Height": 10, "Width": 10}, "Crop": true}`)
 			db.Save(&newUser)
 
 			if newUser.Avatar.URL() == user.Avatar.URL() {
@@ -47,7 +47,7 @@ func TestSaveIntoFileSystem(t *testing.T) {
 			}
 
 			if image, _, err := image.DecodeConfig(file); err == nil {
-				if image.Width != 50 || image.Height != 50 {
+				if image.Width != 10 || image.Height != 10 {
 					t.Errorf("image should be croped successfully")
 				}
 			} else {
