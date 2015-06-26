@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"image"
 	"io"
-	"mime/multipart"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -24,7 +23,7 @@ type MediaLibrary interface {
 	GetURLTemplate(*Option) string
 	GetURL(option *Option, scope *gorm.Scope, field *gorm.Field) string
 
-	GetFileHeader() *multipart.FileHeader
+	GetFileHeader() fileHeader
 	GetFileName() string
 
 	GetSizes() map[string]Size

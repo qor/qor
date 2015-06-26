@@ -26,18 +26,34 @@ type CropOption struct {
 	X, Y, Width, Height int
 }
 
+type fileHeader interface {
+	Open() (multipart.File, error)
+}
+
+type fileWrapper struct {
+	*os.File
+}
+
+func (fileWrapper *fileWrapper) Open() (multipart.File, error) {
+	return fileWrapper.File, nil
+}
+
 type Base struct {
 	FileName   string
 	Url        string
-	CropOption *CropOption           `json:",omitempty"`
-	Crop       bool                  `json:"-"`
-	Valid      bool                  `json:"-"`
-	FileHeader *multipart.FileHeader `json:"-"`
-	Reader     io.Reader             `json:"-"`
+	CropOption *CropOption `json:",omitempty"`
+	Crop       bool        `json:"-"`
+	Valid      bool        `json:"-"`
+	FileHeader fileHeader  `json:"-"`
+	Reader     io.Reader   `json:"-"`
 }
 
 func (b *Base) Scan(data interface{}) (err error) {
 	switch values := data.(type) {
+	case *os.File:
+		b.FileHeader = &fileWrapper{values}
+		b.FileName = values.Name()
+		b.Valid = true
 	case []*multipart.FileHeader:
 		if len(values) > 0 {
 			file := values[0]
@@ -87,7 +103,7 @@ func (b Base) GetFileName() string {
 	return b.FileName
 }
 
-func (b Base) GetFileHeader() *multipart.FileHeader {
+func (b Base) GetFileHeader() fileHeader {
 	return b.FileHeader
 }
 
