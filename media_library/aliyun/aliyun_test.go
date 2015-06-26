@@ -4,10 +4,11 @@ import (
 	"os"
 	"testing"
 
+	"net/http"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/media_library/aliyun"
 	"github.com/qor/qor/test/utils"
-	"net/http"
 )
 
 var db = utils.TestDB()

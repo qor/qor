@@ -1,0 +1,4 @@
+export QOR_QINIU_ACCESS_KEY=OzR-QD9-x7yGJOTCoocAZuk1FPW2GyOVOhpwpROM
+export QOR_QINIU_SECRET_KEY=b7CvQR9cOBakoTDBy0m0_Encaq8DxE-sQjXUqNWw
+export QOR_QINIU_BUCKET=qor3
+export QOR_QINIU_ENDPOINT=7xjz1t.com1.z0.glb.clouddn.com

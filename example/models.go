@@ -10,7 +10,7 @@ import (
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/media_library"
-	"github.com/qor/qor/media_library/aliyun"
+	"github.com/qor/qor/media_library/qiniu"
 	"github.com/qor/qor/publish"
 )
 
@@ -39,10 +39,11 @@ type Language struct {
 
 type User struct {
 	gorm.Model
-	Name         string
-	State        string
-	Avatar       media_library.FileSystem
-	AvatarAliyun aliyun.OSS
+	Name   string
+	State  string
+	Avatar media_library.FileSystem
+	// AvatarAliyun aliyun.OSS
+	AvatarQiniu  qiniu.Qiniu
 	Birthday     *time.Time
 	Description  string `sql:"size:622550"`
 	RoleID       uint

@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"os"
 
+	"strings"
+
 	"github.com/qor/qor/media_library"
 	"github.com/qor/qor/media_library/aliyun/config"
 	"github.com/sunfmin/ali-oss"
-	"strings"
 )
 
 type OSS struct {
@@ -63,7 +64,7 @@ func (s OSS) Store(url string, option *media_library.Option, reader io.Reader) (
 }
 
 func (s OSS) Retrieve(url string) (*os.File, error) {
-	response, err := http.Get(url)
+	response, err := http.Get("http:" + url)
 	if err != nil {
 		return nil, err
 	}
