@@ -17,7 +17,7 @@ func (handler PublishJoinTableHandler) Table(db *gorm.DB) string {
 func (handler PublishJoinTableHandler) Add(h gorm.JoinTableHandlerInterface, db *gorm.DB, source1 interface{}, source2 interface{}) error {
 	// production mode
 	if draftMode, ok := db.Get("publish:draft_mode"); !ok || !draftMode.(bool) {
-		if err := handler.JoinTableHandler.Add(h, db.Set("publish:draft_mode", false), source1, source2); err != nil {
+		if err := handler.JoinTableHandler.Add(h, db.Set("publish:draft_mode", true), source1, source2); err != nil {
 			return err
 		}
 	}
@@ -27,7 +27,7 @@ func (handler PublishJoinTableHandler) Add(h gorm.JoinTableHandlerInterface, db 
 func (handler PublishJoinTableHandler) Delete(h gorm.JoinTableHandlerInterface, db *gorm.DB, sources ...interface{}) error {
 	// production mode
 	if draftMode, ok := db.Get("publish:draft_mode"); !ok || !draftMode.(bool) {
-		if err := handler.JoinTableHandler.Delete(h, db.Set("publish:draft_mode", false), sources...); err != nil {
+		if err := handler.JoinTableHandler.Delete(h, db.Set("publish:draft_mode", true), sources...); err != nil {
 			return err
 		}
 	}

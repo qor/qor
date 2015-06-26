@@ -61,11 +61,18 @@ func TestPagination(t *testing.T) {
 	context := &admin.Context{Admin: Admin}
 	context.Searcher = &admin.Searcher{Context: context}
 
+	// Test no pagination if only has one page
+	context.Searcher.Pagination.Pages = 1
+	context.Searcher.Pagination.CurrentPage = 1
+	if context.Pagination() != nil {
+		t.Error("Don't display pagination if only has one page")
+	}
+
 	// Test current page 1
 	context.Searcher.Pagination.Pages = 10
 	context.Searcher.Pagination.CurrentPage = 1
 
-	pages := context.Pagination()
+	pages := *context.Pagination()
 
 	if !pages[0].Current {
 		t.Error("first page not set as current page")
@@ -78,7 +85,7 @@ func TestPagination(t *testing.T) {
 
 	// Test current page 8 => the length between start and end less than MAX_VISIBLE_PAGES
 	context.Searcher.Pagination.CurrentPage = 8
-	pages = context.Pagination()
+	pages = *context.Pagination()
 
 	if !pages[6].Current {
 		t.Error("visible previous pages count incorrect")
@@ -91,7 +98,7 @@ func TestPagination(t *testing.T) {
 
 	// Test current page at last
 	context.Searcher.Pagination.CurrentPage = 10
-	pages = context.Pagination()
+	pages = *context.Pagination()
 
 	if !pages[len(pages)-1].Current {
 		t.Error("last page is not the current page")
@@ -104,7 +111,7 @@ func TestPagination(t *testing.T) {
 	// Test current page at last but total page count less than VISIBLE_PAGE_COUNT
 	context.Searcher.Pagination.Pages = 5
 	context.Searcher.Pagination.CurrentPage = 5
-	pages = context.Pagination()
+	pages = *context.Pagination()
 
 	if len(pages) != 5 {
 		t.Error("incorrect pages count")

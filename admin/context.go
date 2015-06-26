@@ -15,6 +15,7 @@ import (
 type Context struct {
 	*qor.Context
 	*Searcher
+	Flashs      []Flash
 	Resource    *Resource
 	Admin       *Admin
 	CurrentUser qor.CurrentUser

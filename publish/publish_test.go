@@ -2,7 +2,6 @@ package publish_test
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
@@ -24,21 +23,26 @@ func init() {
 	for _, table := range []string{"products", "products_draft", "colors"} {
 		pbprod.Exec(fmt.Sprintf("drop table %v", table))
 	}
-	pbprod.AutoMigrate(&Product{}, &Color{})
+	pbprod.AutoMigrate(&Product{}, &Color{}, &Category{})
 	pb.AutoMigrate(&Product{})
 }
 
 type Product struct {
-	Id        int
-	Name      string
-	Color     Color
-	ColorId   int
-	Quantity  uint
-	DeletedAt time.Time
+	gorm.Model
+	Name       string
+	Quantity   uint
+	Color      Color
+	ColorId    int
+	Categories []Category `gorm:"many2many:product_categories"`
 	publish.Status
 }
 
 type Color struct {
-	Id   int
+	gorm.Model
+	Name string
+}
+
+type Category struct {
+	gorm.Model
 	Name string
 }

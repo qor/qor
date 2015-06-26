@@ -8,7 +8,7 @@ func TestDeleteStructFromDraft(t *testing.T) {
 	pbprod.Create(&product)
 	pbdraft.Delete(&product)
 
-	pbdraft.Unscoped().First(&product, product.Id)
+	pbdraft.Unscoped().First(&product, product.ID)
 
 	if !product.PublishStatus {
 		t.Errorf("Product's publish status should be DIRTY when deleted from draft db")
@@ -49,12 +49,12 @@ func TestDeleteStructFromProduction(t *testing.T) {
 		t.Errorf("record should be soft deleted in draft db")
 	}
 
-	pbdraft.Unscoped().First(&product, product.Id)
+	pbdraft.Unscoped().First(&product, product.ID)
 	if product.PublishStatus {
 		t.Errorf("Product's publish status should be PUBLISHED when deleted from production db")
 	}
 
-	pbprod.Unscoped().First(&product, product.Id)
+	pbprod.Unscoped().First(&product, product.ID)
 	if product.PublishStatus {
 		t.Errorf("Product's publish status should be PUBLISHED when deleted from production db")
 	}

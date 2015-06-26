@@ -89,6 +89,7 @@ func (ac *controller) Create(context *Context) {
 		if errs := res.Decode(context, result); len(errs) == 0 {
 			res.CallSaver(result, context.Context)
 			responder.With("html", func() {
+				context.Flash(context.T("{{.Name}} was successfully created", res), "success")
 				primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
 				http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path, primaryKey), http.StatusFound)
 			}).With("json", func() {
@@ -102,13 +103,15 @@ func (ac *controller) Create(context *Context) {
 
 func (ac *controller) Update(context *Context) {
 	if context.CheckResourcePermission(roles.Update) {
+		res := context.Resource
 		if result, err := context.FindOne(); err == nil {
-			if errs := context.Resource.Decode(context, result); len(errs) == 0 {
-				if err := context.Resource.CallSaver(result, context.Context); err != nil {
+			if errs := res.Decode(context, result); len(errs) == 0 {
+				if err := res.CallSaver(result, context.Context); err != nil {
 					renderError(context, err)
 					return
 				}
 				responder.With("html", func() {
+					context.FlashNow(context.T("{{.Name}} was successfully updated", res), "success")
 					context.Execute("show", result)
 				}).With("json", func() {
 					res := context.Resource
