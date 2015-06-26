@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -33,12 +34,13 @@ func getEndpoint(option *media_library.Option) string {
 	if endpoint := option.Get("endpoint"); endpoint != "" {
 		return endpoint
 	}
+
 	return getBucket(option) + "." + S3Client.Config.Endpoint
 }
 
 func (s S3) GetURLTemplate(option *media_library.Option) (path string) {
 	if path = option.Get("URL"); path == "" {
-		path = "//" + getEndpoint(option) + "/{{class}}/{{primary_key}}/{{column}}/{{filename_with_hash}}"
+		path = "/{{class}}/{{primary_key}}/{{column}}/{{filename_with_hash}}"
 	}
 
 	return "//" + getEndpoint(option) + path
@@ -49,9 +51,11 @@ func (s S3) Store(url string, option *media_library.Option, reader io.Reader) er
 	reader.Read(buffer)
 	fileBytes := bytes.NewReader(buffer)
 
+	path := strings.Replace(url, "//"+getEndpoint(option), "", -1)
+
 	params := &s3.PutObjectInput{
 		Bucket:        aws.String(getBucket(option)), // required
-		Key:           aws.String(url),               // required
+		Key:           aws.String(path),              // required
 		ACL:           aws.String("public-read"),
 		Body:          fileBytes,
 		ContentLength: aws.Long(int64(fileBytes.Len())),
@@ -60,7 +64,6 @@ func (s S3) Store(url string, option *media_library.Option, reader io.Reader) er
 			"Key": aws.String("MetadataValue"), //required
 		},
 	}
-	// see more at http://godoc.org/github.com/aws/aws-sdk-go/service/s3#S3.PutObject
 
 	_, err := S3Client.PutObject(params)
 	return err
