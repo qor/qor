@@ -10,6 +10,7 @@ import (
 	"github.com/qor/qor/media_library/aliyun/config"
 	"github.com/sunfmin/ali-oss"
 	"log"
+	"strings"
 )
 
 type Aliyun struct {
@@ -34,7 +35,7 @@ func getEndpoint(option *media_library.Option) string {
 	if endpoint := option.Get("endpoint"); endpoint != "" {
 		return endpoint
 	}
-	return getBucket(option) + "." + config.AliOSSRegion + "." + "aliyuncs.com"
+	return getBucket(option) + "." + config.AliOSSRegion
 }
 
 func (s Aliyun) GetURLTemplate(option *media_library.Option) (path string) {
@@ -50,9 +51,11 @@ func (s Aliyun) GetURLTemplate(option *media_library.Option) (path string) {
 
 func (s Aliyun) Store(url string, option *media_library.Option, reader io.Reader) (err error) {
 
+	path := strings.Replace(url, "//"+getEndpoint(option), "", -1)
+
 	bucket := alioss.NewBucket(config.AliOSSBucket, alioss.BucketRegion(config.AliOSSRegion), aliossClient)
 
-	err = bucket.Put(url, reader, nil)
+	err = bucket.Put(path, reader, nil)
 
 	if err != nil {
 		return
