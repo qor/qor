@@ -434,8 +434,9 @@ func (context *Context) funcMap() template.FuncMap {
 
 		"logout_url": context.LogoutURL,
 
-		"t":  context.T,
-		"rt": context.RT,
+		"t":       context.T,
+		"rt":      context.RT,
+		"flashes": context.GetFlashes,
 	}
 
 	for key, value := range context.Admin.funcMaps {
