@@ -155,7 +155,8 @@
 
         built: function () {
           $modal.find('.qor-cropper-save').one('click', function () {
-            var cropData = $clone.cropper('getData');
+            var cropData = $clone.cropper('getData'),
+                url;
 
             data[key] = {
               x: Math.round(cropData.x),
@@ -164,7 +165,13 @@
               height: Math.round(cropData.height)
             };
 
-            _this.output($clone.cropper('getCroppedCanvas').toDataURL());
+            try {
+              url = $clone.cropper('getCroppedCanvas').toDataURL();
+            } catch (e) {
+              console.log(e.message);
+            }
+
+            _this.output(url);
             $modal.modal('hide');
           });
         }
@@ -178,7 +185,10 @@
     output: function (url) {
       var data = $.extend({}, this.data, this.options.data);
 
-      this.$image.attr('src', url);
+      if (url) {
+        this.$image.attr('src', url);
+      }
+
       this.$output.val(JSON.stringify(data));
     },
 
