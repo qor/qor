@@ -9,11 +9,10 @@ import (
 	"github.com/qor/qor/media_library"
 	"github.com/qor/qor/media_library/aliyun/config"
 	"github.com/sunfmin/ali-oss"
-	"log"
 	"strings"
 )
 
-type Aliyun struct {
+type OSS struct {
 	media_library.Base
 }
 
@@ -38,18 +37,17 @@ func getEndpoint(option *media_library.Option) string {
 	return getBucket(option) + "." + config.AliOSSRegion
 }
 
-func (s Aliyun) GetURLTemplate(option *media_library.Option) (path string) {
+func (s OSS) GetURLTemplate(option *media_library.Option) (path string) {
 	if path = option.Get("URL"); path == "" {
 		path = "/{{class}}/{{primary_key}}/{{column}}/{{filename_with_hash}}"
 	}
 
 	path = "//" + getEndpoint(option) + path
 
-	log.Printf("path = %+v\n", path)
 	return
 }
 
-func (s Aliyun) Store(url string, option *media_library.Option, reader io.Reader) (err error) {
+func (s OSS) Store(url string, option *media_library.Option, reader io.Reader) (err error) {
 
 	path := strings.Replace(url, "//"+getEndpoint(option), "", -1)
 
@@ -64,14 +62,14 @@ func (s Aliyun) Store(url string, option *media_library.Option, reader io.Reader
 	return
 }
 
-func (s Aliyun) Retrieve(url string) (*os.File, error) {
+func (s OSS) Retrieve(url string) (*os.File, error) {
 	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
 
-	if file, err := ioutil.TempFile("/tmp", "aliyun"); err == nil {
+	if file, err := ioutil.TempFile("/tmp", "OSS"); err == nil {
 		_, err := io.Copy(file, response.Body)
 		return file, err
 	} else {

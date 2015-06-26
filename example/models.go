@@ -42,7 +42,7 @@ type User struct {
 	Name         string
 	State        string
 	Avatar       media_library.FileSystem
-	AvatarAliyun aliyun.Aliyun
+	AvatarAliyun aliyun.OSS
 	Birthday     *time.Time
 	Description  string `sql:"size:622550"`
 	RoleID       uint
