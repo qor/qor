@@ -1,4 +1,4 @@
-package S3
+package aws
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/qor/qor/media_library"
 )
@@ -18,9 +19,24 @@ type S3 struct {
 }
 
 var S3Client *s3.S3
+var AwsRegion = os.Getenv("QOR_AWS_REGION")
+var AwsAccessKeyId = os.Getenv("QOR_AWS_ACCESS_KEY_ID")
+var AwsSecretAccessKey = os.Getenv("QOR_AWS_SECRET_ACCESS_KEY")
+var AwsSessionToken = os.Getenv("QOR_AWS_SESSION_TOKEN")
 
-func Init(bucket string, config *aws.Config) {
-	S3Client = s3.New(config)
+func s3client() *s3.S3 {
+	if S3Client == nil {
+		creds := credentials.NewStaticCredentials(AwsAccessKeyId, AwsSecretAccessKey, AwsSessionToken)
+
+		if _, err := creds.Get(); err == nil {
+			S3Client = s3.New(&aws.Config{
+				Region:      AwsRegion,
+				Credentials: creds,
+				LogLevel:    1,
+			})
+		}
+	}
+	return S3Client
 }
 
 func getBucket(option *media_library.Option) string {
@@ -70,7 +86,7 @@ func (s S3) Store(url string, option *media_library.Option, reader io.Reader) er
 }
 
 func (s S3) Retrieve(url string) (*os.File, error) {
-	response, err := http.Get(url)
+	response, err := http.Get("http:" + url)
 	if err != nil {
 		return nil, err
 	}
