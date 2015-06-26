@@ -365,9 +365,33 @@ func (context *Context) LogoutURL() string {
 	return ""
 }
 
-func (context *Context) funcMap() template.FuncMap {
+func (context *Context) T(key string, values ...interface{}) string {
 	locale := utils.GetLocale(context.GetContext())
 
+	if context.Admin.I18n == nil {
+		if result, err := cldr.Parse(locale, key, values...); err == nil {
+			return result
+		}
+		return key
+	} else {
+		return context.Admin.I18n.Scope("qor_admin").T(locale, key, values...)
+	}
+}
+
+func (context *Context) RT(resource *Resource, key string, values ...interface{}) string {
+	locale := utils.GetLocale(context.GetContext())
+
+	if context.Admin.I18n == nil {
+		if result, err := cldr.Parse(locale, key, values); err == nil {
+			return result
+		}
+		return key
+	} else {
+		return context.Admin.I18n.Scope(strings.Join([]string{"qor_admin", resource.ToParam()}, ".")).T(locale, key, values...)
+	}
+}
+
+func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"equal": Equal,
 
@@ -410,27 +434,8 @@ func (context *Context) funcMap() template.FuncMap {
 
 		"logout_url": context.LogoutURL,
 
-		"t": func(key string, values ...interface{}) string {
-			if context.Admin.I18n == nil {
-				if result, err := cldr.Parse(locale, key, values...); err == nil {
-					return result
-				}
-				return key
-			} else {
-				return context.Admin.I18n.Scope("qor_admin").T(locale, key, values...)
-			}
-		},
-
-		"rt": func(resource *Resource, key string, values ...interface{}) string {
-			if context.Admin.I18n == nil {
-				if result, err := cldr.Parse(locale, key, values); err == nil {
-					return result
-				}
-				return key
-			} else {
-				return context.Admin.I18n.Scope(strings.Join([]string{"qor_admin", resource.ToParam()}, ".")).T(locale, key, values...)
-			}
-		},
+		"t":  context.T,
+		"rt": context.RT,
 	}
 
 	for key, value := range context.Admin.funcMaps {
