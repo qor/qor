@@ -52,7 +52,7 @@ func (b *Base) Scan(data interface{}) (err error) {
 	switch values := data.(type) {
 	case *os.File:
 		b.FileHeader = &fileWrapper{values}
-		b.FileName = values.Name()
+		b.FileName = path.Base(values.Name())
 		b.Valid = true
 	case []*multipart.FileHeader:
 		if len(values) > 0 {
