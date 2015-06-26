@@ -151,6 +151,8 @@
         background: false,
         zoomable: false,
         rotatable: false,
+        checkImageOrigin: false,
+
         built: function () {
           $modal.find('.qor-cropper-save').one('click', function () {
             var cropData = $clone.cropper('getData');
