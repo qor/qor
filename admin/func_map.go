@@ -147,11 +147,11 @@ func (context *Context) IsIncluded(value interface{}, primaryKey interface{}) bo
 	reflectValue := reflect.Indirect(reflect.ValueOf(value))
 	if reflectValue.Kind() == reflect.Slice {
 		for i := 0; i < reflectValue.Len(); i++ {
-			if reflectValue.Index(i).Kind() == reflect.Struct {
-				scope := &gorm.Scope{Value: reflectValue.Index(i).Interface()}
-				primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
-			} else {
-				if reflectValue.Index(i).IsValid() {
+			if value := reflectValue.Index(i); value.IsValid() {
+				if reflect.Indirect(value).Kind() == reflect.Struct {
+					scope := &gorm.Scope{Value: reflectValue.Index(i).Interface()}
+					primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
+				} else {
 					primaryKeys = append(primaryKeys, reflect.Indirect(reflectValue.Index(i)).Interface())
 				}
 			}
