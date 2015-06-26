@@ -16,12 +16,15 @@ type Size struct {
 	Height int
 }
 
+type URLTemplater interface {
+	GetURLTemplate(*Option) string
+}
 type MediaLibrary interface {
 	Scan(value interface{}) error
 	Value() (driver.Value, error)
 
 	GetURLTemplate(*Option) string
-	GetURL(option *Option, scope *gorm.Scope, field *gorm.Field) string
+	GetURL(option *Option, scope *gorm.Scope, field *gorm.Field, templater URLTemplater) string
 
 	GetFileHeader() fileHeader
 	GetFileName() string

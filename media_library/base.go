@@ -130,8 +130,8 @@ func getFuncMap(scope *gorm.Scope, field *gorm.Field, filename string) template.
 	}
 }
 
-func (b Base) GetURL(option *Option, scope *gorm.Scope, field *gorm.Field) string {
-	if path := b.GetURLTemplate(option); path != "" {
+func (b Base) GetURL(option *Option, scope *gorm.Scope, field *gorm.Field, templater URLTemplater) string {
+	if path := templater.GetURLTemplate(option); path != "" {
 		tmpl := template.New("").Funcs(getFuncMap(scope, field, b.GetFileName()))
 		if tmpl, err := tmpl.Parse(path); err == nil {
 			var result = bytes.NewBufferString("")

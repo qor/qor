@@ -28,7 +28,7 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 						return
 					}
 
-					if url := media.GetURL(option, scope, field); url == "" {
+					if url := media.GetURL(option, scope, field, media); url == "" {
 						scope.Err(errors.New("invalid URL"))
 					} else {
 						result, _ := json.Marshal(map[string]string{"Url": url})
