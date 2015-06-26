@@ -6,19 +6,17 @@
     <link href="/assets/css/bookstore.css" rel="stylesheet" />
   </head>
   <body>
-    <h1>{{.title}}</h1>
-    <div class="booklist">
-      {{range $book := .books}}
-      <div class="book">
-        <a href="/books/{{$book.ID}}" class="title_link">{{$book.Title}}</a>
-        {{$book.Authors}}
-        {{range $author := $book.Authors}}
-          {{$author.Name}}
-        {{end}}
-        <p class="date">{{$book.ReleaseDate}}</p>
-        <p class="price">¥{{$book.Price}}</p>
+    <h1>{{.book.Title}}</h1>
+    <div class="book">
+      <div class="prodimg">
+       <img src="{{.book.CoverImage}}" />
       </div>
+      {{range $author := .book.Authors}}
+        {{$author.Name}}
       {{end}}
+      <p class="date">{{.book.ReleaseDate}}</p>
+      <p class="description">{{.book.Synopsis}}</p>
+      <p class="price">¥{{.book.Price}}</p>
     </div>
   </body>
 </html>

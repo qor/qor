@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,6 +14,7 @@ import (
 func main() {
 	// setting up QOR admin
 	Admin := admin.New(&qor.Config{DB: &db})
+
 	Admin.AddResource(
 		&Author{},
 		&admin.Config{Menu: []string{
@@ -31,37 +31,44 @@ func main() {
 		},
 	)
 
-	book.Meta(&admin.Meta{
-		Name: "Price",
-		Valuer: func(value interface{}, context *qor.Context) interface{} {
-			book := value.(*Book)
-			return fmt.Sprintf("¥%v", book.Price)
-		},
-	})
+	// book.Meta(&admin.Meta{
+	// 	Name: "Price",
+	// 	Valuer: func(value interface{}, context *qor.Context) interface{} {
+	// 		if value != nil {
+	// 			book := value.(*Book)
+	// 			return fmt.Sprintf("¥%v", book.Price)
+	// 		}
+	// 		return ""
+	// 	},
+	// })
 
-	book.Meta(&admin.Meta{
-		Name: "AuthorNames",
-		Valuer: func(value interface{}, context *qor.Context) interface{} {
-			book := value.(*Book)
-			if err := db.Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
-				panic(err)
-			}
+	// book.Meta(&admin.Meta{
+	// 	Name:  "Authors",
+	// 	Label: "Authors",
+	// 	Valuer: func(value interface{}, context *qor.Context) interface{} {
+	// 		if value == nil {
+	// 			return value
+	// 		}
+	// 		book := value.(*Book)
+	// 		if err := db.Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
+	// 			panic(err)
+	// 		}
 
-			log.Println(book.Authors)
-			var authors string
-			for i, author := range book.Authors {
-				log.Println("author.Name", author.Name)
-				if i >= 1 {
-					authors += ", "
-				}
-				authors += author.Name
-			}
-			return authors
-		},
-	})
+	// 		log.Println(book.Authors)
+	// 		var authors string
+	// 		for i, author := range book.Authors {
+	// 			log.Println("author.Name", author.Name)
+	// 			if i >= 1 {
+	// 				authors += ", "
+	// 			}
+	// 			authors += author.Name
+	// 		}
+	// 		return authors
+	// 	},
+	// })
 
 	// what fields should be displayed in the books list on admin
-	book.IndexAttrs("Title", "AuthorNames", "ReleaseDate", "Price")
+	book.IndexAttrs("Title", "Authors", "ReleaseDate", "Price")
 
 	// defines the edit field for authors of the book
 	book.Meta(&admin.Meta{Name: "Authors", Label: "Authors", Type: "select_many",
@@ -74,32 +81,18 @@ func main() {
 			return
 		},
 	})
-
-	// step 5
-	Admin.AddResource(
-		&User{},
-		&admin.Config{
-			Menu: []string{"User Management"},
-			Name: "Users",
-		},
-	)
+	// book.EditAttrs("Title", "EditAuthors", "Synopsis", "ReleaseDate", "Price")
 
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)
 
-	// Chapter 3: serve static files
-	mux.Handle(
-		"/system/",
-		http.FileServer(http.Dir("public")),
-	)
-	mux.Handle(
-		"/assets/",
-		http.FileServer(http.Dir("public")),
-	)
-
 	// frontend routes
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
+
+	// Chapter 3: serve static files
+	router.StaticFS("/system/", http.Dir("public/system"))
+	router.StaticFS("/assets/", http.Dir("public/assets"))
 
 	// all books - listing
 	router.GET("/books", func(ctx *gin.Context) {
@@ -120,7 +113,7 @@ func main() {
 	})
 
 	// single book - product page
-	router.GET("/book/:id", func(ctx *gin.Context) {
+	router.GET("/books/:id", func(ctx *gin.Context) {
 		id, err := strconv.ParseUint(ctx.Params.ByName("id"), 10, 64)
 		if err != nil {
 			panic(err)
@@ -147,7 +140,7 @@ func main() {
 	// handle login and logout of users
 	Admin.SetAuth(&Auth{})
 
-	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
 		var user User
 
 		if request.Method == "POST" {
@@ -155,7 +148,7 @@ func main() {
 			if !db.First(&user, "name = ?", request.Form.Get("username")).RecordNotFound() {
 				cookie := http.Cookie{Name: "userid", Value: fmt.Sprintf("%v", user.ID), Expires: time.Now().AddDate(1, 0, 0)}
 				http.SetCookie(writer, &cookie)
-				writer.Write([]byte("<html><body>logged as `" + user.Name + "`, go <a href='/admin'>admin</a></body></html>"))
+				writer.Write([]byte("<html><body>logged in as `" + user.Name + "`, go to <a href='/admin'>admin</a></body></html>"))
 			} else {
 				http.Redirect(writer, request, "/login?failed_to_login", 301)
 			}
