@@ -10,6 +10,7 @@ import (
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/media_library"
+	"github.com/qor/qor/media_library/aliyun"
 	"github.com/qor/qor/publish"
 )
 
@@ -41,6 +42,7 @@ type User struct {
 	Name         string
 	State        string
 	Avatar       media_library.FileSystem
+	AvatarAliyun aliyun.Aliyun
 	Birthday     *time.Time
 	Description  string `sql:"size:622550"`
 	RoleID       uint
