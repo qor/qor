@@ -20,7 +20,7 @@ func init() {
 	pbdraft = pb.DraftDB()
 	pbprod = pb.ProductionDB()
 
-	for _, table := range []string{"products", "products_draft", "colors"} {
+	for _, table := range []string{"products", "products_draft", "colors", "categories", "product_categories", "product_categories_draft"} {
 		pbprod.Exec(fmt.Sprintf("drop table %v", table))
 	}
 	pbprod.AutoMigrate(&Product{}, &Color{}, &Category{})

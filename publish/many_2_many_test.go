@@ -2,15 +2,40 @@ package publish_test
 
 import "testing"
 
-func TestPublishManyToMany(t *testing.T) {
+func TestPublishManyToManyFromProduction(t *testing.T) {
 	name := "create_product_with_multi_categories_from_production"
-	// pbdraft.Debug().Create(&Product{
-	// 	Name:       name,
-	// 	Categories: []Category{{Name: "category1"}, {Name: "category2"}},
-	// })
-
-	pbprod.Debug().Create(&Product{
+	pbprod.Create(&Product{
 		Name:       name,
 		Categories: []Category{{Name: "category1"}, {Name: "category2"}},
 	})
+
+	var product Product
+	pbprod.First(&product, "name = ?", name)
+
+	if pbprod.Model(&product).Association("Categories").Count() != 2 {
+		t.Errorf("create product with categories")
+	}
+
+	if pbdraft.Model(&product).Association("Categories").Count() != 2 {
+		t.Errorf("create product with categories")
+	}
+}
+
+func TestPublishManyToManyFromDraft(t *testing.T) {
+	name := "create_product_with_multi_categories_from_draft"
+	pbdraft.Create(&Product{
+		Name:       name,
+		Categories: []Category{{Name: "category1"}, {Name: "category2"}},
+	})
+
+	var product Product
+	pbdraft.First(&product, "name = ?", name)
+
+	if pbprod.Model(&product).Association("Categories").Count() != 0 {
+		t.Errorf("create product with categories")
+	}
+
+	if pbdraft.Model(&product).Association("Categories").Count() != 2 {
+		t.Errorf("create product with categories")
+	}
 }
