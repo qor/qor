@@ -124,7 +124,8 @@
 
       this.built = true;
 
-      this.$cropper = $cropper = $(QorCropper.TEMPLATE).prepend(this.$image).appendTo(this.$parent);
+      this.$cropper = $cropper = $(QorCropper.TEMPLATE).appendTo(this.$parent);
+      this.$canvas = $cropper.find('.qor-cropper-canvas').html(this.$image);
       this.$toggle = $toggle = $cropper.find('.qor-cropper-toggle');
       this.$modal = $modal = $cropper.find('.qor-cropper-modal');
 
@@ -165,6 +166,9 @@
               height: Math.round(cropData.height)
             };
 
+            _this.imageData = $clone.cropper('getImageData');
+            _this.cropData = cropData;
+
             try {
               url = $clone.cropper('getCroppedCanvas').toDataURL();
             } catch (e) {
@@ -183,13 +187,53 @@
     },
 
     output: function (url) {
-      var data = $.extend({}, this.data, this.options.data);
+      var outputData = $.extend({}, this.data, this.options.data);
 
       if (url) {
         this.$image.attr('src', url);
+      } else {
+        this.preview();
       }
 
-      this.$output.val(JSON.stringify(data));
+      this.$output.val(JSON.stringify(outputData));
+    },
+
+    preview: function () {
+      var $cropper = this.$cropper,
+          containerWidth = Math.max($cropper.width(), 320), // minContainerWidth: 320
+          containerHeight = Math.max($cropper.height(), 180), // minContainerHeight: 180
+          imageData = this.imageData,
+          cropData = this.cropData,
+          newAspectRatio = cropData.width / cropData.height,
+          newWidth = containerWidth,
+          newHeight = containerHeight,
+          newRatio;
+
+      if (containerHeight * newAspectRatio > containerWidth) {
+        newHeight = newWidth / newAspectRatio;
+      } else {
+        newWidth = newHeight * newAspectRatio;
+      }
+
+      newRatio = cropData.width / newWidth;
+
+      $.each(cropData, function (i, n) {
+        cropData[i] = n / newRatio;
+      });
+
+      this.$canvas.css({
+        width: cropData.width,
+        height: cropData.height
+      });
+
+      this.$image.css({
+        width: imageData.naturalWidth / newRatio,
+        height: imageData.naturalHeight / newRatio,
+        maxWidth: 'none',
+        maxHeight: 'none',
+        marginLeft: -cropData.x,
+        marginTop: -cropData.y
+      });
     },
 
     destroy: function () {
@@ -212,7 +256,8 @@
 
   QorCropper.TEMPLATE = (
     '<div class="qor-cropper">' +
-      '<a class="qor-cropper-toggle" title="Crop the image"><span class="sr-only">Toggle Cropper<span></a>' +
+      '<div class="qor-cropper-canvas"></div>' +
+      '<a class="qor-cropper-toggle" title="Crop the image"><span class="sr-only">Toggle Cropper</span></a>' +
       '<div class="modal fade qor-cropper-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
         '<div class="modal-dialog">' +
           '<div class="modal-content">' +

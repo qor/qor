@@ -3,10 +3,17 @@
   display: block;
   margin-top: 20px;
   margin-bottom: 20px;
-  max-width: 320px;
-  max-height: 180px;
+  width: 320px;
   overflow: hidden;
   background-color: #fafafa;
+}
+
+.qor-cropper-canvas {
+  position: relative;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
 
   > img {
     display: block;
