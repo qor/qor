@@ -223,19 +223,54 @@ func (resolver *Resolver) Discard() error {
 			}
 		}
 
-		var productionColumns []string
+		var productionColumns, draftColumns []string
 		for _, column := range columns {
 			productionColumns = append(productionColumns, fmt.Sprintf("%v.%v", productionTable, column))
-		}
-
-		var draftColumns []string
-		for _, column := range columns {
 			draftColumns = append(draftColumns, fmt.Sprintf("%v.%v", draftTable, column))
 		}
 
+		// delete data from draft db
 		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
 		tx.Exec(deleteSql, toQueryValues(dependency.PrimaryValues)...)
 
+		// delete join table
+		for _, relationship := range dependency.ManyToManyRelations {
+			productionTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", false))
+			draftTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", true))
+			var productionJoinKeys, draftJoinKeys []string
+			var productionCondition, draftCondition string
+			for _, foreignKey := range relationship.JoinTableHandler.SourceForeignKeys() {
+				productionJoinKeys = append(productionJoinKeys, fmt.Sprintf("%v.%v", productionTable, productionScope.Quote(foreignKey.DBName)))
+				draftJoinKeys = append(draftJoinKeys, fmt.Sprintf("%v.%v", draftTable, productionScope.Quote(foreignKey.DBName)))
+			}
+
+			if len(productionJoinKeys) > 1 {
+				productionCondition = fmt.Sprintf("(%v)", strings.Join(productionJoinKeys, ","))
+				draftCondition = fmt.Sprintf("(%v)", strings.Join(draftJoinKeys, ","))
+			} else {
+				productionCondition = strings.Join(productionJoinKeys, ",")
+				draftCondition = strings.Join(draftJoinKeys, ",")
+			}
+
+			rows, _ := tx.Raw(fmt.Sprintf("select * from %v", draftTable)).Rows()
+			joinColumns, _ := rows.Columns()
+			rows.Close()
+			var productionJoinTableColumns, draftJoinTableColumns []string
+			for _, column := range joinColumns {
+				productionJoinTableColumns = append(productionJoinTableColumns, fmt.Sprintf("%v.%v", productionTable, column))
+				draftJoinTableColumns = append(draftJoinTableColumns, fmt.Sprintf("%v.%v", draftTable, column))
+			}
+
+			sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftCondition, toQueryMarks(dependency.PrimaryValues))
+			tx.Exec(sql, toQueryValues(dependency.PrimaryValues)...)
+
+			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
+				draftTable, strings.Join(draftJoinTableColumns, " ,"), strings.Join(productionJoinTableColumns, " ,"),
+				productionTable, productionCondition, toQueryMarks(dependency.PrimaryValues))
+			tx.Exec(publishSql, toQueryValues(dependency.PrimaryValues)...)
+		}
+
+		// copy data from production to draft
 		discardSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 			draftTable, strings.Join(draftColumns, " ,"),
 			strings.Join(productionColumns, " ,"), productionTable,
