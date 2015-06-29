@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/jinzhu/gorm"
 )
 
 type Resolver struct {
@@ -14,13 +16,13 @@ type Resolver struct {
 }
 
 type Dependency struct {
-	Type        reflect.Type
-	PrimaryKeys []string
+	Type          reflect.Type
+	PrimaryValues [][]interface{}
 }
 
-func IncludeValue(value string, values []string) bool {
+func IncludeValue(value []interface{}, values [][]interface{}) bool {
 	for _, v := range values {
-		if v == value {
+		if fmt.Sprintf("%v", v) == fmt.Sprintf("%v", value) {
 			return true
 		}
 	}
@@ -29,19 +31,19 @@ func IncludeValue(value string, values []string) bool {
 
 func (resolver *Resolver) AddDependency(dependency *Dependency) {
 	name := dependency.Type.String()
-	var newPrimaryKeys []string
+	var newPrimaryKeys [][]interface{}
 
 	// append primary keys to dependency
 	if dep, ok := resolver.Dependencies[name]; ok {
-		for _, primaryKey := range dependency.PrimaryKeys {
-			if !IncludeValue(primaryKey, dep.PrimaryKeys) {
+		for _, primaryKey := range dependency.PrimaryValues {
+			if !IncludeValue(primaryKey, dep.PrimaryValues) {
 				newPrimaryKeys = append(newPrimaryKeys, primaryKey)
-				dep.PrimaryKeys = append(dep.PrimaryKeys, primaryKey)
+				dep.PrimaryValues = append(dep.PrimaryValues, primaryKey)
 			}
 		}
 	} else {
 		resolver.Dependencies[name] = dependency
-		newPrimaryKeys = dependency.PrimaryKeys
+		newPrimaryKeys = dependency.PrimaryValues
 	}
 
 	if len(newPrimaryKeys) > 0 {
@@ -49,7 +51,7 @@ func (resolver *Resolver) AddDependency(dependency *Dependency) {
 	}
 }
 
-func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []string) {
+func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys [][]interface{}) {
 	value := reflect.New(dependency.Type)
 	fromScope := resolver.DB.DB.NewScope(value.Interface())
 
@@ -60,7 +62,7 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 				toType := modelType(field.Field.Interface())
 				toScope := draftDB.NewScope(reflect.New(toType).Interface())
 				draftTable := DraftTableName(toScope.TableName())
-				var dependencyKeys []string
+				var dependencyKeys [][]interface{}
 				var rows *sql.Rows
 				var err error
 
@@ -83,12 +85,12 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 
 				if rows != nil && err == nil {
 					for rows.Next() {
-						var primaryKey interface{}
-						rows.Scan(&primaryKey)
-						dependencyKeys = append(dependencyKeys, fmt.Sprintf("%v", primaryKey))
+						var primaryValues = make([]interface{}, len(toScope.PrimaryFields()))
+						rows.Scan(primaryValues...)
+						dependencyKeys = append(dependencyKeys, primaryValues)
 					}
 
-					dependency := Dependency{Type: toType, PrimaryKeys: dependencyKeys}
+					dependency := Dependency{Type: toType, PrimaryValues: dependencyKeys}
 					resolver.AddDependency(&dependency)
 				}
 			}
@@ -100,7 +102,11 @@ func (resolver *Resolver) GenerateDependencies() {
 	for _, record := range resolver.Records {
 		if IsPublishableModel(record) {
 			scope := resolver.DB.DB.NewScope(record)
-			dependency := Dependency{Type: modelType(record), PrimaryKeys: []string{fmt.Sprintf("%v", scope.PrimaryKeyValue())}}
+			var primaryValues []interface{}
+			for _, field := range scope.PrimaryFields() {
+				primaryValues = append(primaryValues, field.Field.Interface())
+			}
+			dependency := Dependency{Type: modelType(record), PrimaryValues: [][]interface{}{primaryValues}}
 			resolver.AddDependency(&dependency)
 		}
 	}
@@ -114,7 +120,7 @@ func (resolver *Resolver) Publish() error {
 		value := reflect.New(dependency.Type).Elem()
 		productionScope := resolver.DB.ProductionDB().NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
-		primaryKey := productionScope.PrimaryKey()
+		primaryKey := scopePrimaryKeys(productionScope)
 		draftTable := DraftTableName(productionTable)
 
 		var columns []string
@@ -134,17 +140,20 @@ func (resolver *Resolver) Publish() error {
 			draftColumns = append(draftColumns, fmt.Sprintf("%v.%v", draftTable, column))
 		}
 
-		if len(dependency.PrimaryKeys) > 0 {
-			deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (?)", productionTable, productionTable, primaryKey)
-			tx.Exec(deleteSql, dependency.PrimaryKeys)
+		if len(dependency.PrimaryValues) > 0 {
+			deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (%v)", productionTable, productionTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
+			tx.Exec(deleteSql, toQueryValues(dependency.PrimaryValues)...)
 
-			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (?)",
+			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (%v)",
 				productionTable, strings.Join(productionColumns, " ,"), strings.Join(draftColumns, " ,"),
-				draftTable, draftTable, primaryKey)
-			tx.Exec(publishSql, dependency.PrimaryKeys)
+				draftTable, draftTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
+			tx.Exec(publishSql, toQueryValues(dependency.PrimaryValues)...)
 
-			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v.%v IN (?)", draftTable, draftTable, primaryKey)
-			tx.Exec(updateStateSql, bool(PUBLISHED), dependency.PrimaryKeys)
+			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v.%v IN (%v)", draftTable, draftTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
+
+			var params = []interface{}{bool(PUBLISHED)}
+			params = append(params, toQueryValues(dependency.PrimaryValues)...)
+			tx.Exec(updateStateSql, params...)
 		}
 	}
 
@@ -164,8 +173,9 @@ func (resolver *Resolver) Discard() error {
 		value := reflect.New(dependency.Type).Elem()
 		productionScope := resolver.DB.ProductionDB().NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
-		primaryKey := productionScope.PrimaryKey()
 		draftTable := DraftTableName(productionTable)
+
+		primaryKey := scopePrimaryKeys(productionScope)
 
 		var columns []string
 		for _, field := range productionScope.Fields() {
@@ -184,13 +194,14 @@ func (resolver *Resolver) Discard() error {
 			draftColumns = append(draftColumns, fmt.Sprintf("%v.%v", draftTable, column))
 		}
 
-		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (?)", draftTable, draftTable, primaryKey)
-		tx.Exec(deleteSql, dependency.PrimaryKeys)
+		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
+		tx.Exec(deleteSql, toQueryValues(dependency.PrimaryValues)...)
 
-		discardSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (?)",
-			draftTable, strings.Join(draftColumns, " ,"), strings.Join(productionColumns, " ,"),
-			productionTable, productionTable, primaryKey)
-		tx.Exec(discardSql, dependency.PrimaryKeys)
+		discardSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
+			draftTable, strings.Join(draftColumns, " ,"),
+			strings.Join(productionColumns, " ,"), productionTable,
+			primaryKey, toQueryMarks(dependency.PrimaryValues))
+		tx.Exec(discardSql, toQueryValues(dependency.PrimaryValues)...)
 	}
 
 	if err := tx.Error; err == nil {
@@ -199,4 +210,43 @@ func (resolver *Resolver) Discard() error {
 		tx.Rollback()
 		return err
 	}
+}
+
+func scopePrimaryKeys(scope *gorm.Scope) string {
+	var primaryKeys []string
+	for _, field := range scope.PrimaryFields() {
+		key := fmt.Sprintf("%v", scope.Quote(field.DBName))
+		primaryKeys = append(primaryKeys, key)
+	}
+	if len(primaryKeys) > 1 {
+		return fmt.Sprintf("(%v)", strings.Join(primaryKeys, ","))
+	}
+	return strings.Join(primaryKeys, "")
+}
+
+func toQueryMarks(primaryValues [][]interface{}) string {
+	var results []string
+
+	for _, primaryValue := range primaryValues {
+		var marks []string
+		for range primaryValue {
+			marks = append(marks, "?")
+		}
+
+		if len(marks) > 1 {
+			results = append(results, fmt.Sprintf("(%v)", strings.Join(marks, ",")))
+		} else {
+			results = append(results, strings.Join(marks, ""))
+		}
+	}
+	return strings.Join(results, ",")
+}
+
+func toQueryValues(primaryValues [][]interface{}) (values []interface{}) {
+	for _, primaryValue := range primaryValues {
+		for _, value := range primaryValue {
+			values = append(values, value)
+		}
+	}
+	return values
 }
