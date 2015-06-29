@@ -16,8 +16,9 @@ type Resolver struct {
 }
 
 type Dependency struct {
-	Type          reflect.Type
-	PrimaryValues [][]interface{}
+	Type                reflect.Type
+	ManyToManyRelations []*gorm.Relationship
+	PrimaryValues       [][]interface{}
 }
 
 func IncludeValue(value []interface{}, values [][]interface{}) bool {
@@ -79,8 +80,6 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 						toTable, toPrimaryKey, fromTable, relationship.ForeignDBName, fromTable, fromTable, fromPrimaryKey, toTable)
 
 					rows, err = draftDB.Table(draftTable).Select(toTable+"."+toPrimaryKey).Where(sql, primaryKeys, DIRTY).Rows()
-				} else if relationship.Kind == "many_to_many" {
-					relationship.JoinTableHandler.Table(draftDB)
 				}
 
 				if rows != nil && err == nil {
@@ -92,6 +91,10 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 
 					dependency := Dependency{Type: toType, PrimaryValues: dependencyKeys}
 					resolver.AddDependency(&dependency)
+				}
+			} else {
+				if relationship.Kind == "many_to_many" {
+					dependency.ManyToManyRelations = append(dependency.ManyToManyRelations, relationship)
 				}
 			}
 		}
@@ -130,26 +133,62 @@ func (resolver *Resolver) Publish() error {
 			}
 		}
 
-		var productionColumns []string
+		var productionColumns, draftColumns []string
 		for _, column := range columns {
 			productionColumns = append(productionColumns, fmt.Sprintf("%v.%v", productionTable, column))
-		}
-
-		var draftColumns []string
-		for _, column := range columns {
 			draftColumns = append(draftColumns, fmt.Sprintf("%v.%v", draftTable, column))
 		}
 
 		if len(dependency.PrimaryValues) > 0 {
+			// delete old records
 			deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (%v)", productionTable, productionTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
 			tx.Exec(deleteSql, toQueryValues(dependency.PrimaryValues)...)
 
+			// insert new records
 			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (%v)",
 				productionTable, strings.Join(productionColumns, " ,"), strings.Join(draftColumns, " ,"),
 				draftTable, draftTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
 			tx.Exec(publishSql, toQueryValues(dependency.PrimaryValues)...)
 
-			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v.%v IN (%v)", draftTable, draftTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
+			// publish join table data
+			for _, relationship := range dependency.ManyToManyRelations {
+				productionTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", false))
+				draftTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", true))
+				var productionJoinKeys, draftJoinKeys []string
+				var productionCondition, draftCondition string
+				for _, foreignKey := range relationship.JoinTableHandler.SourceForeignKeys() {
+					productionJoinKeys = append(productionJoinKeys, fmt.Sprintf("%v.%v", productionTable, productionScope.Quote(foreignKey.DBName)))
+					draftJoinKeys = append(draftJoinKeys, fmt.Sprintf("%v.%v", draftTable, productionScope.Quote(foreignKey.DBName)))
+				}
+
+				if len(productionJoinKeys) > 1 {
+					productionCondition = fmt.Sprintf("(%v)", strings.Join(productionJoinKeys, ","))
+					draftCondition = fmt.Sprintf("(%v)", strings.Join(draftJoinKeys, ","))
+				} else {
+					productionCondition = strings.Join(productionJoinKeys, ",")
+					draftCondition = strings.Join(draftJoinKeys, ",")
+				}
+
+				rows, _ := tx.Raw(fmt.Sprintf("select * from %v", draftTable)).Rows()
+				joinColumns, _ := rows.Columns()
+				rows.Close()
+				var productionJoinTableColumns, draftJoinTableColumns []string
+				for _, column := range joinColumns {
+					productionJoinTableColumns = append(productionJoinTableColumns, fmt.Sprintf("%v.%v", productionTable, column))
+					draftJoinTableColumns = append(draftJoinTableColumns, fmt.Sprintf("%v.%v", draftTable, column))
+				}
+
+				sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionCondition, toQueryMarks(dependency.PrimaryValues))
+				tx.Exec(sql, toQueryValues(dependency.PrimaryValues)...)
+
+				publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
+					productionTable, strings.Join(productionJoinTableColumns, " ,"), strings.Join(draftJoinTableColumns, " ,"),
+					draftTable, draftCondition, toQueryMarks(dependency.PrimaryValues))
+				tx.Exec(publishSql, toQueryValues(dependency.PrimaryValues)...)
+			}
+
+			// set status to published
+			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v IN (%v)", draftTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
 
 			var params = []interface{}{bool(PUBLISHED)}
 			params = append(params, toQueryValues(dependency.PrimaryValues)...)
