@@ -13,11 +13,11 @@ func TestPublishManyToManyFromProduction(t *testing.T) {
 	pbprod.First(&product, "name = ?", name)
 
 	if pbprod.Model(&product).Association("Categories").Count() != 2 {
-		t.Errorf("create product with categories")
+		t.Errorf("categories count should be 2 in production db")
 	}
 
 	if pbdraft.Model(&product).Association("Categories").Count() != 2 {
-		t.Errorf("create product with categories")
+		t.Errorf("categories count should be 2 in draft db")
 	}
 }
 
@@ -32,10 +32,20 @@ func TestPublishManyToManyFromDraft(t *testing.T) {
 	pbdraft.First(&product, "name = ?", name)
 
 	if pbprod.Model(&product).Association("Categories").Count() != 0 {
-		t.Errorf("create product with categories")
+		t.Errorf("categories count should be 0 in production db")
 	}
 
 	if pbdraft.Model(&product).Association("Categories").Count() != 2 {
-		t.Errorf("create product with categories")
+		t.Errorf("categories count should be 2 in draft db")
+	}
+
+	pb.Publish(&product)
+
+	if pbprod.Model(&product).Association("Categories").Count() != 2 {
+		t.Errorf("categories count should be 2 in production db after publish")
+	}
+
+	if pbdraft.Model(&product).Association("Categories").Count() != 2 {
+		t.Errorf("categories count should be 2 in draft db after publish")
 	}
 }
