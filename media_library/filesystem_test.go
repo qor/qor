@@ -34,7 +34,7 @@ func TestSaveIntoFileSystem(t *testing.T) {
 
 			var newUser User
 			db.First(&newUser, user.ID)
-			newUser.Avatar.Scan(`{"CropOption": {"X": 5, "Y": 5, "Height": 10, "Width": 10}, "Crop": true}`)
+			newUser.Avatar.Scan(`{"CropOptions": {"original": {"X": 5, "Y": 5, "Height": 10, "Width": 10}}, "Crop": true}`)
 			db.Save(&newUser)
 
 			if newUser.Avatar.URL() == user.Avatar.URL() {

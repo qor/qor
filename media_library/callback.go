@@ -15,7 +15,7 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 		for _, field := range scope.Fields() {
 			if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok {
 				option := parseTagOption(field.Tag.Get("media_library"))
-				if media.GetFileHeader() != nil || media.GetCropOption() != nil {
+				if media.GetFileHeader() != nil || media.NeedCrop() {
 					var file multipart.File
 					var err error
 					if fileHeader := media.GetFileHeader(); fileHeader != nil {
@@ -52,7 +52,7 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 								// Crop & Resize
 								if img, err := imaging.Decode(file); scope.Err(err) == nil {
 									if format, err := getImageFormat(media.URL()); scope.Err(err) == nil {
-										if cropOption := media.GetCropOption(); cropOption != nil {
+										if cropOption := media.GetCropOption("original"); cropOption != nil {
 											img = imaging.Crop(img, *cropOption)
 										}
 
@@ -62,6 +62,10 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 										media.Store(media.URL(), option, &buffer)
 
 										for key, size := range media.GetSizes() {
+											if cropOption := media.GetCropOption(key); cropOption != nil {
+												img = imaging.Crop(img, *cropOption)
+											}
+
 											dst := imaging.Resize(img, size.Width, size.Height, imaging.Lanczos)
 											var buffer bytes.Buffer
 											imaging.Encode(&buffer, dst, *format)
