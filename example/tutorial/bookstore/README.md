@@ -1,22 +1,26 @@
-# qor tutorial
+# Tutorial
 
-## Intro
-
-QOR is a set of modules to <INSERT> written in go.
+This tutorial shows you
 
 ## Prerequisites
 
 * GoLang 1.x+ (at the time of writing I am using >=1.4.0 versions)
+* Install qor:
 
-* Install qor `git clone https://github.com/qor/qor.git`
+    go get github.com/qor/qor
 
 NB: I you clone qor and use it from your own account you will have to create a symlink like this:
 
     go/src/github.com/qor [qor] $ ln -s ../YOUR_GITHUB_USRNAME/qor/ qor
 
 * A database - for example PostgreSQL or MySQL
+* Install dependencies: cd into the qor source directory and run
 
-* go into the qor source directory and run `go get .`
+    go get ./...
+
+* Install Gin - QOR does not require gin, but we use :
+
+    go get github.com/gin-gonic/gin
 
 * [Optional: fresh](https://github.com/pilu/fresh) being installed:
 
@@ -24,30 +28,36 @@ NB: I you clone qor and use it from your own account you will have to create a s
 
 fresh is not necessary to use qor, but it will make your life easier when playing with the tutorial: it monitors for file changes and automatically recompiles your code every time something has changed.
 
-## A bookstore
-
-We want to create a simple bookstore application. We will start by building a catalog of books and then later add a storefront that can take orders from users that can then be processed in a backoffice application by the store owner.
 
 ### Create a database and a db user for the tutorial
 
 Before we dive into our models we need to create a database:
 
-    mysql> DROP DATABASE IF EXISTS qor_bookstore;
     mysql> CREATE DATABASE qor_bookstore DEFAULT CHARACTER SET utf8mb4;
+    Query OK, 1 row affected (0.16 sec)
 
-    mysql> CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
-    mysql> CREATE USER 'qor'@'%' IDENTIFIED BY 'qor';
-
+    mysql> CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor'; -- some versions don't like this use the next line instead
+    mysql> CREATE USER 'qor'@'%' IDENTIFIED BY 'qor';         -- some versions don't like this use the previous line instead
+    Query OK, 0 rows affected (0.00 sec)
 
     mysql> GRANT ALL ON qor_bookstore.* TO 'qor'@'localhost';
+    Query OK, 0 rows affected (0.00 sec)
+
     mysql> FLUSH PRIVILEGES;
+    Query OK, 0 rows affected (0.00 sec)
 
 You should now be able to connect to your database from the console like this:
 
     $ mysql -uqor -p --database qor_bookstore
 
 
-    INSERT INTO users (name) VALUES ("admin");
+## Get Started
+
+We want to create a simple bookstore application. We will start by building a catalog of books and then later add a storefront. We will then add a staging environment so that editors can preview their changes and then publish them to a live system.
+
+Later we will add L10n/I18n support and look at roles for the editorial process.
+
+Continuous TODO: Add the next planned steps for the tutorial here.
 
 ### Create the basic models
 
