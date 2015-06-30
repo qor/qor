@@ -15,6 +15,8 @@ While nearing API freeze our other main focus is building up API documentation f
 
 ### What QOR is not
 
+TODO
+
 ## The modules
 
 * Admin - The heart of any QOR system, where you manage all you resources
@@ -41,7 +43,16 @@ While nearing API freeze our other main focus is building up API documentation f
 
 [![GoDoc](https://godoc.org/github.com/qor/qor?status.svg)](https://godoc.org/github.com/qor/qor)
 
-
+* [ ] Admin
+* [ ] Publish
+* [ ] Transition
+* [ ] Media Library
+* [ ] Worker
+* [ ] Exchange
+* [ ] Internationalization (i18n)
+* [ ] Localization (l10n)
+* [ ] Roles
+* [ ] Layout
 
 
 ## Tutorial
