@@ -16,6 +16,7 @@ type Author struct {
 	// // step 6- maybe...: l10n
 	// ShortBiography string
 	// l10n.Locale
+	// publish.Status
 }
 
 type Book struct {
@@ -33,13 +34,14 @@ type Book struct {
 	// CoverImages []ProductImage // product image has BookId => handles relation
 
 	// tutorial step 4 - translation
-
+	// publish.Status
 }
 
 type ProductImage struct {
 	gorm.Model
 	BookId     uint
 	CoverImage media_library.FileSystem
+	// publish.Status
 }
 
 // step 4 - add users
@@ -72,6 +74,9 @@ func init() {
 	// step 5:
 	db.AutoMigrate(&Author{}, &Book{}, &User{})
 	db.LogMode(true)
+
+	// publish := publish.New(&DB)
+	// publish.AutoMigrate(&Product{})
 
 	// step 4
 	l10n.RegisterCallbacks(&db)

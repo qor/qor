@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -14,6 +14,16 @@ import (
 func main() {
 	// setting up QOR admin
 	Admin := admin.New(&qor.Config{DB: &db})
+	// Admin := admin.New(&qor.Config{DB: Publish.DraftDB()})
+	// Admin.AddResource(Publish)
+
+	Admin.AddResource(
+		&User{},
+		&admin.Config{
+			Menu: []string{"User Management"},
+			Name: "Users",
+		},
+	)
 
 	Admin.AddResource(
 		&Author{},
@@ -31,57 +41,54 @@ func main() {
 		},
 	)
 
-	// book.Meta(&admin.Meta{
-	// 	Name: "Price",
-	// 	Valuer: func(value interface{}, context *qor.Context) interface{} {
-	// 		if value != nil {
-	// 			book := value.(*Book)
-	// 			return fmt.Sprintf("¥%v", book.Price)
-	// 		}
-	// 		return ""
-	// 	},
-	// })
-
-	// book.Meta(&admin.Meta{
-	// 	Name:  "Authors",
-	// 	Label: "Authors",
-	// 	Valuer: func(value interface{}, context *qor.Context) interface{} {
-	// 		if value == nil {
-	// 			return value
-	// 		}
-	// 		book := value.(*Book)
-	// 		if err := db.Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
-	// 			panic(err)
-	// 		}
-
-	// 		log.Println(book.Authors)
-	// 		var authors string
-	// 		for i, author := range book.Authors {
-	// 			log.Println("author.Name", author.Name)
-	// 			if i >= 1 {
-	// 				authors += ", "
-	// 			}
-	// 			authors += author.Name
-	// 		}
-	// 		return authors
-	// 	},
-	// })
-
-	// what fields should be displayed in the books list on admin
-	book.IndexAttrs("Title", "Authors", "ReleaseDate", "Price")
-
-	// defines the edit field for authors of the book
-	book.Meta(&admin.Meta{Name: "Authors", Label: "Authors", Type: "select_many",
-		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
-			if authors := []Author{}; !context.GetDB().Find(&authors).RecordNotFound() {
-				for _, author := range authors {
-					results = append(results, []string{fmt.Sprintf("%v", author.ID), author.Name})
-				}
+	book.Meta(&admin.Meta{
+		Name: "DisplayPrice",
+		Valuer: func(value interface{}, context *qor.Context) interface{} {
+			if value != nil {
+				book := value.(*Book)
+				return fmt.Sprintf("¥%v", book.Price)
 			}
-			return
+			return ""
 		},
 	})
-	// book.EditAttrs("Title", "EditAuthors", "Synopsis", "ReleaseDate", "Price")
+
+	// what fields should be displayed in the books list on admin
+	book.IndexAttrs("Title", "Authors", "ReleaseDate", "DisplayPrice")
+
+	// defines the edit field for authors of the book
+	book.Meta(&admin.Meta{
+		Name:  "Authors",
+		Label: "Authors",
+		Type:  "select_many",
+		// Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
+		// 	if authors := []Author{}; !context.GetDB().Find(&authors).RecordNotFound() {
+		// 		for _, author := range authors {
+		// 			results = append(results, []string{fmt.Sprintf("%v", author.ID), author.Name})
+		// 		}
+		// 	}
+		// 	return
+		// },
+		Valuer: func(value interface{}, context *qor.Context) interface{} {
+			if value == nil {
+				return value
+			}
+			book := value.(*Book)
+			if err := db.Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
+				panic(err)
+			}
+
+			log.Println(book.Authors)
+			var authors string
+			for i, author := range book.Authors {
+				if i >= 1 {
+					authors += ", "
+				}
+				authors += author.Name
+			}
+			return authors
+		},
+	})
+	book.EditAttrs("Title", "Authors", "Synopsis", "ReleaseDate", "Price", "CoverImage")
 
 	mux := http.NewServeMux()
 	Admin.MountTo("/admin", mux)
@@ -95,46 +102,10 @@ func main() {
 	router.StaticFS("/assets/", http.Dir("public/assets"))
 
 	// all books - listing
-	router.GET("/books", func(ctx *gin.Context) {
-		var books []*Book
-
-		if err := db.Find(&books).Error; err != nil {
-			panic(err)
-		}
-
-		ctx.HTML(
-			http.StatusOK,
-			"list.tmpl",
-			gin.H{
-				"title": "List of Books",
-				"books": books,
-			},
-		)
-	})
-
+	router.GET("/books", listBooksHandler)
 	// single book - product page
-	router.GET("/books/:id", func(ctx *gin.Context) {
-		id, err := strconv.ParseUint(ctx.Params.ByName("id"), 10, 64)
-		if err != nil {
-			panic(err)
-		}
-		var book = &Book{}
-		if err := db.Find(&book, id).Error; err != nil {
-			panic(err)
-		}
+	router.GET("/books/:id", viewBookHandler)
 
-		if err := db.Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
-			panic(err)
-		}
-
-		ctx.HTML(
-			http.StatusOK,
-			"book.tmpl",
-			gin.H{
-				"book": book,
-			},
-		)
-	})
 	mux.Handle("/", router)
 
 	// handle login and logout of users
