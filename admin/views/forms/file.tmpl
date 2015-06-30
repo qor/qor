@@ -17,10 +17,12 @@
 
   {{if $value}}
     {{if $value.IsImage}}
-      <img class="img-responsive" src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}">
-
-      {{range $key, $v := $value.GetSizes}}
-        <img src="{{$value.URL $key}}">
+      {{if $value.GetSizes}}
+        {{range $key, $v := $value.GetSizes}}
+          <img class="img-responsive" src="{{$value.URL $key}}" data-original-url="{{$value.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $v}}">
+        {{end}}
+      {{else}}
+        <img class="img-responsive" src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}">
       {{end}}
     {{else if $value.URL}}
       <a href="{{$value.URL}}">{{t "Download"}}</a>
