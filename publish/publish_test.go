@@ -20,11 +20,11 @@ func init() {
 	pbdraft = pb.DraftDB()
 	pbprod = pb.ProductionDB()
 
-	for _, table := range []string{"products", "products_draft", "colors", "categories", "product_categories", "product_categories_draft"} {
+	for _, table := range []string{"products", "products_draft", "colors", "categories", "languages", "product_categories", "product_categories_draft", "languages", "product_languages_draft"} {
 		pbprod.Exec(fmt.Sprintf("drop table %v", table))
 	}
-	pbprod.AutoMigrate(&Product{}, &Color{}, &Category{})
-	pb.AutoMigrate(&Product{})
+	pbprod.AutoMigrate(&Product{}, &Color{}, &Category{}, &Language{})
+	pb.AutoMigrate(&Product{}, &Category{})
 }
 
 type Product struct {
@@ -34,6 +34,7 @@ type Product struct {
 	Color      Color
 	ColorId    int
 	Categories []Category `gorm:"many2many:product_categories"`
+	Languages  []Language `gorm:"many2many:product_languages"`
 	publish.Status
 }
 
@@ -42,7 +43,13 @@ type Color struct {
 	Name string
 }
 
+type Language struct {
+	gorm.Model
+	Name string
+}
+
 type Category struct {
 	gorm.Model
 	Name string
+	publish.Status
 }

@@ -40,6 +40,9 @@ func TestPublishManyToManyFromDraft(t *testing.T) {
 	}
 
 	pb.Publish(&product)
+	var categories []Category
+	pbdraft.Find(&categories)
+	pb.Publish(&categories)
 
 	if pbprod.Model(&product).Association("Categories").Count() != 2 {
 		t.Errorf("categories count should be 2 in production db after publish")

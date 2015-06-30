@@ -92,25 +92,36 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 					dependency := Dependency{Type: toType, PrimaryValues: dependencyKeys}
 					resolver.AddDependency(&dependency)
 				}
-			} else {
-				if relationship.Kind == "many_to_many" {
-					dependency.ManyToManyRelations = append(dependency.ManyToManyRelations, relationship)
-				}
+			}
+
+			if relationship.Kind == "many_to_many" {
+				dependency.ManyToManyRelations = append(dependency.ManyToManyRelations, relationship)
 			}
 		}
 	}
 }
 
 func (resolver *Resolver) GenerateDependencies() {
-	for _, record := range resolver.Records {
-		if IsPublishableModel(record) {
-			scope := resolver.DB.DB.NewScope(record)
+	var addToDependencies = func(data interface{}) {
+		if IsPublishableModel(data) {
+			scope := resolver.DB.DB.NewScope(data)
 			var primaryValues []interface{}
 			for _, field := range scope.PrimaryFields() {
 				primaryValues = append(primaryValues, field.Field.Interface())
 			}
-			dependency := Dependency{Type: modelType(record), PrimaryValues: [][]interface{}{primaryValues}}
+			dependency := Dependency{Type: modelType(data), PrimaryValues: [][]interface{}{primaryValues}}
 			resolver.AddDependency(&dependency)
+		}
+	}
+
+	for _, record := range resolver.Records {
+		reflectValue := reflect.Indirect(reflect.ValueOf(record))
+		if reflectValue.Kind() == reflect.Slice {
+			for i := 0; i < reflectValue.Len(); i++ {
+				addToDependencies(reflectValue.Index(i).Interface())
+			}
+		} else {
+			addToDependencies(record)
 		}
 	}
 }
