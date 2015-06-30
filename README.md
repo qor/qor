@@ -57,7 +57,7 @@ TODO
 
 ## Tutorial
 
-[The tutorial](https://github.com/fvbock/qor/tree/master/example/tutorial/bookstore) is currently a work in progress.
+[The tutorial](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore) is currently a work in progress.
 
 - [x] Setup & Installation
 - [x] Define a first set of resources
