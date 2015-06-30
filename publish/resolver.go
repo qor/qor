@@ -134,8 +134,9 @@ func (resolver *Resolver) Publish() error {
 		value := reflect.New(dependency.Type).Elem()
 		productionScope := resolver.DB.ProductionDB().NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
-		primaryKey := scopePrimaryKeys(productionScope)
 		draftTable := DraftTableName(productionTable)
+		productionPrimaryKey := scopePrimaryKeys(productionScope, productionTable)
+		draftPrimaryKey := scopePrimaryKeys(productionScope, draftTable)
 
 		var columns []string
 		for _, field := range productionScope.Fields() {
@@ -152,13 +153,13 @@ func (resolver *Resolver) Publish() error {
 
 		if len(dependency.PrimaryValues) > 0 {
 			// delete old records
-			deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v.%v IN (%v)", productionTable, productionTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
+			deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionPrimaryKey, toQueryMarks(dependency.PrimaryValues))
 			tx.Exec(deleteSql, toQueryValues(dependency.PrimaryValues)...)
 
 			// insert new records
-			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v.%v IN (%v)",
+			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 				productionTable, strings.Join(productionColumns, " ,"), strings.Join(draftColumns, " ,"),
-				draftTable, draftTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
+				draftTable, draftPrimaryKey, toQueryMarks(dependency.PrimaryValues))
 			tx.Exec(publishSql, toQueryValues(dependency.PrimaryValues)...)
 
 			// publish join table data
@@ -199,7 +200,7 @@ func (resolver *Resolver) Publish() error {
 			}
 
 			// set status to published
-			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v IN (%v)", draftTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
+			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v IN (%v)", draftTable, draftPrimaryKey, toQueryMarks(dependency.PrimaryValues))
 
 			var params = []interface{}{bool(PUBLISHED)}
 			params = append(params, toQueryValues(dependency.PrimaryValues)...)
@@ -225,7 +226,8 @@ func (resolver *Resolver) Discard() error {
 		productionTable := productionScope.TableName()
 		draftTable := DraftTableName(productionTable)
 
-		primaryKey := scopePrimaryKeys(productionScope)
+		productionPrimaryKey := scopePrimaryKeys(productionScope, productionTable)
+		draftPrimaryKey := scopePrimaryKeys(productionScope, draftTable)
 
 		var columns []string
 		for _, field := range productionScope.Fields() {
@@ -241,7 +243,7 @@ func (resolver *Resolver) Discard() error {
 		}
 
 		// delete data from draft db
-		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, primaryKey, toQueryMarks(dependency.PrimaryValues))
+		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftPrimaryKey, toQueryMarks(dependency.PrimaryValues))
 		tx.Exec(deleteSql, toQueryValues(dependency.PrimaryValues)...)
 
 		// delete join table
@@ -285,7 +287,7 @@ func (resolver *Resolver) Discard() error {
 		discardSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 			draftTable, strings.Join(draftColumns, " ,"),
 			strings.Join(productionColumns, " ,"), productionTable,
-			primaryKey, toQueryMarks(dependency.PrimaryValues))
+			productionPrimaryKey, toQueryMarks(dependency.PrimaryValues))
 		tx.Exec(discardSql, toQueryValues(dependency.PrimaryValues)...)
 	}
 
@@ -297,10 +299,10 @@ func (resolver *Resolver) Discard() error {
 	}
 }
 
-func scopePrimaryKeys(scope *gorm.Scope) string {
+func scopePrimaryKeys(scope *gorm.Scope, tableName string) string {
 	var primaryKeys []string
 	for _, field := range scope.PrimaryFields() {
-		key := fmt.Sprintf("%v", scope.Quote(field.DBName))
+		key := fmt.Sprintf("%v.%v", scope.Quote(tableName), scope.Quote(field.DBName))
 		primaryKeys = append(primaryKeys, key)
 	}
 	if len(primaryKeys) > 1 {
