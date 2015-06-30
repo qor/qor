@@ -264,7 +264,7 @@ const (
 // If total page count less than VISIBLE_PAGE_COUNT, always show all pages
 func (context *Context) Pagination() *[]Page {
 	pagination := context.Searcher.Pagination
-	if context.Searcher.Pagination.Pages == 1 {
+	if pagination.Pages <= 1 {
 		return nil
 	}
 
