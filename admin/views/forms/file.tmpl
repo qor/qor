@@ -22,7 +22,7 @@
           <img class="img-responsive" src="{{$value.URL $key}}" data-original-url="{{$value.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $v}}">
         {{end}}
       {{else}}
-        <img class="img-responsive" src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}">
+        <img class="img-responsive" src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}" data-size-name="original">
       {{end}}
     {{else if $value.URL}}
       <a href="{{$value.URL}}">{{t "Download"}}</a>
