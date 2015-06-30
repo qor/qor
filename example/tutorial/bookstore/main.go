@@ -62,18 +62,10 @@ func main() {
 
 	// what fields should be displayed in the books list on admin
 	book.IndexAttrs("Title", "AuthorNames", "ReleaseDate", "Price")
+	book.EditAttrs("Title", "Authors", "ReleaseDate", "Price")
 
 	// defines the edit field for authors of the book
-	book.Meta(&admin.Meta{Name: "Authors", Label: "Authors", Type: "select_many",
-		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
-			if authors := []Author{}; !context.GetDB().Find(&authors).RecordNotFound() {
-				for _, author := range authors {
-					results = append(results, []string{fmt.Sprintf("%v", author.ID), author.Name})
-				}
-			}
-			return
-		},
-	})
+	book.Meta(&admin.Meta{Name: "Authors", Type: "select_many"})
 
 	// step 5
 	Admin.AddResource(
@@ -147,7 +139,7 @@ func main() {
 	// handle login and logout of users
 	Admin.SetAuth(&Auth{})
 
-	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc("/login", func(writer http.ResponseWriter, request *http.Request) {
 		var user User
 
 		if request.Method == "POST" {
