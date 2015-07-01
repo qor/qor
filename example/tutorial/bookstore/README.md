@@ -33,18 +33,17 @@ fresh is not necessary to use qor, but it will make your life easier when playin
 
 Before we dive into our models we need to create a database:
 
+    mysql> DROP DATABASE IF EXISTS qor_bookstore;
     mysql> CREATE DATABASE qor_bookstore DEFAULT CHARACTER SET utf8mb4;
-    Query OK, 1 row affected (0.16 sec)
+
+    mysql> CREATE USER 'qor'@'%' IDENTIFIED BY 'qor';         -- some versions don't like this use the previous line instead
+
+    OR
 
     mysql> CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor'; -- some versions don't like this use the next line instead
-    mysql> CREATE USER 'qor'@'%' IDENTIFIED BY 'qor';         -- some versions don't like this use the previous line instead
-    Query OK, 0 rows affected (0.00 sec)
 
     mysql> GRANT ALL ON qor_bookstore.* TO 'qor'@'localhost';
-    Query OK, 0 rows affected (0.00 sec)
-
     mysql> FLUSH PRIVILEGES;
-    Query OK, 0 rows affected (0.00 sec)
 
 You should now be able to connect to your database from the console like this:
 
@@ -59,7 +58,7 @@ Later we will add L10n/I18n support and look at roles for the editorial process.
 
 Continuous TODO: Add the next planned steps for the tutorial here.
 
-### Create the basic models
+### The basic models
 
 We will need the following two models to start with:
 
@@ -70,28 +69,34 @@ The `Author` model is very simple:
 
     type Author struct {
 	    gorm.Model
-	    Id   int64
 	    Name string
+        publish.Status
     }
 
 All qor models "inherit" from `gorm.model`. (see https://github.com/jinzhu/gorm).
-Our author model for now only has an `Id` and a `Name`.
+Our author model for now only has a `Name`.
+Ignore the `publish.Status` for now - we will address that in a later part of the tutorial.
 
 The Bookmodel has a few more fields:
 
     type Book struct {
     	gorm.Model
-    	Id          int64
-    	Title       string
-    	Synopsis    string
-    	ReleaseDate time.Time
-    	Authors     []*Author `gorm:"many2many:book_authors"`
-    	Price       float64
+	    Title       string
+	    Synopsis    string
+	    ReleaseDate time.Time
+	    Authors     []*Author `gorm:"many2many:book_authors"`
+	    Price       float64
+	    CoverImage  media_library.FileSystem
+        publish.Status
     }
 
 The only interesting part here is the gorm struct tag: `gorm:many2many:book_authors"`; It tells `gorm` to create a join table `book_authors`.
 
-That's almost it: If you [look at](https://github.com/fvbock/qor/tree/master/example/tutorial/models.go) you can see an `init()` function at the end: It sets up a db connection and `DB.AutoMigrate(&Author{}, &Book{})` tells QOR to automatically create the tables for our models.
+Ignore the `publish.Status` for now - we will address that in a later part of the tutorial.
+
+That's almost it: If you [look at](https://github.com/qor/qor/tree/master/example/tutorial/bookstore/01/models.go) you can see an `init()` function at the end: It sets up a db connection and `db.AutoMigrate(&Author{}, &Book{}, &User{})` tells QOR to automatically create the tables for our models.
+
+You can ignore the user model for now - we will look at that part later.
 
 Let's start the tutorial app once to see what happens when models get auto-migrated.
 
@@ -132,36 +137,81 @@ NB: If you add new fields to your model they will get added to the database auto
 
 If the bookstore app is not yet running, start it by running `fresh` in the bookstore directory:
 
-    go/src/github.com/qor/qor/example/tutorial/bookstore [bookstore (master)] $ fresh
+    go/src/github.com/qor/qor/example/tutorial/bookstore/01 [bookstore (master)] $ fresh
 
 Go to http://localhost:9000/admin and you should see the main admin interface:
 
-![admin](https://raw.github.com/qor/fvbock/master/images/admin.png)
+TODO: add screenshot
 
-The Menu at the top gets created by adding your models as resources to the admin:
+The Menu at the top gets created by adding your models as resources to the admin in [main.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/main.go):
 
 	Admin := admin.New(&qor.Config{DB: &db})
+
 	Admin.AddResource(
-		&Author{},
-		&admin.Config{Menu: []string{
-			"Author Management"},
-			Name: "Author",
+		&User{},
+		&admin.Config{
+			Menu: []string{"User Management"},
+			Name: "Users",
 		},
 	)
 
-you can see how the rest of the resources was added in [main.go](https://github.com/fvbock/qor/blob/master/example/tutorial/bookstore/main.go#L14:L50), the `db` object referenced here is set up in [models.go](https://github.com/fvbock/qor/blob/master/example/tutorial/bookstore/models.go#L62:L68)
+you can see how the rest of the resources was added in [main.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/main.go#L32:L46), the `db` object referenced here is set up in [models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/models.go#L66:L72)
 
-Go ahead an add an author and then a book via the admin.
+Go ahead and go to the authors admin and add an author...
+
+TODO: add screenshots
+
+... and then a book via the admin:
+
+TODO: add screenshots
 
 #### Meta Module - Controlling display and editable fields in the admin
 
+Go to http://localhost:9000/admin/books.
+Now comment the following line from [main.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/main.go)
+
+    book.IndexAttrs("Title", "AuthorNames", "ReleaseDate", "DisplayPrice")
+
+and reload the books admin page.
+
+TODO: add screenshot
+
+You will see a much more crowded list: We had 4 attributes `"Title", "AuthorNames", "ReleaseDate", "DisplayPrice"`. `Title` and `ReleaseDate` are both defined on our `Book` model, but the other two are not. For the Authors field you only see a list of References to the `Author` objects - something like `[0xc208161bc0]`. We want the list of Authors devided by `,` instead. You can achieve that by defining a `Meta` field:
+
+	book.Meta(&admin.Meta{
+		Name:  "AuthorNames",
+		Label: "Authors",
+		Valuer: func(value interface{}, context *qor.Context) interface{} {
+			if value == nil {
+				return value
+			}
+			book := value.(*Book)
+			if err := db.Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
+				panic(err)
+			}
+
+			log.Println(book.Authors)
+			var authors string
+			for i, author := range book.Authors {
+				if i >= 1 {
+					authors += ", "
+				}
+				authors += author.Name
+			}
+			return authors
+		},
+	})
+
+We define a `Meta` field for the `book` `Resource`. It's internal name is "AuthorNames", which we use in `book.IndexAttrs()` to use it in our admin book listing. The "Label` is what goes into the table header and the "Valuer" is a function that will return the display value we want - in our case the comma separated list of author names.
 
 
-### First frontend
 
-QOR does not provide any templating or routing support - use whatever library is best fit for your needs. In this tutorial we will use [gin]()
+### Frontend
+
+QOR does not provide any builtin templating or routing support - use whatever library is best fit for your needs. In this tutorial we will use [gin](https://github.com/gin-gonic/gin).
 
 #### List of Books
+
 
 
 #### MediaLibrary - Adding product images
@@ -170,13 +220,7 @@ qor/media_library
 
 `Base` is the low level object to deal with images offering cropping, resizing, and URL contruction for images.
 
-#### Shopping
-
-    INERT INTO users (name) VALUES ("admin");
-
-#### First we need users that can register to buy books
-
-
+INERT INTO users (name) VALUES ("admin");
 
 
 #### Add Locales && translations
@@ -186,5 +230,4 @@ qor/media_library
 
 
 ### Add customers (model)
-
 ### Add orders

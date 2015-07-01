@@ -10,11 +10,16 @@ import (
 	"github.com/qor/qor/admin"
 )
 
+const (
+	ENV_STAGING = iota
+	ENV_PRODUCTION
+)
+
 func main() {
 	// setting up QOR admin
 	// Admin := admin.New(&qor.Config{DB: &db})
-	Admin := admin.New(&qor.Config{DB: publish.DraftDB()})
-	Admin.AddResource(publish)
+	Admin := admin.New(&qor.Config{DB: pub.DraftDB()})
+	Admin.AddResource(pub)
 
 	Admin.AddResource(
 		&User{},
@@ -77,21 +82,21 @@ func main() {
 		},
 	})
 
-	book.Meta(&admin.Meta{
-		Name:  "Authors",
-		Label: "Authors",
-		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
-			if authors := []Author{}; !context.GetDB().Find(&authors).RecordNotFound() {
-				for _, author := range authors {
-					results = append(results, []string{fmt.Sprintf("%v", author.ID), author.Name})
-				}
-			}
-			return
-		},
-	})
+	// book.Meta(&admin.Meta{
+	// 	Name:  "Authors",
+	// 	Label: "Authors",
+	// 	Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
+	// 		if authors := []Author{}; !context.GetDB().Find(&authors).RecordNotFound() {
+	// 			for _, author := range authors {
+	// 				results = append(results, []string{fmt.Sprintf("%v", author.ID), author.Name})
+	// 			}
+	// 		}
+	// 		return
+	// 	},
+	// })
 
 	// what fields should be displayed in the books list on admin
-	book.IndexAttrs("Title", "AuthorNames", "ReleaseDate", "DisplayPrice")
+	// book.IndexAttrs("Title", "AuthorNames", "ReleaseDate", "DisplayPrice")
 	// what fields should be editable in the book esit interface
 	book.EditAttrs("Title", "Authors", "Synopsis", "ReleaseDate", "Price", "CoverImage")
 
@@ -106,10 +111,17 @@ func main() {
 	router.StaticFS("/system/", http.Dir("public/system"))
 	router.StaticFS("/assets/", http.Dir("public/assets"))
 
-	// books - listing
-	router.GET("/books", listBooksHandler)
-	// single book - product page
-	router.GET("/books/:id", viewBookHandler)
+	// books
+	bookRoutes := router.Group("/books")
+	{
+		// listing
+		bookRoutes.GET("", listBooksHandler)
+		bookRoutes.GET("/", listBooksHandler) // really? i need both of those?...
+		// single book - product page
+		bookRoutes.GET("/:id", viewBookHandler)
+	}
+
+	// router.Use(StagingEnv())
 
 	mux.Handle("/", router)
 

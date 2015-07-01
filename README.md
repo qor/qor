@@ -7,7 +7,7 @@
 QOR is a set of libraries written in Go that abstracts common features needed for business applications, CMSs, and E-commerce systems.
 
 This is actually the third version of QOR: 1 and 2 were written in ruby and used internally at [The Plant](https://theplant.jp).
-We decided to rewrite QOR in Go and open source it - which has happened in June 2015. 
+We decided to rewrite QOR in Go and open source it - which has happened in June 2015.
 
 QOR is still beta software - we will probably break an API or two before we will release a stable 1.0 - scheduled for September 2015.
 
@@ -15,7 +15,7 @@ While nearing API freeze our other main focus is building up API documentation f
 
 ### What QOR is not
 
-TODO
+QOR is not a "boxed turnkey solution". You need proper coding skills to use it. It's designed to make the lives of developers easier when building complex EC systems, not providing you one out of the box.
 
 ## The modules
 
@@ -37,7 +37,6 @@ TODO
 
 * Roles - Access Control
 
-* Layout
 
 ## API Documentation
 
@@ -52,16 +51,16 @@ TODO
 * [ ] Internationalization (i18n)
 * [ ] Localization (l10n)
 * [ ] Roles
-* [ ] Layout
 
 
 ## Tutorial
 
 [The tutorial](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore) is currently a work in progress.
 
-- [x] Setup & Installation
-- [x] Define a first set of resources
-- [x] Introduce Meta - Back Office display control for your resources
-- [ ] Using Publish
-- [ ] L10n & I18n
-- [ ] Roles
+* [x] Setup & Installation
+* [x] Define a first set of resources
+* [x] Introduce Meta - Back Office display control for your resources
+* [x] Using Publish
+* [ ] L10n & I18n
+* [ ] Roles
+* [ ] Worker

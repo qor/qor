@@ -52,7 +52,12 @@ func (u User) DisplayName() string {
 	return u.Name
 }
 
-var db gorm.DB
+var (
+	db           gorm.DB
+	pub          *publish.Publish
+	productionDB *gorm.DB
+	stagingDB    *gorm.DB
+)
 
 func init() {
 	var err error
@@ -69,8 +74,11 @@ func init() {
 	db.AutoMigrate(&Author{}, &Book{}, &User{})
 	db.LogMode(true)
 
-	publish := publish.New(&db)
-	publish.AutoMigrate(&Author{}, &Book{})
+	pub = publish.New(&db)
+	pub.AutoMigrate(&Author{}, &Book{})
+
+	stagingDB = pub.DraftDB()         // Draft resources are saved here
+	productionDB = pub.ProductionDB() // Published resources are saved here
 
 	// step 4
 	l10n.RegisterCallbacks(&db)
