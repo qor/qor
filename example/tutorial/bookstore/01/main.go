@@ -12,9 +12,9 @@ import (
 
 func main() {
 	// setting up QOR admin
-	Admin := admin.New(&qor.Config{DB: &db})
-	// Admin := admin.New(&qor.Config{DB: Publish.DraftDB()})
-	// Admin.AddResource(Publish)
+	// Admin := admin.New(&qor.Config{DB: &db})
+	Admin := admin.New(&qor.Config{DB: publish.DraftDB()})
+	Admin.AddResource(publish)
 
 	Admin.AddResource(
 		&User{},
@@ -74,6 +74,19 @@ func main() {
 				authors += author.Name
 			}
 			return authors
+		},
+	})
+
+	book.Meta(&admin.Meta{
+		Name:  "Authors",
+		Label: "Authors",
+		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
+			if authors := []Author{}; !context.GetDB().Find(&authors).RecordNotFound() {
+				for _, author := range authors {
+					results = append(results, []string{fmt.Sprintf("%v", author.ID), author.Name})
+				}
+			}
+			return
 		},
 	})
 

@@ -8,15 +8,16 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/media_library"
+	"github.com/qor/qor/publish"
 )
 
 type Author struct {
 	gorm.Model
 	Name string
+	publish.Status
 	// // step 6- maybe...: l10n
 	// ShortBiography string
 	// l10n.Locale
-	// publish.Status
 }
 
 type Book struct {
@@ -26,22 +27,18 @@ type Book struct {
 	ReleaseDate time.Time
 	Authors     []*Author `gorm:"many2many:book_authors"`
 	Price       float64
-
-	//	tutorial step 3
-	CoverImage media_library.FileSystem
-
-	// //	tutorial step 3
+	CoverImage  media_library.FileSystem
+	// later
 	// CoverImages []ProductImage // product image has BookId => handles relation
 
-	// tutorial step 4 - translation
-	// publish.Status
+	publish.Status
 }
 
 type ProductImage struct {
 	gorm.Model
 	BookId     uint
 	CoverImage media_library.FileSystem
-	// publish.Status
+	publish.Status
 }
 
 // step 4 - add users
@@ -69,14 +66,11 @@ func init() {
 		panic(err)
 	}
 
-	// step 1-3
-	// db.AutoMigrate(&Author{}, &Book{})
-	// step 5:
 	db.AutoMigrate(&Author{}, &Book{}, &User{})
 	db.LogMode(true)
 
-	// publish := publish.New(&DB)
-	// publish.AutoMigrate(&Product{})
+	publish := publish.New(&db)
+	publish.AutoMigrate(&Author{}, &Book{})
 
 	// step 4
 	l10n.RegisterCallbacks(&db)
