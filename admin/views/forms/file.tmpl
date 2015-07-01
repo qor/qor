@@ -3,7 +3,7 @@
 <div class="form-group">
   <label for="{{.InputId}}">{{rt .Base .Label }}</label>
   <div>
-    <label class="btn btn-primary" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
+    <label class="btn btn-sm btn-primary" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
       <input class="qor-fileinput sr-only" id="{{.InputId}}" name="{{.InputName}}" type="file">
       {{t "Choose File"}}
     </label>
