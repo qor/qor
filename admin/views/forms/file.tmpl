@@ -2,30 +2,54 @@
 
 <div class="form-group">
   <label for="{{.InputId}}">{{rt .Base .Label }}</label>
-  <div>
+  <div class="qor-file-action">
     <label class="btn btn-sm btn-primary" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
-      <input class="qor-fileinput sr-only" id="{{.InputId}}" name="{{.InputName}}" type="file">
+      <input class="qor-file-input sr-only" id="{{.InputId}}" name="{{.InputName}}" type="file">
       {{t "Choose File"}}
     </label>
   </div>
 
-  <textarea class="hide" name="{{.InputName}}">
-    {{if $value}}
-      {{$value.Value}}
-    {{end}}
+  <textarea class="qor-file-options form-control hide" name="{{.InputName}}" aria-hidden="true">
+  {{if $value}}
+    {{$value.Value}}
+  {{end}}
   </textarea>
 
+  <div class="qor-file-list">
   {{if $value}}
     {{if $value.IsImage}}
+      <ul>
       {{if $value.GetSizes}}
         {{range $key, $v := $value.GetSizes}}
-          <img class="img-responsive" src="{{$value.URL $key}}" data-original-url="{{$value.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $v}}">
+          <li>
+            <img src="{{$value.URL $key}}" data-original-url="{{$value.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $v}}">
+            <span>{{$key}} ({{$v.Width}} &times; {{$v.Height}} px)</span>
+          </li>
         {{end}}
       {{else}}
-        <img class="img-responsive" src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}" data-size-name="original">
+        <li>
+          <img src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}" data-size-name="original" alt="{{$value.GetFileName}}">
+        </li>
       {{end}}
+      </ul>
     {{else if $value.URL}}
-      <a href="{{$value.URL}}">{{t "Download"}}</a>
+      <span>{{$value.GetFileName}} <a href="{{$value.URL}}">{{t "Download"}}</a></span>
     {{end}}
   {{end}}
+  </div>
+
+  <div class="modal fade qor-cropper-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{t "Crop the image"}}</h5>
+        </div>
+        <div class="modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-link" data-dismiss="modal">{{t "Cancel"}}</button>
+          <button type="button" class="btn btn-link qor-cropper-save">{{t "OK"}}</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

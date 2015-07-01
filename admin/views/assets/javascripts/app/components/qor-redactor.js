@@ -1,7 +1,7 @@
 (function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as anonymous module.
-    define('qor-redactor', ['jquery'], factory);
+    define(['jquery'], factory);
   } else if (typeof exports === 'object') {
     // Node / CommonJS
     factory(require('jquery'));
@@ -13,12 +13,12 @@
 
   'use strict';
 
-  var NAMESPACE = '.qor.redactor',
-      EVENT_CLICK = 'click' + NAMESPACE,
-      EVENT_FOCUS = 'focus' + NAMESPACE,
-      EVENT_BLUR = 'blur' + NAMESPACE,
-      EVENT_IMAGE_UPLOAD = 'imageupload' + NAMESPACE,
-      EVENT_IMAGE_DELETE = 'imagedelete' + NAMESPACE,
+  var NAMESPACE = 'qor.redactor',
+      EVENT_CLICK = 'click.' + NAMESPACE,
+      EVENT_FOCUS = 'focus.' + NAMESPACE,
+      EVENT_BLUR = 'blur.' + NAMESPACE,
+      EVENT_IMAGE_UPLOAD = 'imageupload.' + NAMESPACE,
+      EVENT_IMAGE_DELETE = 'imagedelete.' + NAMESPACE,
       REGEXP_OPTIONS = /x|y|width|height/,
 
       QorRedactor = function (element, options) {
@@ -66,17 +66,22 @@
           $parent = $this.closest(options.parent),
           click = $.proxy(this.click, this);
 
+      if (!$parent.length) {
+        $parent = $this.parent();
+      }
+
       this.$button = $(QorRedactor.BUTTON);
+      this.$modal = $parent.find(options.modal);
 
       $this.on(EVENT_IMAGE_UPLOAD, function (e, image) {
         $(image).on(EVENT_CLICK, click);
       }).on(EVENT_IMAGE_DELETE, function (e, image) {
         $(image).off(EVENT_CLICK, click);
       }).on(EVENT_FOCUS, function (e) {
-        console.log(e.type);
+        // console.log(e.type);
         $parent.find('img').off(EVENT_CLICK, click).on(EVENT_CLICK, click);
       }).on(EVENT_BLUR, function (e) {
-        console.log(e.type);
+        // console.log(e.type);
         $parent.find('img').off(EVENT_CLICK, click);
       });
 
@@ -103,25 +108,23 @@
           url = $image.attr('src'),
           originalUrl = url,
           $clone = $('<img>'),
-          $modal = $(QorRedactor.TEMPLATE);
+          $modal = this.$modal;
 
       if ($.isFunction(options.replace)) {
         originalUrl = options.replace(originalUrl);
       }
 
       $clone.attr('src', originalUrl);
-      $modal.appendTo('body').modal('show').find('.modal-body').append($clone);
-
       $modal.one('shown.bs.modal', function () {
         $clone.cropper({
-          data: decodeCropData($image.attr('data-crop-option')),
+          data: decodeCropData($image.attr('data-crop-options')),
           background: false,
           zoomable: false,
           rotatable: false,
           checkImageOrigin: false,
 
           built: function () {
-            $modal.find('.qor-cropper-save').one('click', function () {
+            $modal.find(options.save).one('click', function () {
               var cropData = {};
 
               $.each($clone.cropper('getData'), function (i, n) {
@@ -134,15 +137,17 @@
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                  Url: url,
-                  CropOption: cropData,
-                  Crop: true
+                  url: url,
+                  cropoptions: {
+                    original: cropData
+                  },
+                  crop: true
                 }),
                 dataType: 'json',
 
                 success: function (response) {
                   if ($.isPlainObject(response) && response.url) {
-                    $image.attr('src', response.url).attr('data-crop-option', encodeCropData(cropData)).removeAttr('style').removeAttr('rel');
+                    $image.attr('src', response.url).attr('data-crop-options', encodeCropData(cropData)).removeAttr('style').removeAttr('rel');
 
                     if ($.isFunction(options.complete)) {
                       options.complete();
@@ -150,10 +155,6 @@
 
                     $modal.modal('hide');
                   }
-                },
-
-                error: function () {
-                  console.log(arguments);
                 }
               });
             });
@@ -161,8 +162,7 @@
         });
       }).one('hidden.bs.modal', function () {
         $clone.cropper('destroy').remove();
-        $modal.remove();
-      });
+      }).modal('show').find('.modal-body').append($clone);
     }
   };
 
@@ -170,36 +170,25 @@
     remote: false,
     toggle: false,
     parent: false,
+    modal: '.qor-cropper-modal',
+    save: '.qor-cropper-save',
     replace: null,
     complete: null
   };
 
   QorRedactor.BUTTON = '<span class="redactor-image-cropper">Crop</span>';
 
-  QorRedactor.TEMPLATE = (
-    '<div class="modal fade qor-cropper-modal" id="qorCropperModal" tabindex="-1" role="dialog" aria-labelledby="qorCropperModalLabel" aria-hidden="true">' +
-      '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-          '<div class="modal-header">' +
-            '<h5 class="modal-title" id="qorCropperModalLabel">Crop the image</h5>' +
-          '</div>' +
-          '<div class="modal-body"></div>' +
-          '<div class="modal-footer">' +
-            '<button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>' +
-            '<button type="button" class="btn btn-link qor-cropper-save">OK</button>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>'
-  );
-
   QorRedactor.plugin = function (/* options */) {
     return this.each(function () {
       var $this = $(this),
           data;
 
-      if (!$this.data('qor.redactor')) {
-        $this.data('qor.redactor', true);
+      if (!$this.data(NAMESPACE)) {
+        if (!$.fn.redactor) {
+          return;
+        }
+
+        $this.data(NAMESPACE, true);
         data = $this.data();
 
         $this.redactor({
@@ -207,7 +196,7 @@
           fileUpload: data.uploadUrl,
 
           initCallback: function () {
-            $this.data('qor.redactor', new QorRedactor($this, {
+            $this.data(NAMESPACE, new QorRedactor($this, {
               remote: data.cropUrl,
               toggle: '.redactor-image-cropper',
               parent: '.form-group',
@@ -243,13 +232,9 @@
   };
 
   $(function () {
-    if (!$.fn.redactor) {
-      return;
-    }
-
     $(document)
       .on('renew.qor.initiator', function (e) {
-        var $element = $('textarea[data-toggle="qor.redactor"]', e.target);
+        var $element = $('.qor-textarea', e.target);
 
         if ($element.length) {
           QorRedactor.plugin.call($element);
