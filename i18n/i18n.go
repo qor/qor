@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/qor/qor"
@@ -161,7 +162,7 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 		return ""
 	})
 
-	res.GetAdmin().RegisterFuncMap("i18n_available_keys", func() (keys []string) {
+	res.GetAdmin().RegisterFuncMap("i18n_available_keys", func(context *admin.Context) (keys []string) {
 		translations := i18n.Translations[Default]
 		if translations == nil {
 			for _, values := range i18n.Translations {
@@ -170,11 +171,37 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 			}
 		}
 
-		for key := range translations {
-			keys = append(keys, key)
+		keyword := context.Request.URL.Query().Get("keyword")
+
+		for key, translation := range translations {
+			if (keyword == "") || (strings.Index(strings.ToLower(translation.Key), keyword) != -1 ||
+				strings.Index(strings.ToLower(translation.Value), keyword) != -1) {
+				keys = append(keys, key)
+			}
 		}
+
 		sort.Strings(keys)
-		return keys
+
+		pagination := context.Searcher.Pagination
+		pagination.Total = len(keys)
+		pagination.PrePage = 25
+		pagination.Pages = pagination.Total / pagination.PrePage
+		pagination.CurrentPage, _ = strconv.Atoi(context.Request.URL.Query().Get("page"))
+		if pagination.CurrentPage == 0 {
+			pagination.CurrentPage = 1
+		}
+		context.Searcher.Pagination = pagination
+
+		if pagination.CurrentPage == -1 {
+			return keys
+		}
+
+		lastIndex := pagination.CurrentPage * pagination.PrePage
+		if pagination.Total < lastIndex {
+			lastIndex = pagination.Total
+		}
+
+		return keys[(pagination.CurrentPage-1)*pagination.PrePage : lastIndex]
 	})
 
 	res.GetAdmin().RegisterFuncMap("i18n_primary_locale", func(context admin.Context) string {

@@ -39,13 +39,13 @@ func (fileWrapper *fileWrapper) Open() (multipart.File, error) {
 }
 
 type Base struct {
-	FileName   string
-	Url        string
-	CropOption *CropOption `json:",omitempty"`
-	Crop       bool        `json:"-"`
-	Valid      bool        `json:"-"`
-	FileHeader fileHeader  `json:"-"`
-	Reader     io.Reader   `json:"-"`
+	FileName    string
+	Url         string
+	CropOptions map[string]*CropOption `json:",omitempty"`
+	Crop        bool                   `json:"-"`
+	Valid       bool                   `json:"-"`
+	FileHeader  fileHeader             `json:"-"`
+	Reader      io.Reader              `json:"-"`
 }
 
 func (b *Base) Scan(data interface{}) (err error) {
@@ -143,12 +143,12 @@ func (b Base) GetURL(option *Option, scope *gorm.Scope, field *gorm.Field, templ
 	return ""
 }
 
-func (b *Base) SetCropOption(option *CropOption) {
-	b.CropOption = option
+func (b *Base) NeedCrop() bool {
+	return b.Crop
 }
 
-func (b *Base) GetCropOption() *image.Rectangle {
-	if cropOption := b.CropOption; b.Crop && cropOption != nil {
+func (b *Base) GetCropOption(name string) *image.Rectangle {
+	if cropOption := b.CropOptions[name]; cropOption != nil {
 		return &image.Rectangle{
 			Min: image.Point{X: cropOption.X, Y: cropOption.Y},
 			Max: image.Point{X: cropOption.X + cropOption.Width, Y: cropOption.Y + cropOption.Height},

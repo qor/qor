@@ -2,6 +2,7 @@ package admin
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html"
 	"html/template"
@@ -263,7 +264,7 @@ const (
 // If total page count less than VISIBLE_PAGE_COUNT, always show all pages
 func (context *Context) Pagination() *[]Page {
 	pagination := context.Searcher.Pagination
-	if context.Searcher.Pagination.Pages == 1 {
+	if pagination.Pages <= 1 {
 		return nil
 	}
 
@@ -433,6 +434,11 @@ func (context *Context) funcMap() template.FuncMap {
 		"has_delete_permission": context.HasDeletePermission,
 
 		"logout_url": context.LogoutURL,
+
+		"marshal": func(v interface{}) template.JS {
+			a, _ := json.Marshal(v)
+			return template.JS(a)
+		},
 
 		"t":       context.T,
 		"rt":      context.RT,
