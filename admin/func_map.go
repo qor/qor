@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"runtime/debug"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -76,8 +77,12 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 	} else {
 		structType := reflect.Indirect(reflect.ValueOf(value)).Type().String()
 		res := context.Admin.GetResource(structType)
-		primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
-		url = path.Join(context.Admin.router.Prefix, res.ToParam(), fmt.Sprintf("%v", primaryKey))
+		if res == nil {
+			url = ""
+		} else {
+			primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
+			url = path.Join(context.Admin.router.Prefix, res.ToParam(), fmt.Sprintf("%v", primaryKey))
+		}
 	}
 	return url
 }
@@ -100,7 +105,10 @@ func (context *Context) RenderIndex(value interface{}, meta *Meta) template.HTML
 	}
 
 	data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
-	tmpl.Execute(result, data)
+	if err := tmpl.Execute(result, data); err != nil {
+		fmt.Println(err)
+		debug.PrintStack()
+	}
 	return template.HTML(result.String())
 }
 

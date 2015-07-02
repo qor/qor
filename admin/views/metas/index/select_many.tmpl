@@ -1,4 +1,9 @@
+{{$meta := .Meta}}
 {{range $index, $value := .Value }}
-  {{stringify $value}}
+  {{$url := url_for $value}}
+  {{if $url}}
+    {{link_to (stringify $value) $url}}
+  {{else}}
+    {{stringify $value}}
+  {{end}}
 {{end}}
-
