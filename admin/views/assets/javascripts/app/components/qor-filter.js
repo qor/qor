@@ -121,7 +121,7 @@
   };
 
   QorFilter.DEFAULTS = {
-    toggle: '',
+    toggle: false,
     activeClass: 'active'
   };
 
@@ -142,8 +142,7 @@
 
         if ($element.length) {
           QorFilter.plugin.call($element, {
-            toggle: '.label',
-            activeClass: 'label-primary'
+            toggle: '.qor-label'
           });
         }
       })
