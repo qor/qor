@@ -11,11 +11,10 @@
       {{range $book := .books}}
       <div class="book">
         <a href="/books/{{$book.ID}}" class="title_link">{{$book.Title}}</a>
-        {{$book.Authors}}
         {{range $author := $book.Authors}}
           {{$author.Name}}
         {{end}}
-        <p class="date">{{$book.ReleaseDate}}</p>
+        <!-- p class="date">{{$book.ReleaseDate}}</p -->
         <p class="price">¥{{$book.Price}}</p>
       </div>
       {{end}}

@@ -1,7 +1,8 @@
-package main
+package models
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -13,15 +14,17 @@ import (
 
 type Author struct {
 	gorm.Model
-	Name string
 	publish.Status
-	// // step 6- maybe...: l10n
-	// ShortBiography string
-	// l10n.Locale
+	l10n.Locale
+
+	Name string
 }
 
 type Book struct {
 	gorm.Model
+	publish.Status
+	l10n.Locale
+
 	Title       string
 	Synopsis    string
 	ReleaseDate time.Time
@@ -30,40 +33,57 @@ type Book struct {
 	CoverImage  media_library.FileSystem
 	// later
 	// CoverImages []ProductImage // product image has BookId => handles relation
-
-	publish.Status
 }
 
 type ProductImage struct {
 	gorm.Model
+	publish.Status
+	l10n.Locale
+
 	BookId     uint
 	CoverImage media_library.FileSystem
-	publish.Status
 }
 
 // step 4 - add users
 
 type User struct {
 	gorm.Model
+
 	Name string
+	role string
 }
 
 func (u User) DisplayName() string {
 	return u.Name
 }
 
+func (User) ViewableLocales() []string {
+	return []string{l10n.Global, "jp"}
+}
+
+func (user User) EditableLocales() []string {
+	if user.role == "global_admin" {
+		log.Println("EditableLocales() global_admin")
+		return []string{l10n.Global, "jp"}
+	} else {
+		log.Println("EditableLocales() NOT global_admin")
+		return []string{l10n.Global, "jp"}
+		// return []string{}
+	}
+}
+
 var (
-	db           gorm.DB
-	pub          *publish.Publish
-	productionDB *gorm.DB
-	stagingDB    *gorm.DB
+	Db           gorm.DB
+	Pub          *publish.Publish
+	ProductionDB *gorm.DB
+	StagingDB    *gorm.DB
 )
 
 func init() {
 	var err error
 	dbuser, dbpwd := "qor", "qor"
 
-	db, err = gorm.Open(
+	Db, err = gorm.Open(
 		"mysql",
 		fmt.Sprintf("%s:%s@/qor_bookstore?parseTime=True&loc=Local", dbuser, dbpwd),
 	)
@@ -71,15 +91,15 @@ func init() {
 		panic(err)
 	}
 
-	db.AutoMigrate(&Author{}, &Book{}, &User{})
-	db.LogMode(true)
+	Db.AutoMigrate(&Author{}, &Book{}, &User{})
+	Db.LogMode(true)
 
-	pub = publish.New(&db)
-	pub.AutoMigrate(&Author{}, &Book{})
+	Pub = publish.New(&Db)
+	Pub.AutoMigrate(&Author{}, &Book{})
 
-	stagingDB = pub.DraftDB()         // Draft resources are saved here
-	productionDB = pub.ProductionDB() // Published resources are saved here
+	StagingDB = Pub.DraftDB()         // Draft resources are saved here
+	ProductionDB = Pub.ProductionDB() // Published resources are saved here
 
 	// step 4
-	l10n.RegisterCallbacks(&db)
+	l10n.RegisterCallbacks(&Db)
 }
