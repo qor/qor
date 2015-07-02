@@ -422,6 +422,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"get_scopes": context.GetScopes,
 
 		"escape":                 html.EscapeString,
+		"raw":                    func(str string) template.HTML { return template.HTML(str) },
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
 		"render_index":           context.RenderIndex,
