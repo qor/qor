@@ -6,12 +6,12 @@
 
 QOR is a set of libraries written in Go that abstracts common features needed for business applications, CMSs, and E-commerce systems.
 
-This is actually the third version of QOR: 1 and 2 were written in ruby and used internally at [The Plant](https://theplant.jp).
-We decided to rewrite QOR in Go and open source it - which has happened in June 2015.
+This is actually the third version of QOR: 1 and 2 were written in Ruby and used internally at [The Plant](https://theplant.jp).
+We decided to rewrite QOR in Go and open source it - which has happened as of June 2015.
 
-QOR is still beta software - we will probably break an API or two before we will release a stable 1.0 - scheduled for September 2015.
+QOR is still beta software - we will probably break an API or two before we release a stable 1.0 (scheduled for September 2015).
 
-While nearing API freeze our other main focus is building up API documentation for each module and a tutorial that eventually cover features from most of the modules.
+While nearing API freeze our other main focus is building up API documentation for each module and a tutorial that will eventually cover features from most of the modules.
 
 ### What QOR is not
 
@@ -19,7 +19,7 @@ QOR is not a "boxed turnkey solution". You need proper coding skills to use it. 
 
 ## The modules
 
-* Admin - The heart of any QOR system, where you manage all you resources
+* Admin - The heart of any QOR system, where you manage all your resources
 
 * Publish - Providing a staging environment for all content changes to be reviewed before being published to the live system
 
@@ -31,7 +31,7 @@ QOR is not a "boxed turnkey solution". You need proper coding skills to use it. 
 
 * Exchange - Data exchange with other business applications using CSV or Excel data
 
-* Internationalization (i18n) - Managing and (inline) editing translations
+* Internationalization (i18n) - Managing and (inline) editing of translations
 
 * Localization (l10n) - Managing locales in multilingual environments
 
