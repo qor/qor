@@ -17,12 +17,11 @@
     {{range $resource := .Result}}
       <tr class="record-item tr transition">
         {{range $index, $meta := index_metas}}
-          {{$text := value_of $resource $meta}}
           <td title="{{$meta.Label}}" class="td col-{{$index}}">
             {{if $index}}
-              {{$text}}
+              {{render_index $resource $meta}}
             {{else}}
-              {{link_to $text $resource}}
+              {{link_to (render_index $resource $meta) $resource}}
             {{end}}
           </td>
         {{end}}

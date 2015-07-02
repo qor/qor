@@ -90,6 +90,20 @@ func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML
 	return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, context.UrlFor(link), text))
 }
 
+func (context *Context) RenderIndex(value interface{}, meta *Meta) template.HTML {
+	var err error
+	var result = bytes.NewBufferString("")
+	var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.funcMap())
+
+	if tmpl, err = context.findTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
+		tmpl, _ = tmpl.Parse("{{.Value}}")
+	}
+
+	data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
+	tmpl.Execute(result, data)
+	return template.HTML(result.String())
+}
+
 func (context *Context) RenderForm(value interface{}, metas []*Meta) template.HTML {
 	var result = bytes.NewBufferString("")
 	context.renderForm(result, value, metas, []string{"QorResource"})
@@ -121,7 +135,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
 
-	if tmpl, err := context.findTemplate(tmpl, fmt.Sprintf("forms/%v.tmpl", meta.Type)); err == nil {
+	if tmpl, err := context.findTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
 		data := map[string]interface{}{}
 		data["Base"] = meta.base
 		data["InputId"] = strings.Join(prefix, "")
@@ -410,6 +424,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"escape":                 html.EscapeString,
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
+		"render_index":           context.RenderIndex,
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
 		"patch_current_url":      context.PatchCurrentURL,
