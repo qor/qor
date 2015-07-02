@@ -91,6 +91,11 @@ func init() {
 		},
 	})
 
+	book.Meta(&admin.Meta{
+		Name: "Synopsis",
+		Type: "rich_editor",
+	})
+
 	// book.Meta(&admin.Meta{
 	// 	Name:  "Authors",
 	// 	Label: "Authors",
