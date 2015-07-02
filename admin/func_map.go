@@ -423,6 +423,7 @@ func (context *Context) funcMap() template.FuncMap {
 
 		"escape":                 html.EscapeString,
 		"raw":                    func(str string) template.HTML { return template.HTML(str) },
+		"stringify":              utils.Stringify,
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
 		"render_index":           context.RenderIndex,

@@ -117,7 +117,12 @@ func Stringify(object interface{}) string {
 			return fmt.Sprintf("%v", field.Field.Interface())
 		}
 	}
-	return fmt.Sprintf("%v", object)
+
+	if scope.PrimaryKeyZero() {
+		return ""
+	} else {
+		return fmt.Sprintf("%v#%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue())
+	}
 }
 
 func ParseTagOption(str string) map[string]string {
