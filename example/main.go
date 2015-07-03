@@ -22,12 +22,15 @@ func main() {
 	creditcard.Meta(&admin.Meta{Name: "issuer", Type: "select_one", Collection: []string{"VISA", "MasterCard", "UnionPay", "JCB", "American Express", "Diners Club"}})
 
 	user := Admin.AddResource(&User{}, &admin.Config{Menu: []string{"Users Management"}})
-	user.Scope(&admin.Scope{Name: "Active", Group: "Status", Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {
+
+	user.Scope(&admin.Scope{Name: "active", Group: "Status", Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {
 		return db.Where("state = ?", "Active")
 	}})
-	user.Scope(&admin.Scope{Name: "Inactive", Group: "Status", Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {
+	user.Scope(&admin.Scope{Name: "inactive", Group: "Status", Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {
 		return db.Where("state = ?", "Inactive")
 	}})
+	user.Scope(&admin.Scope{Name: "enabled", Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB { return db }})
+
 	user.Meta(&admin.Meta{Name: "CreditCard", Resource: creditcard})
 	user.Meta(&admin.Meta{Name: "fullname", Alias: "name"})
 
