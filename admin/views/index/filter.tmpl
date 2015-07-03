@@ -6,9 +6,9 @@
     </section>
 
     {{if get_scopes}}
-    <section class="qor-label-group label-group fl">
+    <section class="qor-label-container fl">
       {{range $scope := get_scopes}}
-        <a class="label label-default" href="?scopes={{$scope}}">{{$scope}}</a>
+        <a class="qor-label label label-default" href="?scopes={{$scope}}">{{$scope}}</a>
       {{end}}
     </section>
     {{end}}
