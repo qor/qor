@@ -100,11 +100,9 @@
         $(image).on(EVENT_CLICK, click);
       }).on(EVENT_IMAGE_DELETE, function (e, image) {
         $(image).off(EVENT_CLICK, click);
-      }).on(EVENT_FOCUS, function (e) {
-        // console.log(e.type);
+      }).on(EVENT_FOCUS, function () {
         $parent.find('img').off(EVENT_CLICK, click).on(EVENT_CLICK, click);
-      }).on(EVENT_BLUR, function (e) {
-        // console.log(e.type);
+      }).on(EVENT_BLUR, function () {
         $parent.find('img').off(EVENT_CLICK, click);
       });
 
