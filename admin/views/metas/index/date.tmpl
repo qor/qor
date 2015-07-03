@@ -1,2 +1,2 @@
-{{if (and .Value)}}{{.Value.Format "2006-01-02"}}{{end}}
+{{if .Value}}{{if not .Value.IsZero}}{{.Value.Format "2006-01-02"}}{{end}}{{end}}
 
