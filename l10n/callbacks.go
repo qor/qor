@@ -7,7 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func BeforeQuery(scope *gorm.Scope) {
+func beforeQuery(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		quotedTableName := scope.QuotedTableName()
 		locale, _ := getLocale(scope)
@@ -29,7 +29,7 @@ func BeforeQuery(scope *gorm.Scope) {
 	}
 }
 
-func BeforeCreate(scope *gorm.Scope) {
+func beforeCreate(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		if locale, ok := getLocale(scope); ok { // is locale
 			if isLocaleCreateable(scope) || !scope.PrimaryKeyZero() {
@@ -43,7 +43,7 @@ func BeforeCreate(scope *gorm.Scope) {
 	}
 }
 
-func BeforeUpdate(scope *gorm.Scope) {
+func beforeUpdate(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		locale, isLocale := getLocale(scope)
 
@@ -61,7 +61,7 @@ func BeforeUpdate(scope *gorm.Scope) {
 	}
 }
 
-func AfterUpdate(scope *gorm.Scope) {
+func afterUpdate(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		if locale, ok := getLocale(scope); ok {
 			if scope.DB().RowsAffected == 0 { //is locale and nothing updated
@@ -98,7 +98,7 @@ func AfterUpdate(scope *gorm.Scope) {
 	}
 }
 
-func BeforeDelete(scope *gorm.Scope) {
+func beforeDelete(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		if locale, ok := getLocale(scope); ok { // is locale
 			scope.Search.Where(fmt.Sprintf("%v.language_code = ?", scope.QuotedTableName()), locale)
@@ -109,13 +109,13 @@ func BeforeDelete(scope *gorm.Scope) {
 func RegisterCallbacks(db *gorm.DB) {
 	callback := db.Callback()
 
-	callback.Create().Before("gorm:before_create").Register("l10n:before_create", BeforeCreate)
+	callback.Create().Before("gorm:before_create").Register("l10n:before_create", beforeCreate)
 
-	callback.Update().Before("gorm:before_update").Register("l10n:before_update", BeforeUpdate)
-	callback.Update().After("gorm:after_update").Register("l10n:after_update", AfterUpdate)
+	callback.Update().Before("gorm:before_update").Register("l10n:before_update", beforeUpdate)
+	callback.Update().After("gorm:after_update").Register("l10n:after_update", afterUpdate)
 
-	callback.Delete().Before("gorm:before_delete").Register("l10n:before_delete", BeforeDelete)
+	callback.Delete().Before("gorm:before_delete").Register("l10n:before_delete", beforeDelete)
 
-	callback.RowQuery().Register("l10n:before_query", BeforeQuery)
-	callback.Query().Before("gorm:query").Register("l10n:before_query", BeforeQuery)
+	callback.RowQuery().Register("l10n:before_query", beforeQuery)
+	callback.Query().Before("gorm:query").Register("l10n:before_query", beforeQuery)
 }
