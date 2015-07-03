@@ -142,7 +142,7 @@ func (bq *BeanstalkdQueue) Dequeue() (jobId uint64, err error) {
 		return
 	}
 
-	return
+	// return
 }
 
 func (bq *BeanstalkdQueue) Purge(job *QorJob) (err error) {

@@ -8,7 +8,7 @@ import (
 type Translation struct {
 	Key    string `gorm:"primary_key"`
 	Locale string `gorm:"primary_key"`
-	Value  string `sql"size:4294967295"`
+	Value  string `sql:"size:4294967295"`
 }
 
 func New(db *gorm.DB) i18n.Backend {

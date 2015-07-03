@@ -82,7 +82,7 @@ func (m *Meta) getCurrentLabel(vmap map[string]string, index int) string {
 	var labels []string
 	if index > 0 {
 		// support both "label 01" and "label 1"
-		labels = append(labels, fmt.Sprintf("%s %#02d", m.Label, index), fmt.Sprintf("%s %d", m.Label, index))
+		labels = append(labels, fmt.Sprintf("%s %02d", m.Label, index), fmt.Sprintf("%s %d", m.Label, index))
 	} else {
 		labels = append(labels, m.Label)
 	}

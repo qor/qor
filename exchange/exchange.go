@@ -280,7 +280,7 @@ func (ex *Exchange) Export(records interface{}, w io.Writer, ctx *qor.Context) (
 						fieldSizes[meta.Label] = index
 					}
 
-					label = fmt.Sprintf("%s %#02d", label, index)
+					label = fmt.Sprintf("%s %02d", label, index)
 				} else if metaRes.MultiDelimiter != "" {
 					prev := fieldMap[label]
 					if prev != "" {
@@ -328,9 +328,9 @@ func populateHeaders(headers []string, fieldSizes map[string]int) (newHeaders []
 		if size, ok := fieldSizes[header]; ok {
 			for i := 0; i < size; i++ {
 				if strings.Contains(header, ",") {
-					newHeaders = append(newHeaders, fmt.Sprintf("\"%s %#02d\"", header, i+1))
+					newHeaders = append(newHeaders, fmt.Sprintf("\"%s %02d\"", header, i+1))
 				} else {
-					newHeaders = append(newHeaders, fmt.Sprintf("%s %#02d", header, i+1))
+					newHeaders = append(newHeaders, fmt.Sprintf("%s %02d", header, i+1))
 				}
 			}
 		} else {
