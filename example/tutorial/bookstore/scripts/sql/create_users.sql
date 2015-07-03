@@ -1,2 +1,2 @@
-INSERT INTO users (name) VALUES ("admin");
-INSERT INTO users (name) VALUES ("user1");
+INSERT INTO users (name,role) VALUES ('admin','admin');
+INSERT INTO users (name,role) VALUES ('user1','user');

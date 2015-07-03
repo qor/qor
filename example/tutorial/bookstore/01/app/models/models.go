@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	_ "github.com/lib/pq"
 	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/media_library"
 	"github.com/qor/qor/publish"
@@ -50,7 +51,7 @@ type User struct {
 	gorm.Model
 
 	Name string
-	role string
+	Role string
 }
 
 func (u User) DisplayName() string {
@@ -62,7 +63,7 @@ func (User) ViewableLocales() []string {
 }
 
 func (user User) EditableLocales() []string {
-	if user.role == "global_admin" {
+	if user.Role == "admin" {
 		log.Println("EditableLocales() global_admin")
 		return []string{l10n.Global, "jp"}
 	} else {
@@ -81,8 +82,18 @@ var (
 
 func init() {
 	var err error
-	dbuser, dbpwd := "qor", "qor"
 
+	// // PostgreSQL
+	// Db, err := gorm.Open(
+	// 	"postgres",
+	// 	"user=qor password=qor dbname=qor_bookstore sslmode=disable",
+	// )
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// MySQL
+	dbuser, dbpwd := "qor", "qor"
 	Db, err = gorm.Open(
 		"mysql",
 		fmt.Sprintf("%s:%s@/qor_bookstore?parseTime=True&loc=Local", dbuser, dbpwd),
@@ -100,6 +111,5 @@ func init() {
 	StagingDB = Pub.DraftDB()         // Draft resources are saved here
 	ProductionDB = Pub.ProductionDB() // Published resources are saved here
 
-	// step 4
 	l10n.RegisterCallbacks(&Db)
 }

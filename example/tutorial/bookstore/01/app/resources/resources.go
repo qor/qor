@@ -3,15 +3,20 @@ package resources
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/roles"
 
 	. "github.com/qor/qor/example/tutorial/bookstore/01/app/models"
+	"github.com/qor/qor/i18n"
+	"github.com/qor/qor/i18n/backends/database"
 )
 
 var (
 	Admin *admin.Admin
+	I18n  *i18n.I18n
 )
 
 func init() {
@@ -19,29 +24,82 @@ func init() {
 	// Admin := admin.New(&qor.Config{DB: &db})
 	Admin = admin.New(&qor.Config{DB: Pub.DraftDB()})
 	Admin.AddResource(Pub)
+	Admin.SetAuth(&Auth{})
 
-	Admin.AddResource(
+	I18n := i18n.New(database.New(StagingDB))
+	// Admin.AddResource(I18n, &admin.Config{Name: "Translations", Menu: []string{"Site Management"}})
+	Admin.AddResource(I18n)
+
+	roles.Register("admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+		if currentUser == nil {
+			return false
+		}
+
+		if currentUser.(*User).Role == "admin" {
+			return true
+		}
+
+		return false
+	})
+
+	roles.Register("user", func(req *http.Request, currentUser qor.CurrentUser) bool {
+		if currentUser == nil {
+			return false
+		}
+
+		if currentUser.(*User).Role == "user" {
+			return true
+		}
+
+		return false
+	})
+
+	user := Admin.AddResource(
 		&User{},
 		&admin.Config{
-			Menu: []string{"User Management"},
+			Menu: []string{"Users"},
 			Name: "Users",
 		},
 	)
 
+	user.Meta(&admin.Meta{
+		Name:  "UserRole",
+		Label: "Role",
+		Type:  "select_one",
+		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
+			return [][]string{
+				{"admin", "admin"},
+				{"user", "user"},
+			}
+		},
+		Valuer: func(value interface{}, context *qor.Context) interface{} {
+			if value == nil {
+				return value
+			}
+			user := value.(*User)
+			log.Println("user", user.Role)
+			return user.Role
+		},
+	})
+
+	user.IndexAttrs("ID", "Name", "Role")
+	user.EditAttrs("Name", "UserRole")
+
 	author := Admin.AddResource(
 		&Author{},
 		&admin.Config{Menu: []string{
-			"Author Management"},
+			"Authors"},
 			Name: "Author",
 		},
 	)
 
 	author.IndexAttrs("ID", "Name")
+	author.SearchAttrs("ID", "Name")
 
 	book := Admin.AddResource(
 		&Book{},
 		&admin.Config{
-			Menu: []string{"Book Management"},
+			Menu: []string{"Books"},
 			Name: "Books",
 		},
 	)
@@ -71,12 +129,12 @@ func init() {
 		Label: "Authors",
 		Valuer: func(value interface{}, context *qor.Context) interface{} {
 			// log.Println("LOCALE:", context.MustGet("locale"))
-			log.Println("ctxt", context)
+			// log.Println("ctxt", context)
 			if value == nil {
 				return value
 			}
 			book := value.(*Book)
-			if err := Db.Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
+			if err := context.GetDB().Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
 				panic(err)
 			}
 
@@ -95,19 +153,6 @@ func init() {
 		Name: "Synopsis",
 		Type: "rich_editor",
 	})
-
-	// book.Meta(&admin.Meta{
-	// 	Name:  "Authors",
-	// 	Label: "Authors",
-	// 	Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
-	// 		if authors := []Author{}; !context.GetDB().Find(&authors).RecordNotFound() {
-	// 			for _, author := range authors {
-	// 				results = append(results, []string{fmt.Sprintf("%v", author.ID), author.Name})
-	// 			}
-	// 		}
-	// 		return
-	// 	},
-	// })
 
 	// what fields should be displayed in the books list on admin
 	book.IndexAttrs("ID", "Title", "AuthorNames", "FormattedDate", "DisplayPrice")

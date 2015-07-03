@@ -44,7 +44,6 @@ func main() {
 	mux.Handle("/", router)
 
 	// handle login and logout of users
-	Admin.SetAuth(&Auth{})
 	mux.HandleFunc("/login", handlers.LoginHandler)
 	mux.HandleFunc("/logout", handlers.LogoutHandler)
 
