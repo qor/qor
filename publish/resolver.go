@@ -9,19 +9,19 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type Resolver struct {
+type resolver struct {
 	Records      []interface{}
-	Dependencies map[string]*Dependency
+	Dependencies map[string]*dependency
 	DB           *Publish
 }
 
-type Dependency struct {
+type dependency struct {
 	Type                reflect.Type
 	ManyToManyRelations []*gorm.Relationship
 	PrimaryValues       [][]interface{}
 }
 
-func IncludeValue(value []interface{}, values [][]interface{}) bool {
+func includeValue(value []interface{}, values [][]interface{}) bool {
 	for _, v := range values {
 		if fmt.Sprintf("%v", v) == fmt.Sprintf("%v", value) {
 			return true
@@ -30,39 +30,39 @@ func IncludeValue(value []interface{}, values [][]interface{}) bool {
 	return false
 }
 
-func (resolver *Resolver) AddDependency(dependency *Dependency) {
-	name := dependency.Type.String()
+func (resolver *resolver) AddDependency(dep *dependency) {
+	name := dep.Type.String()
 	var newPrimaryKeys [][]interface{}
 
 	// append primary keys to dependency
-	if dep, ok := resolver.Dependencies[name]; ok {
-		for _, primaryKey := range dependency.PrimaryValues {
-			if !IncludeValue(primaryKey, dep.PrimaryValues) {
+	if d, ok := resolver.Dependencies[name]; ok {
+		for _, primaryKey := range dep.PrimaryValues {
+			if !includeValue(primaryKey, d.PrimaryValues) {
 				newPrimaryKeys = append(newPrimaryKeys, primaryKey)
-				dep.PrimaryValues = append(dep.PrimaryValues, primaryKey)
+				dep.PrimaryValues = append(d.PrimaryValues, primaryKey)
 			}
 		}
 	} else {
-		resolver.Dependencies[name] = dependency
-		newPrimaryKeys = dependency.PrimaryValues
+		resolver.Dependencies[name] = dep
+		newPrimaryKeys = dep.PrimaryValues
 	}
 
 	if len(newPrimaryKeys) > 0 {
-		resolver.GetDependencies(dependency, newPrimaryKeys)
+		resolver.GetDependencies(dep, newPrimaryKeys)
 	}
 }
 
-func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys [][]interface{}) {
-	value := reflect.New(dependency.Type)
+func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][]interface{}) {
+	value := reflect.New(dep.Type)
 	fromScope := resolver.DB.DB.NewScope(value.Interface())
 
 	draftDB := resolver.DB.DraftDB().Unscoped()
 	for _, field := range fromScope.Fields() {
 		if relationship := field.Relationship; relationship != nil {
-			if IsPublishableModel(field.Field.Interface()) {
+			if isPublishableModel(field.Field.Interface()) {
 				toType := modelType(field.Field.Interface())
 				toScope := draftDB.NewScope(reflect.New(toType).Interface())
-				draftTable := DraftTableName(toScope.TableName())
+				draftTable := draftTableName(toScope.TableName())
 				var dependencyKeys [][]interface{}
 				var rows *sql.Rows
 				var err error
@@ -89,28 +89,26 @@ func (resolver *Resolver) GetDependencies(dependency *Dependency, primaryKeys []
 						dependencyKeys = append(dependencyKeys, primaryValues)
 					}
 
-					dependency := Dependency{Type: toType, PrimaryValues: dependencyKeys}
-					resolver.AddDependency(&dependency)
+					resolver.AddDependency(&dependency{Type: toType, PrimaryValues: dependencyKeys})
 				}
 			}
 
 			if relationship.Kind == "many_to_many" {
-				dependency.ManyToManyRelations = append(dependency.ManyToManyRelations, relationship)
+				dep.ManyToManyRelations = append(dep.ManyToManyRelations, relationship)
 			}
 		}
 	}
 }
 
-func (resolver *Resolver) GenerateDependencies() {
+func (resolver *resolver) GenerateDependencies() {
 	var addToDependencies = func(data interface{}) {
-		if IsPublishableModel(data) {
+		if isPublishableModel(data) {
 			scope := resolver.DB.DB.NewScope(data)
 			var primaryValues []interface{}
 			for _, field := range scope.PrimaryFields() {
 				primaryValues = append(primaryValues, field.Field.Interface())
 			}
-			dependency := Dependency{Type: modelType(data), PrimaryValues: [][]interface{}{primaryValues}}
-			resolver.AddDependency(&dependency)
+			resolver.AddDependency(&dependency{Type: modelType(data), PrimaryValues: [][]interface{}{primaryValues}})
 		}
 	}
 
@@ -126,15 +124,15 @@ func (resolver *Resolver) GenerateDependencies() {
 	}
 }
 
-func (resolver *Resolver) Publish() error {
+func (resolver *resolver) Publish() error {
 	resolver.GenerateDependencies()
 	tx := resolver.DB.DB.Begin()
 
-	for _, dependency := range resolver.Dependencies {
-		value := reflect.New(dependency.Type).Elem()
+	for _, dep := range resolver.Dependencies {
+		value := reflect.New(dep.Type).Elem()
 		productionScope := resolver.DB.ProductionDB().NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
-		draftTable := DraftTableName(productionTable)
+		draftTable := draftTableName(productionTable)
 		productionPrimaryKey := scopePrimaryKeys(productionScope, productionTable)
 		draftPrimaryKey := scopePrimaryKeys(productionScope, draftTable)
 
@@ -151,19 +149,19 @@ func (resolver *Resolver) Publish() error {
 			draftColumns = append(draftColumns, fmt.Sprintf("%v.%v", draftTable, column))
 		}
 
-		if len(dependency.PrimaryValues) > 0 {
+		if len(dep.PrimaryValues) > 0 {
 			// delete old records
-			deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionPrimaryKey, toQueryMarks(dependency.PrimaryValues))
-			tx.Exec(deleteSql, toQueryValues(dependency.PrimaryValues)...)
+			deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionPrimaryKey, toQueryMarks(dep.PrimaryValues))
+			tx.Exec(deleteSql, toQueryValues(dep.PrimaryValues)...)
 
 			// insert new records
 			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 				productionTable, strings.Join(productionColumns, " ,"), strings.Join(draftColumns, " ,"),
-				draftTable, draftPrimaryKey, toQueryMarks(dependency.PrimaryValues))
-			tx.Exec(publishSql, toQueryValues(dependency.PrimaryValues)...)
+				draftTable, draftPrimaryKey, toQueryMarks(dep.PrimaryValues))
+			tx.Exec(publishSql, toQueryValues(dep.PrimaryValues)...)
 
 			// publish join table data
-			for _, relationship := range dependency.ManyToManyRelations {
+			for _, relationship := range dep.ManyToManyRelations {
 				productionTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", false))
 				draftTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", true))
 				var productionJoinKeys, draftJoinKeys []string
@@ -190,20 +188,20 @@ func (resolver *Resolver) Publish() error {
 					draftJoinTableColumns = append(draftJoinTableColumns, fmt.Sprintf("%v.%v", draftTable, column))
 				}
 
-				sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionCondition, toQueryMarks(dependency.PrimaryValues))
-				tx.Exec(sql, toQueryValues(dependency.PrimaryValues)...)
+				sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionCondition, toQueryMarks(dep.PrimaryValues))
+				tx.Exec(sql, toQueryValues(dep.PrimaryValues)...)
 
 				publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 					productionTable, strings.Join(productionJoinTableColumns, " ,"), strings.Join(draftJoinTableColumns, " ,"),
-					draftTable, draftCondition, toQueryMarks(dependency.PrimaryValues))
-				tx.Exec(publishSql, toQueryValues(dependency.PrimaryValues)...)
+					draftTable, draftCondition, toQueryMarks(dep.PrimaryValues))
+				tx.Exec(publishSql, toQueryValues(dep.PrimaryValues)...)
 			}
 
 			// set status to published
-			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v IN (%v)", draftTable, draftPrimaryKey, toQueryMarks(dependency.PrimaryValues))
+			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v IN (%v)", draftTable, draftPrimaryKey, toQueryMarks(dep.PrimaryValues))
 
 			var params = []interface{}{bool(PUBLISHED)}
-			params = append(params, toQueryValues(dependency.PrimaryValues)...)
+			params = append(params, toQueryValues(dep.PrimaryValues)...)
 			tx.Exec(updateStateSql, params...)
 		}
 	}
@@ -216,15 +214,15 @@ func (resolver *Resolver) Publish() error {
 	}
 }
 
-func (resolver *Resolver) Discard() error {
+func (resolver *resolver) Discard() error {
 	resolver.GenerateDependencies()
 	tx := resolver.DB.DB.Begin()
 
-	for _, dependency := range resolver.Dependencies {
-		value := reflect.New(dependency.Type).Elem()
+	for _, dep := range resolver.Dependencies {
+		value := reflect.New(dep.Type).Elem()
 		productionScope := resolver.DB.ProductionDB().NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
-		draftTable := DraftTableName(productionTable)
+		draftTable := draftTableName(productionTable)
 
 		productionPrimaryKey := scopePrimaryKeys(productionScope, productionTable)
 		draftPrimaryKey := scopePrimaryKeys(productionScope, draftTable)
@@ -243,11 +241,11 @@ func (resolver *Resolver) Discard() error {
 		}
 
 		// delete data from draft db
-		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftPrimaryKey, toQueryMarks(dependency.PrimaryValues))
-		tx.Exec(deleteSql, toQueryValues(dependency.PrimaryValues)...)
+		deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftPrimaryKey, toQueryMarks(dep.PrimaryValues))
+		tx.Exec(deleteSql, toQueryValues(dep.PrimaryValues)...)
 
 		// delete join table
-		for _, relationship := range dependency.ManyToManyRelations {
+		for _, relationship := range dep.ManyToManyRelations {
 			productionTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", false))
 			draftTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", true))
 			var productionJoinKeys, draftJoinKeys []string
@@ -274,21 +272,21 @@ func (resolver *Resolver) Discard() error {
 				draftJoinTableColumns = append(draftJoinTableColumns, fmt.Sprintf("%v.%v", draftTable, column))
 			}
 
-			sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftCondition, toQueryMarks(dependency.PrimaryValues))
-			tx.Exec(sql, toQueryValues(dependency.PrimaryValues)...)
+			sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftCondition, toQueryMarks(dep.PrimaryValues))
+			tx.Exec(sql, toQueryValues(dep.PrimaryValues)...)
 
 			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 				draftTable, strings.Join(draftJoinTableColumns, " ,"), strings.Join(productionJoinTableColumns, " ,"),
-				productionTable, productionCondition, toQueryMarks(dependency.PrimaryValues))
-			tx.Exec(publishSql, toQueryValues(dependency.PrimaryValues)...)
+				productionTable, productionCondition, toQueryMarks(dep.PrimaryValues))
+			tx.Exec(publishSql, toQueryValues(dep.PrimaryValues)...)
 		}
 
 		// copy data from production to draft
 		discardSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 			draftTable, strings.Join(draftColumns, " ,"),
 			strings.Join(productionColumns, " ,"), productionTable,
-			productionPrimaryKey, toQueryMarks(dependency.PrimaryValues))
-		tx.Exec(discardSql, toQueryValues(dependency.PrimaryValues)...)
+			productionPrimaryKey, toQueryMarks(dep.PrimaryValues))
+		tx.Exec(discardSql, toQueryValues(dep.PrimaryValues)...)
 	}
 
 	if err := tx.Error; err == nil {
