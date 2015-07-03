@@ -67,7 +67,7 @@ func Listen() {
 		os.Exit(0)
 	} else {
 		for _, queuer := range queuers {
-			go func() {
+			go func(queuer Queuer) {
 				for {
 					jobId, err := queuer.Dequeue()
 					fmt.Println("dequeue job", jobId)
@@ -77,7 +77,7 @@ func Listen() {
 						go RunJob(jobId)
 					}
 				}
-			}()
+			}(queuer)
 		}
 	}
 }

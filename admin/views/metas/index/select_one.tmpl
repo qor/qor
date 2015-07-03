@@ -1,0 +1,6 @@
+{{$url := url_for .Value}}
+{{if $url}}
+  {{link_to (stringify .Value) $url}}
+{{else}}
+  {{stringify .Value}}
+{{end}}

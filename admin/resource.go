@@ -18,7 +18,7 @@ type Resource struct {
 	Config        *Config
 	Metas         []*Meta
 	actions       []*Action
-	scopes        map[string]*Scope
+	scopes        []*Scope
 	filters       map[string]*Filter
 	searchAttrs   []string
 	indexAttrs    []string

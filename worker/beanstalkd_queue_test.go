@@ -33,7 +33,7 @@ func TestBeanstalkdQueue(t *testing.T) {
 			t.Error("dequeue error: ", err)
 		}
 		if jobId != 1 {
-			t.Error("jobID: expect %d got %d", 1, jobId)
+			t.Errorf("jobID: expect %d got %d", 1, jobId)
 		}
 	}
 	{
@@ -55,7 +55,7 @@ func TestBeanstalkdQueue(t *testing.T) {
 			t.Error("dequeue error: ", err)
 		}
 		if jobId != 2 {
-			t.Error("jobID: expect %d got %d", 2, jobId)
+			t.Errorf("jobID: expect %d got %d", 2, jobId)
 		}
 	}
 	{
@@ -81,7 +81,7 @@ func TestBeanstalkdQueue(t *testing.T) {
 				t.Error("dequeue error: ", err)
 			}
 			if jobId != 3 {
-				t.Error("jobID: expect %d got %d", 3, jobId)
+				t.Errorf("jobID: expect %d got %d", 3, jobId)
 			}
 		}
 

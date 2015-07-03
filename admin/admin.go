@@ -2,7 +2,7 @@ package admin
 
 import (
 	"fmt"
-	"html/template"
+	"text/template"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
@@ -89,7 +89,6 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		Resource:    *resource.New(value),
 		Config:      configuration,
 		cachedMetas: &map[string][]*Meta{},
-		scopes:      map[string]*Scope{},
 		filters:     map[string]*Filter{},
 		admin:       admin,
 	}

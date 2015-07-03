@@ -67,7 +67,7 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 												newImage = imaging.Crop(newImage, *cropOption)
 											}
 
-											dst := imaging.Resize(newImage, size.Width, size.Height, imaging.Lanczos)
+											dst := imaging.Thumbnail(newImage, size.Width, size.Height, imaging.Lanczos)
 											var buffer bytes.Buffer
 											imaging.Encode(&buffer, dst, *format)
 											media.Store(media.URL(key), option, &buffer)

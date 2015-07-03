@@ -40,7 +40,7 @@ func TestNewGoogleDriveCSVConverter(t *testing.T) {
 	if excelfile != "" {
 		csvsrc, err := converter.Convert(excelfile, ExcelContentType, CSVContentType)
 		if err != nil {
-			t.Fatal("Can't convert excel to csv: %s", err)
+			t.Fatalf("Can't convert excel to csv: %s", err)
 		}
 		csvdst, err := os.OpenFile("test.csv", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 		if err != nil {
@@ -55,7 +55,7 @@ func TestNewGoogleDriveCSVConverter(t *testing.T) {
 	if csvfile != "" {
 		excelsrc, err := converter.Convert(csvfile, CSVContentType, ExcelContentType)
 		if err != nil {
-			t.Fatal("Can't convert csv to excel: %s", err)
+			t.Fatalf("Can't convert csv to excel: %s", err)
 		}
 		exceldst, err := os.OpenFile("test.xlsx", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 		if err != nil {

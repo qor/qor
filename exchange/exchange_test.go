@@ -195,10 +195,10 @@ func TestImportNormalizeHeader(t *testing.T) {
 		t.Errorf("should get 28.1, but got %f", marathones[1].RunningLevel)
 	}
 	if marathones[1].Min1500 != 8 {
-		t.Errorf("should get 8, but got %f", marathones[1].Min1500)
+		t.Errorf("should get 8, but got %d", marathones[1].Min1500)
 	}
 	if marathones[1].Sec1500 != 26 {
-		t.Errorf("should get 26, but got %f", marathones[1].Sec1500)
+		t.Errorf("should get 26, but got %d", marathones[1].Sec1500)
 	}
 }
 

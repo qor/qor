@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"runtime/debug"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -76,8 +77,12 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 	} else {
 		structType := reflect.Indirect(reflect.ValueOf(value)).Type().String()
 		res := context.Admin.GetResource(structType)
-		primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
-		url = path.Join(context.Admin.router.Prefix, res.ToParam(), fmt.Sprintf("%v", primaryKey))
+		if res == nil {
+			url = ""
+		} else {
+			primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
+			url = path.Join(context.Admin.router.Prefix, res.ToParam(), fmt.Sprintf("%v", primaryKey))
+		}
 	}
 	return url
 }
@@ -88,6 +93,23 @@ func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML
 		return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, linkStr, text))
 	}
 	return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, context.UrlFor(link), text))
+}
+
+func (context *Context) RenderIndex(value interface{}, meta *Meta) template.HTML {
+	var err error
+	var result = bytes.NewBufferString("")
+	var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.funcMap())
+
+	if tmpl, err = context.findTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
+		tmpl, _ = tmpl.Parse("{{.Value}}")
+	}
+
+	data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
+	if err := tmpl.Execute(result, data); err != nil {
+		fmt.Println(err)
+		debug.PrintStack()
+	}
+	return template.HTML(result.String())
 }
 
 func (context *Context) RenderForm(value interface{}, metas []*Meta) template.HTML {
@@ -121,7 +143,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
 
-	if tmpl, err := context.findTemplate(tmpl, fmt.Sprintf("forms/%v.tmpl", meta.Type)); err == nil {
+	if tmpl, err := context.findTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
 		data := map[string]interface{}{}
 		data["Base"] = meta.base
 		data["InputId"] = strings.Join(prefix, "")
@@ -215,11 +237,29 @@ func (context *Context) StyleSheetTag(name string) template.HTML {
 	return template.HTML(fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
 }
 
-func (context *Context) GetScopes() (scopes []string) {
-	for scope, _ := range context.Resource.scopes {
-		scopes = append(scopes, scope)
+type scopeMenu struct {
+	Group  string
+	Scopes []*Scope
+}
+
+func (context *Context) GetScopes() (menus []*scopeMenu) {
+OUT:
+	for _, scope := range context.Resource.scopes {
+		if !scope.Default {
+			if scope.Group != "" {
+				for _, menu := range menus {
+					if menu.Group == scope.Group {
+						menu.Scopes = append(menu.Scopes, scope)
+						continue OUT
+					}
+				}
+				menus = append(menus, &scopeMenu{Group: scope.Group, Scopes: []*Scope{scope}})
+			} else {
+				menus = append(menus, &scopeMenu{Group: scope.Group, Scopes: []*Scope{scope}})
+			}
+		}
 	}
-	return
+	return menus
 }
 
 type permissioner interface {
@@ -408,8 +448,11 @@ func (context *Context) funcMap() template.FuncMap {
 		"get_scopes": context.GetScopes,
 
 		"escape":                 html.EscapeString,
+		"raw":                    func(str string) template.HTML { return template.HTML(str) },
+		"stringify":              utils.Stringify,
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
+		"render_index":           context.RenderIndex,
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
 		"patch_current_url":      context.PatchCurrentURL,

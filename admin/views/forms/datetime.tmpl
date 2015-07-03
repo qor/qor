@@ -1,5 +1,0 @@
-<div class="form-group">
-  <label for="{{.InputId}}">{{rt .Base .Label }}</label>
-  <input type="text" class="form-control" id="{{.InputId}}" data-toggle="qor.datepicker" name="{{.InputName}}" {{if .Value}}value="{{.Value}}"{{end}} {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
-</div>
-

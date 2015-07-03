@@ -74,7 +74,7 @@ func (b *Base) Scan(data interface{}) (err error) {
 			b.Scan(str)
 		}
 	default:
-		fmt.Errorf("unsupported driver -> Scan pair for MediaLibrary")
+		err = errors.New("unsupported driver -> Scan pair for MediaLibrary")
 	}
 	return
 }
