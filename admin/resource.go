@@ -55,7 +55,7 @@ func (res Resource) UseTheme(theme string) []string {
 	return []string{}
 }
 
-func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}, kind string) interface{} {
+func (res *Resource) ConvertObjectToMap(context *Context, value interface{}, kind string) interface{} {
 	reflectValue := reflect.Indirect(reflect.ValueOf(value))
 	switch reflectValue.Kind() {
 	case reflect.Slice:
@@ -74,8 +74,8 @@ func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}
 
 		values := map[string]interface{}{}
 		for _, meta := range metas {
-			if meta.HasPermission(roles.Read, context.GetContext()) {
-				value := meta.GetValuer()(value, context.GetContext())
+			if meta.HasPermission(roles.Read, context.Context) {
+				value := meta.GetValuer()(value, context.Context)
 				if meta.Resource != nil {
 					value = meta.Resource.(*Resource).ConvertObjectToMap(context, value, kind)
 				}
@@ -88,8 +88,8 @@ func (res *Resource) ConvertObjectToMap(context qor.Contextor, value interface{}
 	}
 }
 
-func (res *Resource) Decode(contextor qor.Contextor, value interface{}) (errs []error) {
-	return resource.Decode(contextor, value, res)
+func (res *Resource) Decode(context *qor.Context, value interface{}) (errs []error) {
+	return resource.Decode(context, value, res)
 }
 
 func (res *Resource) IndexAttrs(columns ...string) {

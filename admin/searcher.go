@@ -106,12 +106,19 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	return context
 }
 
-func (s *Searcher) getContext() *qor.Context {
-	return s.Context.Context.New()
+func (s *Searcher) cloneContext() *qor.Context {
+	context := s.Context.Context
+	return &qor.Context{
+		Request:    context.Request,
+		Writer:     context.Writer,
+		ResourceID: context.ResourceID,
+		Config:     context.Config,
+		DB:         context.DB,
+	}
 }
 
 func (s *Searcher) parseContext() *qor.Context {
-	var context = s.getContext()
+	var context = s.cloneContext()
 	var searcher = s.clone()
 
 	if context != nil && context.Request != nil {
