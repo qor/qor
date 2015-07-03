@@ -267,19 +267,19 @@ type permissioner interface {
 }
 
 func (context *Context) HasCreatePermission(permissioner permissioner) bool {
-	return permissioner.HasPermission(roles.Create, context.GetContext())
+	return permissioner.HasPermission(roles.Create, context.Context)
 }
 
 func (context *Context) HasReadPermission(permissioner permissioner) bool {
-	return permissioner.HasPermission(roles.Read, context.GetContext())
+	return permissioner.HasPermission(roles.Read, context.Context)
 }
 
 func (context *Context) HasUpdatePermission(permissioner permissioner) bool {
-	return permissioner.HasPermission(roles.Update, context.GetContext())
+	return permissioner.HasPermission(roles.Update, context.Context)
 }
 
 func (context *Context) HasDeletePermission(permissioner permissioner) bool {
-	return permissioner.HasPermission(roles.Delete, context.GetContext())
+	return permissioner.HasPermission(roles.Delete, context.Context)
 }
 
 type Page struct {
@@ -407,7 +407,7 @@ func (context *Context) LogoutURL() string {
 }
 
 func (context *Context) T(key string, values ...interface{}) string {
-	locale := utils.GetLocale(context.GetContext())
+	locale := utils.GetLocale(context.Context)
 
 	if context.Admin.I18n == nil {
 		if result, err := cldr.Parse(locale, key, values...); err == nil {
@@ -420,7 +420,7 @@ func (context *Context) T(key string, values ...interface{}) string {
 }
 
 func (context *Context) RT(resource *Resource, key string, values ...interface{}) string {
-	locale := utils.GetLocale(context.GetContext())
+	locale := utils.GetLocale(context.Context)
 
 	if context.Admin.I18n == nil {
 		if result, err := cldr.Parse(locale, key, values); err == nil {

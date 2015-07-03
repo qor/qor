@@ -10,10 +10,6 @@ type CurrentUser interface {
 	DisplayName() string
 }
 
-type Contextor interface {
-	GetContext() *Context
-}
-
 type Context struct {
 	Request    *http.Request
 	Writer     http.ResponseWriter
@@ -21,20 +17,6 @@ type Context struct {
 	Config     *Config
 	Roles      []string
 	DB         *gorm.DB
-}
-
-func (context *Context) GetContext() *Context {
-	return context
-}
-
-func (context *Context) New() *Context {
-	return &Context{
-		Request:    context.Request,
-		Writer:     context.Writer,
-		ResourceID: context.ResourceID,
-		Config:     context.Config,
-		DB:         context.DB,
-	}
 }
 
 func (context *Context) GetDB() *gorm.DB {

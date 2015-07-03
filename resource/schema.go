@@ -111,8 +111,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 	return metaValues, nil
 }
 
-func Decode(contextor qor.Contextor, result interface{}, res Resourcer) (errs []error) {
-	context := contextor.GetContext()
+func Decode(context *qor.Context, result interface{}, res Resourcer) (errs []error) {
 	var err error
 	var metaValues *MetaValues
 	metaors := res.GetMetas()
