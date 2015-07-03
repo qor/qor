@@ -10,13 +10,16 @@
       <section class="qor-label-group label-group fl">
         {{range $scope := $scopes}}
           {{if $scope.Group}}
-            <a class="label label-default" href="#">{{$scope.Group}}</a>
-            {{range $s := $scope.Scopes}}
-              <a class="label label-default" href="?scopes={{$s.Name}}">{{$s.Name}}</a>
-            {{end}}
+            <select name="scopes">
+              <optgroup label="{{$scope.Group}}">
+                {{range $s := $scope.Scopes}}
+                  <option value="{{$s.Name}}">{{t $s.Name}}</option>
+                {{end}}
+              </optgroup>
+            </select>
           {{else}}
             {{range $s := $scope.Scopes}}
-              <a class="label label-default" href="?scopes={{$s.Name}}">{{$s.Name}}</a>
+              <a class="label label-default" href="?scopes={{$s.Name}}">{{t $s.Name}}</a>
             {{end}}
           {{end}}
         {{end}}
