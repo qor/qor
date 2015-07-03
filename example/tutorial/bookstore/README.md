@@ -9,10 +9,6 @@ This tutorial shows you
 
     go get github.com/qor/qor
 
-NB: I you clone qor and use it from your own account you will have to create a symlink like this:
-
-    go/src/github.com/qor [qor] $ ln -s ../YOUR_GITHUB_USRNAME/qor/ qor
-
 * A database - for example PostgreSQL or MySQL
 * Install dependencies: cd into the qor source directory and run
 
@@ -86,31 +82,36 @@ We will need the following two models to start with:
 The `Author` model is very simple:
 
     type Author struct {
-	    gorm.Model
-	    Name string
-        publish.Status
+    	gorm.Model
+    	publish.Status
+    	l10n.Locale
+
+    	Name string
     }
 
 All qor models "inherit" from `gorm.model`. (see https://github.com/jinzhu/gorm).
 Our author model for now only has a `Name`.
-Ignore the `publish.Status` for now - we will address that in a later part of the tutorial.
+Ignore `publish.Status` and `l10n.Locale` for now - we will address these in later parts of the tutorial.
 
 The Bookmodel has a few more fields:
 
     type Book struct {
     	gorm.Model
-	    Title       string
-	    Synopsis    string
-	    ReleaseDate time.Time
-	    Authors     []*Author `gorm:"many2many:book_authors"`
-	    Price       float64
-	    CoverImage  media_library.FileSystem
-        publish.Status
+    	publish.Status
+    	l10n.Locale
+
+    	Title       string
+    	Synopsis    string
+    	ReleaseDate time.Time
+    	Authors     []*Author `gorm:"many2many:book_authors"`
+    	Price       float64
+    	CoverImage  media_library.FileSystem
     }
+
 
 The only interesting part here is the gorm struct tag: `gorm:many2many:book_authors"`; It tells `gorm` to create a join table `book_authors`.
 
-Ignore the `publish.Status` for now - we will address that in a later part of the tutorial.
+Ignore `publish.Status` and `l10n.Locale` for now - we will address these in later parts of the tutorial.
 
 That's almost it: If you [look at](https://github.com/qor/qor/tree/master/example/tutorial/bookstore/01/models.go) you can see an `init()` function at the end: It sets up a db connection and `db.AutoMigrate(&Author{}, &Book{}, &User{})` tells QOR to automatically create the tables for our models.
 
@@ -129,6 +130,37 @@ If you now check your db you would see something like this:
 
 #### PostgreSQL
 
+    qor_bookstore=# \d
+    List of relations
+    Schema |         Name         |   Type   | Owner
+    --------+----------------------+----------+-------
+    public | authors              | table    | qor
+    public | authors_draft        | table    | qor
+    public | authors_draft_id_seq | sequence | qor
+    public | authors_id_seq       | sequence | qor
+    public | book_authors         | table    | qor
+    public | books                | table    | qor
+    public | books_draft          | table    | qor
+    public | books_draft_id_seq   | sequence | qor
+    public | books_id_seq         | sequence | qor
+    public | translations         | table    | qor
+    public | users                | table    | qor
+    public | users_id_seq         | sequence | qor
+    (12 rows)
+
+    qor_bookstore=# \d authors
+    Table "public.authors"
+    Column     |           Type           |                      Modifiers
+    ----------------+--------------------------+------------------------------------------------------
+    id             | integer                  | not null default nextval('authors_id_seq'::regclass)
+    created_at     | timestamp with time zone |
+    updated_at     | timestamp with time zone |
+    deleted_at     | timestamp with time zone |
+    publish_status | boolean                  |
+    language_code  | character varying(6)     | not null
+    name           | character varying(255)   |
+    Indexes:
+    "authors_pkey" PRIMARY KEY, btree (id, language_code)
 
 
 #### MySQL
@@ -264,6 +296,76 @@ QOR will pick an input type based on your struct types - but sometimes you want 
 TODO: other types - at least select_one and select_many. add list.
 
 
+
+#### MediaLibrary - Adding product images
+
+    import "github.com/qor/qor/media_library"
+
+
+
+    /public [public (docs_and_tutorial)] $ tree
+    .
+    ├── assets
+    │   └── css
+    │       └── bookstore.css
+    └── system
+        ├── books
+        │   └── 1
+        │       └── CoverImage
+        │           ├── P1210896.20150604163815084702067.jpg
+        │           └── P1210896.20150604163815084702067.original.jpg
+        └── books_draft
+            └── 1
+                └── CoverImage
+                    ├── P1210896.20150604163815084702067.jpg
+                    └── P1210896.20150604163815084702067.original.jpg
+
+
+`Base` is the low level object to deal with images offering cropping, resizing, and URL contruction for images.
+
+
+### L10n - Localizing your resources
+
+To localize your resources, for example having an english and a japanese "version" of an author or a book you need to use the `l10n` module.
+
+    import "github.com/qor/qor/l10n"
+
+Any model you want to have localization support on needs to inherit from l10n.Locale:
+
+    type Author struct {
+    	gorm.Model
+    	publish.Status
+    	l10n.Locale
+
+    	Name string
+    }
+
+Set your default locale:
+
+    func init() {
+        l10n.Global = "en"
+	    l10n.RegisterCallbacks(&Db)
+    }
+
+
+TODO @jinzhu: what exactly does l10n.RegisterCallbacks
+
+You're almost done
+
+
+
+### I18n - Translating strings
+
+    import "github.com/qor/qor/i18n"
+
+
+
+### Publish - Edit first then push to production DB
+
+The Publish module
+
+
+
 ### Frontend
 
 QOR does not provide any builtin templating or routing support - use whatever library is best fit for your needs. In this tutorial we will use [gin](https://github.com/gin-gonic/gin) and the stl `html/template`s.
@@ -273,12 +375,6 @@ QOR does not provide any builtin templating or routing support - use whatever li
 #### Product Page
 
 
-
-#### MediaLibrary - Adding product images
-
-qor/media_library
-
-`Base` is the low level object to deal with images offering cropping, resizing, and URL contruction for images.
 
 INERT INTO users (name) VALUES ("admin");
 

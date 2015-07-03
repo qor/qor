@@ -64,10 +64,10 @@ func (User) ViewableLocales() []string {
 
 func (user User) EditableLocales() []string {
 	if user.Role == "admin" {
-		log.Println("EditableLocales() global_admin")
+		log.Println("EditableLocales() admin")
 		return []string{l10n.Global, "jp"}
 	} else {
-		log.Println("EditableLocales() NOT global_admin")
+		log.Println("EditableLocales() NOT admin")
 		return []string{l10n.Global, "jp"}
 		// return []string{}
 	}
