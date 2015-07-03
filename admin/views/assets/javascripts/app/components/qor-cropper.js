@@ -307,7 +307,7 @@
           parent: '.form-group',
           output: '.qor-file-options',
           list: '.qor-file-list',
-          key: 'cropoptions',
+          key: 'cropOptions',
           data: {
             crop: true
           }

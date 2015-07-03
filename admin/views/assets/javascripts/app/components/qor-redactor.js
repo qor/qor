@@ -138,7 +138,7 @@
                 contentType: 'application/json',
                 data: JSON.stringify({
                   url: url,
-                  cropoptions: {
+                  cropOptions: {
                     original: cropData
                   },
                   crop: true
