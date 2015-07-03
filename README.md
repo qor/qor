@@ -40,7 +40,7 @@ QOR is not a "boxed turnkey solution". You need proper coding skills to use it. 
 
 ## API Documentation
 
-[![GoDoc](https://godoc.org/github.com/qor/qor?status.svg)](https://godoc.org/github.com/qor/qor)
+We are planning to update the godoc documentation for all modules after the API for the 1.0 release is frozen. Still outstanding are:
 
 * [ ] Admin
 * [ ] Publish
