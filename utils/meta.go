@@ -31,9 +31,8 @@ func GetNestedModel(value interface{}, alias string, context *qor.Context) inter
 
 	if model.CanAddr() {
 		return model.Addr().Interface()
-	} else {
-		return nil
 	}
+	return nil
 }
 
 // Profile.Name

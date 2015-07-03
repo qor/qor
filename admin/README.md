@@ -44,7 +44,7 @@ Use 35 lines of code to setup & run Qor admin.
 // TODO: add screenshot after QOR admin UI finished
 `go run main.go` and visit `localhost:9000/admin` to see the result !
 
-You can view [qor example](https://github.com/theplant/qor3/tree/master/example) for a more detailed configuration example.
+You can view [qor example](https://github.com/qor/qor/tree/master/example) for a more detailed configuration example.
 
 ## Features
 
@@ -56,11 +56,11 @@ You can view [qor example](https://github.com/theplant/qor3/tree/master/example)
 - Customizable view
 - Rich editor
 - Image crop
-- Integrate-able with [Publish](https://github.com/theplant/qor3/tree/master/publish)
-- Integrate-able with [l10n](https://github.com/theplant/qor3/tree/master/l10n)
+- Integrate-able with [Publish](https://github.com/qor/qor/tree/master/publish)
+- Integrate-able with [l10n](https://github.com/qor/qor/tree/master/l10n)
 - JSON API supported
 - Extendable
 
 ## Documentation
 
-https://github.com/theplant/qor3/wiki
+https://github.com/qor/qor/wiki
