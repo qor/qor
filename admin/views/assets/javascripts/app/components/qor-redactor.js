@@ -56,6 +56,29 @@
     return data;
   }
 
+  function capitalize (str) {
+    if (typeof str === 'string') {
+      str = str.charAt(0).toUpperCase() + str.substr(1);
+    }
+
+    return str;
+  }
+
+  function getCapitalizeKeyObject (obj) {
+    var newObj = {},
+        key;
+
+    if ($.isPlainObject(obj)) {
+      for (key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          newObj[capitalize(key)] = obj[key];
+        }
+      }
+    }
+
+    return newObj;
+  }
+
   QorRedactor.prototype = {
     constructor: QorRedactor,
 
@@ -137,11 +160,11 @@
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                  url: url,
-                  cropOptions: {
-                    original: cropData
+                  Url: url,
+                  CropOptions: {
+                    original: getCapitalizeKeyObject(cropData)
                   },
-                  crop: true
+                  Crop: true
                 }),
                 dataType: 'json',
 

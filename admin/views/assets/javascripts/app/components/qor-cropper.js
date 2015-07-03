@@ -28,6 +28,55 @@
         this.init();
       };
 
+  function capitalize (str) {
+    if (typeof str === 'string') {
+      str = str.charAt(0).toUpperCase() + str.substr(1);
+    }
+
+    return str;
+  }
+
+  function getLowerCaseKeyObject (obj) {
+    var newObj = {},
+        key;
+
+    if ($.isPlainObject(obj)) {
+      for (key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          newObj[String(key).toLowerCase()] = obj[key];
+        }
+      }
+    }
+
+    return newObj;
+  }
+
+  function getCapitalizeKeyObject (obj) {
+    var newObj = {},
+        key;
+
+    if ($.isPlainObject(obj)) {
+      for (key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          newObj[capitalize(key)] = obj[key];
+        }
+      }
+    }
+
+    return newObj;
+  }
+
+  function getValueByNoCaseKey (obj, key) {
+    var originalKey = String(key),
+        lowerCaseKey = originalKey.toLowerCase(),
+        upperCaseKey = originalKey.toUpperCase(),
+        capitalizeKey = capitalize(originalKey);
+
+    if ($.isPlainObject(obj)) {
+      return (obj[lowerCaseKey] || obj[capitalizeKey] || obj[upperCaseKey]);
+    }
+  }
+
   QorCropper.prototype = {
     constructor: QorCropper,
 
@@ -48,7 +97,7 @@
       this.$modal = $parent.find(options.modal);
 
       try {
-        data = JSON.parse(String($.trim($output.val())).toLowerCase());
+        data = JSON.parse($.trim($output.val()));
       } catch (e) {}
 
       this.data = $.extend(data || {}, options.data);
@@ -137,7 +186,7 @@
           sizeName = targetData.sizeName || 'original',
           sizeResolution = targetData.sizeResolution,
           $clone = $('<img>').attr('src', targetData.originalUrl),
-          aspectRatio = sizeResolution ? sizeResolution.width / sizeResolution.height : NaN,
+          aspectRatio = sizeResolution ? getValueByNoCaseKey(sizeResolution, 'width') / getValueByNoCaseKey(sizeResolution, 'height') : NaN,
           data = this.data,
           _this = this;
 
@@ -148,7 +197,7 @@
       $modal.find('.modal-body').html($clone);
       $clone.cropper({
         aspectRatio: aspectRatio,
-        data: data[options.key][sizeName],
+        data: getLowerCaseKeyObject(data[options.key][sizeName]),
         background: false,
         zoomable: false,
         rotatable: false,
@@ -165,7 +214,7 @@
               }
             });
 
-            data[options.key][sizeName] = cropData;
+            data[options.key][sizeName] = getCapitalizeKeyObject(cropData);
             _this.imageData = $clone.cropper('getImageData');
             _this.cropData = cropData;
 
@@ -307,9 +356,9 @@
           parent: '.form-group',
           output: '.qor-file-options',
           list: '.qor-file-list',
-          key: 'cropOptions',
+          key: 'CropOptions',
           data: {
-            crop: true
+            Crop: true
           }
         };
 
