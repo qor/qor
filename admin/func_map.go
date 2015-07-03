@@ -237,11 +237,29 @@ func (context *Context) StyleSheetTag(name string) template.HTML {
 	return template.HTML(fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
 }
 
-func (context *Context) GetScopes() (scopes []string) {
+type scopeMenu struct {
+	Group  string
+	Scopes []*Scope
+}
+
+func (context *Context) GetScopes() (menus []*scopeMenu) {
+OUT:
 	for _, scope := range context.Resource.scopes {
-		scopes = append(scopes, scope.Name)
+		if !scope.Default {
+			if scope.Group != "" {
+				for _, menu := range menus {
+					if menu.Group == scope.Group {
+						menu.Scopes = append(menu.Scopes, scope)
+						continue OUT
+					}
+				}
+				menus = append(menus, &scopeMenu{Group: scope.Group, Scopes: []*Scope{scope}})
+			} else {
+				menus = append(menus, &scopeMenu{Group: scope.Group, Scopes: []*Scope{scope}})
+			}
+		}
 	}
-	return
+	return menus
 }
 
 type permissioner interface {

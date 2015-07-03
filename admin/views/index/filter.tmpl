@@ -5,12 +5,22 @@
       <a class="trigger md md-view-module" state="grid" href="javascript:;"></a>
     </section>
 
-    {{if get_scopes}}
-    <section class="qor-label-group label-group fl">
-      {{range $scope := get_scopes}}
-        <a class="label label-default" href="?scopes={{$scope}}">{{$scope}}</a>
-      {{end}}
-    </section>
+    {{$scopes := get_scopes}}
+    {{if $scopes}}
+      <section class="qor-label-group label-group fl">
+        {{range $scope := $scopes}}
+          {{if $scope.Group}}
+            <a class="label label-default" href="#">{{$scope.Group}}</a>
+            {{range $s := $scope.Scopes}}
+              <a class="label label-default" href="?scopes={{$s.Name}}">{{$s.Name}}</a>
+            {{end}}
+          {{else}}
+            {{range $s := $scope.Scopes}}
+              <a class="label label-default" href="?scopes={{$s.Name}}">{{$s.Name}}</a>
+            {{end}}
+          {{end}}
+        {{end}}
+      </section>
     {{end}}
 
     {{if .Resource.SearchHandler}}
