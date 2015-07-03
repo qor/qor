@@ -5,12 +5,25 @@
       <a class="trigger md md-view-module" state="grid" href="javascript:;"></a>
     </section>
 
-    {{if get_scopes}}
-    <section class="qor-label-container fl">
-      {{range $scope := get_scopes}}
-        <a class="qor-label label label-default" href="?scopes={{$scope}}">{{$scope}}</a>
-      {{end}}
-    </section>
+    {{$scopes := get_scopes}}
+    {{if $scopes}}
+      <section class="qor-label-container fl">
+        {{range $scope := $scopes}}
+          {{if $scope.Group}}
+            <select class="qor-label-group form-control" name="scopes">
+              <optgroup label="{{$scope.Group}}">
+                {{range $s := $scope.Scopes}}
+                  <option value="{{$s.Name}}">{{t $s.Name}}</option>
+                {{end}}
+              </optgroup>
+            </select>
+          {{else}}
+            {{range $s := $scope.Scopes}}
+              <a class="qor-label label label-default" href="?scopes={{$s.Name}}">{{t $s.Name}}</a>
+            {{end}}
+          {{end}}
+        {{end}}
+      </section>
     {{end}}
 
     {{if .Resource.SearchHandler}}

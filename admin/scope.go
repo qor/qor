@@ -6,12 +6,13 @@ import (
 )
 
 func (res *Resource) Scope(scope *Scope) {
-	res.scopes[scope.Name] = scope
+	res.scopes = append(res.scopes, scope)
 }
 
 type Scope struct {
 	Name    string
 	Label   string
+	Group   string
 	Handle  func(*gorm.DB, *qor.Context) *gorm.DB
 	Default bool
 }
