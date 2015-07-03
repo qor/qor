@@ -247,8 +247,8 @@
       var $target = this.$target,
           $canvas = $target.parent(),
           $container = $canvas.parent(),
-          containerWidth = Math.max($container.width(), 180), // minContainerWidth: 180
-          containerHeight = Math.max($container.height(), 180), // minContainerHeight: 180
+          containerWidth = Math.max($container.width(), 160), // minContainerWidth: 160
+          containerHeight = Math.max($container.height(), 160), // minContainerHeight: 160
           imageData = this.imageData,
           cropData = this.cropData,
           newAspectRatio = cropData.width / cropData.height,
