@@ -60,7 +60,7 @@ func ToParamString(str string) string {
 
 // PatchURL updates the query part of the current request url. You can
 // access it in template by `patch_url`.
-//     patch_url "key" "value"
+//     patch_url "google.com" "key" "value"
 func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err error) {
 	url, err := url.Parse(originalURL)
 	if err != nil {
