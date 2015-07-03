@@ -33,7 +33,7 @@ QOR is not a "boxed turnkey solution". You need proper coding skills to use it. 
 
 * Internationalization (i18n) - Managing and (inline) editing of translations
 
-* Localization (l10n) - Managing locales in multilingual environments
+* Localization (l10n) - Manage DB-backed models on per-locale basis, with support for defining/editing localizable attributes, and locale-based querying
 
 * Roles - Access Control
 
