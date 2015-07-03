@@ -47,9 +47,10 @@ func (s *Searcher) clone() *Searcher {
 func (s *Searcher) Scope(names ...string) *Searcher {
 	newSearcher := s.clone()
 	for _, name := range names {
-		if s.Resource.scopes != nil {
-			if scope := s.Resource.scopes[name]; scope != nil && !scope.Default {
+		for _, scope := range s.Resource.scopes {
+			if scope.Name == name && !scope.Default {
 				newSearcher.scopes = append(newSearcher.scopes, scope)
+				break
 			}
 		}
 	}

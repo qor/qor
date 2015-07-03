@@ -238,8 +238,8 @@ func (context *Context) StyleSheetTag(name string) template.HTML {
 }
 
 func (context *Context) GetScopes() (scopes []string) {
-	for scope, _ := range context.Resource.scopes {
-		scopes = append(scopes, scope)
+	for _, scope := range context.Resource.scopes {
+		scopes = append(scopes, scope.Name)
 	}
 	return
 }
