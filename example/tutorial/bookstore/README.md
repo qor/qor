@@ -45,6 +45,8 @@ Before we dive into our models we need to create a database:
     template1=# GRANT all ON DATABASE qor_bookstore TO qor;
 
 
+
+
 #### MySQL
 
     mysql> DROP DATABASE IF EXISTS qor_bookstore;
@@ -66,11 +68,12 @@ You should now be able to connect to your database from the console like this:
 
 ## Get Started
 
-We want to create a simple bookstore application. We will start by building a catalog of books and then later add a storefront. We will then add a staging environment so that editors can preview their changes and then publish them to a live system.
+We want to create a simple bookstore application. We will start by building a catalog of books and then later add a storefront. We will add a staging environment (database rather) so that editors can make changes to contents and then later publish them to a live database.
 
-Later we will add L10n/I18n support and look at roles for the editorial process.
+We will add Localization(L10n) for the books and authors and Internationalization(I18n) support for the complete backoffice we built with `qor/admin`.
 
-Continuous TODO: Add the next planned steps for the tutorial here.
+
+
 
 ### The basic models
 
@@ -197,6 +200,13 @@ If you now check your db you would see something like this:
 As you can see QOR/gorm added an `id` field as well as timestamp fields to keep track of creation, modification, and deletion times. We can ignore this for now - the main point is that you create your models without a unique identifier - QOR/gorm will do this for you automatically. (TODO: @jinzhu please confirm)
 
 NB: If you add new fields to your model they will get added to the database automatically with `DB.AutoMigrate` - deletions or *changes* of eg. the type will *not* be automigrated. (TODO: @jinzhu please confirm)
+
+#### Insert some users
+
+One last setup step: We need some users. Run this on your database:
+
+    INSERT INTO users (name,role) VALUES ('admin','admin');
+    INSERT INTO users (name,role) VALUES ('user1','user');
 
 
 ### Admin
