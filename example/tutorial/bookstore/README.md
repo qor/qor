@@ -297,17 +297,67 @@ TODO: other types - at least select_one and select_many. add list.
 
 
 
+### Publish - Edit first then push to production DB
+
+    import "github.com/qor/qor/publish"
+
+The Publish module allows you edit contents of your site without having them go online right away. Every model that you want to be able to `Publish` needs to inherit `publish.Status`:
+
+    type Author struct {
+    	gorm.Model
+    	publish.Status
+    	l10n.Locale
+
+    	Name string
+    }
+
+Then initialize `Publish` and set up AutoMigrate (see [init() in models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/models/models.go#L83)):
+
+	Pub = publish.New(&Db)
+	Pub.AutoMigrate(&Author{}, &Book{})
+
+	StagingDB = Pub.DraftDB()         // Draft resources are saved here
+	ProductionDB = Pub.ProductionDB() // Published resources are saved here
+
+And change the `DB` config of `admin`:
+
+	// Admin := admin.New(&qor.Config{DB: &db})         // this is without publish
+	Admin = admin.New(&qor.Config{DB: Pub.DraftDB()})   // with publish
+	Admin.AddResource(Pub)
+
+You have now a *"Publish"* menu:
+
+TODO: screeenshot
+
+Changes you make on *publishable* objects are not going online right away. Add an author and/or a book and check out the [Publish section](http://localhost:9000/admin/publish):
+
+TODO: screeenshot
+
+
+
 #### MediaLibrary - Adding product images
 
     import "github.com/qor/qor/media_library"
 
+We will only briefly touch on the `qor/media_library`. It provides support for upload, storage, and resizing of images. Define an attribute with the `media_library.FileSystem` type:
 
+    type Book struct {
+    	gorm.Model
+    	publish.Status
+    	l10n.Locale
+
+        [...]
+    	CoverImage  media_library.FileSystem
+    }
+
+and you're almost done. You need to define a route to serve the files from:
+
+	router.StaticFS("/system/", http.Dir("public/system"))
+
+Support for publish (draft version, publish to live) is built in. This is what the directory structure for looks like:
 
     /public [public (docs_and_tutorial)] $ tree
     .
-    ├── assets
-    │   └── css
-    │       └── bookstore.css
     └── system
         ├── books
         │   └── 1
@@ -320,8 +370,10 @@ TODO: other types - at least select_one and select_many. add list.
                     ├── P1210896.20150604163815084702067.jpg
                     └── P1210896.20150604163815084702067.original.jpg
 
+In your templates you can use the image like this:
 
-`Base` is the low level object to deal with images offering cropping, resizing, and URL contruction for images.
+    <img src="{{.book.CoverImage}}" />
+
 
 
 ### L10n - Localizing your resources
@@ -358,11 +410,8 @@ You're almost done
 
     import "github.com/qor/qor/i18n"
 
+TODO: Add an example on
 
-
-### Publish - Edit first then push to production DB
-
-The Publish module
 
 
 
@@ -373,10 +422,3 @@ QOR does not provide any builtin templating or routing support - use whatever li
 #### Books Listing
 
 #### Product Page
-
-
-
-INERT INTO users (name) VALUES ("admin");
-
-
-#### I18n and L10n

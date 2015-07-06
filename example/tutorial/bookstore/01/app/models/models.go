@@ -36,16 +36,14 @@ type Book struct {
 	// CoverImages []ProductImage // product image has BookId => handles relation
 }
 
-type ProductImage struct {
-	gorm.Model
-	publish.Status
-	l10n.Locale
+// type ProductImage struct {
+// 	gorm.Model
+// 	publish.Status
+// 	l10n.Locale
 
-	BookId     uint
-	CoverImage media_library.FileSystem
-}
-
-// step 4 - add users
+// 	BookId     uint
+// 	CoverImage media_library.FileSystem
+// }
 
 type User struct {
 	gorm.Model
