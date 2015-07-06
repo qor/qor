@@ -173,7 +173,7 @@
       }
 
       $img = $list.find('img');
-      $img.attr('src' , url).data('originalUrl', url);
+      $img.attr('src', url).data('originalUrl', url);
       this.center($img, true);
     },
 
