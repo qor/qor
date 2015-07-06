@@ -39,7 +39,7 @@ func (resolver *resolver) AddDependency(dep *dependency) {
 		for _, primaryKey := range dep.PrimaryValues {
 			if !includeValue(primaryKey, d.PrimaryValues) {
 				newPrimaryKeys = append(newPrimaryKeys, primaryKey)
-				dep.PrimaryValues = append(d.PrimaryValues, primaryKey)
+				d.PrimaryValues = append(d.PrimaryValues, primaryKey)
 			}
 		}
 	} else {
