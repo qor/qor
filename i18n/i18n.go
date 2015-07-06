@@ -111,35 +111,35 @@ func getLocaleFromContext(context *qor.Context) string {
 	return Default
 }
 
-type AvailableLocalesInterface interface {
+type availableLocalesInterface interface {
 	AvailableLocales() []string
 }
 
-type ViewableLocalesInterface interface {
+type viewableLocalesInterface interface {
 	ViewableLocales() []string
 }
 
-type EditableLocalesInterface interface {
+type editableLocalesInterface interface {
 	EditableLocales() []string
 }
 
-func GetAvailableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
-	if user, ok := currentUser.(ViewableLocalesInterface); ok {
+func getAvailableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
+	if user, ok := currentUser.(viewableLocalesInterface); ok {
 		return user.ViewableLocales()
 	}
 
-	if user, ok := currentUser.(AvailableLocalesInterface); ok {
+	if user, ok := currentUser.(availableLocalesInterface); ok {
 		return user.AvailableLocales()
 	}
 	return []string{}
 }
 
-func GetEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
-	if user, ok := currentUser.(EditableLocalesInterface); ok {
+func getEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
+	if user, ok := currentUser.(editableLocalesInterface); ok {
 		return user.EditableLocales()
 	}
 
-	if user, ok := currentUser.(AvailableLocalesInterface); ok {
+	if user, ok := currentUser.(availableLocalesInterface); ok {
 		return user.AvailableLocales()
 	}
 	return []string{}
@@ -219,14 +219,14 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	})
 
 	res.GetAdmin().RegisterFuncMap("i18n_viewable_locales", func(context admin.Context) []string {
-		return GetAvailableLocales(context.Request, context.CurrentUser)
+		return getAvailableLocales(context.Request, context.CurrentUser)
 	})
 
 	res.GetAdmin().RegisterFuncMap("i18n_editable_locales", func(context admin.Context) []string {
-		return GetEditableLocales(context.Request, context.CurrentUser)
+		return getEditableLocales(context.Request, context.CurrentUser)
 	})
 
-	controller := I18nController{i18n}
+	controller := i18nController{i18n}
 	router := res.GetAdmin().GetRouter()
 	router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Index)
 	router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.Update)

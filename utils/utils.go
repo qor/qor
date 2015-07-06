@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+	"runtime"
+	"runtime/debug"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -57,7 +60,7 @@ func ToParamString(str string) string {
 
 // PatchURL updates the query part of the current request url. You can
 // access it in template by `patch_url`.
-//     patch_url "key" "value"
+//     patch_url "google.com" "key" "value"
 func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err error) {
 	url, err := url.Parse(originalURL)
 	if err != nil {
@@ -138,4 +141,28 @@ func ParseTagOption(str string) map[string]string {
 		}
 	}
 	return setting
+}
+
+func filenameWithLineNum() string {
+	var total = 10
+	var results []string
+	for i := 2; i < 15; i++ {
+		if _, file, line, ok := runtime.Caller(i); ok {
+			total--
+			results = append(results[:0],
+				append(
+					[]string{fmt.Sprintf("%v:%v", strings.TrimPrefix(file, os.Getenv("GOPATH")+"src/"), line)},
+					results[0:len(results)]...)...)
+
+			if total == 0 {
+				return strings.Join(results, "\n")
+			}
+		}
+	}
+	return ""
+}
+
+func ExitWithMsg(str string, value ...interface{}) {
+	fmt.Printf("\n"+filenameWithLineNum()+"\n"+str+"\n", value...)
+	debug.PrintStack()
 }

@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 )
 
@@ -143,13 +142,4 @@ func ToFloat(value interface{}) float64 {
 	} else {
 		panic("failed to parse float: " + result)
 	}
-}
-
-func GetField(fields map[string]*gorm.Field, name string) (*gorm.Field, bool) {
-	for _, field := range fields {
-		if field.Name == name || field.DBName == name {
-			return field, true
-		}
-	}
-	return nil, false
 }

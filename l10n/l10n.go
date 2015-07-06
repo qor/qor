@@ -15,7 +15,7 @@ import (
 
 var Global = "en-US"
 
-type Interface interface {
+type publishInterface interface {
 	IsGlobal() bool
 	SetLocale(locale string)
 }
@@ -32,35 +32,35 @@ func (l *Locale) SetLocale(locale string) {
 	l.LanguageCode = locale
 }
 
-type AvailableLocalesInterface interface {
+type availableLocalesInterface interface {
 	AvailableLocales() []string
 }
 
-type ViewableLocalesInterface interface {
+type viewableLocalesInterface interface {
 	ViewableLocales() []string
 }
 
-type EditableLocalesInterface interface {
+type editableLocalesInterface interface {
 	EditableLocales() []string
 }
 
-func GetAvailableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
-	if user, ok := currentUser.(ViewableLocalesInterface); ok {
+func getAvailableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
+	if user, ok := currentUser.(viewableLocalesInterface); ok {
 		return user.ViewableLocales()
 	}
 
-	if user, ok := currentUser.(AvailableLocalesInterface); ok {
+	if user, ok := currentUser.(availableLocalesInterface); ok {
 		return user.AvailableLocales()
 	}
 	return []string{}
 }
 
-func GetEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
-	if user, ok := currentUser.(EditableLocalesInterface); ok {
+func getEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
+	if user, ok := currentUser.(editableLocalesInterface); ok {
 		return user.EditableLocales()
 	}
 
-	if user, ok := currentUser.(AvailableLocalesInterface); ok {
+	if user, ok := currentUser.(availableLocalesInterface); ok {
 		return user.AvailableLocales()
 	}
 	return []string{}
@@ -112,7 +112,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	if _, ok := role.Get("locale_admin"); !ok {
 		role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
 			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
-			for _, locale := range GetEditableLocales(req, currentUser) {
+			for _, locale := range getEditableLocales(req, currentUser) {
 				if locale == currentLocale {
 					return true
 				}
@@ -130,7 +130,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	if _, ok := role.Get("locale_reader"); !ok {
 		role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
 			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
-			for _, locale := range GetAvailableLocales(req, currentUser) {
+			for _, locale := range getAvailableLocales(req, currentUser) {
 				if locale == currentLocale {
 					return true
 				}
@@ -160,15 +160,15 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 		})
 
 		Admin.RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
-			return GetAvailableLocales(context.Request, context.CurrentUser)
+			return getAvailableLocales(context.Request, context.CurrentUser)
 		})
 
 		Admin.RegisterFuncMap("editable_locales", func(context admin.Context) []string {
-			return GetEditableLocales(context.Request, context.CurrentUser)
+			return getEditableLocales(context.Request, context.CurrentUser)
 		})
 
 		Admin.RegisterFuncMap("createable_locales", func(context admin.Context) []string {
-			editableLocales := GetEditableLocales(context.Request, context.CurrentUser)
+			editableLocales := getEditableLocales(context.Request, context.CurrentUser)
 			if _, ok := context.Resource.Value.(LocaleCreateableInterface); ok {
 				return editableLocales
 			} else {
@@ -187,7 +187,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 			context.GetDB().New().Set("l10n:mode", "unscoped").Model(resource).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
 
 			var results []map[string]interface{}
-			availableLocales := GetAvailableLocales(context.Request, context.CurrentUser)
+			availableLocales := getAvailableLocales(context.Request, context.CurrentUser)
 		OUT:
 			for _, locale := range availableLocales {
 				for _, localized := range languageCodes {
