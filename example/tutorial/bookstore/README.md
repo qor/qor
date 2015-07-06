@@ -335,11 +335,7 @@ And change the `DB` config of `admin`:
 	Admin = admin.New(&qor.Config{DB: Pub.DraftDB()})   // with publish
 	Admin.AddResource(Pub)
 
-You have now a *"Publish"* menu:
-
-TODO: screeenshot
-
-Changes you make on *publishable* objects are not going online right away. Add an author and/or a book and check out the [Publish section](http://localhost:9000/admin/publish):
+You have now a *"Publish"* menu: Changes you make on *publishable* objects are not going online right away. Add an author and/or a book and check out the [Publish section](http://localhost:9000/admin/publish):
 
 TODO: screeenshot
 
@@ -384,6 +380,8 @@ In your templates you can use the image like this:
 
     <img src="{{.book.CoverImage}}" />
 
+TODO: add screenshots
+
 
 
 ### L10n - Localizing your resources
@@ -420,8 +418,25 @@ You're almost done
 
     import "github.com/qor/qor/i18n"
 
-TODO: Add an example on
+To add I18N support for the `qor/admin`
 
+    var (
+    	Admin *admin.Admin
+    	I18n  *i18n.I18n       // this needs to be exported
+    )
+
+    func init() {
+    	// setting up QOR admin
+    	Admin = admin.New(&qor.Config{DB: Pub.DraftDB()})
+    	Admin.AddResource(Pub)
+    	Admin.SetAuth(&Auth{})
+
+    	I18n := i18n.New(database.New(StagingDB))
+    	Admin.AddResource(I18n)
+
+TODO: screenshots
+
+TODO: Add an example on
 
 
 
@@ -429,6 +444,6 @@ TODO: Add an example on
 
 QOR does not provide any builtin templating or routing support - use whatever library is best fit for your needs. In this tutorial we will use [gin](https://github.com/gin-gonic/gin) and the stl `html/template`s.
 
-#### Books Listing
+http://localhost:9000/books
 
-#### Product Page
+TODO: switching the language/locale on the frontend
