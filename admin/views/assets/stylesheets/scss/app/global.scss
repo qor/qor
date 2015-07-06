@@ -607,3 +607,8 @@ table[state=grid] .td.col-act::before {
     border: 0;
     background-color: transparent;
 }
+
+table img {
+  max-width: 160px;
+  max-height: 90px;
+}
