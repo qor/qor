@@ -34,7 +34,7 @@ gulp.task('jscs', function () {
   .pipe(plugins.jscs(path('javascripts/app/.jscsrc')));
 });
 
-gulp.task('jscomponent', function () {
+gulp.task('jscomponent', ['jshint', 'jscs'], function () {
   return gulp.src(scripts.component)
   .pipe(plugins.concat('component.js'))
   .pipe(plugins.uglify())
