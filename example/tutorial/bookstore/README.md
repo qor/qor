@@ -217,7 +217,7 @@ If the bookstore app is not yet running, start it by running `fresh` in the book
 
 Go to http://localhost:9000/admin and you should see the main admin interface:
 
-TODO: add screenshot
+![qor_admin](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin1.png)
 
 The menu at the top gets created by adding your models as resources to the admin in [main.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/main.go):
 
@@ -235,11 +235,14 @@ you can see how the rest of the resources was added in [resources.go](https://gi
 
 Go ahead and go to the authors admin and add an author...
 
-TODO: add screenshots
+![qor_admin_add_author](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin_add_author.png)
 
 ... and then a book via the admin:
 
-TODO: add screenshots
+![qor_admin_add_book](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin_add_book.png)
+
+![qor_admin_books1](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin_books1.png)
+
 
 #### Meta Module - Controlling display and editable fields in the admin
 
@@ -250,7 +253,7 @@ Now comment the following line from [resources.go](https://github.com/qor/qor/bl
 
 and reload the books admin page.
 
-TODO: add screenshot
+![qor_admin_books2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin_books2.png)
 
 You will see a much more crowded list: We had 5 attributes `"ID", "Title", "AuthorNames", "FormattedDate", and "DisplayPrice"`. `Id`, `Title`, and `ReleaseDate` are defined on our `Book` model, but the other two are not. For the Authors field you only see a list of References to the `Author` objects - something like `[0xc208161bc0]`. We want the list of Authors devided by `,` instead. You can achieve that by defining a `Meta` field:
 
@@ -337,7 +340,7 @@ And change the `DB` config of `admin`:
 
 You have now a *"Publish"* menu: Changes you make on *publishable* objects are not going online right away. Add an author and/or a book and check out the [Publish section](http://localhost:9000/admin/publish):
 
-TODO: screeenshot
+![qor_publish](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_publish.png)
 
 
 
@@ -380,7 +383,9 @@ In your templates you can use the image like this:
 
     <img src="{{.book.CoverImage}}" />
 
-TODO: add screenshots
+Edit the book you previously created and click on the image you uploaded there. The crop interface will pop up:
+
+![qor_media](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_media.png)
 
 
 
