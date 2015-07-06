@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -81,24 +80,24 @@ var (
 func init() {
 	var err error
 
-	// // PostgreSQL
-	// Db, err := gorm.Open(
-	// 	"postgres",
-	// 	"user=qor password=qor dbname=qor_bookstore sslmode=disable",
-	// )
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// MySQL
-	dbuser, dbpwd := "qor", "qor"
+	// PostgreSQL
 	Db, err = gorm.Open(
-		"mysql",
-		fmt.Sprintf("%s:%s@/qor_bookstore?parseTime=True&loc=Local", dbuser, dbpwd),
+		"postgres",
+		"user=qor password=qor dbname=qor_bookstore sslmode=disable",
 	)
 	if err != nil {
 		panic(err)
 	}
+
+	// // MySQL
+	// dbuser, dbpwd := "qor", "qor"
+	// Db, err = gorm.Open(
+	// 	"mysql",
+	// 	fmt.Sprintf("%s:%s@/qor_bookstore?parseTime=True&loc=Local", dbuser, dbpwd),
+	// )
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	Db.AutoMigrate(&Author{}, &Book{}, &User{})
 	Db.LogMode(true)
