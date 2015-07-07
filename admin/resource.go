@@ -121,12 +121,12 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 				if field, ok := scope.FieldByName(column); ok {
 					if field.Field.Kind() == reflect.String {
 						conditions = append(conditions, fmt.Sprintf("upper(%v) like upper(?)", scope.Quote(field.DBName)))
+						keywords = append(keywords, "%"+keyword+"%")
 					} else {
 						conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(field.DBName)))
+						keywords = append(keywords, keyword)
 					}
 				}
-
-				keywords = append(keywords, "%"+keyword+"%")
 			}
 			return context.GetDB().Where(strings.Join(conditions, " OR "), keywords...)
 		}
