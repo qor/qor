@@ -145,8 +145,8 @@ func (resolver *resolver) Publish() error {
 
 		var productionColumns, draftColumns []string
 		for _, column := range columns {
-			productionColumns = append(productionColumns, fmt.Sprintf("%v.%v", productionTable, column))
-			draftColumns = append(draftColumns, fmt.Sprintf("%v.%v", draftTable, column))
+			productionColumns = append(productionColumns, column)
+			draftColumns = append(draftColumns, column)
 		}
 
 		if len(dep.PrimaryValues) > 0 {
@@ -179,13 +179,13 @@ func (resolver *resolver) Publish() error {
 					draftCondition = strings.Join(draftJoinKeys, ",")
 				}
 
-				rows, _ := tx.Raw(fmt.Sprintf("select * from %v", draftTable)).Rows()
+				rows, _ := tx.Raw(fmt.Sprintf("SELECT * FROM %s", draftTable)).Rows()
 				joinColumns, _ := rows.Columns()
 				rows.Close()
 				var productionJoinTableColumns, draftJoinTableColumns []string
 				for _, column := range joinColumns {
-					productionJoinTableColumns = append(productionJoinTableColumns, fmt.Sprintf("%v.%v", productionTable, column))
-					draftJoinTableColumns = append(draftJoinTableColumns, fmt.Sprintf("%v.%v", draftTable, column))
+					productionJoinTableColumns = append(productionJoinTableColumns, column)
+					draftJoinTableColumns = append(draftJoinTableColumns, column)
 				}
 
 				sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionCondition, toQueryMarks(dep.PrimaryValues))
@@ -236,8 +236,8 @@ func (resolver *resolver) Discard() error {
 
 		var productionColumns, draftColumns []string
 		for _, column := range columns {
-			productionColumns = append(productionColumns, fmt.Sprintf("%v.%v", productionTable, column))
-			draftColumns = append(draftColumns, fmt.Sprintf("%v.%v", draftTable, column))
+			productionColumns = append(productionColumns, column)
+			draftColumns = append(draftColumns, column)
 		}
 
 		// delete data from draft db
@@ -268,8 +268,8 @@ func (resolver *resolver) Discard() error {
 			rows.Close()
 			var productionJoinTableColumns, draftJoinTableColumns []string
 			for _, column := range joinColumns {
-				productionJoinTableColumns = append(productionJoinTableColumns, fmt.Sprintf("%v.%v", productionTable, column))
-				draftJoinTableColumns = append(draftJoinTableColumns, fmt.Sprintf("%v.%v", draftTable, column))
+				productionJoinTableColumns = append(productionJoinTableColumns, column)
+				draftJoinTableColumns = append(draftJoinTableColumns, column)
 			}
 
 			sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftCondition, toQueryMarks(dep.PrimaryValues))
