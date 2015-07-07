@@ -14,7 +14,7 @@ This tutorial shows you
 
     go get ./...
 
-* Install Gin - QOR does not require gin, but we use :
+* Install Gin - QOR does not require gin, but we use it in the tutorial:
 
     go get github.com/gin-gonic/gin
 
@@ -23,6 +23,9 @@ This tutorial shows you
     go get github.com/pilu/fresh
 
 fresh is not necessary to use qor, but it will make your life easier when playing with the tutorial: it monitors for file changes and automatically recompiles your code every time something has changed.
+
+If you don't want to go with fresh you will have to rebuild/rerun your code every time instead.
+
 
 
 ### Create a database and a db user for the tutorial
@@ -61,9 +64,12 @@ Before we dive into our models we need to create a database:
     mysql> GRANT ALL ON qor_bookstore.* TO 'qor'@'localhost';
     mysql> FLUSH PRIVILEGES;
 
-You should now be able to connect to your database from the console like this:
+TODO: it's a bug that this is needed - but for now this needs to be called manually:
 
-    $ mysql -uqor -p --database qor_bookstore
+    mysql> CREATE TABLE `translations` (`key` varchar(255),`locale` varchar(255),`value` varchar(255) , PRIMARY KEY (`key`(100),`locale`(100)));
+
+
+NB: There is one more step - [INSERTing initial users](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore#insert-some-users). You need to run the app once before you can do it (running it the first time creates the `users` table we want to insert into...)
 
 
 ## Get Started
