@@ -343,7 +343,7 @@ func (context *Context) Pagination() *[]Page {
 	return &pages
 }
 
-func Equal(a, b interface{}) bool {
+func equal(a, b interface{}) bool {
 	return reflect.DeepEqual(a, b)
 }
 
@@ -434,8 +434,6 @@ func (context *Context) RT(resource *Resource, key string, values ...interface{}
 
 func (context *Context) funcMap() template.FuncMap {
 	funcMap := template.FuncMap{
-		"equal": Equal,
-
 		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
 		"get_resource":         context.GetResource,
 		"new_resource_context": context.NewResourceContext,
@@ -449,6 +447,7 @@ func (context *Context) funcMap() template.FuncMap {
 
 		"escape":                 html.EscapeString,
 		"raw":                    func(str string) template.HTML { return template.HTML(str) },
+		"equal":                  equal,
 		"stringify":              utils.Stringify,
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
