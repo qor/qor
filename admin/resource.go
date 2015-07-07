@@ -3,6 +3,7 @@ package admin
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -121,12 +122,15 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 				if field, ok := scope.FieldByName(column); ok {
 					if field.Field.Kind() == reflect.String {
 						conditions = append(conditions, fmt.Sprintf("upper(%v) like upper(?)", scope.Quote(field.DBName)))
+						keywords = append(keywords, "%"+keyword+"%")
 					} else {
+						if _, err := strconv.Atoi(keyword); err != nil {
+							continue
+						}
 						conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(field.DBName)))
+						keywords = append(keywords, keyword)
 					}
 				}
-
-				keywords = append(keywords, "%"+keyword+"%")
 			}
 			return context.GetDB().Where(strings.Join(conditions, " OR "), keywords...)
 		}
