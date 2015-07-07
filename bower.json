@@ -20,9 +20,9 @@
   ],
   "devDependencies": {
     "jquery": "~2.1.4",
-    "bootstrap": "~3.3.4",
-    "bootstrap-sass": "~3.3.4",
-    "cropper": "~0.9.3",
+    "bootstrap": "~3.3.5",
+    "bootstrap-sass": "~3.3.5",
+    "cropper": "~0.10.1",
     "chosen": "~1.4.2",
     "html5-boilerplate": "~5.2.0"
   }

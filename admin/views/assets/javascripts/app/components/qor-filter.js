@@ -15,13 +15,17 @@
 
   var location = window.location,
 
+      NAMESPACE = 'qor.filter',
+      EVENT_CLICK = 'click.' + NAMESPACE,
+      EVENT_CHANGE = 'change.' + NAMESPACE,
+
       QorFilter = function (element, options) {
         this.$element = $(element);
         this.options = $.extend({}, QorFilter.DEFAULTS, options);
         this.init();
       };
 
-  function encodeSearch(data, detched) {
+  function encodeSearch(data, detached) {
     var search = location.search,
         params;
 
@@ -33,7 +37,7 @@
 
         if (i === -1) {
           params.push(param);
-        } else if (detched) {
+        } else if (detached) {
           params.splice(i, 1);
         }
       });
@@ -56,7 +60,24 @@
 
       if (search) {
         // search = search.toLowerCase();
-        data = search.split('&');
+        data = $.map(search.split('&'), function (n) {
+          var param = [],
+              value;
+
+          n = n.split('=');
+          value = n[1];
+          param.push(n[0]);
+
+          if (value) {
+            value = $.trim(decodeURIComponent(value));
+
+            if (value) {
+              param.push(value);
+            }
+          }
+
+          return param.join('=');
+        });
       }
     }
 
@@ -67,36 +88,53 @@
     constructor: QorFilter,
 
     init: function () {
-      var $this = this.$element,
-          options = this.options,
-          $toggle = $this.find(options.toggle);
-
-      if (!$toggle.length) {
-        return;
-      }
-
-      this.$toggle = $toggle;
       this.parse();
       this.bind();
     },
 
     bind: function () {
-      this.$element.on('click', this.options.toggle, $.proxy(this.toggle, this));
+      var options = this.options;
+
+      this.$element
+        .on(EVENT_CLICK, options.label, $.proxy(this.toggle, this))
+        .on(EVENT_CHANGE, options.group, $.proxy(this.toggle, this));
+    },
+
+    unbind: function () {
+      this.$element
+        .off(EVENT_CLICK, this.toggle)
+        .off(EVENT_CHANGE, this.toggle);
     },
 
     parse: function () {
       var options = this.options,
+          $this = this.$element,
           params = decodeSearch(location.search);
 
-      this.$toggle.each(function () {
+      $this.find(options.label).each(function () {
         var $this = $(this);
 
         $.each(decodeSearch($this.attr('href')), function (i, param) {
           var matched = $.inArray(param, params) > -1;
 
-          $this.toggleClass(options.activeClass, matched);
+          $this.toggleClass('active', matched);
 
           if (matched) {
+            return false;
+          }
+        });
+      });
+
+      $this.find(options.group).each(function () {
+        var $this = $(this),
+            name = $this.attr('name');
+
+        $this.find('option').each(function () {
+          var $this = $(this),
+              param = [name, $this.prop('value')].join('=');
+
+          if ($.inArray(param, params) > -1) {
+            $this.attr('selected', true);
             return false;
           }
         });
@@ -104,33 +142,85 @@
     },
 
     toggle: function (e) {
-      var $target = $(e.target),
-          data = decodeSearch(e.target.href),
-          search;
+      var $target = $(e.currentTarget),
+          data = {},
+          params,
+          param,
+          search,
+          name,
+          value,
+          index,
+          matched;
 
-      e.preventDefault();
+      if ($target.is('select')) {
+        params = decodeSearch(location.search);
+        name = $target.attr('name');
+        value = $target.val();
 
-      if ($target.hasClass(this.options.activeClass)) {
-        search = encodeSearch(data, true); // set `true` to detch
-      } else {
-        search = encodeSearch(data);
+        param = [name];
+
+        if (value) {
+          param.push(value);
+        }
+
+        param = param.join('=');
+        data = [param];
+
+        $target.find('option').each(function () {
+          var $this = $(this),
+              param = [name],
+              value = $.trim($this.prop('value'));
+
+          if (value) {
+            param.push(value);
+          }
+
+          param = param.join('=');
+          index = $.inArray(param, params);
+
+          if (index > -1) {
+            matched = param;
+            return false;
+          }
+        });
+
+        if (matched) {
+          data.push(matched);
+          search = encodeSearch(data, true);
+        } else {
+          search = encodeSearch(data);
+        }
+      } else if ($target.is('a')) {
+        e.preventDefault();
+        data = decodeSearch($target.attr('href'));
+
+        if ($target.hasClass('active')) {
+          search = encodeSearch(data, true); // set `true` to detach
+        } else {
+          search = encodeSearch(data);
+        }
       }
 
       location.search = search;
+    },
+
+    destroy: function () {
+      this.unbind();
+      this.$element.removeData(NAMESPACE);
     }
   };
 
   QorFilter.DEFAULTS = {
-    toggle: false,
-    activeClass: 'active'
+    label: false,
+    group: false
   };
 
   QorFilter.plugin = function (options) {
     return this.each(function () {
       var $this = $(this);
 
-      if (!$this.data('qor.filter')) {
-        $this.data('qor.filter', new QorFilter(this, options));
+      if (!$this.data(NAMESPACE)) {
+        $this.data(NAMESPACE, new QorFilter(this, options));
       }
     });
   };
@@ -138,11 +228,12 @@
   $(function () {
     $(document)
       .on('renew.qor.initiator', function (e) {
-        var $element = $('.qor-label-group', e.target);
+        var $element = $('.qor-label-container', e.target);
 
         if ($element.length) {
           QorFilter.plugin.call($element, {
-            toggle: '.qor-label'
+            label: '.qor-label',
+            group: '.qor-label-group'
           });
         }
       })

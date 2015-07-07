@@ -11,15 +11,15 @@ import (
 	"github.com/qor/qor/admin"
 )
 
-type PublishController struct {
+type publishController struct {
 	*Publish
 }
 
-func (db *PublishController) Preview(context *admin.Context) {
+func (db *publishController) Preview(context *admin.Context) {
 	drafts := make(map[*admin.Resource]interface{})
 	for _, res := range context.Admin.GetResources() {
 		results := res.NewSlice()
-		if IsPublishableModel(res.Value) {
+		if isPublishableModel(res.Value) {
 			if db.DraftDB().Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
 				drafts[res] = results
 			}
@@ -28,7 +28,7 @@ func (db *PublishController) Preview(context *admin.Context) {
 	context.Execute("publish/drafts", drafts)
 }
 
-func (db *PublishController) Diff(context *admin.Context) {
+func (db *publishController) Diff(context *admin.Context) {
 	resourceID := strings.Split(context.Request.URL.Path, "/")[4]
 	params := strings.Split(resourceID, "__")
 	name, id := params[0], params[1]
@@ -45,7 +45,7 @@ func (db *PublishController) Diff(context *admin.Context) {
 	fmt.Fprintf(context.Writer, string(context.Render("publish/diff", results)))
 }
 
-func (db *PublishController) PublishOrDiscard(context *admin.Context) {
+func (db *publishController) PublishOrDiscard(context *admin.Context) {
 	var request = context.Request
 	var ids = request.Form["checked_ids[]"]
 	var records = []interface{}{}
@@ -88,7 +88,7 @@ func (publish *Publish) InjectQorAdmin(res *admin.Resource) {
 	}
 	res.UseTheme("publish")
 
-	controller := PublishController{publish}
+	controller := publishController{publish}
 	router := res.GetAdmin().GetRouter()
 	router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
 	router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Preview)

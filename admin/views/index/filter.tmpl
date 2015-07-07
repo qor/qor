@@ -7,10 +7,10 @@
 
     {{$scopes := get_scopes}}
     {{if $scopes}}
-      <section class="qor-label-group label-group fl">
+      <section class="qor-label-container fl">
         {{range $scope := $scopes}}
           {{if $scope.Group}}
-            <select name="scopes">
+            <select class="qor-label-group form-control" data-toggle="qor.selector" name="scopes">
               <optgroup label="{{$scope.Group}}">
                 {{range $s := $scope.Scopes}}
                   <option value="{{$s.Name}}">{{t $s.Name}}</option>
@@ -19,7 +19,7 @@
             </select>
           {{else}}
             {{range $s := $scope.Scopes}}
-              <a class="label label-default" href="?scopes={{$s.Name}}">{{t $s.Name}}</a>
+              <a class="qor-label label label-default" href="?scopes={{$s.Name}}">{{t $s.Name}}</a>
             {{end}}
           {{end}}
         {{end}}

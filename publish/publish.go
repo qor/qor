@@ -15,7 +15,7 @@ const (
 	DIRTY     = true
 )
 
-type Interface interface {
+type publishInterface interface {
 	GetPublishStatus() bool
 	SetPublishStatus(bool)
 }
@@ -57,9 +57,9 @@ func modelType(value interface{}) reflect.Type {
 	return reflectValue.Type()
 }
 
-func IsPublishableModel(model interface{}) (ok bool) {
+func isPublishableModel(model interface{}) (ok bool) {
 	if model != nil {
-		_, ok = reflect.New(modelType(model)).Interface().(Interface)
+		_, ok = reflect.New(modelType(model)).Interface().(publishInterface)
 	}
 	return
 }
@@ -72,7 +72,7 @@ func New(db *gorm.DB) *Publish {
 		tableName := tableHandler(db, defaultTableName)
 
 		if db != nil {
-			if IsPublishableModel(db.Value) {
+			if isPublishableModel(db.Value) {
 				var forceDraftMode = false
 				if forceMode, ok := db.Get("publish:force_draft_mode"); ok {
 					if forceMode, ok := forceMode.(bool); ok && forceMode {
@@ -88,13 +88,13 @@ func New(db *gorm.DB) *Publish {
 							scope := db.NewScope(db.Value)
 							for _, field := range scope.GetModelStruct().StructFields {
 								if many2many := utils.ParseTagOption(field.Tag.Get("gorm"))["MANY2MANY"]; many2many != "" {
-									db.SetJoinTableHandler(db.Value, field.Name, &PublishJoinTableHandler{})
+									db.SetJoinTableHandler(db.Value, field.Name, &publishJoinTableHandler{})
 									db.AutoMigrate(db.Value)
 								}
 							}
 						}
 
-						return DraftTableName(tableName)
+						return draftTableName(tableName)
 					}
 				}
 			}
@@ -102,36 +102,36 @@ func New(db *gorm.DB) *Publish {
 		return tableName
 	}
 
-	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
+	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").
-		Register("publish:sync_to_production_after_create", SyncToProductionAfterCreate)
+		Register("publish:sync_to_production_after_create", syncToProductionAfterCreate)
 
-	db.Callback().Delete().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
-	db.Callback().Delete().Replace("gorm:delete", Delete)
+	db.Callback().Delete().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
+	db.Callback().Delete().Replace("gorm:delete", deleteScope)
 	db.Callback().Delete().Before("gorm:commit_or_rollback_transaction").
-		Register("publish:sync_to_production_after_delete", SyncToProductionAfterDelete)
+		Register("publish:sync_to_production_after_delete", syncToProductionAfterDelete)
 
-	db.Callback().Update().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", SetTableAndPublishStatus(true))
+	db.Callback().Update().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
 	db.Callback().Update().Before("gorm:commit_or_rollback_transaction").
-		Register("publish:sync_to_production", SyncToProductionAfterUpdate)
+		Register("publish:sync_to_production", syncToProductionAfterUpdate)
 
-	db.Callback().RowQuery().Register("publish:set_table_in_draft_mode", SetTableAndPublishStatus(false))
-	db.Callback().Query().Before("gorm:query").Register("publish:set_table_in_draft_mode", SetTableAndPublishStatus(false))
+	db.Callback().RowQuery().Register("publish:set_table_in_draft_mode", setTableAndPublishStatus(false))
+	db.Callback().Query().Before("gorm:query").Register("publish:set_table_in_draft_mode", setTableAndPublishStatus(false))
 	return &Publish{DB: db}
 }
 
-func DraftTableName(table string) string {
-	return OriginalTableName(table) + "_draft"
+func draftTableName(table string) string {
+	return originalTableName(table) + "_draft"
 }
 
-func OriginalTableName(table string) string {
+func originalTableName(table string) string {
 	return strings.TrimSuffix(table, "_draft")
 }
 
 func (db *Publish) AutoMigrate(values ...interface{}) {
 	for _, value := range values {
 		tableName := db.DB.NewScope(value).TableName()
-		db.DraftDB().Table(DraftTableName(tableName)).AutoMigrate(value)
+		db.DraftDB().Table(draftTableName(tableName)).AutoMigrate(value)
 	}
 }
 
@@ -143,14 +143,14 @@ func (db *Publish) DraftDB() *gorm.DB {
 	return db.DB.Set("publish:draft_mode", true)
 }
 
-func (db *Publish) NewResolver(records ...interface{}) *Resolver {
-	return &Resolver{Records: records, DB: db, Dependencies: map[string]*Dependency{}}
+func (db *Publish) newResolver(records ...interface{}) *resolver {
+	return &resolver{Records: records, DB: db, Dependencies: map[string]*dependency{}}
 }
 
 func (db *Publish) Publish(records ...interface{}) {
-	db.NewResolver(records...).Publish()
+	db.newResolver(records...).Publish()
 }
 
 func (db *Publish) Discard(records ...interface{}) {
-	db.NewResolver(records...).Discard()
+	db.newResolver(records...).Discard()
 }

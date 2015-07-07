@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
-	"runtime/debug"
 	"strings"
 	"time"
 
@@ -83,7 +82,7 @@ func getField(fields map[string]*gorm.Field, name string) (*gorm.Field, bool) {
 
 func (meta *Meta) updateMeta() {
 	if meta.Name == "" {
-		qor.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
+		utils.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
 	} else if meta.Alias == "" {
 		meta.Alias = meta.Name
 	}
@@ -185,9 +184,7 @@ func (meta *Meta) updateMeta() {
 				return ""
 			}
 		} else {
-			// qor.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(base.Value))
-			fmt.Printf("Unsupported meta name %v for resource %T\n", meta.Name, meta.base.Value)
-			debug.PrintStack()
+			utils.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(meta.base.Value))
 		}
 	}
 
@@ -209,7 +206,7 @@ func (meta *Meta) updateMeta() {
 		} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
 			meta.GetCollection = f
 		} else {
-			qor.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Value))
+			utils.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Value))
 		}
 	} else if meta.Type == "select_one" || meta.Type == "select_many" {
 		if scopeField.Relationship != nil {
@@ -230,7 +227,7 @@ func (meta *Meta) updateMeta() {
 				return
 			}
 		} else {
-			qor.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
+			utils.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
 		}
 	}
 
@@ -300,8 +297,7 @@ func (meta *Meta) updateMeta() {
 							var buf = bytes.NewBufferString("")
 							json.NewEncoder(buf).Encode(value)
 							if err := json.NewDecoder(strings.NewReader(buf.String())).Decode(field.Addr().Interface()); err != nil {
-								// TODO: should not kill the process
-								qor.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.ValueOf(value).Type(), field.Type(), meta)
+								utils.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.ValueOf(value).Type(), field.Type(), meta)
 							}
 						}
 					}

@@ -34,7 +34,7 @@ gulp.task('jscs', function () {
   .pipe(plugins.jscs(path('javascripts/app/.jscsrc')));
 });
 
-gulp.task('jscomponent', function () {
+gulp.task('jscomponent', ['jshint', 'jscs'], function () {
   return gulp.src(scripts.component)
   .pipe(plugins.concat('component.js'))
   .pipe(plugins.uglify())
@@ -68,7 +68,7 @@ gulp.task('jslib', function () {
   return gulp.src([
     'bower_components/jquery/dist/jquery.min.js',
     'bower_components/bootstrap/dist/js/bootstrap.min.js',
-    'bower_components/redactor/redactor.min.js',
+    // 'bower_components/redactor/redactor.min.js',
     'bower_components/cropper/dist/cropper.min.js',
     'bower_components/chosen/chosen.jquery.min.js'
   ])
@@ -111,10 +111,10 @@ gulp.task('csslib.redactor', function () {
   .pipe(gulp.dest('bower_components/redactor'));
 });
 
-gulp.task('csslib', ['csslib.fonts', 'csslib.redactor'], function () {
+gulp.task('csslib', ['csslib.fonts'/*, 'csslib.redactor'*/], function () {
   return gulp.src([
     'bower_components/bootstrap/dist/css/bootstrap.min.css',
-    'bower_components/redactor/redactor.min.css',
+    // 'bower_components/redactor/redactor.min.css',
     'bower_components/cropper/dist/cropper.min.css',
     'bower_components/chosen/chosen-sprite.png',
     'bower_components/chosen/chosen-sprite@2x.png',

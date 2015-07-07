@@ -1,9 +1,0 @@
-<div class="row">
-	<h3>{{.Result.Name}}</h3>
-	<p>{{.Result.Description}}</p>
-	<form action="{{.Result.URL}}" method="POST" enctype="multipart/form-data">
-		<!-- <input type="hidden" name="JobName" value=""> -->
-		{{render_form .Result.Resource.Value new_metas}}
-		<input value="Save" type="submit"/>
-	</form>
-</div>

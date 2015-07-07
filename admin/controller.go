@@ -86,7 +86,7 @@ func (ac *controller) Create(context *Context) {
 		res := context.Resource
 
 		result := res.NewStruct()
-		if errs := res.Decode(context, result); len(errs) == 0 {
+		if errs := res.Decode(context.Context, result); len(errs) == 0 {
 			res.CallSaver(result, context.Context)
 			responder.With("html", func() {
 				context.Flash(context.T("{{.Name}} was successfully created", res), "success")
@@ -105,7 +105,7 @@ func (ac *controller) Update(context *Context) {
 	if context.CheckResourcePermission(roles.Update) {
 		res := context.Resource
 		if result, err := context.FindOne(); err == nil {
-			if errs := res.Decode(context, result); len(errs) == 0 {
+			if errs := res.Decode(context.Context, result); len(errs) == 0 {
 				if err := res.CallSaver(result, context.Context); err != nil {
 					renderError(context, err)
 					return
