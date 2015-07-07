@@ -179,17 +179,21 @@ func (resolver *resolver) Publish() error {
 					draftCondition = strings.Join(draftJoinKeys, ",")
 				}
 
+				sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionCondition, toQueryMarks(dep.PrimaryValues))
+				tx.Exec(sql, toQueryValues(dep.PrimaryValues)...)
+
 				rows, _ := tx.Raw(fmt.Sprintf("SELECT * FROM %s", draftTable)).Rows()
 				joinColumns, _ := rows.Columns()
 				rows.Close()
+				if len(joinColumns) == 0 {
+					continue
+				}
+
 				var productionJoinTableColumns, draftJoinTableColumns []string
 				for _, column := range joinColumns {
 					productionJoinTableColumns = append(productionJoinTableColumns, column)
 					draftJoinTableColumns = append(draftJoinTableColumns, column)
 				}
-
-				sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionCondition, toQueryMarks(dep.PrimaryValues))
-				tx.Exec(sql, toQueryValues(dep.PrimaryValues)...)
 
 				publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 					productionTable, strings.Join(productionJoinTableColumns, " ,"), strings.Join(draftJoinTableColumns, " ,"),
@@ -263,17 +267,20 @@ func (resolver *resolver) Discard() error {
 				draftCondition = strings.Join(draftJoinKeys, ",")
 			}
 
+			sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftCondition, toQueryMarks(dep.PrimaryValues))
+			tx.Exec(sql, toQueryValues(dep.PrimaryValues)...)
+
 			rows, _ := tx.Raw(fmt.Sprintf("select * from %v", draftTable)).Rows()
 			joinColumns, _ := rows.Columns()
 			rows.Close()
+			if len(joinColumns) == 0 {
+				continue
+			}
 			var productionJoinTableColumns, draftJoinTableColumns []string
 			for _, column := range joinColumns {
 				productionJoinTableColumns = append(productionJoinTableColumns, column)
 				draftJoinTableColumns = append(draftJoinTableColumns, column)
 			}
-
-			sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftCondition, toQueryMarks(dep.PrimaryValues))
-			tx.Exec(sql, toQueryValues(dep.PrimaryValues)...)
 
 			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 				draftTable, strings.Join(draftJoinTableColumns, " ,"), strings.Join(productionJoinTableColumns, " ,"),
