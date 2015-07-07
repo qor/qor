@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/now"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
