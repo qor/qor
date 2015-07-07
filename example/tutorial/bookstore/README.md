@@ -122,7 +122,7 @@ The only interesting part here is the gorm struct tag: `gorm:many2many:book_auth
 
 Ignore `publish.Status` and `l10n.Locale` for now - we will address these in later parts of the tutorial.
 
-That's almost it: If you [look at](https://github.com/qor/qor/tree/master/example/tutorial/bookstore/01/models.go) you can see an `init()` function at the end: It sets up a db connection and `db.AutoMigrate(&Author{}, &Book{}, &User{})` tells QOR to automatically create the tables for our models.
+That's almost it: If you [look at models.go](https://github.com/qor/qor/tree/master/example/tutorial/bookstore/01/models.go) you can see an `init()` function at the end: It sets up a db connection and `db.AutoMigrate(&Author{}, &Book{}, &User{})` tells QOR to automatically create the tables for our models.
 
 You can ignore the user model for now - we will look at that part later.
 
