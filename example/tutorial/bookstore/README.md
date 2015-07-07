@@ -221,7 +221,7 @@ If the bookstore app is not yet running, start it by running `fresh` in the book
 
     go/src/github.com/qor/qor/example/tutorial/bookstore/01 [bookstore (master)] $ fresh
 
-Go to http://localhost:9000/admin and you should see the main admin interface:
+Go to [http://localhost:9000/admin](http://localhost:9000/admin) and you should see the main admin interface:
 
 ![qor_admin](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin1.png)
 
@@ -252,7 +252,7 @@ Go ahead and go to the authors admin and add an author...
 
 #### Meta Module - Controlling display and editable fields in the admin
 
-Go to http://localhost:9000/admin/books.
+Go to [http://localhost:9000/admin/books](http://localhost:9000/admin/books).
 Now comment the following line from [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources.go)
 
 	book.IndexAttrs("ID", "Title", "AuthorNames", "FormattedDate", "DisplayPrice")
@@ -261,7 +261,7 @@ and reload the books admin page.
 
 ![qor_admin_books2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin_books2.png)
 
-You will see a much more crowded list: We had 5 attributes `"ID", "Title", "AuthorNames", "FormattedDate", and "DisplayPrice"`. `Id`, `Title`, and `ReleaseDate` are defined on our `Book` model, but the other two are not. For the Authors field you only see a list of References to the `Author` objects - something like `[0xc208161bc0]`. We want the list of Authors devided by `,` instead. You can achieve that by defining a `Meta` field:
+You will see a much more crowded list: We had 5 attributes `"ID", "Title", "AuthorNames", "FormattedDate", and "DisplayPrice"`. `Id`, `Title`, and `ReleaseDate` are defined on our `Book` model, but the others are not. For the Authors field you only see a list of References to the `Author` objects - something like `[0xc208161bc0]`. We want the list of author names devided by `,` instead. You can achieve that by defining a `Meta` field:
 
 	book.Meta(&admin.Meta{
 		Name:  "AuthorNames",
@@ -287,13 +287,15 @@ You will see a much more crowded list: We had 5 attributes `"ID", "Title", "Auth
 		},
 	})
 
-We define a `Meta` field for the `book` `Resource`. It's internal name is "AuthorNames", which we use in `book.IndexAttrs()` to use it in our admin book listing. The "Label` is what goes into the table header and the "Valuer" is a function that will return the display value we want - in our case the comma separated list of author names.
+We define a `Meta` field for the `book` `Resource`. It's internal name is "AuthorNames", which we use in `book.IndexAttrs()` to use it in our admin book listing. The `Label` is what goes into the table header and the `Valuer` is a function that will return the display value we want - in our case the comma separated list of author names.
+
 
 ##### Editable fields
 
 By default all defined model attributes and `Meta` attributes are included in the edit interface. If you need to limit the fields that are editable you can manually set the `EditAttrs`:
 
 	book.EditAttrs("Title", "Authors", "Synopsis", "ReleaseDate", "Price", "CoverImage")
+
 
 #### Searchable Fields
 
@@ -302,6 +304,7 @@ To get a searchfield on the list display of your resource you simply add a line 
     book.SearchAttrs("ID", "Title")
 
 Wich will add a search(field) for resources matching on the defined fields.
+
 
 #### Meta Field Types
 
@@ -348,6 +351,10 @@ You have now a *"Publish"* menu: Changes you make on *publishable* objects are n
 
 ![qor_publish](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_publish.png)
 
+You can select the changes you want to publish (check out the "View Diff" link to see changes) and then either publish them to the live DB or discard them.
+
+You can check that before bublishing the first time your `authors` table should be empty, while `authors_draft` contains the contents you see in QOR admin. After publishing these contents get copied to the live `authors` table.
+
 
 
 #### MediaLibrary - Adding product images
@@ -365,11 +372,11 @@ We will only briefly touch on the `qor/media_library`. It provides support for u
     	CoverImage  media_library.FileSystem
     }
 
-and you're almost done. You need to define a route to serve the files from:
+and you're almost done. You need a route to serve the files from:
 
-	router.StaticFS("/system/", http.Dir("public/system"))
+	router.StaticFS("/system/", http.Dir("public/system")) # this is in main.go
 
-Support for publish (draft version, publish to live) is built in. This is what the directory structure for looks like:
+Support for publish (draft version, publish to live) is built in. This is what the directory structure for the `Book` `CoverImage`s looks like:
 
     /public [public (docs_and_tutorial)] $ tree
     .
@@ -447,7 +454,7 @@ To add I18N support for the `qor/admin`
 
 TODO: screenshots
 
-TODO: Add an example on
+TODO: Add the funcMap with the `T` template functions and import frontend strings into QOR too. (@bom-d-van)
 
 
 
