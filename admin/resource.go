@@ -127,18 +127,15 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 						conditions = append(conditions, fmt.Sprintf("upper(%v) like upper(?)", scope.Quote(field.DBName)))
 						keywords = append(keywords, "%"+keyword+"%")
 					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-						if _, err := strconv.Atoi(keyword); err != nil {
-							continue
+						if _, err := strconv.Atoi(keyword); err == nil {
+							conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(field.DBName)))
+							keywords = append(keywords, keyword)
 						}
-						conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(field.DBName)))
-						keywords = append(keywords, keyword)
 					case reflect.Float32, reflect.Float64:
-						if _, err := strconv.ParseFloat(keyword, 64); err != nil {
-							continue
+						if _, err := strconv.ParseFloat(keyword, 64); err == nil {
+							conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(field.DBName)))
+							keywords = append(keywords, keyword)
 						}
-						conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(field.DBName)))
-						keywords = append(keywords, keyword)
-
 					case reflect.Struct:
 						// time ?
 						if _, ok := field.Field.Interface().(time.Time); ok {
@@ -162,7 +159,11 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 				}
 			}
 
-			return context.GetDB().Where(strings.Join(conditions, " OR "), keywords...)
+			if len(conditions) > 0 {
+				return context.GetDB().Where(strings.Join(conditions, " OR "), keywords...)
+			} else {
+				return context.GetDB()
+			}
 		}
 	}
 	return res.searchAttrs
