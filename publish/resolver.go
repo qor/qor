@@ -145,8 +145,8 @@ func (resolver *resolver) Publish() error {
 
 		var productionColumns, draftColumns []string
 		for _, column := range columns {
-			productionColumns = append(productionColumns, column)
-			draftColumns = append(draftColumns, column)
+			productionColumns = append(productionColumns, productionScope.Quote(column))
+			draftColumns = append(draftColumns, productionScope.Quote(column))
 		}
 
 		if len(dep.PrimaryValues) > 0 {
@@ -191,8 +191,8 @@ func (resolver *resolver) Publish() error {
 
 				var productionJoinTableColumns, draftJoinTableColumns []string
 				for _, column := range joinColumns {
-					productionJoinTableColumns = append(productionJoinTableColumns, column)
-					draftJoinTableColumns = append(draftJoinTableColumns, column)
+					productionJoinTableColumns = append(productionJoinTableColumns, productionScope.Quote(column))
+					draftJoinTableColumns = append(draftJoinTableColumns, productionScope.Quote(column))
 				}
 
 				publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
@@ -240,8 +240,8 @@ func (resolver *resolver) Discard() error {
 
 		var productionColumns, draftColumns []string
 		for _, column := range columns {
-			productionColumns = append(productionColumns, column)
-			draftColumns = append(draftColumns, column)
+			productionColumns = append(productionColumns, productionScope.Quote(column))
+			draftColumns = append(draftColumns, productionScope.Quote(column))
 		}
 
 		// delete data from draft db
@@ -278,8 +278,8 @@ func (resolver *resolver) Discard() error {
 			}
 			var productionJoinTableColumns, draftJoinTableColumns []string
 			for _, column := range joinColumns {
-				productionJoinTableColumns = append(productionJoinTableColumns, column)
-				draftJoinTableColumns = append(draftJoinTableColumns, column)
+				productionJoinTableColumns = append(productionJoinTableColumns, productionScope.Quote(column))
+				draftJoinTableColumns = append(draftJoinTableColumns, productionScope.Quote(column))
 			}
 
 			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
