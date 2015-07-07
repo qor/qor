@@ -119,7 +119,11 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 
 			for _, column := range columns {
 				if field, ok := scope.FieldByName(column); ok {
-					conditions = append(conditions, fmt.Sprintf("upper(%v) like upper(?)", scope.Quote(field.DBName)))
+					if field.Field.Kind() == reflect.String {
+						conditions = append(conditions, fmt.Sprintf("upper(%v) like upper(?)", scope.Quote(field.DBName)))
+					} else {
+						conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(field.DBName)))
+					}
 				}
 
 				keywords = append(keywords, "%"+keyword+"%")
