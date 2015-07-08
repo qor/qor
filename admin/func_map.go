@@ -33,7 +33,7 @@ func (context *Context) PrimaryKeyOf(value interface{}) interface{} {
 	return context.GetDB().NewScope(value).PrimaryKeyValue()
 }
 
-func (context *Context) IsNewRecord(value interface{}) bool {
+func (context *Context) isNewRecord(value interface{}) bool {
 	return context.GetDB().NewRecord(value)
 }
 
@@ -50,7 +50,7 @@ func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
 		}
 
 		if !(meta.Type == "collection_edit" || meta.Type == "single_edit") {
-			if context.IsNewRecord(value) && reflect.DeepEqual(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
+			if context.isNewRecord(value) && reflect.DeepEqual(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
 				return nil
 			}
 		}
@@ -95,7 +95,7 @@ func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML
 	return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, context.UrlFor(link), text))
 }
 
-func (context *Context) RenderIndex(value interface{}, meta *Meta) template.HTML {
+func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.HTML {
 	var err error
 	var result = bytes.NewBufferString("")
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.funcMap())
@@ -120,11 +120,11 @@ func (context *Context) RenderForm(value interface{}, metas []*Meta) template.HT
 
 func (context *Context) renderForm(result *bytes.Buffer, value interface{}, metas []*Meta, prefix []string) {
 	for _, meta := range metas {
-		context.RenderMeta(result, meta, value, prefix)
+		context.renderMeta(result, meta, value, prefix)
 	}
 }
 
-func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value interface{}, prefix []string) {
+func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value interface{}, prefix []string) {
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := context.funcMap()
@@ -165,7 +165,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 	}
 }
 
-func (context *Context) IsIncluded(value interface{}, primaryKey interface{}) bool {
+func (context *Context) isIncluded(value interface{}, primaryKey interface{}) bool {
 	primaryKeys := []interface{}{}
 	reflectValue := reflect.Indirect(reflect.ValueOf(value))
 	if reflectValue.Kind() == reflect.Slice {
@@ -227,7 +227,7 @@ func (context *Context) NewMetas(resources ...*Resource) []*Meta {
 	return res.AllowedMetas(res.NewMetas(), context, roles.Create)
 }
 
-func (context *Context) JavaScriptTag(name string) template.HTML {
+func (context *Context) javaScriptTag(name string) template.HTML {
 	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "javascripts", name+".js")
 	return template.HTML(fmt.Sprintf(`<script src="%s"></script>`, name))
 }
@@ -367,7 +367,7 @@ func (context *Context) themesClass() (result string) {
 	return strings.Join(results, " ")
 }
 
-func (context *Context) LoadThemeStyleSheets() template.HTML {
+func (context *Context) loadThemeStyleSheets() template.HTML {
 	var results []string
 	if context.Resource != nil {
 		for _, theme := range context.Resource.Config.Themes {
@@ -383,7 +383,7 @@ func (context *Context) LoadThemeStyleSheets() template.HTML {
 	return template.HTML(strings.Join(results, " "))
 }
 
-func (context *Context) LoadThemeJavaScripts() template.HTML {
+func (context *Context) loadThemeJavaScripts() template.HTML {
 	var results []string
 	if context.Resource != nil {
 		for _, theme := range context.Resource.Config.Themes {
@@ -437,8 +437,8 @@ func (context *Context) funcMap() template.FuncMap {
 		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
 		"get_resource":         context.GetResource,
 		"new_resource_context": context.NewResourceContext,
-		"is_new_record":        context.IsNewRecord,
-		"is_included":          context.IsIncluded,
+		"is_new_record":        context.isNewRecord,
+		"is_included":          context.isIncluded,
 		"primary_key_of":       context.PrimaryKeyOf,
 		"value_of":             context.ValueOf,
 
@@ -451,17 +451,17 @@ func (context *Context) funcMap() template.FuncMap {
 		"stringify":              utils.Stringify,
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
-		"render_index":           context.RenderIndex,
+		"render_index":           context.renderIndexMeta,
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
 		"patch_current_url":      context.PatchCurrentURL,
 		"patch_url":              context.PatchURL,
 		"new_resource_path":      context.NewResourcePath,
 		"qor_theme_class":        context.themesClass,
-		"javascript_tag":         context.JavaScriptTag,
+		"javascript_tag":         context.javaScriptTag,
 		"stylesheet_tag":         context.StyleSheetTag,
-		"load_theme_stylesheets": context.LoadThemeStyleSheets,
-		"load_theme_javascripts": context.LoadThemeJavaScripts,
+		"load_theme_stylesheets": context.loadThemeStyleSheets,
+		"load_theme_javascripts": context.loadThemeJavaScripts,
 		"pagination":             context.Pagination,
 
 		"all_metas":   context.AllMetas,

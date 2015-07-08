@@ -33,7 +33,7 @@ func renderError(context *Context, err error) {
 	}).Respond(context.Writer, context.Request)
 }
 
-func (context *Context) CheckResourcePermission(permission roles.PermissionMode) bool {
+func (context *Context) checkResourcePermission(permission roles.PermissionMode) bool {
 	if context.Resource == nil || context.Resource.HasPermission(permission, context.Context) {
 		return true
 	}
@@ -46,7 +46,7 @@ func (ac *controller) Dashboard(context *Context) {
 }
 
 func (ac *controller) Index(context *Context) {
-	if context.CheckResourcePermission(roles.Read) {
+	if context.checkResourcePermission(roles.Read) {
 		if result, err := context.FindMany(); err == nil {
 			responder.With("html", func() {
 				context.Execute("index", result)
@@ -62,7 +62,7 @@ func (ac *controller) Index(context *Context) {
 }
 
 func (ac *controller) Show(context *Context) {
-	if context.CheckResourcePermission(roles.Read) {
+	if context.checkResourcePermission(roles.Read) {
 		result, _ := context.FindOne()
 
 		responder.With("html", func() {
@@ -76,13 +76,13 @@ func (ac *controller) Show(context *Context) {
 }
 
 func (ac *controller) New(context *Context) {
-	if context.CheckResourcePermission(roles.Create) {
+	if context.checkResourcePermission(roles.Create) {
 		context.Execute("new", nil)
 	}
 }
 
 func (ac *controller) Create(context *Context) {
-	if context.CheckResourcePermission(roles.Create) {
+	if context.checkResourcePermission(roles.Create) {
 		res := context.Resource
 
 		result := res.NewStruct()
@@ -102,7 +102,7 @@ func (ac *controller) Create(context *Context) {
 }
 
 func (ac *controller) Update(context *Context) {
-	if context.CheckResourcePermission(roles.Update) {
+	if context.checkResourcePermission(roles.Update) {
 		res := context.Resource
 		if result, err := context.FindOne(); err == nil {
 			if errs := res.Decode(context.Context, result); len(errs) == 0 {
@@ -126,7 +126,7 @@ func (ac *controller) Update(context *Context) {
 }
 
 func (ac *controller) Delete(context *Context) {
-	if context.CheckResourcePermission(roles.Delete) {
+	if context.checkResourcePermission(roles.Delete) {
 		res := context.Resource
 
 		responder.With("html", func() {
