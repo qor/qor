@@ -95,20 +95,32 @@ func (res *Resource) Decode(context *qor.Context, value interface{}) (errs []err
 	return resource.Decode(context, value, res)
 }
 
-func (res *Resource) IndexAttrs(columns ...string) {
-	res.indexAttrs = columns
+func (res *Resource) IndexAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.indexAttrs = columns
+	}
+	return res.indexAttrs
 }
 
-func (res *Resource) NewAttrs(columns ...string) {
-	res.newAttrs = columns
+func (res *Resource) NewAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.newAttrs = columns
+	}
+	return res.newAttrs
 }
 
-func (res *Resource) EditAttrs(columns ...string) {
-	res.editAttrs = columns
+func (res *Resource) EditAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.editAttrs = columns
+	}
+	return res.editAttrs
 }
 
-func (res *Resource) ShowAttrs(columns ...string) {
-	res.showAttrs = columns
+func (res *Resource) ShowAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.showAttrs = columns
+	}
+	return res.showAttrs
 }
 
 func (res *Resource) SearchAttrs(columns ...string) []string {
@@ -188,10 +200,16 @@ func (res *Resource) getCachedMetas(cacheKey string, fc func() []resource.Metaor
 }
 
 func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
-	var attrs []string
+	var attrs, ignoredAttrs []string
 	for _, value := range _attrs {
 		if value != nil {
-			attrs = value
+			for _, v := range value {
+				if strings.HasPrefix(v, "-") {
+					ignoredAttrs = append(ignoredAttrs, strings.TrimLeft(v, "-"))
+				} else {
+					attrs = append(attrs, v)
+				}
+			}
 			break
 		}
 	}
@@ -203,6 +221,12 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 	Fields:
 		for _, field := range structFields {
+			for _, attr := range ignoredAttrs {
+				if attr == field.Name {
+					continue Fields
+				}
+			}
+
 			for _, meta := range res.Metas {
 				if field.Name == meta.Alias {
 					attrs = append(attrs, meta.Name)
@@ -225,6 +249,12 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 	MetaIncluded:
 		for _, meta := range res.Metas {
+			for _, attr := range ignoredAttrs {
+				if attr == meta.Name || attr == meta.Alias {
+					continue MetaIncluded
+				}
+			}
+
 			for _, attr := range attrs {
 				if attr == meta.Alias || attr == meta.Name {
 					continue MetaIncluded
