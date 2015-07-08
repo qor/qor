@@ -31,7 +31,6 @@
         this.disabled = false;
         this.animating = false;
         this.init();
-        console.log(this);
       };
 
   QorPopper.prototype = {
@@ -64,11 +63,20 @@
           $target,
           data;
 
+      if (e.isDefaultPrevented()) {
+        return;
+      }
+
       while (target !== document) {
         dismissible = false;
         $target = $(target);
 
         if (target === popper) {
+          break;
+        } else if ($target.data('url')) {
+          e.preventDefault();
+          data = $target.data();
+          this.load(data.url, data);
           break;
         } else if ($target.data('dismiss') === 'popper') {
           this.hide();
@@ -85,11 +93,6 @@
           e.preventDefault();
           $this.find('tbody > tr').removeClass('active');
           this.load($target.attr('href'));
-          break;
-        } else if ($target.data('url')) {
-          e.preventDefault();
-          data = $target.data();
-          this.load(data.url, data);
           break;
         } else {
           if ($target.is('.qor-action-edit') || $target.is('.qor-action-delete')) {
@@ -167,11 +170,14 @@
                   }
 
                   $content.find('.qor-action-cancel').attr('data-dismiss', 'popper').removeAttr('href');
+
                   _this.$title.html($response.find('.qor-title').html());
                   _this.$body.html($content.html());
+
                   _this.$popper.one(EVENT_SHOWN, function () {
                     $(this).trigger('renew.qor.initiator'); // Renew Qor Components
                   });
+
                   _this.show();
                 } else if (data.returnUrl) {
                   _this.disabled = false; // For reload
@@ -273,7 +279,7 @@
       '<div class="popper-dialog">' +
         '<div class="popper-header">' +
           '<button type="button" class="popper-close" data-dismiss="popper" aria-div="Close"><span class="md md-24">close</span></button>' +
-          '<h3 class="popper-title">Order Details</h3>' +
+          '<h3 class="popper-title"></h3>' +
         '</div>' +
         '<div class="popper-body"></div>' +
         // '<div class="popper-footer"></div>' +
@@ -294,7 +300,7 @@
   $(function () {
     $(document)
       .on('renew.qor.initiator', function (e) {
-        var $element = $('[data-toggle="qor.popper"]', e.target);
+        var $element = $('.qor-theme-slideout', e.target);
 
         if ($element.length) {
           QorPopper.plugin.call($element);
