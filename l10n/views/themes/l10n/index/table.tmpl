@@ -1,60 +1,39 @@
 {{$context := .}}
 
-<div class="table-wrapper wrapper">
-  <table state="list">
-    <thead class="thead">
-      <tr>
-        {{range $index, $meta := index_metas}}
-          <th class="th col-{{$index}}" data-col="col-{{$index}}">
-            <a href="javascript:;" title="{{$meta.Label}}">{{rt $context.Resource $meta.Label}}</a>
-          </th>
-        {{end}}
-        <th class="th col-lang" data-col="col-lang">
-          <a href="javascript:;" title="Languages">{{rt $context.Resource "Languages"}}</a>
-        </th>
-        <th class="th col-act" data-col="col-act">
-          <a href="javascript:;" title="Actions">{{t "Actions"}}</a>
-        </th>
-      </tr>
-    </thead>
-    <tbody class="tbody">
-      {{range $resource := .Result}}
-        <tr class="record-item tr transition">
-          {{range $index, $meta := index_metas}}
-            {{$text := value_of $resource $meta}}
-            <td title="{{$meta.Label}}" class="td col-{{$index}}">
-              {{if $index}}
-                {{$text}}
-              {{else}}
-                {{link_to $text $resource}}
-              {{end}}
-            </td>
-          {{end}}
+{{$Resource := .Resource}}
 
-          <td class="td col-lang">
-            {{range $resource_locale := locales_of_resource $resource $context}}
-              <a class="label label-{{if $resource_locale.localized}}primary{{else}}default{{end}}" href="{{url_for $resource}}?locale={{$resource_locale.locale}}">
-                {{t $resource_locale.locale}}
-              </a>
-            {{end}}
-          </td>
-
-          <td class="td col-act">
-            <form action="{{url_for $resource}}" method="POST">
-              <input name="_method" value="DELETE" type="hidden">
-              <a class="btn md md-edit" href="{{url_for $resource}}"></a>
-              <button class="btn md md-delete" type="submit" data-confirm="{{t "Are you sure?"}}"></button>
-            </form>
-          </td>
-        </tr>
+<table class="qor-list">
+  <thead>
+    <tr>
+      {{range $index, $meta := index_metas}}
+      <th>{{ rt $Resource $meta.Label }}</th>
       {{end}}
-    </tbody>
-  </table>
-</div>
+      <th class="qor-list-locales">{{rt $context.Resource "Languages"}}</th>
+      <th class="qor-list-action">{{t "Actions"}}</th>
+    </tr>
+  </thead>
 
-<div id="plus-wrapper">
-  {{$resource := .Resource}}
-  {{range $locale := createable_locales .}}
-    <a id="plus" href="{{new_resource_path $resource}}?locale={{$locale}}"></a>
-  {{end}}
-</div>
+  <tbody>
+    {{range $resource := .Result}}
+      <tr data-primary-key="{{primary_key_of $resource}}">
+        {{range $index, $meta := index_metas}}
+          {{$text := value_of $resource $meta}}
+          <td title="{{ rt $Resource $meta.Label }}">
+            <div class="qor-list-text">{{if $index}}{{render_index $resource $meta}}{{else}}{{link_to (render_index $resource $meta) $resource}}{{end}}</div>
+          </td>
+        {{end}}
+
+        <td class="qor-l10n-labels">
+          {{range $resource_locale := locales_of_resource $resource $context}}
+            <a class="qor-l10n-label{{if $resource_locale.localized}} active{{end}}" href="{{patch_url (url_for $resource) "locale" $resource_locale.locale}}">{{t $resource_locale.locale}}</a>
+          {{end}}
+        </td>
+
+        <td class="qor-list-action">
+          <a class="qor-action-edit" href="{{url_for $resource}}"><i class="md md-18 md-primary">edit</i></a>
+          <a class="qor-action-delete" href="{{url_for $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}"><i class="md md-18 md-danger">delete</i></a>
+        </td>
+      </tr>
+    {{end}}
+  </tbody>
+</table>

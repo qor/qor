@@ -1,5 +1,292 @@
-@import "app/reset";
-@import "app/typography";
-@import "app/rhyme";
-@import "app/global";
-@import "app/layout";
+// Dashboard
+// -----------------------------------------------------------------------------
+
+.qor-dashboard {
+  .dashboard-section {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    @extend .clearfix;
+
+    > .section-header {
+      padding: 8px 24px;
+
+      > .section-title {
+        margin-top: 0;
+        margin-bottom: 0;
+        font-size: 16px;
+        line-height: 24px;
+        color: rgba(0,0,0,0.54);
+      }
+    }
+
+    > .section-body {
+      padding-left: 24px;
+      padding-right: 24px;
+
+      > .qor-list {
+        background-color: #fff;
+        border-radius: 2px;
+        box-shadow: 0 1px 1px rgba(0,0,0,0.12), 0 2px 2px rgba(0,0,0,0.24);
+
+        > thead > tr > th:last-child,
+        > tbody > tr > td:last-child {
+          display: none;
+        }
+      }
+    }
+
+    .row & {
+      margin-left: -15px;
+      margin-right: -15px;
+    }
+  }
+
+  .row .dashboard-section {
+    margin-left: -15px;
+    margin-right: -15px;
+  }
+}
+
+
+// Order Details
+
+.order-detail {
+  margin: -16px -24px;
+
+  .detail-action {
+    padding: 16px 24px;
+    background-color: #ededed;
+    overflow: hidden;
+
+    > button {
+      &:first-child {
+        float: left;
+        color: #ff4081 !important;
+      }
+
+      &:last-child {
+        float: right;
+      }
+    }
+  }
+
+  .detail-heading {
+    color: rgba(0,0,0,0.54);
+  }
+
+  .detail-list {
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style: none;
+
+    > li {
+      position: relative;
+      padding: 16px 24px;
+
+      + li {
+        border-top: 1px solid rgba(0,0,0,0.12);
+      }
+    }
+  }
+
+  .detail-item {
+    position: relative;
+    margin-bottom: 16px;
+    padding-left: 40px;
+
+    > i {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: rgba(0,0,0,0.54);
+    }
+  }
+
+  .item-heading {
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 24px;
+    color: rgba(0,0,0,0.54);
+
+    > a {
+      margin-left: 24px;
+      font-size: 14px;
+      line-height: 24px;
+      text-transform: uppercase;
+      color: #03a9f4;
+    }
+  }
+
+  .item-content {
+    display: block;
+    min-height: 24px;
+    font-size: 16px;
+    line-height: 24px;
+    color: rgba(0,0,0,0.87);
+
+    > address {
+      margin-bottom: 0;
+    }
+
+    > input[type="number"] {
+      height: 24px;
+    }
+
+    > label {
+      font-size: 12px;
+      font-weight: normal;
+      color: rgba(0,0,0,0.54);
+
+      + label {
+        margin-left: 16px;
+      }
+
+      > input[type="checkbox"] {
+        margin-right: 4px;
+      }
+
+      > input[type="number"] {
+        display: inline-block;
+        width: 80px;
+        height: 24px;
+        vertical-align: top;
+        font-size: 16px;
+
+        &.disabled,
+        &[disabled] {
+          color: rgba(0,0,0,0.54);
+        }
+      }
+    }
+
+    > strong {
+      margin-left: 16px;
+      font-weight: normal;
+    }
+  }
+
+  .detail-product-list {
+    .detail-item {
+      padding-left: 0;
+
+      img {
+        width: 48px;
+        height: 48px;
+        background-color: #ccc;
+      }
+    }
+
+    .item-times {
+      position: absolute;
+      top: 24px;
+      left: -24px;
+      font-size: 14px;
+      line-height: 24px;
+    }
+  }
+
+  .qor-btn-group {
+    padding: 16px 24px;
+    text-align: right;
+  }
+}
+
+
+// Choose Shipping Address
+
+.address-container {
+  .address-main {
+    min-height: 320px;
+    padding-right: 32px;
+    border-right: 1px solid rgba(0,0,0,0.12);
+  }
+
+  .address-heading {
+    color: rgba(0,0,0,0.54);
+  }
+
+  .address-list {
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style: none;
+
+    > li {
+      position: relative;
+      padding-left: 40px;
+      padding-bottom: 32px;
+      overflow: hidden;
+
+      + li {
+        padding-top: 32px;
+        border-top: 1px solid rgba(0,0,0,0.12);
+
+        > i {
+          top: 32px;
+        }
+      }
+
+      > i {
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: rgba(0,0,0,0.54);
+      }
+
+      > address {
+        font-size: 16px;
+        line-height: 32px;
+      }
+
+      > button {
+        position: relative;
+        float: right;
+
+        > i {
+          position: absolute;
+          top: 6px;
+          left: -32px;
+          display: none;
+          font-weight: 700;
+        }
+
+        &.disabled {
+          color: #fff !important;
+          background-color: #ccc !important;
+          box-shadow: none !important;
+
+          > i {
+            display: block;
+          }
+        }
+      }
+    }
+  }
+
+  .address-new {
+    .form-group {
+      position: relative;
+      margin-bottom: 32px;
+      padding-left: 32px;
+
+      > label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: rgba(0,0,0,0.54);
+      }
+
+      > .form-field {
+        > .form-control {
+          + .form-control {
+            margin-top: 8px;
+          }
+        }
+      }
+    }
+  }
+
+  .qor-btn-group {
+    padding: 16px 24px;
+    text-align: right;
+  }
+}

@@ -1,0 +1,14 @@
+<ul class="qor-menu">
+  {{range .Result}}
+    {{if .GetSubMenus}}
+      <li data-menu-item="{{.Name}}">
+        <a href="{{if .Link}}{{.Link}}{{else}}javascript:void(0);{{end}}">{{t .Name}}</a>
+        {{render "menu" .GetSubMenus}}
+      </li>
+    {{else}}
+      <li data-menu-item="{{.Name}}">
+        {{link_to (t .Name) .Link}}
+      </li>
+    {{end}}
+  {{end}}
+</ul>

@@ -14,41 +14,50 @@
     <title>Qor Admin</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link type="image/x-icon" rel="shortcut icon" href="/img/favicon.ico">
+    <link type="image/x-icon" rel="icon" href="/img/favicon.ico">
 
     <!-- Stylesheets -->
     {{stylesheet_tag "lib/bootstrap.min"}}
     {{stylesheet_tag "lib/redactor.min"}}
     {{stylesheet_tag "lib/cropper.min"}}
     {{stylesheet_tag "lib/chosen.min"}}
-    {{stylesheet_tag "lib/material-design-iconic-font.min"}}
+    {{stylesheet_tag "roboto.min"}}
+    {{stylesheet_tag "material.min"}}
+    {{stylesheet_tag "ripples.min"}}
     {{stylesheet_tag "component"}}
+    {{stylesheet_tag "qor"}}
     {{stylesheet_tag "app"}}
     {{load_theme_stylesheets}}
-
-    {{javascript_tag "lib/jquery.min"}}
   </head>
-
   <body {{if qor_theme_class}}class="{{qor_theme_class}}"{{end}}>
     <!--[if lt IE 10]>
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
     <a class="sr-only" href="#content" tabindex="1">Skip to content</a>
 
-    {{render "header" .}}
+    {{render "sidebar" .}}
 
-    <div class="main" id="content">
-      {{.Content}}
+    <div class="qor-mainbody">
+      {{render "header" .}}
+
+      <div class="qor-body" id="content">
+        {{.Content}}
+      </div>
+
+      {{render "footer" .}}
     </div>
 
-    {{render "footer" .}}
-
     <!-- JavaScripts -->
+    {{javascript_tag "lib/jquery.min"}}
     {{javascript_tag "lib/bootstrap.min"}}
     {{javascript_tag "lib/redactor.min"}}
     {{javascript_tag "lib/cropper.min"}}
     {{javascript_tag "lib/chosen.jquery.min"}}
+    {{javascript_tag "ripples.min"}}
+    {{javascript_tag "material.min"}}
     {{javascript_tag "component"}}
-    {{javascript_tag "app"}}
+    {{javascript_tag "qor"}}
     {{load_theme_javascripts}}
   </body>
 </html>

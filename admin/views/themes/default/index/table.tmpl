@@ -1,0 +1,30 @@
+{{$Resource := .Resource}}
+
+<table class="qor-list">
+  <thead>
+    <tr>
+      {{range $index, $meta := index_metas}}
+        <th>{{ rt $Resource $meta.Label }}</th>
+      {{end}}
+      <th class="qor-list-action">{{t "Actions"}}</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {{range $resource := .Result}}
+      <tr data-primary-key="{{primary_key_of $resource}}">
+        {{range $index, $meta := index_metas}}
+          {{$text := value_of $resource $meta}}
+          <td title="{{ rt $Resource $meta.Label }}">
+            <div class="qor-list-text">{{if $index}}{{render_index $resource $meta}}{{else}}{{link_to (render_index $resource $meta) $resource}}{{end}}</div>
+          </td>
+        {{end}}
+
+        <td class="qor-list-action">
+          <a class="qor-action-edit" href="{{url_for $resource}}"><i class="md md-18 md-primary">edit</i></a>
+          <a class="qor-action-delete" href="{{url_for $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}"><i class="md md-18 md-danger">delete</i></a>
+        </td>
+      </tr>
+    {{end}}
+  </tbody>
+</table>
