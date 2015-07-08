@@ -1,0 +1,141 @@
+.qor-file-action {
+  margin-bottom: 10px;
+}
+
+.qor-file-list {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+
+  > ul {
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style: none;
+
+    > li {
+      position: relative;
+      float: left;
+      display: block;
+      width: 160px;
+      height: 160px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #eee;
+      background-color: #fcfcfc;
+      overflow: hidden;
+
+      > span {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        display: block;
+        padding: 5px;
+        font-size: 12px;
+        line-height: 20px;
+        text-align: center;
+        background-color: rgba(255,255,255,0.5);
+
+        &:first-letter {
+          text-transform: uppercase;
+        }
+      }
+
+      img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 100%;
+        max-height: 180px;
+      }
+    }
+  }
+}
+
+.qor-cropper-canvas {
+  position: relative;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+}
+
+.qor-cropper-toggle {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  background-color: #888;
+  background-color: rgba(0,0,0,0.5);
+  cursor: pointer;
+  opacity: 0;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &:before,
+  &:after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    background-color: #eee;
+    content: " ";
+  }
+
+  &:before {
+    width: 20px;
+    height: 2px;
+    margin-left: -10px;
+    margin-top: -1px;
+  }
+
+  &:after {
+    width: 2px;
+    height: 20px;
+    margin-left: -1px;
+    margin-top: -10px;
+  }
+}
+
+.qor-cropper-modal {
+  .modal-header {
+    border-bottom-color: #fafafa;
+  }
+
+  .modal-body {
+    padding: 0;
+    background-color: #fafafa;
+
+    img {
+      max-width: 100%;
+    }
+  }
+
+  .modal-footer {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-top-color: #fafafa;
+  }
+}
+
+.qor-redactor-cropper {
+  display: block;
+  max-width: 100%;
+  max-height: 320px;
+  overflow: hidden;
+  background-color: #fafafa;
+
+  > img {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
