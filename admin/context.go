@@ -24,14 +24,14 @@ type Context struct {
 }
 
 // Resource
-func (context *Context) ResourcePath() string {
+func (context *Context) resourcePath() string {
 	if context.Resource == nil {
 		return ""
 	}
 	return context.Resource.ToParam()
 }
 
-func (context *Context) SetResource(res *Resource) *Context {
+func (context *Context) setResource(res *Resource) *Context {
 	context.Resource = res
 	context.Searcher = &Searcher{Context: context}
 	return context
@@ -43,20 +43,20 @@ func (context *Context) GetResource(name string) *Resource {
 
 // Template
 func (context *Context) getViewPaths() (paths []string) {
-	var dirs = []string{context.ResourcePath(), path.Join("themes", "default"), "."}
+	var dirs = []string{context.resourcePath(), path.Join("themes", "default"), "."}
 	var themes []string
 
 	if context.Request != nil {
 		if theme := context.Request.URL.Query().Get("theme"); theme != "" {
 			themePath := path.Join("themes", theme)
-			themes = append(themes, []string{path.Join(themePath, context.ResourcePath()), themePath}...)
+			themes = append(themes, []string{path.Join(themePath, context.resourcePath()), themePath}...)
 		}
 	}
 
 	if context.Resource != nil {
 		for _, theme := range context.Resource.Config.Themes {
 			themePath := path.Join("themes", theme)
-			themes = append(themes, []string{path.Join(themePath, context.ResourcePath()), themePath}...)
+			themes = append(themes, []string{path.Join(themePath, context.resourcePath()), themePath}...)
 		}
 	}
 
@@ -116,7 +116,7 @@ func (context *Context) Execute(name string, result interface{}) {
 	var cacheKey string
 
 	if context.Resource != nil {
-		cacheKey = path.Join(context.ResourcePath(), name)
+		cacheKey = path.Join(context.resourcePath(), name)
 	} else {
 		cacheKey = name
 	}

@@ -22,14 +22,14 @@ import (
 func (context *Context) NewResourceContext(name ...string) *Context {
 	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result}
 	if len(name) > 0 {
-		clone.SetResource(context.Admin.GetResource(name[0]))
+		clone.setResource(context.Admin.GetResource(name[0]))
 	} else {
-		clone.SetResource(context.Resource)
+		clone.setResource(context.Resource)
 	}
 	return clone
 }
 
-func (context *Context) PrimaryKeyOf(value interface{}) interface{} {
+func (context *Context) primaryKeyOf(value interface{}) interface{} {
 	return context.GetDB().NewScope(value).PrimaryKeyValue()
 }
 
@@ -60,7 +60,7 @@ func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
 	return nil
 }
 
-func (context *Context) NewResourcePath(value interface{}) string {
+func (context *Context) newResourcePath(value interface{}) string {
 	if res, ok := value.(*Resource); ok {
 		return path.Join(context.Admin.router.Prefix, res.ToParam(), "new")
 	} else {
@@ -232,7 +232,7 @@ func (context *Context) javaScriptTag(name string) template.HTML {
 	return template.HTML(fmt.Sprintf(`<script src="%s"></script>`, name))
 }
 
-func (context *Context) StyleSheetTag(name string) template.HTML {
+func (context *Context) styleSheetTag(name string) template.HTML {
 	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "stylesheets", name+".css")
 	return template.HTML(fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
 }
@@ -262,23 +262,23 @@ OUT:
 	return menus
 }
 
-type permissioner interface {
+type HasPermissioner interface {
 	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
 
-func (context *Context) HasCreatePermission(permissioner permissioner) bool {
+func (context *Context) HasCreatePermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Create, context.Context)
 }
 
-func (context *Context) HasReadPermission(permissioner permissioner) bool {
+func (context *Context) HasReadPermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Read, context.Context)
 }
 
-func (context *Context) HasUpdatePermission(permissioner permissioner) bool {
+func (context *Context) HasUpdatePermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Update, context.Context)
 }
 
-func (context *Context) HasDeletePermission(permissioner permissioner) bool {
+func (context *Context) HasDeletePermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Delete, context.Context)
 }
 
@@ -348,12 +348,12 @@ func equal(a, b interface{}) bool {
 }
 
 // PatchCurrentURL is a convinent wrapper for qor/utils.PatchURL
-func (context *Context) PatchCurrentURL(params ...interface{}) (patchedURL string, err error) {
+func (context *Context) patchCurrentURL(params ...interface{}) (patchedURL string, err error) {
 	return utils.PatchURL(context.Request.URL.String(), params...)
 }
 
 // PatchURL is a convinent wrapper for qor/utils.PatchURL
-func (context *Context) PatchURL(url string, params ...interface{}) (patchedURL string, err error) {
+func (context *Context) patchURL(url string, params ...interface{}) (patchedURL string, err error) {
 	return utils.PatchURL(url, params...)
 }
 
@@ -399,7 +399,7 @@ func (context *Context) loadThemeJavaScripts() template.HTML {
 	return template.HTML(strings.Join(results, " "))
 }
 
-func (context *Context) LogoutURL() string {
+func (context *Context) logoutURL() string {
 	if context.Admin.auth != nil {
 		return context.Admin.auth.LogoutURL(context)
 	}
@@ -439,7 +439,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"new_resource_context": context.NewResourceContext,
 		"is_new_record":        context.isNewRecord,
 		"is_included":          context.isIncluded,
-		"primary_key_of":       context.PrimaryKeyOf,
+		"primary_key_of":       context.primaryKeyOf,
 		"value_of":             context.ValueOf,
 
 		"menus":      context.Admin.GetMenus,
@@ -454,12 +454,12 @@ func (context *Context) funcMap() template.FuncMap {
 		"render_index":           context.renderIndexMeta,
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
-		"patch_current_url":      context.PatchCurrentURL,
-		"patch_url":              context.PatchURL,
-		"new_resource_path":      context.NewResourcePath,
+		"patch_current_url":      context.patchCurrentURL,
+		"patch_url":              context.patchURL,
+		"new_resource_path":      context.newResourcePath,
 		"qor_theme_class":        context.themesClass,
 		"javascript_tag":         context.javaScriptTag,
-		"stylesheet_tag":         context.StyleSheetTag,
+		"stylesheet_tag":         context.styleSheetTag,
 		"load_theme_stylesheets": context.loadThemeStyleSheets,
 		"load_theme_javascripts": context.loadThemeJavaScripts,
 		"pagination":             context.Pagination,
@@ -475,7 +475,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"has_update_permission": context.HasUpdatePermission,
 		"has_delete_permission": context.HasDeletePermission,
 
-		"logout_url": context.LogoutURL,
+		"logout_url": context.logoutURL,
 
 		"marshal": func(v interface{}) template.JS {
 			a, _ := json.Marshal(v)
