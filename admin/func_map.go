@@ -203,28 +203,28 @@ func (context *Context) getResource(resources ...*Resource) *Resource {
 	return context.Resource
 }
 
-func (context *Context) AllMetas(resources ...*Resource) []*Meta {
-	return context.getResource(resources...).AllMetas()
+func (context *Context) allMetas(resources ...*Resource) []*Meta {
+	return context.getResource(resources...).allMetas()
 }
 
-func (context *Context) IndexMetas(resources ...*Resource) []*Meta {
+func (context *Context) indexMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
-	return res.AllowedMetas(res.IndexMetas(), context, roles.Read)
+	return res.allowedMetas(res.indexMetas(), context, roles.Read)
 }
 
-func (context *Context) EditMetas(resources ...*Resource) []*Meta {
+func (context *Context) editMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
-	return res.AllowedMetas(res.EditMetas(), context, roles.Update)
+	return res.allowedMetas(res.editMetas(), context, roles.Update)
 }
 
-func (context *Context) ShowMetas(resources ...*Resource) []*Meta {
+func (context *Context) showMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
-	return res.AllowedMetas(res.ShowMetas(), context, roles.Read)
+	return res.allowedMetas(res.showMetas(), context, roles.Read)
 }
 
-func (context *Context) NewMetas(resources ...*Resource) []*Meta {
+func (context *Context) newMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
-	return res.AllowedMetas(res.NewMetas(), context, roles.Create)
+	return res.allowedMetas(res.newMetas(), context, roles.Create)
 }
 
 func (context *Context) javaScriptTag(name string) template.HTML {
@@ -266,19 +266,19 @@ type HasPermissioner interface {
 	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
 
-func (context *Context) HasCreatePermission(permissioner HasPermissioner) bool {
+func (context *Context) hasCreatePermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Create, context.Context)
 }
 
-func (context *Context) HasReadPermission(permissioner HasPermissioner) bool {
+func (context *Context) hasReadPermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Read, context.Context)
 }
 
-func (context *Context) HasUpdatePermission(permissioner HasPermissioner) bool {
+func (context *Context) hasUpdatePermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Update, context.Context)
 }
 
-func (context *Context) HasDeletePermission(permissioner HasPermissioner) bool {
+func (context *Context) hasDeletePermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Delete, context.Context)
 }
 
@@ -406,7 +406,7 @@ func (context *Context) logoutURL() string {
 	return ""
 }
 
-func (context *Context) T(key string, values ...interface{}) string {
+func (context *Context) t(key string, values ...interface{}) string {
 	locale := utils.GetLocale(context.Context)
 
 	if context.Admin.I18n == nil {
@@ -419,7 +419,7 @@ func (context *Context) T(key string, values ...interface{}) string {
 	}
 }
 
-func (context *Context) RT(resource *Resource, key string, values ...interface{}) string {
+func (context *Context) rt(resource *Resource, key string, values ...interface{}) string {
 	locale := utils.GetLocale(context.Context)
 
 	if context.Admin.I18n == nil {
@@ -464,16 +464,16 @@ func (context *Context) funcMap() template.FuncMap {
 		"load_theme_javascripts": context.loadThemeJavaScripts,
 		"pagination":             context.Pagination,
 
-		"all_metas":   context.AllMetas,
-		"index_metas": context.IndexMetas,
-		"edit_metas":  context.EditMetas,
-		"show_metas":  context.ShowMetas,
-		"new_metas":   context.NewMetas,
+		"all_metas":   context.allMetas,
+		"index_metas": context.indexMetas,
+		"edit_metas":  context.editMetas,
+		"show_metas":  context.showMetas,
+		"new_metas":   context.newMetas,
 
-		"has_create_permission": context.HasCreatePermission,
-		"has_read_permission":   context.HasReadPermission,
-		"has_update_permission": context.HasUpdatePermission,
-		"has_delete_permission": context.HasDeletePermission,
+		"has_create_permission": context.hasCreatePermission,
+		"has_read_permission":   context.hasReadPermission,
+		"has_update_permission": context.hasUpdatePermission,
+		"has_delete_permission": context.hasDeletePermission,
 
 		"logout_url": context.logoutURL,
 
@@ -482,8 +482,8 @@ func (context *Context) funcMap() template.FuncMap {
 			return template.JS(a)
 		},
 
-		"t":       context.T,
-		"rt":      context.RT,
+		"t":       context.t,
+		"rt":      context.rt,
 		"flashes": context.GetFlashes,
 	}
 

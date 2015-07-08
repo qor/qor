@@ -58,21 +58,21 @@ func (res Resource) UseTheme(theme string) []string {
 	return []string{}
 }
 
-func (res *Resource) ConvertObjectToMap(context *Context, value interface{}, kind string) interface{} {
+func (res *Resource) convertObjectToMap(context *Context, value interface{}, kind string) interface{} {
 	reflectValue := reflect.Indirect(reflect.ValueOf(value))
 	switch reflectValue.Kind() {
 	case reflect.Slice:
 		values := []interface{}{}
 		for i := 0; i < reflectValue.Len(); i++ {
-			values = append(values, res.ConvertObjectToMap(context, reflectValue.Index(i).Interface(), kind))
+			values = append(values, res.convertObjectToMap(context, reflectValue.Index(i).Interface(), kind))
 		}
 		return values
 	case reflect.Struct:
 		var metas []*Meta
 		if kind == "index" {
-			metas = res.IndexMetas()
+			metas = res.indexMetas()
 		} else if kind == "show" {
-			metas = res.ShowMetas()
+			metas = res.showMetas()
 		}
 
 		values := map[string]interface{}{}
@@ -80,7 +80,7 @@ func (res *Resource) ConvertObjectToMap(context *Context, value interface{}, kin
 			if meta.HasPermission(roles.Read, context.Context) {
 				value := meta.GetValuer()(value, context.Context)
 				if meta.Resource != nil {
-					value = meta.Resource.(*Resource).ConvertObjectToMap(context, value, kind)
+					value = meta.Resource.(*Resource).convertObjectToMap(context, value, kind)
 				}
 				values[meta.GetName()] = value
 			}
@@ -271,37 +271,37 @@ func (res *Resource) GetMeta(name string) *Meta {
 	return nil
 }
 
-func (res *Resource) IndexMetas() []*Meta {
+func (res *Resource) indexMetas() []*Meta {
 	return res.getCachedMetas("index_metas", func() []resource.Metaor {
 		return res.GetMetas(res.indexAttrs, res.showAttrs)
 	})
 }
 
-func (res *Resource) NewMetas() []*Meta {
+func (res *Resource) newMetas() []*Meta {
 	return res.getCachedMetas("new_metas", func() []resource.Metaor {
 		return res.GetMetas(res.newAttrs, res.editAttrs)
 	})
 }
 
-func (res *Resource) EditMetas() []*Meta {
+func (res *Resource) editMetas() []*Meta {
 	return res.getCachedMetas("edit_metas", func() []resource.Metaor {
 		return res.GetMetas(res.editAttrs)
 	})
 }
 
-func (res *Resource) ShowMetas() []*Meta {
+func (res *Resource) showMetas() []*Meta {
 	return res.getCachedMetas("show_metas", func() []resource.Metaor {
 		return res.GetMetas(res.showAttrs, res.editAttrs)
 	})
 }
 
-func (res *Resource) AllMetas() []*Meta {
+func (res *Resource) allMetas() []*Meta {
 	return res.getCachedMetas("all_metas", func() []resource.Metaor {
 		return res.GetMetas()
 	})
 }
 
-func (res *Resource) AllowedMetas(attrs []*Meta, context *Context, roles ...roles.PermissionMode) []*Meta {
+func (res *Resource) allowedMetas(attrs []*Meta, context *Context, roles ...roles.PermissionMode) []*Meta {
 	var metas = []*Meta{}
 	for _, meta := range attrs {
 		for _, role := range roles {
