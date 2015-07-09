@@ -13,7 +13,7 @@
       {{$has_production := not (is_new_record $production)}}
       {{$res := .Result.Resource}}
 
-      {{range $meta := index_metas .Result.Resource}}
+      {{range $meta := show_metas .Result.Resource}}
         {{$draft_value := value_of $draft $meta}}
         {{$production_value := value_of $production $meta}}
         {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}

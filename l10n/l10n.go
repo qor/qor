@@ -102,11 +102,11 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 				url, _ := utils.PatchURL(ctx.Request.RequestURI, "locale", locale)
 				for _, localized := range languageCodes {
 					if locale == localized {
-						results += fmt.Sprintf("<a class='qor-l10n-label active' href='%s'>%s</a> ", url, context.T(locale))
+						results += fmt.Sprintf("<a class='qor-label active' href='%s'>%s</a> ", url, context.T(locale))
 						continue OUT
 					}
 				}
-				results += fmt.Sprintf("<a class='qor-l10n-label' href='%s'>%s</a> ", url, context.T(locale))
+				results += fmt.Sprintf("<a class='qor-label' href='%s'>%s</a> ", url, context.T(locale))
 			}
 			return template.HTML(results)
 		}})
