@@ -89,7 +89,7 @@ func (ac *controller) Create(context *Context) {
 		if errs := res.Decode(context.Context, result); len(errs) == 0 {
 			res.CallSaver(result, context.Context)
 			responder.With("html", func() {
-				context.Flash(context.t("{{.Name}} was successfully created", res), "success")
+				context.Flash(context.T("{{.Name}} was successfully created", res), "success")
 				primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
 				http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path, primaryKey), http.StatusFound)
 			}).With("json", func() {
@@ -111,7 +111,7 @@ func (ac *controller) Update(context *Context) {
 					return
 				}
 				responder.With("html", func() {
-					context.FlashNow(context.t("{{.Name}} was successfully updated", res), "success")
+					context.FlashNow(context.T("{{.Name}} was successfully updated", res), "success")
 					context.Execute("show", result)
 				}).With("json", func() {
 					res := context.Resource

@@ -406,7 +406,7 @@ func (context *Context) logoutURL() string {
 	return ""
 }
 
-func (context *Context) t(key string, values ...interface{}) string {
+func (context *Context) T(key string, values ...interface{}) string {
 	locale := utils.GetLocale(context.Context)
 
 	if context.Admin.I18n == nil {
@@ -482,7 +482,7 @@ func (context *Context) funcMap() template.FuncMap {
 			return template.JS(a)
 		},
 
-		"t":       context.t,
+		"t":       context.T,
 		"rt":      context.rt,
 		"flashes": context.GetFlashes,
 	}
