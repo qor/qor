@@ -66,7 +66,9 @@
       parts: parts
     };
 
-    for (i = 0, length = parts.length; i < length; i++) {
+    length = parts.length;
+
+    for (i = 0; i < length; i++) {
       switch (parts[i]) {
         case 'dd':
         case 'd':

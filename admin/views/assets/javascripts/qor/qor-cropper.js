@@ -147,8 +147,7 @@
 
     read: function () {
       var files = this.$element.prop('files'),
-          file,
-          url;
+          file;
 
       if (files && files.length) {
         file = files[0];
@@ -174,19 +173,19 @@
       }
 
       $img = $list.find('img');
-      $img.attr('src' , url).data('originalUrl', url);
-      this.center($img);
+      $img.attr('src', url).data('originalUrl', url);
+      this.center($img, true);
     },
 
     start: function () {
       var options = this.options,
           $modal = this.$modal,
           $target = this.$target,
-          targetData = $target.data(),
-          sizeName = targetData.sizeName || 'original',
-          sizeResolution = targetData.sizeResolution,
-          $clone = $('<img>').attr('src', targetData.originalUrl),
-          aspectRatio = sizeResolution ? getValueByNoCaseKey(sizeResolution, 'width') / getValueByNoCaseKey(sizeResolution, 'height') : NaN,
+          sizeData = $target.data(),
+          sizeName = sizeData.sizeName || 'original',
+          sizeResolution = sizeData.sizeResolution,
+          $clone = $('<img>').attr('src', sizeData.originalUrl),
+          sizeAspectRatio = (sizeResolution ? getValueByNoCaseKey(sizeResolution, 'width') / getValueByNoCaseKey(sizeResolution, 'height') : NaN),
           data = this.data,
           _this = this;
 
@@ -196,7 +195,7 @@
 
       $modal.find('.modal-body').html($clone);
       $clone.cropper({
-        aspectRatio: aspectRatio,
+        aspectRatio: sizeAspectRatio,
         data: getLowerCaseKeyObject(data[options.key][sizeName]),
         background: false,
         zoomable: false,
@@ -234,32 +233,34 @@
     },
 
     output: function (url) {
+      var $target = this.$target;
+
       if (url) {
-        this.center(this.$target.attr('src', url));
+        this.center($target.attr('src', url));
       } else {
-        this.preview();
+        this.preview($target);
       }
 
+      this.autoCrop(url);
       this.$output.val(JSON.stringify(this.data));
     },
 
-    preview: function () {
-      var $target = this.$target,
-          $canvas = $target.parent(),
+    preview: function ($target) {
+      var $canvas = $target.parent(),
           $container = $canvas.parent(),
           containerWidth = Math.max($container.width(), 160), // minContainerWidth: 160
           containerHeight = Math.max($container.height(), 160), // minContainerHeight: 160
           imageData = this.imageData,
-          cropData = this.cropData,
-          newAspectRatio = cropData.width / cropData.height,
+          cropData = $.extend({}, this.cropData), // Clone one to avoid changing it
+          cropAspectRatio = cropData.width / cropData.height,
           newWidth = containerWidth,
           newHeight = containerHeight,
           newRatio;
 
-      if (containerHeight * newAspectRatio > containerWidth) {
-        newHeight = newWidth / newAspectRatio;
+      if (containerHeight * cropAspectRatio > containerWidth) {
+        newHeight = newWidth / cropAspectRatio;
       } else {
-        newWidth = newHeight * newAspectRatio;
+        newWidth = newHeight * cropAspectRatio;
       }
 
       newRatio = cropData.width / newWidth;
@@ -285,7 +286,7 @@
       this.center($target);
     },
 
-    center: function ($target) {
+    center: function ($target, reset) {
       $target.each(function () {
         var $this = $(this),
             $canvas = $this.parent(),
@@ -302,10 +303,40 @@
               $canvas.css('margin-top', marginTop);
             };
 
+        if (reset) {
+          $canvas.removeAttr('style');
+        }
+
         if (this.complete) {
           center.call(this);
         } else {
           this.onload = center;
+        }
+      });
+    },
+
+    autoCrop: function (url) {
+      var cropData = $.extend({}, this.cropData),
+          cropAspectRatio = cropData.width / cropData.height,
+          cropOptions = this.data[this.options.key],
+          _this = this;
+
+      this.$list.find('img').not(this.$target).each(function () {
+        var $this = $(this),
+            sizeData = $this.data(),
+            sizeName = sizeData.sizeName,
+            sizeResolution = sizeData.sizeResolution,
+            sizeAspectRatio = (sizeResolution ? getValueByNoCaseKey(sizeResolution, 'width') / getValueByNoCaseKey(sizeResolution, 'height') : NaN);
+
+        // Crop the other not cropped images which has the same aspect ratio automatically
+        if (sizeName && sizeAspectRatio && sizeAspectRatio === cropAspectRatio && !cropOptions[sizeName]) {
+          cropOptions[sizeName] = getCapitalizeKeyObject(cropData);
+
+          if (url) {
+            _this.center($this.attr('src', url));
+          } else {
+            _this.preview($this);
+          }
         }
       });
     },
