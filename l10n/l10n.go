@@ -86,7 +86,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	}
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
-	if res.GetMeta("LanguageCode") == nil {
+	if res.GetMeta("Localization") == nil {
 		res.Meta(&admin.Meta{Name: "Localization", Valuer: func(value interface{}, ctx *qor.Context) interface{} {
 			db := ctx.GetDB()
 			context := Admin.NewContext(ctx.Writer, ctx.Request)
