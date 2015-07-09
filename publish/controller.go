@@ -20,10 +20,11 @@ type publishController struct {
 
 func (db *publishController) Preview(context *admin.Context) {
 	drafts := make(map[*admin.Resource]interface{})
+	draftDB := context.GetDB().Set("publish:draft_mode", true).Unscoped()
 	for _, res := range context.Admin.GetResources() {
 		results := res.NewSlice()
 		if isPublishableModel(res.Value) {
-			if db.DraftDB().Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
+			if draftDB.Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
 				drafts[res] = results
 			}
 		}
@@ -38,10 +39,10 @@ func (db *publishController) Diff(context *admin.Context) {
 	res := context.Admin.GetResource(name)
 
 	draft := res.NewStruct()
-	db.DraftDB().Unscoped().First(draft, id)
+	context.GetDB().Set("publish:draft_mode", true).Unscoped().First(draft, id)
 
 	production := res.NewStruct()
-	db.ProductionDB().Unscoped().First(production, id)
+	context.GetDB().Set("publish:draft_mode", false).Unscoped().First(production, id)
 
 	results := map[string]interface{}{"Production": production, "Draft": draft, "Resource": res}
 
@@ -61,10 +62,11 @@ func (db *publishController) PublishOrDiscard(context *admin.Context) {
 		}
 	}
 
+	draftDB := context.GetDB().Set("publish:draft_mode", true).Unscoped()
 	for name, value := range values {
 		res := context.Admin.GetResource(name)
 		results := res.NewSlice()
-		if db.DraftDB().Unscoped().Find(results, fmt.Sprintf("%v IN (?)", res.PrimaryDBName()), value).Error == nil {
+		if draftDB.Find(results, fmt.Sprintf("%v IN (?)", res.PrimaryDBName()), value).Error == nil {
 			resultValues := reflect.Indirect(reflect.ValueOf(results))
 			for i := 0; i < resultValues.Len(); i++ {
 				records = append(records, resultValues.Index(i).Interface())
@@ -73,9 +75,9 @@ func (db *publishController) PublishOrDiscard(context *admin.Context) {
 	}
 
 	if request.Form.Get("publish_type") == "publish" {
-		db.Publish.Publish(records...)
+		Publish{DB: draftDB}.Publish(records...)
 	} else if request.Form.Get("publish_type") == "discard" {
-		db.Publish.Discard(records...)
+		Publish{DB: draftDB}.Discard(records...)
 	}
 	http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 }
