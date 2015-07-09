@@ -78,7 +78,7 @@ func (context *Context) findFile(layout string) (string, error) {
 	return "", errors.New("file not found")
 }
 
-func (context *Context) findTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
+func (context *Context) FindTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
 	for _, p := range context.getViewPaths() {
 		if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
 			if tmpl, err = tmpl.ParseFiles(path.Join(p, layout)); err != nil {
@@ -94,12 +94,12 @@ func (context *Context) findTemplate(tmpl *template.Template, layout string) (*t
 func (context *Context) Render(name string, results ...interface{}) template.HTML {
 	var err error
 	names := strings.Split(name, "/")
-	tmpl := template.New(names[len(names)-1] + ".tmpl").Funcs(context.funcMap())
+	tmpl := template.New(names[len(names)-1] + ".tmpl").Funcs(context.FuncMap())
 	if len(results) > 0 {
 		context.Result = results[0]
 	}
 
-	if tmpl, err = context.findTemplate(tmpl, name+".tmpl"); err == nil {
+	if tmpl, err = context.FindTemplate(tmpl, name+".tmpl"); err == nil {
 		var result = bytes.NewBufferString("")
 		if err := tmpl.Execute(result, context); err != nil {
 			fmt.Println(err)
@@ -122,11 +122,11 @@ func (context *Context) Execute(name string, result interface{}) {
 
 	if t, ok := templates[cacheKey]; !ok || true {
 		var err error
-		tmpl = template.New("layout.tmpl").Funcs(context.funcMap())
-		if tmpl, err = context.findTemplate(tmpl, "layout.tmpl"); err == nil {
+		tmpl = template.New("layout.tmpl").Funcs(context.FuncMap())
+		if tmpl, err = context.FindTemplate(tmpl, "layout.tmpl"); err == nil {
 			for _, name := range []string{"header", "footer"} {
 				if tmpl.Lookup(name) == nil {
-					tmpl, _ = context.findTemplate(tmpl, name+".tmpl")
+					tmpl, _ = context.FindTemplate(tmpl, name+".tmpl")
 				}
 			}
 		}

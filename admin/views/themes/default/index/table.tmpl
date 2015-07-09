@@ -14,9 +14,8 @@
     {{range $resource := .Result}}
       <tr data-primary-key="{{primary_key_of $resource}}">
         {{range $index, $meta := index_metas}}
-          {{$text := value_of $resource $meta}}
           <td title="{{ rt $Resource $meta.Label }}">
-            <div class="qor-list-text">{{if $index}}{{render_index $resource $meta}}{{else}}{{link_to (render_index $resource $meta) $resource}}{{end}}</div>
+            <div class="qor-list-text">{{if $index}}{{render_index_meta $resource $meta}}{{else}}{{link_to (render_index_meta $resource $meta) $resource}}{{end}}</div>
           </td>
         {{end}}
 

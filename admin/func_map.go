@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"reflect"
-	"runtime/debug"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -98,16 +97,15 @@ func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML
 func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.HTML {
 	var err error
 	var result = bytes.NewBufferString("")
-	var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.funcMap())
+	var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
 
-	if tmpl, err = context.findTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
+	if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
 		tmpl, _ = tmpl.Parse("{{.Value}}")
 	}
 
 	data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
 	if err := tmpl.Execute(result, data); err != nil {
-		fmt.Println(err)
-		debug.PrintStack()
+		utils.ExitWithMsg(err.Error())
 	}
 	return template.HTML(result.String())
 }
@@ -127,7 +125,7 @@ func (context *Context) renderForm(result *bytes.Buffer, value interface{}, meta
 func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value interface{}, prefix []string) {
 	prefix = append(prefix, meta.Name)
 
-	funcsMap := context.funcMap()
+	funcsMap := context.FuncMap()
 	funcsMap["render_form"] = func(value interface{}, metas []*Meta, index ...int) template.HTML {
 		var result = bytes.NewBufferString("")
 		newPrefix := append([]string{}, prefix...)
@@ -143,7 +141,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
 
-	if tmpl, err := context.findTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
+	if tmpl, err := context.FindTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
 		data := map[string]interface{}{}
 		data["Base"] = meta.base
 		data["InputId"] = strings.Join(prefix, "")
@@ -432,7 +430,7 @@ func (context *Context) rt(resource *Resource, key string, values ...interface{}
 	}
 }
 
-func (context *Context) funcMap() template.FuncMap {
+func (context *Context) FuncMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
 		"get_resource":         context.GetResource,
@@ -451,7 +449,7 @@ func (context *Context) funcMap() template.FuncMap {
 		"stringify":              utils.Stringify,
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
-		"render_index":           context.renderIndexMeta,
+		"render_index_meta":      context.renderIndexMeta,
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
 		"patch_current_url":      context.patchCurrentURL,

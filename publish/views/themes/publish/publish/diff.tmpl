@@ -1,3 +1,5 @@
+{{$context := .}}
+
 <div class="table-responsive">
   <table class="table table-striped">
     <thead>
@@ -14,8 +16,8 @@
       {{$res := .Result.Resource}}
 
       {{range $meta := show_metas .Result.Resource}}
-        {{$draft_value := value_of $draft $meta}}
-        {{$production_value := value_of $production $meta}}
+        {{$draft_value := render_publish_meta $draft $meta $context}}
+        {{$production_value := render_publish_meta $production $meta $context}}
         {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}
 
         <tr {{if $diff}}class="danger"{{end}}>

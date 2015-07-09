@@ -1,3 +1,5 @@
+{{$context := .}}
+
 <div class="qor-navbar">
   <h1 class="qor-title">{{t "{{.Name}}" .Resource}}</h1>
   {{render "toolbar"}}
@@ -32,9 +34,7 @@
                 <input type="checkbox" name="checked_ids[]" value="{{$key}}"/>
               </td>
               {{range $index, $meta := index_metas $res}}
-                <td>
-                  <p class="qor-list-text">{{value_of $record $meta}}</p>
-                </td>
+                <td><p class="qor-list-text">{{render_publish_meta $record $meta $context}}</p></td>
               {{end}}
               <td><a class="qor-action-diff" data-url="publish/diff/{{$key}}" href="javascript:void(0);">{{t "View Diff"}}</a></td>
             </tr>

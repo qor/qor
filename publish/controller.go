@@ -1,7 +1,9 @@
 package publish
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
 	"path"
@@ -9,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/utils"
 )
 
 type publishController struct {
@@ -93,4 +96,22 @@ func (publish *Publish) InjectQorAdmin(res *admin.Resource) {
 	router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
 	router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Preview)
 	router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.PublishOrDiscard)
+
+	res.GetAdmin().RegisterFuncMap("render_publish_meta", func(value interface{}, meta *admin.Meta, context *admin.Context) template.HTML {
+		var err error
+		var result = bytes.NewBufferString("")
+		var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
+
+		if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/publish/%v.tmpl", meta.Type)); err != nil {
+			if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
+				tmpl, _ = tmpl.Parse("{{.Value}}")
+			}
+		}
+
+		data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
+		if err := tmpl.Execute(result, data); err != nil {
+			utils.ExitWithMsg(err.Error())
+		}
+		return template.HTML(result.String())
+	})
 }
