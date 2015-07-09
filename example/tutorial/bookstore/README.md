@@ -5,12 +5,12 @@ This tutorial shows you
 ## Prerequisites
 
 * GoLang 1.x+ (at the time of writing I am using >=1.4.0 versions)
-* Install qor:
+* Install QOR:
 
     go get github.com/qor/qor
 
 * A database - for example PostgreSQL or MySQL
-* Install dependencies: cd into the qor source directory and run
+* Install dependencies: cd into the QOR source directory and run
 
     go get ./...
 
@@ -22,7 +22,7 @@ This tutorial shows you
 
     go get github.com/pilu/fresh
 
-fresh is not necessary to use qor, but it will make your life easier when playing with the tutorial: it monitors for file changes and automatically recompiles your code every time something has changed.
+fresh is not necessary to use QOR, but it will make your life easier when playing with the tutorial: it monitors for file changes and automatically recompiles your code every time something has changed.
 
 If you don't want to go with fresh you will have to rebuild/rerun your code every time instead.
 
@@ -98,7 +98,7 @@ The `Author` model is very simple:
     	Name string
     }
 
-All qor models "inherit" from `gorm.model`. (see https://github.com/jinzhu/gorm).
+All QOR models "inherit" from `gorm.model`. (see https://github.com/jinzhu/gorm).
 Our author model for now only has a `Name`.
 Ignore `publish.Status` and `l10n.Locale` for now - we will address these in later parts of the tutorial.
 
