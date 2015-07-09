@@ -15,12 +15,11 @@ import (
 type Context struct {
 	*qor.Context
 	*Searcher
-	Flashs      []Flash
-	Resource    *Resource
-	Admin       *Admin
-	CurrentUser qor.CurrentUser
-	Result      interface{}
-	Content     template.HTML
+	Flashs   []Flash
+	Resource *Resource
+	Admin    *Admin
+	Result   interface{}
+	Content  template.HTML
 }
 
 // Resource
