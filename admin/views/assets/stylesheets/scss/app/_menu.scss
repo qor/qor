@@ -70,10 +70,12 @@
           float: left;
           display: block;
           width: 36px;
+          height: 20px;
           font-size: 18px;
           line-height: 20px;
           text-align: center;
           color: rgba(0,0,0,0.54);
+          content: "\e5d2";
           @extend .md;
         }
       }
