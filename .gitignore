@@ -18,7 +18,7 @@ worker_data
 # Front end
 bower_components
 node_modules
-_*
+__*
 *.css.map
 *.js.map
 *.min.map

@@ -15,7 +15,7 @@ import (
 
 var Global = "en-US"
 
-type publishInterface interface {
+type l10nInterface interface {
 	IsGlobal() bool
 	SetLocale(locale string)
 }
@@ -86,7 +86,32 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
 	if res.GetMeta("LanguageCode") == nil {
-		res.Meta(&admin.Meta{Name: "LanguageCode", Type: "hidden"})
+		// res.Meta(&admin.Meta{Name: "Localization", Label: "Localization", Valuer: func(value interface{}, context *qor.Context) interface{} {
+		// 	scope := context.GetDB().NewScope(value)
+		// 	var languageCodes []string
+		// 	context.GetDB().New().Set("l10n:mode", "unscoped").Model(value).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
+		//
+		// 	var results []map[string]interface{}
+		// 	availableLocales := getAvailableLocales(context.Request, context.CurrentUser)
+		// OUT:
+		// 	for _, locale := range availableLocales {
+		// 		for _, localized := range languageCodes {
+		// 			if locale == localized {
+		// 				results = append(results, map[string]interface{}{"locale": locale, "localized": true})
+		// 				continue OUT
+		// 			}
+		// 		}
+		// 		results = append(results, map[string]interface{}{"locale": locale, "localized": false})
+		//
+		// 		// ''		<a class="qor-l10n-label{{if $resource_locale.localized}} active{{end}}" href="{{patch_url (url_for $resource) "locale" $resource_locale.locale}}">{{t $resource_locale.locale}}</a>''
+		// 	}
+		// 	return results
+		// }})
+
+		res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode")...)
+		res.ShowAttrs(append(res.ShowAttrs(), "-LanguageCode")...)
+		res.EditAttrs(append(res.EditAttrs(), "-LanguageCode")...)
+		res.NewAttrs(append(res.NewAttrs(), "-LanguageCode")...)
 	}
 
 	// Set meta permissions

@@ -8,7 +8,7 @@
       {{range $index, $meta := index_metas}}
       <th>{{ rt $Resource $meta.Label }}</th>
       {{end}}
-      <th class="qor-list-locales">{{rt $context.Resource "Languages"}}</th>
+      <th>{{rt $context.Resource "Languages"}}</th>
       <th class="qor-list-action">{{t "Actions"}}</th>
     </tr>
   </thead>
@@ -23,7 +23,7 @@
           </td>
         {{end}}
 
-        <td class="qor-l10n-labels">
+        <td>
           {{range $resource_locale := locales_of_resource $resource $context}}
             <a class="qor-l10n-label{{if $resource_locale.localized}} active{{end}}" href="{{patch_url (url_for $resource) "locale" $resource_locale.locale}}">{{t $resource_locale.locale}}</a>
           {{end}}
