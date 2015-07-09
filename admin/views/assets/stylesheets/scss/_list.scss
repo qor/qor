@@ -1,0 +1,166 @@
+// List
+// --------------------------------------------------
+
+.qor-list-container {
+  position: relative;
+  background-color: #fff;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.1);
+
+  .qor-action-new {
+    position: absolute;
+    right: 24px;
+    bottom: -21px;
+    z-index: 1;
+  }
+}
+
+.qor-list {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 20px;
+
+  // Cells
+  > thead,
+  > tbody,
+  > tfoot {
+    > tr {
+      > th,
+      > td {
+        padding: 8px;
+        border-top: 1px solid #ddd;
+
+        &:first-child {
+          padding-left: 24px;
+        }
+
+        &:last-child {
+          padding-right: 24px;
+        }
+      }
+
+      &.active {
+        > th,
+        > td {
+          background-color: #f5f5f5;
+        }
+      }
+
+      &.active:hover {
+        > th,
+        > td {
+          background-color: #e8e8e8;
+        }
+      }
+    }
+  }
+
+  // Bottom align for column headings
+  > thead > tr > th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #ddd;
+    background-color: #e0e0e0;
+    font-weight: 500;
+  }
+
+  // Remove top border from thead by default
+  > caption + thead,
+  > colgroup + thead,
+  > thead:first-child {
+    > tr:first-child {
+      > th,
+      > td {
+        border-top: 0;
+      }
+    }
+  }
+
+  > tbody > tr:hover {
+    background-color: #f5f5f5;
+  }
+
+  // Account for multiple tbody instances
+  > tbody + tbody {
+    border-top: 2px solid #ddd;
+  }
+
+  // Nesting
+  .table {
+    background-color: #fff;
+  }
+
+  img {
+    max-width: 320px;
+    max-height: 180px;
+  }
+}
+
+.qor-list-text-container {
+  margin: -8px;
+  padding: 8px;
+}
+
+.qor-list-text {
+  position: relative;
+  display: inline-block;
+  max-width: 320px;
+  max-height: 180px;
+  word-wrap: break-word;
+  background-color: inherit;
+  overflow: hidden;
+  vertical-align: middle;
+
+  > .text-inner {
+    max-height: 160px;
+    overflow: hidden;
+  }
+
+  &.active {
+    margin: -8px;
+    padding: 8px;
+    cursor: pointer;
+
+    &:before,
+    &:after {
+      position: absolute;
+      z-index: 1;
+      display: none;
+      content: " ";
+    }
+
+    &:before {
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background-color: rgba(0,0,0,0.3);
+    }
+
+    &:after {
+      top: 50%;
+      left: 50%;
+      margin-top: -18px;
+      margin-left: -12px;
+      font-size: 24px;
+      line-height: 1;
+      color: #fff;
+      content: "...";
+    }
+
+    &:hover {
+      &:before,
+      &:after {
+        display: block;
+      }
+    }
+  }
+}
+
+.qor-list-action {
+  text-align: center;
+
+  > a {
+    + a {
+      margin-left: 5px;
+    }
+  }
+}

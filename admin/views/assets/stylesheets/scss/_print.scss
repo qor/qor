@@ -1,0 +1,12 @@
+// Print
+// --------------------------------------------------
+
+@media print {
+  .qor-sidebar {
+    display: none;
+  }
+
+  .qor-mainbody {
+    margin-left: auto !important;
+  }
+}

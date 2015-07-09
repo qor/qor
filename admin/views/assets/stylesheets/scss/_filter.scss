@@ -1,0 +1,20 @@
+// Filter
+// --------------------------------------------------
+
+.qor-filter {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  @extend .clearfix;
+
+  .qor-label-group {
+    display: inline-block;
+    margin-right: 16px;
+    vertical-align: middle;
+  }
+
+  .qor-locale-selector {
+    display: inline-block;
+    width: auto;
+    vertical-align: middle;
+  }
+}

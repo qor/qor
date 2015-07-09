@@ -1,0 +1,79 @@
+// Popper
+// --------------------------------------------------
+
+.qor-popper {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: $zindex-popper;
+  display: none;
+  width: 0;
+  background-color: #fff;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-shadow: 0 0 16px rgba(0,0,0,0.26);
+  @extend .clearfix;
+
+  -webkit-transition: width 0.35s ease;
+       -o-transition: width 0.35s ease;
+          transition: width 0.35s ease;
+
+  &.active {
+    display: block;
+  }
+
+  &.in {
+    width: 100%;
+  }
+
+  .popper-header {
+    position: relative;
+    height: 64px;
+    padding: 16px 24px;
+    background-color: #03a9f4;
+    @extend .clearfix;
+  }
+
+  .popper-title {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .popper-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    color: #fff;
+    background-color: transparent;
+    border: 0;
+  }
+
+  .popper-body {
+    padding: 16px 24px;
+  }
+
+  .popper-footer {
+    padding: 16px 24px;
+    text-align: right;
+  }
+
+  .popper-action-cancel {
+    color: rgba(0,0,0,0.54) !important;
+  }
+}
+
+@media (min-width: $grid-float-breakpoint) {
+  .qor-popper {
+    &.in {
+      max-width: 640px;
+      width: 50%;
+    }
+  }
+}
