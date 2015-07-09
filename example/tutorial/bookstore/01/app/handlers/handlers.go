@@ -2,12 +2,16 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/qor/qor/i18n"
+
 	"github.com/gin-gonic/gin"
 	. "github.com/qor/qor/example/tutorial/bookstore/01/app/models"
+	"github.com/qor/qor/example/tutorial/bookstore/01/app/resources"
 )
 
 // books
@@ -29,8 +33,19 @@ func ListBooksHandler(ctx *gin.Context) {
 		gin.H{
 			"title": "List of Books",
 			"books": books,
+			"t": func(key string, args ...interface{}) template.HTML {
+				return template.HTML(resources.I18n.T(retrieveLocale(ctx), key, args...))
+			},
 		},
 	)
+}
+
+func retrieveLocale(ctx *gin.Context) string {
+	if l := ctx.Query("locale"); l != "" {
+		return l
+	}
+
+	return i18n.Default
 }
 
 func ViewBookHandler(ctx *gin.Context) {
