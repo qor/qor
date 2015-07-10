@@ -2,6 +2,7 @@ package i18n
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -25,7 +26,7 @@ type I18n struct {
 
 type Backend interface {
 	LoadTranslations() []*Translation
-	SaveTranslation(*Translation)
+	SaveTranslation(*Translation) error
 	DeleteTranslation(*Translation)
 }
 
@@ -54,14 +55,15 @@ func (i18n *I18n) AddTransaltion(translation *Translation) {
 	i18n.Translations[translation.Locale][translation.Key] = translation
 }
 
-func (i18n *I18n) SaveTransaltion(translation *Translation) {
+func (i18n *I18n) SaveTranslation(translation *Translation) (err error) {
 	if i18n.Translations[translation.Locale] == nil {
 		i18n.Translations[translation.Locale] = map[string]*Translation{}
 	}
 	i18n.Translations[translation.Locale][translation.Key] = translation
 	if backend := translation.Backend; backend != nil {
-		backend.SaveTranslation(translation)
+		err = backend.SaveTranslation(translation)
 	}
+	return
 }
 
 func (i18n *I18n) DeleteTransaltion(translation *Translation) {
@@ -84,7 +86,12 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 		value = translations[translationKey].Value
 	} else {
 		// Save translations
-		i18n.SaveTransaltion(&Translation{Key: translationKey, Locale: locale, Backend: i18n.Backends[0]})
+		err := i18n.SaveTranslation(&Translation{Key: translationKey, Locale: locale, Backend: i18n.Backends[0]})
+		log.Printf("Error saving translation: [%s]: %s\n", locale, translationKey)
+		if err != nil {
+			delete(translations, translationKey)
+			return err.Error()
+		}
 	}
 
 	if value == "" {
