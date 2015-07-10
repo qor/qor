@@ -6,6 +6,9 @@ import (
 )
 
 func (res *Resource) Scope(scope *Scope) {
+	if scope.Label == "" {
+		scope.Label = scope.Name
+	}
 	res.scopes = append(res.scopes, scope)
 }
 
