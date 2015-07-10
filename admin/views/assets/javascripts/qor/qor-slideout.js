@@ -132,14 +132,9 @@
 
             if (returnUrl) {
               _this.load(returnUrl);
-              return;
+            } else {
+              _this.refresh();
             }
-
-            _this.hide();
-
-            setTimeout(function () {
-              window.location.reload();
-            }, 350);
           },
           error: function () {
             window.alert(arguments[1] + (arguments[2] || ''));
@@ -179,9 +174,13 @@
                   });
 
                   _this.show();
-                } else if (data.returnUrl) {
-                  _this.disabled = false; // For reload
-                  _this.load(data.returnUrl);
+                } else {
+                  if (data.returnUrl) {
+                    _this.disabled = false; // For reload
+                    _this.load(data.returnUrl);
+                  } else {
+                    _this.refresh();
+                  }
                 }
               },
               complete: function () {
@@ -255,6 +254,14 @@
       this.animating = false;
       this.$element.find('tbody > tr').removeClass('active');
       this.$slideout.removeClass('active').trigger(EVENT_HIDDEN);
+    },
+
+    refresh: function () {
+      this.hide();
+
+      setTimeout(function () {
+        window.location.reload();
+      }, 350);
     },
 
     toggle: function () {
