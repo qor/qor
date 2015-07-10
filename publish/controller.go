@@ -1,7 +1,9 @@
 package publish
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
 	"path"
@@ -9,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/utils"
 )
 
 type publishController struct {
@@ -17,10 +20,11 @@ type publishController struct {
 
 func (db *publishController) Preview(context *admin.Context) {
 	drafts := make(map[*admin.Resource]interface{})
+	draftDB := context.GetDB().Set("publish:draft_mode", true).Unscoped()
 	for _, res := range context.Admin.GetResources() {
 		results := res.NewSlice()
 		if isPublishableModel(res.Value) {
-			if db.DraftDB().Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
+			if draftDB.Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
 				drafts[res] = results
 			}
 		}
@@ -35,10 +39,10 @@ func (db *publishController) Diff(context *admin.Context) {
 	res := context.Admin.GetResource(name)
 
 	draft := res.NewStruct()
-	db.DraftDB().Unscoped().First(draft, id)
+	context.GetDB().Set("publish:draft_mode", true).Unscoped().First(draft, id)
 
 	production := res.NewStruct()
-	db.ProductionDB().Unscoped().First(production, id)
+	context.GetDB().Set("publish:draft_mode", false).Unscoped().First(production, id)
 
 	results := map[string]interface{}{"Production": production, "Draft": draft, "Resource": res}
 
@@ -58,10 +62,11 @@ func (db *publishController) PublishOrDiscard(context *admin.Context) {
 		}
 	}
 
+	draftDB := context.GetDB().Set("publish:draft_mode", true).Unscoped()
 	for name, value := range values {
 		res := context.Admin.GetResource(name)
 		results := res.NewSlice()
-		if db.DraftDB().Unscoped().Find(results, fmt.Sprintf("%v IN (?)", res.PrimaryDBName()), value).Error == nil {
+		if draftDB.Find(results, fmt.Sprintf("%v IN (?)", res.PrimaryDBName()), value).Error == nil {
 			resultValues := reflect.Indirect(reflect.ValueOf(results))
 			for i := 0; i < resultValues.Len(); i++ {
 				records = append(records, resultValues.Index(i).Interface())
@@ -70,9 +75,9 @@ func (db *publishController) PublishOrDiscard(context *admin.Context) {
 	}
 
 	if request.Form.Get("publish_type") == "publish" {
-		db.Publish.Publish(records...)
+		Publish{DB: draftDB}.Publish(records...)
 	} else if request.Form.Get("publish_type") == "discard" {
-		db.Publish.Discard(records...)
+		Publish{DB: draftDB}.Discard(records...)
 	}
 	http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 }
@@ -93,4 +98,22 @@ func (publish *Publish) InjectQorAdmin(res *admin.Resource) {
 	router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
 	router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Preview)
 	router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.PublishOrDiscard)
+
+	res.GetAdmin().RegisterFuncMap("render_publish_meta", func(value interface{}, meta *admin.Meta, context *admin.Context) template.HTML {
+		var err error
+		var result = bytes.NewBufferString("")
+		var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
+
+		if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/publish/%v.tmpl", meta.Type)); err != nil {
+			if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
+				tmpl, _ = tmpl.Parse("{{.Value}}")
+			}
+		}
+
+		data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
+		if err := tmpl.Execute(result, data); err != nil {
+			utils.ExitWithMsg(err.Error())
+		}
+		return template.HTML(result.String())
+	})
 }

@@ -58,21 +58,21 @@ func (res Resource) UseTheme(theme string) []string {
 	return []string{}
 }
 
-func (res *Resource) ConvertObjectToMap(context *Context, value interface{}, kind string) interface{} {
+func (res *Resource) convertObjectToMap(context *Context, value interface{}, kind string) interface{} {
 	reflectValue := reflect.Indirect(reflect.ValueOf(value))
 	switch reflectValue.Kind() {
 	case reflect.Slice:
 		values := []interface{}{}
 		for i := 0; i < reflectValue.Len(); i++ {
-			values = append(values, res.ConvertObjectToMap(context, reflectValue.Index(i).Interface(), kind))
+			values = append(values, res.convertObjectToMap(context, reflectValue.Index(i).Interface(), kind))
 		}
 		return values
 	case reflect.Struct:
 		var metas []*Meta
 		if kind == "index" {
-			metas = res.IndexMetas()
+			metas = res.indexMetas()
 		} else if kind == "show" {
-			metas = res.ShowMetas()
+			metas = res.showMetas()
 		}
 
 		values := map[string]interface{}{}
@@ -80,7 +80,7 @@ func (res *Resource) ConvertObjectToMap(context *Context, value interface{}, kin
 			if meta.HasPermission(roles.Read, context.Context) {
 				value := meta.GetValuer()(value, context.Context)
 				if meta.Resource != nil {
-					value = meta.Resource.(*Resource).ConvertObjectToMap(context, value, kind)
+					value = meta.Resource.(*Resource).convertObjectToMap(context, value, kind)
 				}
 				values[meta.GetName()] = value
 			}
@@ -95,20 +95,32 @@ func (res *Resource) Decode(context *qor.Context, value interface{}) (errs []err
 	return resource.Decode(context, value, res)
 }
 
-func (res *Resource) IndexAttrs(columns ...string) {
-	res.indexAttrs = columns
+func (res *Resource) IndexAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.indexAttrs = columns
+	}
+	return res.indexAttrs
 }
 
-func (res *Resource) NewAttrs(columns ...string) {
-	res.newAttrs = columns
+func (res *Resource) NewAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.newAttrs = columns
+	}
+	return res.newAttrs
 }
 
-func (res *Resource) EditAttrs(columns ...string) {
-	res.editAttrs = columns
+func (res *Resource) EditAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.editAttrs = columns
+	}
+	return res.editAttrs
 }
 
-func (res *Resource) ShowAttrs(columns ...string) {
-	res.showAttrs = columns
+func (res *Resource) ShowAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.showAttrs = columns
+	}
+	return res.showAttrs
 }
 
 func (res *Resource) SearchAttrs(columns ...string) []string {
@@ -188,18 +200,26 @@ func (res *Resource) getCachedMetas(cacheKey string, fc func() []resource.Metaor
 }
 
 func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
-	var attrs []string
+	var attrs, ignoredAttrs []string
 	for _, value := range _attrs {
-		if value != nil {
-			attrs = value
-			break
+		if len(value) != 0 {
+			attrs, ignoredAttrs = []string{}, []string{}
+			for _, v := range value {
+				if strings.HasPrefix(v, "-") {
+					ignoredAttrs = append(ignoredAttrs, strings.TrimLeft(v, "-"))
+				} else {
+					attrs = append(attrs, v)
+				}
+			}
+			if len(attrs) > 0 {
+				break
+			}
 		}
 	}
 
-	if attrs == nil {
+	if len(attrs) == 0 {
 		scope := &gorm.Scope{Value: res.Value}
 		structFields := scope.GetModelStruct().StructFields
-		attrs = []string{}
 
 	Fields:
 		for _, field := range structFields {
@@ -237,7 +257,14 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 	primaryKey := res.PrimaryFieldName()
 
 	metas := []resource.Metaor{}
+Attrs:
 	for _, attr := range attrs {
+		for _, a := range ignoredAttrs {
+			if attr == a {
+				continue Attrs
+			}
+		}
+
 		var meta *Meta
 		for _, m := range res.Metas {
 			if m.GetName() == attr {
@@ -271,37 +298,37 @@ func (res *Resource) GetMeta(name string) *Meta {
 	return nil
 }
 
-func (res *Resource) IndexMetas() []*Meta {
+func (res *Resource) indexMetas() []*Meta {
 	return res.getCachedMetas("index_metas", func() []resource.Metaor {
 		return res.GetMetas(res.indexAttrs, res.showAttrs)
 	})
 }
 
-func (res *Resource) NewMetas() []*Meta {
+func (res *Resource) newMetas() []*Meta {
 	return res.getCachedMetas("new_metas", func() []resource.Metaor {
 		return res.GetMetas(res.newAttrs, res.editAttrs)
 	})
 }
 
-func (res *Resource) EditMetas() []*Meta {
+func (res *Resource) editMetas() []*Meta {
 	return res.getCachedMetas("edit_metas", func() []resource.Metaor {
 		return res.GetMetas(res.editAttrs)
 	})
 }
 
-func (res *Resource) ShowMetas() []*Meta {
+func (res *Resource) showMetas() []*Meta {
 	return res.getCachedMetas("show_metas", func() []resource.Metaor {
 		return res.GetMetas(res.showAttrs, res.editAttrs)
 	})
 }
 
-func (res *Resource) AllMetas() []*Meta {
+func (res *Resource) allMetas() []*Meta {
 	return res.getCachedMetas("all_metas", func() []resource.Metaor {
 		return res.GetMetas()
 	})
 }
 
-func (res *Resource) AllowedMetas(attrs []*Meta, context *Context, roles ...roles.PermissionMode) []*Meta {
+func (res *Resource) allowedMetas(attrs []*Meta, context *Context, roles ...roles.PermissionMode) []*Meta {
 	var metas = []*Meta{}
 	for _, meta := range attrs {
 		for _, role := range roles {

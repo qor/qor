@@ -11,12 +11,13 @@ type CurrentUser interface {
 }
 
 type Context struct {
-	Request    *http.Request
-	Writer     http.ResponseWriter
-	ResourceID string
-	Config     *Config
-	Roles      []string
-	DB         *gorm.DB
+	Request     *http.Request
+	Writer      http.ResponseWriter
+	ResourceID  string
+	Config      *Config
+	Roles       []string
+	DB          *gorm.DB
+	CurrentUser CurrentUser
 }
 
 func (context *Context) GetDB() *gorm.DB {

@@ -14,26 +14,26 @@ import (
 )
 
 type (
-	Handle func(c *Context)
+	handle func(c *Context)
 
-	Handler struct {
+	handler struct {
 		Path   *regexp.Regexp
-		Handle Handle
+		Handle handle
 	}
 )
 
 type Router struct {
 	Prefix      string
-	routers     map[string][]Handler
+	routers     map[string][]handler
 	middlewares []*Middleware
 }
 
 func newRouter() *Router {
-	return &Router{routers: map[string][]Handler{
-		"GET":    []Handler{},
-		"PUT":    []Handler{},
-		"POST":   []Handler{},
-		"DELETE": []Handler{},
+	return &Router{routers: map[string][]handler{
+		"GET":    []handler{},
+		"PUT":    []handler{},
+		"POST":   []handler{},
+		"DELETE": []handler{},
 	}}
 }
 
@@ -52,20 +52,20 @@ func (r *Router) Use(handler func(*Context, *Middleware)) {
 	r.middlewares = append(r.middlewares, &Middleware{Handler: handler})
 }
 
-func (r *Router) Get(path string, handle Handle) {
-	r.routers["GET"] = append(r.routers["GET"], Handler{Path: regexp.MustCompile(path), Handle: handle})
+func (r *Router) Get(path string, handle handle) {
+	r.routers["GET"] = append(r.routers["GET"], handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
-func (r *Router) Post(path string, handle Handle) {
-	r.routers["POST"] = append(r.routers["POST"], Handler{Path: regexp.MustCompile(path), Handle: handle})
+func (r *Router) Post(path string, handle handle) {
+	r.routers["POST"] = append(r.routers["POST"], handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
-func (r *Router) Put(path string, handle Handle) {
-	r.routers["PUT"] = append(r.routers["PUT"], Handler{Path: regexp.MustCompile(path), Handle: handle})
+func (r *Router) Put(path string, handle handle) {
+	r.routers["PUT"] = append(r.routers["PUT"], handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
-func (r *Router) Delete(path string, handle Handle) {
-	r.routers["DELETE"] = append(r.routers["DELETE"], Handler{Path: regexp.MustCompile(path), Handle: handle})
+func (r *Router) Delete(path string, handle handle) {
+	r.routers["DELETE"] = append(r.routers["DELETE"], handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
 func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
@@ -127,7 +127,7 @@ func (admin *Admin) compile() {
 		var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*`))
 		var matches = pathMatch.FindStringSubmatch(req.URL.Path)
 		if len(matches) > 1 {
-			context.SetResource(admin.GetResource(matches[1]))
+			context.setResource(admin.GetResource(matches[1]))
 			if len(matches) > 2 {
 				context.ResourceID = matches[2]
 			}

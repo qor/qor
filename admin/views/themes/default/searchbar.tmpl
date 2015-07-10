@@ -1,0 +1,14 @@
+{{if .Resource.SearchHandler}}
+  {{ $keyword := .Context.Request.URL.Query.Get "keyword" }}
+  <div class="qor-search-container">
+    <form class="qor-search" role="form">
+      {{range $scope := (index .Context.Request.URL.Query "scopes")}}
+        <input name="scopes" value="{{ $scope }}" type="hidden">
+      {{end}}
+
+      <label class="qor-search-label" for="inputSearch"><i class="md md-18">search</i></label>
+      <input class="qor-search-input form-control{{if $keyword }} focus{{end}}" id="inputSearch" type="search" name="keyword" value="{{ $keyword }}" placeholder="{{t "Search"}}">
+      <button class="qor-search-clear" type="button"><span class="md md-18">clear</span></button>
+    </form>
+  </div>
+{{end}}

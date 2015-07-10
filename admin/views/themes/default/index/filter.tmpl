@@ -1,0 +1,22 @@
+<div class="qor-filter">
+  {{$scopes := get_scopes}}
+  {{if $scopes}}
+    <section class="qor-label-container">
+      {{range $scope := $scopes}}
+        {{if $scope.Group}}
+          <select class="qor-label-group form-control" data-toggle="qor.selector" name="scopes">
+            <optgroup label="{{$scope.Group}}">
+              {{range $s := $scope.Scopes}}
+                <option value="{{$s.Name}}">{{t $s.Name}}</option>
+              {{end}}
+            </optgroup>
+          </select>
+        {{else}}
+          {{range $s := $scope.Scopes}}
+            <a class="qor-label" href="?scopes={{$s.Name}}">{{t $s.Name}}</a>
+          {{end}}
+        {{end}}
+      {{end}}
+    </section>
+  {{end}}
+</div>

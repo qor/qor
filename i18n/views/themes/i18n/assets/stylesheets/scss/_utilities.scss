@@ -1,0 +1,10 @@
+// Utility classes
+// --------------------------------------------------
+
+.clearfix {
+  @include clearfix;
+}
+
+.text-hide {
+  @include text-hide;
+}
