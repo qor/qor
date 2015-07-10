@@ -378,6 +378,17 @@ func (context *Context) loadThemeStyleSheets() template.HTML {
 			}
 		}
 	}
+
+	for _, theme := range context.Resource.Config.Themes {
+		for _, view := range context.getViewPaths() {
+			file := path.Join("assets", "stylesheets", "application.css")
+			if _, err := os.Stat(path.Join(view, file)); err == nil {
+				results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+				break
+			}
+		}
+	}
+
 	return template.HTML(strings.Join(results, " "))
 }
 
@@ -394,6 +405,17 @@ func (context *Context) loadThemeJavaScripts() template.HTML {
 			}
 		}
 	}
+
+	for _, theme := range context.Resource.Config.Themes {
+		for _, view := range context.getViewPaths() {
+			file := path.Join("assets", "javascripts", "application.js")
+			if _, err := os.Stat(path.Join(view, file)); err == nil {
+				results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+				break
+			}
+		}
+	}
+
 	return template.HTML(strings.Join(results, " "))
 }
 
