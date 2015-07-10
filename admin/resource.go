@@ -203,7 +203,6 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 	var attrs, ignoredAttrs []string
 	for _, value := range _attrs {
 		if len(value) != 0 {
-			attrs, ignoredAttrs = []string{}, []string{}
 			for _, v := range value {
 				if strings.HasPrefix(v, "-") {
 					ignoredAttrs = append(ignoredAttrs, strings.TrimLeft(v, "-"))
@@ -211,9 +210,7 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 					attrs = append(attrs, v)
 				}
 			}
-			if len(attrs) > 0 {
-				break
-			}
+			break
 		}
 	}
 
