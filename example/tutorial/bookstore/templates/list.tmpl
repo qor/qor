@@ -7,6 +7,7 @@
   </head>
   <body>
     <h1>{{.title}}</h1>
+    {{call .t "books list"}}
     <div class="booklist">
       {{range $book := .books}}
       <div class="book">
