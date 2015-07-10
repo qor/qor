@@ -202,7 +202,8 @@ func (res *Resource) getCachedMetas(cacheKey string, fc func() []resource.Metaor
 func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 	var attrs, ignoredAttrs []string
 	for _, value := range _attrs {
-		if value != nil {
+		if len(value) != 0 {
+			attrs, ignoredAttrs = []string{}, []string{}
 			for _, v := range value {
 				if strings.HasPrefix(v, "-") {
 					ignoredAttrs = append(ignoredAttrs, strings.TrimLeft(v, "-"))
@@ -210,23 +211,18 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 					attrs = append(attrs, v)
 				}
 			}
-			break
+			if len(attrs) > 0 {
+				break
+			}
 		}
 	}
 
-	if attrs == nil {
+	if len(attrs) == 0 {
 		scope := &gorm.Scope{Value: res.Value}
 		structFields := scope.GetModelStruct().StructFields
-		attrs = []string{}
 
 	Fields:
 		for _, field := range structFields {
-			for _, attr := range ignoredAttrs {
-				if attr == field.Name {
-					continue Fields
-				}
-			}
-
 			for _, meta := range res.Metas {
 				if field.Name == meta.Alias {
 					attrs = append(attrs, meta.Name)
@@ -249,12 +245,6 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 	MetaIncluded:
 		for _, meta := range res.Metas {
-			for _, attr := range ignoredAttrs {
-				if attr == meta.Name || attr == meta.Alias {
-					continue MetaIncluded
-				}
-			}
-
 			for _, attr := range attrs {
 				if attr == meta.Alias || attr == meta.Name {
 					continue MetaIncluded
@@ -267,7 +257,14 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 	primaryKey := res.PrimaryFieldName()
 
 	metas := []resource.Metaor{}
+Attrs:
 	for _, attr := range attrs {
+		for _, a := range ignoredAttrs {
+			if attr == a {
+				continue Attrs
+			}
+		}
+
 		var meta *Meta
 		for _, m := range res.Metas {
 			if m.GetName() == attr {
