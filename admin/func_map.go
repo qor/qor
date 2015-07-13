@@ -367,21 +367,22 @@ func (context *Context) themesClass() (result string) {
 
 func (context *Context) loadThemeStyleSheets() template.HTML {
 	var results []string
+	var themes = []string{"default"}
 	if context.Resource != nil {
-		for _, theme := range context.Resource.Config.Themes {
-			for _, view := range context.getViewPaths() {
-				file := path.Join("assets", "stylesheets", theme+".css")
-				if _, err := os.Stat(path.Join(view, file)); err == nil {
-					results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
-					break
-				}
-			}
-		}
+		themes = append(themes, context.Resource.Config.Themes...)
 	}
 
-	for _, theme := range context.Resource.Config.Themes {
+	for _, theme := range themes {
 		for _, view := range context.getViewPaths() {
-			file := path.Join("assets", "stylesheets", "application.css")
+			file := path.Join("assets", "stylesheets", theme+".css")
+			if _, err := os.Stat(path.Join(view, file)); err == nil {
+				results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+				break
+			}
+		}
+
+		for _, view := range context.getViewPaths() {
+			file := path.Join("../..", "themes", theme, "assets", "stylesheets", "application.css")
 			if _, err := os.Stat(path.Join(view, file)); err == nil {
 				results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
 				break
@@ -394,21 +395,22 @@ func (context *Context) loadThemeStyleSheets() template.HTML {
 
 func (context *Context) loadThemeJavaScripts() template.HTML {
 	var results []string
+	var themes = []string{"default"}
 	if context.Resource != nil {
-		for _, theme := range context.Resource.Config.Themes {
-			for _, view := range context.getViewPaths() {
-				file := path.Join("assets", "javascripts", theme+".js")
-				if _, err := os.Stat(path.Join(view, file)); err == nil {
-					results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
-					break
-				}
-			}
-		}
+		themes = append(themes, context.Resource.Config.Themes...)
 	}
 
-	for _, theme := range context.Resource.Config.Themes {
+	for _, theme := range themes {
 		for _, view := range context.getViewPaths() {
-			file := path.Join("assets", "javascripts", "application.js")
+			file := path.Join("assets", "javascripts", theme+".js")
+			if _, err := os.Stat(path.Join(view, file)); err == nil {
+				results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+				break
+			}
+		}
+
+		for _, view := range context.getViewPaths() {
+			file := path.Join("../..", "themes", theme, "assets", "javascripts", "application.js")
 			if _, err := os.Stat(path.Join(view, file)); err == nil {
 				results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
 				break
