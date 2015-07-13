@@ -14,8 +14,10 @@
   <div class="qor-list-container">
     {{render "index/table"}}
 
-    {{$current_locale := current_locale .}}
-    <a class="qor-action-new" href="{{patch_url (new_resource_path .Resource) "locale" $current_locale}}">{{t "New"}}</a>
+    {{if has_create_permission .Resource}}
+      {{$current_locale := current_locale .}}
+      <a class="qor-action-new" href="{{patch_url (new_resource_path .Resource) "locale" $current_locale}}">{{t "New"}}</a>
+    {{end}}
   </div>
 
   {{render "index/pagination"}}
