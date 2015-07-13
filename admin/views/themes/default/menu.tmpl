@@ -7,7 +7,7 @@
       </li>
     {{else}}
       <li data-menu-item="{{.Name}}">
-        <a href="{{if .Link}}{{.Link}}{{else}}javascript:void(0);{{end}}">{{t .Name}}</a>
+        {{link_to (t .Name) .Link}}
       </li>
     {{end}}
   {{end}}
