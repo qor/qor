@@ -9,13 +9,13 @@
           <select class="qor-label-group form-control" data-toggle="qor.selector" name="scopes">
             <optgroup label="{{$scope.Group}}">
               {{range $s := $scope.Scopes}}
-                <option value="{{$s.Name}}">{{t $s.Name}}</option>
+                <option value="{{$s.Name}}">{{t $s.Label}}</option>
               {{end}}
             </optgroup>
           </select>
         {{else}}
           {{range $s := $scope.Scopes}}
-            <a class="qor-label label label-default" href="?scopes={{$s.Name}}">{{t $s.Name}}</a>
+            <a class="qor-label label label-default" href="?scopes={{$s.Name}}">{{t $s.Label}}</a>
           {{end}}
         {{end}}
       {{end}}
