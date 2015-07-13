@@ -185,10 +185,12 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 		pagination := context.Searcher.Pagination
 		pagination.Total = len(keys)
 		pagination.PrePage = 25
-		pagination.Pages = pagination.Total / pagination.PrePage
 		pagination.CurrentPage, _ = strconv.Atoi(context.Request.URL.Query().Get("page"))
 		if pagination.CurrentPage == 0 {
 			pagination.CurrentPage = 1
+		}
+		if pagination.CurrentPage > 0 {
+			pagination.Pages = pagination.Total / pagination.PrePage
 		}
 		context.Searcher.Pagination = pagination
 
@@ -205,6 +207,9 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	})
 
 	res.GetAdmin().RegisterFuncMap("i18n_primary_locale", func(context admin.Context) string {
+		if locale := context.Request.Form.Get("primary_locale"); locale != "" {
+			return locale
+		}
 		return getAvailableLocales(context.Request, context.CurrentUser)[0]
 	})
 
