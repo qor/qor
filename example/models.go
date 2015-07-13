@@ -10,7 +10,6 @@ import (
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/media_library"
-	"github.com/qor/qor/media_library/qiniu"
 	"github.com/qor/qor/publish"
 )
 
@@ -39,11 +38,9 @@ type Language struct {
 
 type User struct {
 	gorm.Model
-	Name   string
-	State  string
-	Avatar media_library.FileSystem
-	// AvatarAliyun aliyun.OSS
-	AvatarQiniu  qiniu.Qiniu
+	Name         string
+	State        string
+	Avatar       media_library.FileSystem
 	Birthday     *time.Time
 	Description  string `sql:"size:622550"`
 	RoleID       uint
@@ -72,7 +69,8 @@ func (u User) DisplayName() string {
 
 type Product struct {
 	gorm.Model
-	Name         *string `l10n:"sync"`
+	Name         *string
+	Code         *string `l10n:"sync"`
 	Description  *string
 	CollectionID uint
 	Collection   Collection

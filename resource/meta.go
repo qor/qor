@@ -10,7 +10,6 @@ type Metaor interface {
 	GetFieldName() string
 	GetMetas() []Metaor
 	GetResource() Resourcer
-	GetValuer() func(interface{}, *qor.Context) interface{}
 	GetSetter() func(resource interface{}, metaValue *MetaValue, context *qor.Context)
 	HasPermission(roles.PermissionMode, *qor.Context) bool
 }

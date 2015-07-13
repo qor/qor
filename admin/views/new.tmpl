@@ -1,8 +1,0 @@
-<div class="wrapper">
-  <h3 class="page-header">{{t "New {{.Name}}" .Resource}}</h3>
-
-  <form action="{{url_for .Resource}}" method="POST" enctype="multipart/form-data">
-    {{render_form .Result new_metas}}
-    <button class="btn btn-primary" type="submit">{{t "Save"}}</button>
-  </form>
-</div>
