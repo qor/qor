@@ -1,0 +1,127 @@
+// Forms
+// --------------------------------------------------
+
+.qor-search-container {
+  width: 100%;
+  min-height: 28px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  @extend .clearfix;
+}
+
+.qor-search {
+  position: relative;
+  float: right;
+  display: block;
+  min-width: 18px;
+  max-width: 320px;
+  height: 28px;
+
+  > .qor-search-label,
+  > .qor-search-clear {
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    display: block;
+    width: 18px;
+    height: 28px;
+    padding: 5px 0;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  > .qor-search-label {
+    left: 0;
+    z-index: 2;
+    margin-bottom: 0;
+    color: rgba(0,0,0,0.54);
+  }
+
+  > .qor-search-clear {
+    right: 0;
+    color: #0277bd;
+    visibility: hidden;
+    background-color: transparent;
+    border: 0;
+  }
+
+  > .qor-search-input {
+    width: 0;
+
+    -webkit-transition: width 0.35s ease;
+         -o-transition: width 0.35s ease;
+            transition: width 0.35s ease;
+  }
+
+  > .qor-search-input:focus,
+  > .qor-search-input.focus {
+    width: 320px;
+    padding-left: 24px;
+
+    + .qor-search-clear {
+      visibility: visible;
+    }
+  }
+
+  &.active {
+    > .qor-search-label {
+      cursor: default;
+    }
+  }
+}
+
+.qor-collection {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px 15px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  @include box-shadow(0 0 5px #eee);
+
+  > .form-group {
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+
+// Reset Chosen Plugin style
+// -------------------------
+
+.chosen-container {
+  .chosen-single {
+    border-color: #ccc;
+    border-radius: 2px;
+    @include box-shadow(none);
+  }
+}
+
+.chosen-container-active {
+  .chosen-single {
+    border-color: #009688;
+  }
+
+  &.chosen-with-drop {
+    .chosen-single {
+      border-color: #009688;
+    }
+  }
+}
+
+.chosen-container {
+  .chosen-choices {
+    border-color: #ccc;
+  }
+}
+
+.chosen-container-active {
+  .chosen-choices {
+    border-color: #009688;
+    @include box-shadow(none);
+  }
+
+  .chosen-drop {
+    border-color: #009688;
+  }
+}

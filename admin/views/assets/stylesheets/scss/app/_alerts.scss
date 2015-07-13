@@ -1,0 +1,27 @@
+// Alerts
+// --------------------------------------------------
+
+.qor-alert {
+  margin-bottom: 0;
+  padding: 15px 30px;
+  background-color: $gray-light;
+  color: #fff;
+
+  > button {
+    float: right;
+    margin: 1px;
+    padding: 0;
+    background-color: transparent;
+    color: $gray-lighter;
+    border: 0;
+  }
+}
+
+.qor-alert-success {
+  background-color: $brand-success;
+
+}
+
+.qor-alert-error {
+  background-color: $brand-danger;
+}

@@ -1,0 +1,46 @@
+// Label
+// --------------------------------------------------
+
+.qor-label-container {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.qor-label {
+  display: inline-block;
+  padding: 4px 8px;
+  border: 1px solid $gray-light;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+  background-color: #fff;
+  color: $gray;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
+
+  &:hover,
+  &:focus {
+    border-color: lighten($brand-primary, 10%);
+    color: $brand-primary;
+    text-decoration: none;
+  }
+
+  &.active {
+    border-color: darken($brand-primary, 5%);
+    background-color: $brand-primary;
+    color: #fff;
+  }
+
+  + .qor-label {
+    margin-left: 2px;
+  }
+}
+
+.qor-label-group {
+  display: inline-block;
+  width: auto;
+  margin-right: 16px;
+  vertical-align: middle;
+}

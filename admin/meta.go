@@ -133,8 +133,10 @@ func (meta *Meta) updateMeta() {
 			case "bool":
 				meta.Type = "checkbox"
 			default:
-				if regexp.MustCompile(`^(.*)?(u)?(int|float)(\d+)?`).MatchString(fieldType.Kind().String()) {
+				if regexp.MustCompile(`^(.*)?(u)?(int)(\d+)?`).MatchString(fieldType.Kind().String()) {
 					meta.Type = "number"
+				} else if regexp.MustCompile(`^(.*)?(float)(\d+)?`).MatchString(fieldType.Kind().String()) {
+					meta.Type = "string"
 				} else if _, ok := reflect.New(fieldType).Interface().(*time.Time); ok {
 					meta.Type = "datetime"
 				} else if _, ok := reflect.New(fieldType).Interface().(media_library.MediaLibrary); ok {

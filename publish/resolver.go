@@ -12,7 +12,7 @@ import (
 type resolver struct {
 	Records      []interface{}
 	Dependencies map[string]*dependency
-	DB           *Publish
+	DB           *gorm.DB
 }
 
 type dependency struct {
@@ -54,9 +54,9 @@ func (resolver *resolver) AddDependency(dep *dependency) {
 
 func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][]interface{}) {
 	value := reflect.New(dep.Type)
-	fromScope := resolver.DB.DB.NewScope(value.Interface())
+	fromScope := resolver.DB.NewScope(value.Interface())
 
-	draftDB := resolver.DB.DraftDB().Unscoped()
+	draftDB := resolver.DB.Set("publish:draft_mode", true).Unscoped()
 	for _, field := range fromScope.Fields() {
 		if relationship := field.Relationship; relationship != nil {
 			if isPublishableModel(field.Field.Interface()) {
@@ -103,7 +103,7 @@ func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][]inter
 func (resolver *resolver) GenerateDependencies() {
 	var addToDependencies = func(data interface{}) {
 		if isPublishableModel(data) {
-			scope := resolver.DB.DB.NewScope(data)
+			scope := resolver.DB.NewScope(data)
 			var primaryValues []interface{}
 			for _, field := range scope.PrimaryFields() {
 				primaryValues = append(primaryValues, field.Field.Interface())
@@ -126,11 +126,11 @@ func (resolver *resolver) GenerateDependencies() {
 
 func (resolver *resolver) Publish() error {
 	resolver.GenerateDependencies()
-	tx := resolver.DB.DB.Begin()
+	tx := resolver.DB.Begin()
 
 	for _, dep := range resolver.Dependencies {
 		value := reflect.New(dep.Type).Elem()
-		productionScope := resolver.DB.ProductionDB().NewScope(value.Addr().Interface())
+		productionScope := resolver.DB.Set("publish:draft_mode", false).NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
 		draftTable := draftTableName(productionTable)
 		productionPrimaryKey := scopePrimaryKeys(productionScope, productionTable)
@@ -220,11 +220,11 @@ func (resolver *resolver) Publish() error {
 
 func (resolver *resolver) Discard() error {
 	resolver.GenerateDependencies()
-	tx := resolver.DB.DB.Begin()
+	tx := resolver.DB.Begin()
 
 	for _, dep := range resolver.Dependencies {
 		value := reflect.New(dep.Type).Elem()
-		productionScope := resolver.DB.ProductionDB().NewScope(value.Addr().Interface())
+		productionScope := resolver.DB.Set("publish:draft_mode", false).NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
 		draftTable := draftTableName(productionTable)
 

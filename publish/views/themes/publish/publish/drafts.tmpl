@@ -1,0 +1,63 @@
+{{$context := .}}
+
+<div class="qor-navbar">
+  <h1 class="qor-title">{{t "{{.Name}}" .Resource}}</h1>
+  {{render "toolbar"}}
+</div>
+
+<div class="qor-publish">
+  <form class="qor-form" action="" method="POST">
+    <div class="qor-btn-group">
+      <button type="submit" class="btn btn-primary" data-confirm="{{t "Are you sure?"}}" name="publish_type" value="publish">{{t "Publish"}}</button>
+      <button type="submit" class="btn btn-danger" data-confirm="{{t "Are you sure?"}}" name="publish_type" value="discard">{{t "Discard"}}</button>
+    </div>
+
+    {{range $res, $records := .Result}}
+    <h4 class="qor-publish-heading">{{rt $res $res.Name}}</h4>
+    <div class="qor-list-container">
+      <table class="qor-list">
+        <thead>
+          <tr>
+            <th><input class="qor-check-all" type="checkbox"></th>
+            {{range $meta := (index_metas $res)}}
+              <th>{{ rt $res $meta.Label }}</th>
+            {{end}}
+            <th>{{t "Actions"}}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {{range $record := $records}}
+            {{$key := (printf "%s__%v" $res.ToParam (primary_key_of $record))}}
+            <tr id="{{$key}}">
+              <td>
+                <input type="checkbox" name="checked_ids[]" value="{{$key}}"/>
+              </td>
+              {{range $index, $meta := index_metas $res}}
+                <td><p class="qor-list-text">{{render_publish_meta $record $meta $context}}</p></td>
+              {{end}}
+              <td><a class="qor-action-diff" data-url="publish/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a></td>
+            </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    {{end}}
+  </form>
+
+  <!-- Modal -->
+  <div class="modal fade qor-publish-modal" id="qorPublishModal" tabindex="-1" role="dialog" aria-labelledby="qorPublishModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="qorPublishModalLabel">{{t "Diff"}}</h4>
+        </div>
+        <div class="modal-body"></div>
+        <!-- <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">{{t "Close"}}</button>
+        </div> -->
+      </div>
+    </div>
+  </div>
+</div>

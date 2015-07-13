@@ -2,6 +2,7 @@ package l10n
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
 	"path"
@@ -15,7 +16,7 @@ import (
 
 var Global = "en-US"
 
-type publishInterface interface {
+type l10nInterface interface {
 	IsGlobal() bool
 	SetLocale(locale string)
 }
@@ -85,8 +86,35 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 	}
 	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
-	if res.GetMeta("LanguageCode") == nil {
-		res.Meta(&admin.Meta{Name: "LanguageCode", Type: "hidden"})
+	if res.GetMeta("Localization") == nil {
+		res.Meta(&admin.Meta{Name: "Localization", Valuer: func(value interface{}, ctx *qor.Context) interface{} {
+			db := ctx.GetDB()
+			context := Admin.NewContext(ctx.Writer, ctx.Request)
+
+			var languageCodes []string
+			scope := db.NewScope(value)
+			db.New().Set("l10n:mode", "unscoped").Model(value).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
+
+			var results string
+			availableLocales := getAvailableLocales(ctx.Request, ctx.CurrentUser)
+		OUT:
+			for _, locale := range availableLocales {
+				url, _ := utils.PatchURL(ctx.Request.RequestURI, "locale", locale)
+				for _, localized := range languageCodes {
+					if locale == localized {
+						results += fmt.Sprintf("<a class='qor-label active' href='%s'>%s</a> ", url, context.T(locale))
+						continue OUT
+					}
+				}
+				results += fmt.Sprintf("<a class='qor-label' href='%s'>%s</a> ", url, context.T(locale))
+			}
+			return template.HTML(results)
+		}})
+
+		res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode", "Localization")...)
+		res.ShowAttrs(append(res.ShowAttrs(), "-LanguageCode", "-Localization")...)
+		res.EditAttrs(append(res.EditAttrs(), "-LanguageCode", "-Localization")...)
+		res.NewAttrs(append(res.NewAttrs(), "-LanguageCode", "-Localization")...)
 	}
 
 	// Set meta permissions
@@ -146,9 +174,8 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/l10n/views"))
 		}
 
-		router := Admin.GetRouter()
 		// Middleware
-		router.Use(func(context *admin.Context, middleware *admin.Middleware) {
+		Admin.GetRouter().Use(func(context *admin.Context, middleware *admin.Middleware) {
 			context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context.Context)))
 
 			middleware.Next(context)
@@ -179,26 +206,6 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 				}
 			}
 			return []string{}
-		})
-
-		Admin.RegisterFuncMap("locales_of_resource", func(resource interface{}, context admin.Context) []map[string]interface{} {
-			scope := context.GetDB().NewScope(resource)
-			var languageCodes []string
-			context.GetDB().New().Set("l10n:mode", "unscoped").Model(resource).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
-
-			var results []map[string]interface{}
-			availableLocales := getAvailableLocales(context.Request, context.CurrentUser)
-		OUT:
-			for _, locale := range availableLocales {
-				for _, localized := range languageCodes {
-					if locale == localized {
-						results = append(results, map[string]interface{}{"locale": locale, "localized": true})
-						continue OUT
-					}
-				}
-				results = append(results, map[string]interface{}{"locale": locale, "localized": false})
-			}
-			return results
 		})
 	}
 }

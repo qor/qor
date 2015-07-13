@@ -1,0 +1,23 @@
+// Nav Bars
+// --------------------------------------------------
+
+.qor-navbar {
+  min-height: 64px;
+  padding: 8px 24px;
+  background-color: #0277bd;
+  @extend .clearfix;
+
+  > .qor-title {
+    float: left;
+    margin: 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    font-size: 24px;
+    line-height: 32px;
+    color: #fff;
+  }
+
+  > .qor-toolbar {
+    float: right;
+  }
+}

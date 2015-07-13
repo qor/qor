@@ -1,5 +1,22 @@
-{{$resource := .Resource}}
+<div class="qor-navbar">
+  <h1 class="qor-title">{{t "{{.Name}}" .Resource}}</h1>
+  {{render "toolbar"}}
+</div>
 
-{{render "index/filter"}}
-{{render "index/table"}}
-{{render "index/pagination"}}
+<div class="qor-l10n">
+  <div class="l10n-header">
+    <div class="row">
+      <div class="col-sm-6">{{render "index/filter"}}</div>
+      <div class="col-sm-6">{{render "searchbar"}}</div>
+    </div>
+  </div>
+
+  <div class="qor-list-container">
+    {{render "index/table"}}
+
+    {{$current_locale := current_locale .}}
+    <a class="qor-action-new" href="{{patch_url (new_resource_path .Resource) "locale" $current_locale}}">{{t "New"}}</a>
+  </div>
+
+  {{render "index/pagination"}}
+</div>
