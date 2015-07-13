@@ -59,10 +59,13 @@ func (i18n *I18n) SaveTranslation(translation *Translation) (err error) {
 	if i18n.Translations[translation.Locale] == nil {
 		i18n.Translations[translation.Locale] = map[string]*Translation{}
 	}
-	i18n.Translations[translation.Locale][translation.Key] = translation
 	if backend := translation.Backend; backend != nil {
 		err = backend.SaveTranslation(translation)
+		if err != nil {
+			return
+		}
 	}
+	i18n.Translations[translation.Locale][translation.Key] = translation
 	return
 }
 
@@ -89,7 +92,6 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 		err := i18n.SaveTranslation(&Translation{Key: translationKey, Locale: locale, Backend: i18n.Backends[0]})
 		log.Printf("Error saving translation: [%s]: %s\n", locale, translationKey)
 		if err != nil {
-			delete(translations, translationKey)
 			return err.Error()
 		}
 	}
