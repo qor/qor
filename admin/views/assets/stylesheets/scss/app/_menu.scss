@@ -66,7 +66,7 @@
       > a {
         font-size: 0;
 
-        &:before {
+        &::before {
           float: left;
           display: block;
           width: 36px;
@@ -80,63 +80,51 @@
         }
       }
 
-      &[data-menu-item="Dashboard"] {
-        > a:before {
+      &[data-menu-item*="Dashboard"] {
+        > a::before {
           content: "\e871";
         }
+      }
 
-        > ul:before {
-          content: "Dashboard";
+      &[data-menu-item*="Asset"] {
+        > a::before {
+          content: "\e2c7";
         }
       }
 
-      &[data-menu-item="Product Management"] {
-        > a:before {
+      &[data-menu-item*="Product"] {
+        > a::before {
           content: "\e1db";
         }
-
-        > ul:before {
-          content: "Product Management";
-        }
       }
 
-      &[data-menu-item="Site Management"] {
-        > a:before {
+      &[data-menu-item*="Site"] {
+        > a::before {
           content: "\e051";
         }
-
-        > ul:before {
-          content: "Site Management";
-        }
       }
 
-      &[data-menu-item="Orders"] {
-        > a:before {
+      &[data-menu-item*="Order"] {
+        > a::before {
           content: "\e8cc";
         }
-
-        > ul:before {
-          content: "Orders";
-        }
       }
 
-      &[data-menu-item="Users"] {
-        > a:before {
+      &[data-menu-item*="User"] {
+        > a::before {
           content: "\e7fd";
         }
+      }
 
-        > ul:before {
-          content: "Users";
+      &[data-menu-item*="I18n"] {
+        > a::before {
+          content: "\e894";
         }
       }
 
-      &[data-menu-item="Publish"] {
-        > a:before {
+      &[data-menu-item*="Publish"] {
+        > a::before {
           content: "\e255";
-        }
-
-        > ul:before {
-          content: "Publish";
         }
       }
 
@@ -149,17 +137,17 @@
         margin-left: 1px;
         box-shadow: 0 3px 10px #ccc;
 
-        &:before {
+        &::before {
           display: block;
           height: 40px;
           padding: 10px 12px;
           color: rgba(0,0,0,0.87);
           font-weight: 500;
           white-space: nowrap;
-          content: " ";
+          content: attr(data-menu);
         }
 
-        &:after {
+        &::after {
           position: absolute;
           top: 13px;
           left: -8px;
@@ -208,8 +196,8 @@
           box-shadow: none;
           margin-bottom: 0;
 
-          &:before,
-          &:after {
+          &::before,
+          &::after {
             display: none;
           }
 
