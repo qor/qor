@@ -13,7 +13,9 @@
 <div class="qor-list-container">
   {{render "index/table"}}
 
-  <a class="qor-action-new" href="{{new_resource_path .Resource}}">{{t "New"}}</a>
+  {{if has_create_permission .Resource}}
+    <a class="qor-action-new" href="{{new_resource_path .Resource}}">{{t "New"}}</a>
+  {{end}}
 </div>
 
 {{render "index/pagination"}}

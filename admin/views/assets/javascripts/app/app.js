@@ -32,6 +32,17 @@ $(function () {
     }
   });
 
+  $('.qor-menu > li').each(function () {
+    var $this = $(this),
+        $ul = $this.find('> ul');
+
+    if (!$ul.length) {
+      $this.append($ul = $('<ul class="qor-menu"></ul>'));
+    }
+
+    $ul.attr('data-menu', $this.data('menuItem'));
+  });
+
   $('.qor-search').each(function () {
     var $this = $(this),
         $label = $this.find('.qor-search-label'),

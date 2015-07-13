@@ -3,7 +3,7 @@
 <div class="qor-filter">
   {{$scopes := get_scopes}}
   {{if $scopes}}
-    <section class="qor-label-container fl">
+    <section class="qor-label-container">
       {{range $scope := $scopes}}
         {{if $scope.Group}}
           <select class="qor-label-group form-control" data-toggle="qor.selector" name="scopes">

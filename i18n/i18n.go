@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/utils"
@@ -83,8 +84,12 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil {
 		value = translations[translationKey].Value
 	} else {
+		var value string
+		if Default == locale {
+			value = key
+		}
 		// Save translations
-		i18n.SaveTransaltion(&Translation{Key: translationKey, Locale: locale, Backend: i18n.Backends[0]})
+		i18n.SaveTransaltion(&Translation{Key: translationKey, Value: value, Locale: locale, Backend: i18n.Backends[0]})
 	}
 
 	if value == "" {
@@ -148,6 +153,7 @@ func getEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	res.UseTheme("i18n")
 	res.GetAdmin().I18n = i18n
+	res.SearchHandler = func(keyword string, context *qor.Context) *gorm.DB { return context.GetDB() }
 
 	res.GetAdmin().RegisterFuncMap("lt", func(locale, key string, withDefault bool) string {
 		translations := i18n.Translations[locale]
@@ -174,7 +180,7 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 		keyword := context.Request.URL.Query().Get("keyword")
 
 		for key, translation := range translations {
-			if (keyword == "") || (strings.Index(strings.ToLower(translation.Key), keyword) != -1 ||
+			if (keyword == "") || (strings.Index(strings.ToLower(translation.Key), strings.ToLower(keyword)) != -1 ||
 				strings.Index(strings.ToLower(translation.Value), keyword) != -1) {
 				keys = append(keys, key)
 			}
@@ -185,10 +191,12 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 		pagination := context.Searcher.Pagination
 		pagination.Total = len(keys)
 		pagination.PrePage = 25
-		pagination.Pages = pagination.Total / pagination.PrePage
 		pagination.CurrentPage, _ = strconv.Atoi(context.Request.URL.Query().Get("page"))
 		if pagination.CurrentPage == 0 {
 			pagination.CurrentPage = 1
+		}
+		if pagination.CurrentPage > 0 {
+			pagination.Pages = pagination.Total / pagination.PrePage
 		}
 		context.Searcher.Pagination = pagination
 
@@ -208,7 +216,7 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 		if locale := context.Request.Form.Get("primary_locale"); locale != "" {
 			return locale
 		}
-		return getLocaleFromContext(context.Context)
+		return getAvailableLocales(context.Request, context.CurrentUser)[0]
 	})
 
 	res.GetAdmin().RegisterFuncMap("i18n_editing_locale", func(context admin.Context) string {

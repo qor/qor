@@ -39,6 +39,10 @@
     init: function () {
       var $slideout;
 
+      if (!this.$element.find('.qor-list').length) {
+        return;
+      }
+
       this.$slideout = $slideout = $(QorSlideout.TEMPLATE).appendTo('body');
       this.$title = $slideout.find('.slideout-title');
       this.$body = $slideout.find('.slideout-body');
