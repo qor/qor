@@ -84,8 +84,12 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil {
 		value = translations[translationKey].Value
 	} else {
+		var value string
+		if Default == locale {
+			value = key
+		}
 		// Save translations
-		i18n.SaveTransaltion(&Translation{Key: translationKey, Locale: locale, Backend: i18n.Backends[0]})
+		i18n.SaveTransaltion(&Translation{Key: translationKey, Value: value, Locale: locale, Backend: i18n.Backends[0]})
 	}
 
 	if value == "" {
