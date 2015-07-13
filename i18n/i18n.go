@@ -156,13 +156,18 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	res.SearchHandler = func(keyword string, context *qor.Context) *gorm.DB { return context.GetDB() }
 
 	res.GetAdmin().RegisterFuncMap("lt", func(locale, key string, withDefault bool) string {
-		translations := i18n.Translations[locale]
-		if (translations == nil) && withDefault {
-			translations = i18n.Translations[Default]
+		if translations := i18n.Translations[locale]; translations != nil {
+			if t := translations[key]; t != nil && t.Value != "" {
+				return t.Value
+			}
 		}
 
-		if translation := translations[key]; translation != nil {
-			return translation.Value
+		if withDefault {
+			if translations := i18n.Translations[Default]; translations != nil {
+				if t := translations[key]; t != nil {
+					return t.Value
+				}
+			}
 		}
 
 		return ""
