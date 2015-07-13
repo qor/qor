@@ -2,8 +2,10 @@
 // --------------------------------------------------
 
 .qor-label-container {
+  display: inline-block;
   padding-top: 2px;
   padding-bottom: 2px;
+  vertical-align: middle;
 }
 
 .qor-label {
