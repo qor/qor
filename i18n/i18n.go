@@ -205,10 +205,7 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	})
 
 	res.GetAdmin().RegisterFuncMap("i18n_primary_locale", func(context admin.Context) string {
-		if locale := context.Request.Form.Get("primary_locale"); locale != "" {
-			return locale
-		}
-		return getLocaleFromContext(context.Context)
+		return getAvailableLocales(context.Request, context.CurrentUser)[0]
 	})
 
 	res.GetAdmin().RegisterFuncMap("i18n_editing_locale", func(context admin.Context) string {
