@@ -16,7 +16,7 @@ const (
 )
 
 func init() {
-	l10n.Global = "en"
+	l10n.Global = "en-US"
 }
 
 func main() {
