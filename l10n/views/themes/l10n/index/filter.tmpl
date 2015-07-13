@@ -1,43 +1,31 @@
 {{$resource := .Resource}}
 
-<div class="grid-trigger-wrapper">
-  <div class="wrapper clearfix">
-    <section class="trigger-wrapper fl">
-      <a class="trigger md md-view-headline cur" state="list" href="javascript:;"></a>
-      <a class="trigger md md-view-module" state="grid" href="javascript:;"></a>
-    </section>
-
-    {{if get_scopes}}
-    <section class="qor-label-group label-group fl">
-      {{range $scope := get_scopes}}
-      <a class="label label-default" href="?scopes={{$scope}}">{{$scope}}</a>
+<div class="qor-filter">
+  {{$scopes := get_scopes}}
+  {{if $scopes}}
+    <section class="qor-label-container">
+      {{range $scope := $scopes}}
+        {{if $scope.Group}}
+          <select class="qor-label-group form-control" data-toggle="qor.selector" name="scopes">
+            <optgroup label="{{$scope.Group}}">
+              {{range $s := $scope.Scopes}}
+                <option value="{{$s.Name}}">{{t $s.Label}}</option>
+              {{end}}
+            </optgroup>
+          </select>
+        {{else}}
+          {{range $s := $scope.Scopes}}
+            <a class="qor-label label label-default" href="?scopes={{$s.Name}}">{{t $s.Label}}</a>
+          {{end}}
+        {{end}}
       {{end}}
     </section>
-    {{end}}
+  {{end}}
 
-    {{if .Resource.SearchHandler}}
-    <section class="search-wrapper fr">
-      <form role="form">
-        <i class="md md-search"></i>
-        <input type="search" name="keyword" value="{{ .Context.Request.URL.Query.Get "keyword" }}">
-        <!-- <i class="md md-close"></i> -->
-      </form>
-    </section>
+  {{$current_locale := current_locale .}}
+  <select class="qor-locale-selector form-control">
+    {{range $locale := viewable_locales .}}
+      <option{{if (eq $current_locale $locale)}} selected{{end}} value="{{patch_current_url "locale" $locale}}">{{t $locale}}</option>
     {{end}}
-
-    <section class="fr dropdown lang-selector">
-      {{$current_locale := current_locale .}} <!-- btn btn-primary -->
-      <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0);" aria-expanded="false" role="button">
-        {{t $current_locale}}
-        <span class="md md-expand-more"></span>
-      </a>
-      <ul class="dropdown-menu" role="menu">
-        {{range $locale := viewable_locales .}}
-        <li{{if (eq $current_locale $locale)}} class="active"{{end}}>
-          <a href="{{url_for $resource}}?locale={{$locale}}">{{t $locale}}</a>
-        </li>
-        {{end}}
-      </ul>
-    </section>
-  </div>
+  </select>
 </div>

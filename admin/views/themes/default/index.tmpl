@@ -1,0 +1,21 @@
+<div class="qor-navbar">
+  <h1 class="qor-title">{{t "{{.Name}}" .Resource}}</h1>
+  {{render "toolbar"}}
+</div>
+
+<div class="qor-sub-header">
+  <div class="row">
+    <div class="col-sm-6">{{render "index/filter"}}</div>
+    <div class="col-sm-6">{{render "searchbar"}}</div>
+  </div>
+</div>
+
+<div class="qor-list-container">
+  {{render "index/table"}}
+
+  {{if has_create_permission .Resource}}
+    <a class="qor-action-new" href="{{new_resource_path .Resource}}">{{t "New"}}</a>
+  {{end}}
+</div>
+
+{{render "index/pagination"}}

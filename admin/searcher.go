@@ -138,7 +138,7 @@ func (s *Searcher) parseContext() *qor.Context {
 
 	// pagination
 	db := context.GetDB()
-	paginationDB := db.Select("count(*) total").Model(s.Resource.Value).Set("gorm:query_destination", &s.Pagination)
+	paginationDB := db.Select("count(*) total").Model(s.Resource.Value).Set("qor:no_ordering", true).Set("gorm:query_destination", &s.Pagination)
 	context.SetDB(paginationDB)
 	s.Resource.CallFindMany(s.Resource.Value, context)
 
@@ -158,9 +158,9 @@ func (s *Searcher) parseContext() *qor.Context {
 		s.Pagination.PrePage = s.Resource.Config.PageCount
 	}
 
-	s.Pagination.Pages = (s.Pagination.Total-1)/s.Pagination.PrePage + 1
-
 	if s.Pagination.CurrentPage > 0 {
+		s.Pagination.Pages = (s.Pagination.Total-1)/s.Pagination.PrePage + 1
+
 		db = db.Limit(s.Pagination.PrePage).Offset((s.Pagination.CurrentPage - 1) * s.Pagination.PrePage)
 	}
 

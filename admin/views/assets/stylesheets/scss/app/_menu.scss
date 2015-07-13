@@ -1,0 +1,213 @@
+// Menu
+// --------------------------------------------------
+
+.qor-menu {
+  margin-bottom: 0;
+  padding-left: 0;
+  list-style: none;
+  background-color: #fff;
+  -webkit-transition: height 0.35s ease;
+       -o-transition: height 0.35s ease;
+          transition: height 0.35s ease;
+
+  &.collapsed {
+    height: 0;
+    overflow: hidden;
+  }
+
+  > li {
+    @extend .clearfix;
+
+    &.active,
+    &.active:hover {
+      > a,
+      > a:hover,
+      > a:focus {
+        background-color: #fff;
+        color: #03a9f4;
+        cursor: default;
+      }
+    }
+
+    > a {
+      display: block;
+      padding: 10px;
+      background-color: #fff;
+      color: rgba(0,0,0,0.87);
+      white-space: nowrap;
+      overflow: hidden;
+
+      &:hover,
+      &:focus {
+        background-color: rgba(0,0,0,0.12);
+        text-decoration: none;
+      }
+    }
+  }
+}
+
+.qor-menu-group {
+  padding: 8px 0;
+
+  > ul {
+    > li {
+      position: relative;
+
+      &:hover {
+        > a {
+          background-color: rgba(0,0,0,0.12);
+        }
+
+        > ul {
+          display: block;
+        }
+      }
+
+      > a {
+        font-size: 0;
+
+        &::before {
+          float: left;
+          display: block;
+          width: 36px;
+          height: 20px;
+          font-size: 18px;
+          line-height: 20px;
+          text-align: center;
+          color: rgba(0,0,0,0.54);
+          content: "\e5d2";
+          @extend .md;
+        }
+      }
+
+      &[data-menu-item*="Dashboard"] {
+        > a::before {
+          content: "\e871";
+        }
+      }
+
+      &[data-menu-item*="Asset"] {
+        > a::before {
+          content: "\e2c7";
+        }
+      }
+
+      &[data-menu-item*="Product"] {
+        > a::before {
+          content: "\e1db";
+        }
+      }
+
+      &[data-menu-item*="Site"] {
+        > a::before {
+          content: "\e051";
+        }
+      }
+
+      &[data-menu-item*="Order"] {
+        > a::before {
+          content: "\e8cc";
+        }
+      }
+
+      &[data-menu-item*="User"] {
+        > a::before {
+          content: "\e7fd";
+        }
+      }
+
+      &[data-menu-item*="I18n"] {
+        > a::before {
+          content: "\e894";
+        }
+      }
+
+      &[data-menu-item*="Publish"] {
+        > a::before {
+          content: "\e255";
+        }
+      }
+
+      > ul {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        display: none;
+        min-height: 100%;
+        margin-left: 1px;
+        box-shadow: 0 3px 10px #ccc;
+
+        &::before {
+          display: block;
+          height: 40px;
+          padding: 10px 12px;
+          color: rgba(0,0,0,0.87);
+          font-weight: 500;
+          white-space: nowrap;
+          content: attr(data-menu);
+        }
+
+        &::after {
+          position: absolute;
+          top: 13px;
+          left: -8px;
+          display: block;
+          width: 0;
+          height: 0;
+          border: 8px solid transparent;
+          border-left-width: 0;
+          border-right-color: #fff;
+          content: " ";
+        }
+
+        > li {
+          > a {
+            padding: 6px 12px;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: $grid-float-breakpoint) {
+  .qor-menu-group {
+    > ul {
+      > li {
+        &:hover {
+          > a {
+            background-color: #fff;
+          }
+        }
+
+        > a {
+          font-size: 14px;
+          font-weight: 500;
+
+          &:hover,
+          &:focus {
+            background-color: rgba(0,0,0,0.12);
+          }
+        }
+
+        > ul {
+          position: static;
+          display: block;
+          box-shadow: none;
+          margin-bottom: 0;
+
+          &::before,
+          &::after {
+            display: none;
+          }
+
+          > li {
+            > a {
+              padding-left: 46px;
+            }
+          }
+        }
+      }
+    }
+  }
+}

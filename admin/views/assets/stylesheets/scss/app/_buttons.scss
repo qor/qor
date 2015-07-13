@@ -1,0 +1,84 @@
+// Buttons
+// --------------------------------------------------
+
+.btn {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.btn-default {
+  color: #03a9f4 !important;
+}
+
+.btn-primary {
+  background-color: #03a9f4 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12), 0 2px 2px rgba(0,0,0,0.24);
+}
+
+.qor-action-question {
+  width: 24px;
+  height: 24px;
+  border-width: 0;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  font-size: 14px;
+  line-height: 24px;
+
+  &:hover,
+  &:focus {
+    outline: none;
+    text-decoration: none;
+  }
+
+  &:before {
+   content: "?";
+  }
+}
+
+.qor-action-new {
+  position: relative;
+  display: block;
+  width: 40px;
+  height: 40px;
+  border-width: 0;
+  border-radius: 50%;
+  background-color: #03a9f4;
+  box-shadow: 0 3px 3px rgba(0,0,0,0.23);
+  @extend .text-hide;
+
+  &:hover,
+  &:focus {
+    outline: none;
+    text-decoration: none;
+  }
+
+  &:before,
+  &:after {
+    position: absolute;
+    display: block;
+    background-color: #fff;
+    content: " ";
+  }
+
+  &:before {
+    top: 19px;
+    left: 12px;
+    width: 16px;
+    height: 2px;
+  }
+
+  &:after {
+    top: 12px;
+    left: 19px;
+    width: 2px;
+    height: 16px;
+  }
+}
+
+.qor-action-edit,
+.qor-action-delete {
+  > i {
+    vertical-align: middle;
+  }
+}

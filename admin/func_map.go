@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"reflect"
-	"runtime/debug"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -22,18 +21,18 @@ import (
 func (context *Context) NewResourceContext(name ...string) *Context {
 	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result}
 	if len(name) > 0 {
-		clone.SetResource(context.Admin.GetResource(name[0]))
+		clone.setResource(context.Admin.GetResource(name[0]))
 	} else {
-		clone.SetResource(context.Resource)
+		clone.setResource(context.Resource)
 	}
 	return clone
 }
 
-func (context *Context) PrimaryKeyOf(value interface{}) interface{} {
+func (context *Context) primaryKeyOf(value interface{}) interface{} {
 	return context.GetDB().NewScope(value).PrimaryKeyValue()
 }
 
-func (context *Context) IsNewRecord(value interface{}) bool {
+func (context *Context) isNewRecord(value interface{}) bool {
 	return context.GetDB().NewRecord(value)
 }
 
@@ -50,7 +49,7 @@ func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
 		}
 
 		if !(meta.Type == "collection_edit" || meta.Type == "single_edit") {
-			if context.IsNewRecord(value) && reflect.DeepEqual(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
+			if context.isNewRecord(value) && reflect.DeepEqual(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
 				return nil
 			}
 		}
@@ -60,7 +59,7 @@ func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
 	return nil
 }
 
-func (context *Context) NewResourcePath(value interface{}) string {
+func (context *Context) newResourcePath(value interface{}) string {
 	if res, ok := value.(*Resource); ok {
 		return path.Join(context.Admin.router.Prefix, res.ToParam(), "new")
 	} else {
@@ -95,19 +94,18 @@ func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML
 	return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, context.UrlFor(link), text))
 }
 
-func (context *Context) RenderIndex(value interface{}, meta *Meta) template.HTML {
+func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.HTML {
 	var err error
 	var result = bytes.NewBufferString("")
-	var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.funcMap())
+	var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
 
-	if tmpl, err = context.findTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
+	if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
 		tmpl, _ = tmpl.Parse("{{.Value}}")
 	}
 
 	data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
 	if err := tmpl.Execute(result, data); err != nil {
-		fmt.Println(err)
-		debug.PrintStack()
+		utils.ExitWithMsg(err.Error())
 	}
 	return template.HTML(result.String())
 }
@@ -120,14 +118,14 @@ func (context *Context) RenderForm(value interface{}, metas []*Meta) template.HT
 
 func (context *Context) renderForm(result *bytes.Buffer, value interface{}, metas []*Meta, prefix []string) {
 	for _, meta := range metas {
-		context.RenderMeta(result, meta, value, prefix)
+		context.renderMeta(result, meta, value, prefix)
 	}
 }
 
-func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value interface{}, prefix []string) {
+func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value interface{}, prefix []string) {
 	prefix = append(prefix, meta.Name)
 
-	funcsMap := context.funcMap()
+	funcsMap := context.FuncMap()
 	funcsMap["render_form"] = func(value interface{}, metas []*Meta, index ...int) template.HTML {
 		var result = bytes.NewBufferString("")
 		newPrefix := append([]string{}, prefix...)
@@ -143,7 +141,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
 
-	if tmpl, err := context.findTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
+	if tmpl, err := context.FindTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
 		data := map[string]interface{}{}
 		data["Base"] = meta.base
 		data["InputId"] = strings.Join(prefix, "")
@@ -165,7 +163,7 @@ func (context *Context) RenderMeta(writer *bytes.Buffer, meta *Meta, value inter
 	}
 }
 
-func (context *Context) IsIncluded(value interface{}, primaryKey interface{}) bool {
+func (context *Context) isIncluded(value interface{}, primaryKey interface{}) bool {
 	primaryKeys := []interface{}{}
 	reflectValue := reflect.Indirect(reflect.ValueOf(value))
 	if reflectValue.Kind() == reflect.Slice {
@@ -203,36 +201,36 @@ func (context *Context) getResource(resources ...*Resource) *Resource {
 	return context.Resource
 }
 
-func (context *Context) AllMetas(resources ...*Resource) []*Meta {
-	return context.getResource(resources...).AllMetas()
+func (context *Context) allMetas(resources ...*Resource) []*Meta {
+	return context.getResource(resources...).allMetas()
 }
 
-func (context *Context) IndexMetas(resources ...*Resource) []*Meta {
+func (context *Context) indexMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
-	return res.AllowedMetas(res.IndexMetas(), context, roles.Read)
+	return res.allowedMetas(res.indexMetas(), context, roles.Read)
 }
 
-func (context *Context) EditMetas(resources ...*Resource) []*Meta {
+func (context *Context) editMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
-	return res.AllowedMetas(res.EditMetas(), context, roles.Update)
+	return res.allowedMetas(res.editMetas(), context, roles.Update)
 }
 
-func (context *Context) ShowMetas(resources ...*Resource) []*Meta {
+func (context *Context) showMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
-	return res.AllowedMetas(res.ShowMetas(), context, roles.Read)
+	return res.allowedMetas(res.showMetas(), context, roles.Read)
 }
 
-func (context *Context) NewMetas(resources ...*Resource) []*Meta {
+func (context *Context) newMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
-	return res.AllowedMetas(res.NewMetas(), context, roles.Create)
+	return res.allowedMetas(res.newMetas(), context, roles.Create)
 }
 
-func (context *Context) JavaScriptTag(name string) template.HTML {
+func (context *Context) javaScriptTag(name string) template.HTML {
 	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "javascripts", name+".js")
 	return template.HTML(fmt.Sprintf(`<script src="%s"></script>`, name))
 }
 
-func (context *Context) StyleSheetTag(name string) template.HTML {
+func (context *Context) styleSheetTag(name string) template.HTML {
 	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "stylesheets", name+".css")
 	return template.HTML(fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
 }
@@ -262,23 +260,23 @@ OUT:
 	return menus
 }
 
-type permissioner interface {
+type HasPermissioner interface {
 	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
 
-func (context *Context) HasCreatePermission(permissioner permissioner) bool {
+func (context *Context) hasCreatePermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Create, context.Context)
 }
 
-func (context *Context) HasReadPermission(permissioner permissioner) bool {
+func (context *Context) hasReadPermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Read, context.Context)
 }
 
-func (context *Context) HasUpdatePermission(permissioner permissioner) bool {
+func (context *Context) hasUpdatePermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Update, context.Context)
 }
 
-func (context *Context) HasDeletePermission(permissioner permissioner) bool {
+func (context *Context) hasDeletePermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Delete, context.Context)
 }
 
@@ -343,17 +341,17 @@ func (context *Context) Pagination() *[]Page {
 	return &pages
 }
 
-func Equal(a, b interface{}) bool {
+func equal(a, b interface{}) bool {
 	return reflect.DeepEqual(a, b)
 }
 
 // PatchCurrentURL is a convinent wrapper for qor/utils.PatchURL
-func (context *Context) PatchCurrentURL(params ...interface{}) (patchedURL string, err error) {
+func (context *Context) patchCurrentURL(params ...interface{}) (patchedURL string, err error) {
 	return utils.PatchURL(context.Request.URL.String(), params...)
 }
 
 // PatchURL is a convinent wrapper for qor/utils.PatchURL
-func (context *Context) PatchURL(url string, params ...interface{}) (patchedURL string, err error) {
+func (context *Context) patchURL(url string, params ...interface{}) (patchedURL string, err error) {
 	return utils.PatchURL(url, params...)
 }
 
@@ -367,39 +365,63 @@ func (context *Context) themesClass() (result string) {
 	return strings.Join(results, " ")
 }
 
-func (context *Context) LoadThemeStyleSheets() template.HTML {
+func (context *Context) loadThemeStyleSheets() template.HTML {
 	var results []string
+	var themes = []string{"default"}
 	if context.Resource != nil {
-		for _, theme := range context.Resource.Config.Themes {
-			for _, view := range context.getViewPaths() {
-				file := path.Join("assets", "stylesheets", theme+".css")
-				if _, err := os.Stat(path.Join(view, file)); err == nil {
-					results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
-					break
-				}
+		themes = append(themes, context.Resource.Config.Themes...)
+	}
+
+	for _, theme := range themes {
+		for _, view := range context.getViewPaths() {
+			file := path.Join("assets", "stylesheets", theme+".css")
+			if _, err := os.Stat(path.Join(view, file)); err == nil {
+				results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+				break
+			}
+		}
+
+		for _, view := range context.getViewPaths() {
+			file := path.Join("../..", "themes", theme, "assets", "stylesheets", "application.css")
+			if _, err := os.Stat(path.Join(view, file)); err == nil {
+				results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+				break
 			}
 		}
 	}
+
 	return template.HTML(strings.Join(results, " "))
 }
 
-func (context *Context) LoadThemeJavaScripts() template.HTML {
+func (context *Context) loadThemeJavaScripts() template.HTML {
 	var results []string
+	var themes = []string{"default"}
 	if context.Resource != nil {
-		for _, theme := range context.Resource.Config.Themes {
-			for _, view := range context.getViewPaths() {
-				file := path.Join("assets", "javascripts", theme+".js")
-				if _, err := os.Stat(path.Join(view, file)); err == nil {
-					results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
-					break
-				}
+		themes = append(themes, context.Resource.Config.Themes...)
+	}
+
+	for _, theme := range themes {
+		for _, view := range context.getViewPaths() {
+			file := path.Join("assets", "javascripts", theme+".js")
+			if _, err := os.Stat(path.Join(view, file)); err == nil {
+				results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+				break
+			}
+		}
+
+		for _, view := range context.getViewPaths() {
+			file := path.Join("../..", "themes", theme, "assets", "javascripts", "application.js")
+			if _, err := os.Stat(path.Join(view, file)); err == nil {
+				results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
+				break
 			}
 		}
 	}
+
 	return template.HTML(strings.Join(results, " "))
 }
 
-func (context *Context) LogoutURL() string {
+func (context *Context) logoutURL() string {
 	if context.Admin.auth != nil {
 		return context.Admin.auth.LogoutURL(context)
 	}
@@ -419,7 +441,7 @@ func (context *Context) T(key string, values ...interface{}) string {
 	}
 }
 
-func (context *Context) RT(resource *Resource, key string, values ...interface{}) string {
+func (context *Context) rt(resource *Resource, key string, values ...interface{}) string {
 	locale := utils.GetLocale(context.Context)
 
 	if context.Admin.I18n == nil {
@@ -432,16 +454,14 @@ func (context *Context) RT(resource *Resource, key string, values ...interface{}
 	}
 }
 
-func (context *Context) funcMap() template.FuncMap {
+func (context *Context) FuncMap() template.FuncMap {
 	funcMap := template.FuncMap{
-		"equal": Equal,
-
 		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
 		"get_resource":         context.GetResource,
 		"new_resource_context": context.NewResourceContext,
-		"is_new_record":        context.IsNewRecord,
-		"is_included":          context.IsIncluded,
-		"primary_key_of":       context.PrimaryKeyOf,
+		"is_new_record":        context.isNewRecord,
+		"is_included":          context.isIncluded,
+		"primary_key_of":       context.primaryKeyOf,
 		"value_of":             context.ValueOf,
 
 		"menus":      context.Admin.GetMenus,
@@ -449,34 +469,35 @@ func (context *Context) funcMap() template.FuncMap {
 
 		"escape":                 html.EscapeString,
 		"raw":                    func(str string) template.HTML { return template.HTML(str) },
+		"equal":                  equal,
 		"stringify":              utils.Stringify,
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
-		"render_index":           context.RenderIndex,
+		"render_index_meta":      context.renderIndexMeta,
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
-		"patch_current_url":      context.PatchCurrentURL,
-		"patch_url":              context.PatchURL,
-		"new_resource_path":      context.NewResourcePath,
+		"patch_current_url":      context.patchCurrentURL,
+		"patch_url":              context.patchURL,
+		"new_resource_path":      context.newResourcePath,
 		"qor_theme_class":        context.themesClass,
-		"javascript_tag":         context.JavaScriptTag,
-		"stylesheet_tag":         context.StyleSheetTag,
-		"load_theme_stylesheets": context.LoadThemeStyleSheets,
-		"load_theme_javascripts": context.LoadThemeJavaScripts,
+		"javascript_tag":         context.javaScriptTag,
+		"stylesheet_tag":         context.styleSheetTag,
+		"load_theme_stylesheets": context.loadThemeStyleSheets,
+		"load_theme_javascripts": context.loadThemeJavaScripts,
 		"pagination":             context.Pagination,
 
-		"all_metas":   context.AllMetas,
-		"index_metas": context.IndexMetas,
-		"edit_metas":  context.EditMetas,
-		"show_metas":  context.ShowMetas,
-		"new_metas":   context.NewMetas,
+		"all_metas":   context.allMetas,
+		"index_metas": context.indexMetas,
+		"edit_metas":  context.editMetas,
+		"show_metas":  context.showMetas,
+		"new_metas":   context.newMetas,
 
-		"has_create_permission": context.HasCreatePermission,
-		"has_read_permission":   context.HasReadPermission,
-		"has_update_permission": context.HasUpdatePermission,
-		"has_delete_permission": context.HasDeletePermission,
+		"has_create_permission": context.hasCreatePermission,
+		"has_read_permission":   context.hasReadPermission,
+		"has_update_permission": context.hasUpdatePermission,
+		"has_delete_permission": context.hasDeletePermission,
 
-		"logout_url": context.LogoutURL,
+		"logout_url": context.logoutURL,
 
 		"marshal": func(v interface{}) template.JS {
 			a, _ := json.Marshal(v)
@@ -484,7 +505,7 @@ func (context *Context) funcMap() template.FuncMap {
 		},
 
 		"t":       context.T,
-		"rt":      context.RT,
+		"rt":      context.rt,
 		"flashes": context.GetFlashes,
 	}
 

@@ -34,13 +34,15 @@ func (s *Status) SetPublishStatus(status bool) {
 
 func (s Status) InjectQorAdmin(res *admin.Resource) {
 	if res.GetMeta("PublishStatus") == nil {
-		res.Meta(&admin.Meta{Name: "PublishStatus", Type: "hidden"})
+		res.IndexAttrs(append(res.IndexAttrs(), "-PublishStatus")...)
+		res.ShowAttrs(append(res.ShowAttrs(), "-PublishStatus")...)
+		res.EditAttrs(append(res.EditAttrs(), "-PublishStatus")...)
+		res.NewAttrs(append(res.NewAttrs(), "-PublishStatus")...)
 	}
 }
 
 type Publish struct {
-	DB              *gorm.DB
-	SupportedModels []interface{}
+	DB *gorm.DB
 }
 
 func modelType(value interface{}) reflect.Type {
@@ -73,6 +75,19 @@ func New(db *gorm.DB) *Publish {
 
 		if db != nil {
 			if isPublishableModel(db.Value) {
+				// Set join table handler
+				typ := modelType(db.Value)
+				if !injectedJoinTableHandler[typ] {
+					injectedJoinTableHandler[typ] = true
+					scope := db.NewScope(db.Value)
+					for _, field := range scope.GetModelStruct().StructFields {
+						if many2many := utils.ParseTagOption(field.Tag.Get("gorm"))["MANY2MANY"]; many2many != "" {
+							db.SetJoinTableHandler(db.Value, field.Name, &publishJoinTableHandler{})
+							db.AutoMigrate(db.Value)
+						}
+					}
+				}
+
 				var forceDraftMode = false
 				if forceMode, ok := db.Get("publish:force_draft_mode"); ok {
 					if forceMode, ok := forceMode.(bool); ok && forceMode {
@@ -82,18 +97,6 @@ func New(db *gorm.DB) *Publish {
 
 				if draftMode, ok := db.Get("publish:draft_mode"); ok {
 					if isDraft, ok := draftMode.(bool); ok && isDraft || forceDraftMode {
-						typ := modelType(db.Value)
-						if !injectedJoinTableHandler[typ] {
-							injectedJoinTableHandler[typ] = true
-							scope := db.NewScope(db.Value)
-							for _, field := range scope.GetModelStruct().StructFields {
-								if many2many := utils.ParseTagOption(field.Tag.Get("gorm"))["MANY2MANY"]; many2many != "" {
-									db.SetJoinTableHandler(db.Value, field.Name, &publishJoinTableHandler{})
-									db.AutoMigrate(db.Value)
-								}
-							}
-						}
-
 						return draftTableName(tableName)
 					}
 				}
@@ -135,22 +138,22 @@ func (db *Publish) AutoMigrate(values ...interface{}) {
 	}
 }
 
-func (db *Publish) ProductionDB() *gorm.DB {
+func (db Publish) ProductionDB() *gorm.DB {
 	return db.DB.Set("publish:draft_mode", false)
 }
 
-func (db *Publish) DraftDB() *gorm.DB {
+func (db Publish) DraftDB() *gorm.DB {
 	return db.DB.Set("publish:draft_mode", true)
 }
 
-func (db *Publish) newResolver(records ...interface{}) *resolver {
-	return &resolver{Records: records, DB: db, Dependencies: map[string]*dependency{}}
+func (db Publish) newResolver(records ...interface{}) *resolver {
+	return &resolver{Records: records, DB: db.DB, Dependencies: map[string]*dependency{}}
 }
 
-func (db *Publish) Publish(records ...interface{}) {
+func (db Publish) Publish(records ...interface{}) {
 	db.newResolver(records...).Publish()
 }
 
-func (db *Publish) Discard(records ...interface{}) {
+func (db Publish) Discard(records ...interface{}) {
 	db.newResolver(records...).Discard()
 }

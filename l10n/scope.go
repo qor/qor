@@ -11,7 +11,7 @@ func isLocalizable(scope *gorm.Scope) (isLocalizable bool) {
 	if scope.GetModelStruct().ModelType == nil {
 		return false
 	}
-	_, isLocalizable = reflect.New(scope.GetModelStruct().ModelType).Interface().(publishInterface)
+	_, isLocalizable = reflect.New(scope.GetModelStruct().ModelType).Interface().(l10nInterface)
 	return
 }
 
