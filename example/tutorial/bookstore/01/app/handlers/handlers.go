@@ -31,7 +31,6 @@ func ListBooksHandler(ctx *gin.Context) {
 		http.StatusOK,
 		"list.tmpl",
 		gin.H{
-			"title": "List of Books",
 			"books": books,
 			"t": func(key string, args ...interface{}) template.HTML {
 				return template.HTML(resources.I18n.T(retrieveLocale(ctx), key, args...))
@@ -67,6 +66,9 @@ func ViewBookHandler(ctx *gin.Context) {
 		"book.tmpl",
 		gin.H{
 			"book": book,
+			"t": func(key string, args ...interface{}) template.HTML {
+				return template.HTML(resources.I18n.T(retrieveLocale(ctx), key, args...))
+			},
 		},
 	)
 }

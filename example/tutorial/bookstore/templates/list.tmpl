@@ -6,8 +6,7 @@
     <link href="/assets/css/bookstore.css" rel="stylesheet" />
   </head>
   <body>
-    <h1>{{.title}}</h1>
-    {{call .t "books list"}}
+    <h1>{{call .t "frontend.books.List of Books"}}</h1>
     <div class="booklist">
       {{range $book := .books}}
       <div class="book">
