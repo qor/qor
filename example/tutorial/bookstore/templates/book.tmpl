@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <link type="text/css" rel="stylesheet" href="/admin/assets/stylesheets/material.min.css">
+    <link href="/assets/css/bookstore.css" rel="stylesheet" />
+  </head>
+  <body>
+    <h1>{{.book.Title}}</h1>
+    <div class="book">
+      <div class="prodimg">
+       <img src="{{.book.CoverImage}}" />
+      </div>
+      {{range $i, $author := .book.Authors}}
+        {{$author.Name}}
+      {{end}}
+      <p class="date">{{.book.ReleaseDate}}</p>
+      <p class="description">{{.book.Synopsis}}</p>
+      <p class="price">¥{{.book.Price}}</p>
+    </div>
+    <a href="/books">{{call .t "frontend.books.Back to the list of books"}}</a>
+  </body>
+</html>

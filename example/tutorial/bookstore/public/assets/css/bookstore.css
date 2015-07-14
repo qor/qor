@@ -1,0 +1,49 @@
+body {
+  padding:50px;
+}
+
+h1 {
+  margin-bottom:20px;
+}
+
+div.booklist div.book {
+  height:auto;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #848484;
+}
+
+div.book {
+  width:500px;
+  clear:both;
+  height:150px;
+  margin-bottom:30px;
+}
+
+div.book div.prodimg {
+  float: left;
+  margin-right:20px;
+  width:150px;
+  height:150px;
+  padding:auto;
+}
+
+div.book img {
+  max-width:150px;
+  max-height:150px;
+}
+
+div.book a.title_link {
+  display: block;
+  font-size:20;
+  margin-bottom:10px;
+}
+
+div.book p.date {
+  font-size:10px;
+}
+
+div.book p.price {
+  float:right;
+  font-size:15px;
+  font-variant:italic;
+}
