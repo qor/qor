@@ -97,9 +97,10 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 
 			var results string
 			availableLocales := getAvailableLocales(ctx.Request, ctx.CurrentUser)
+			primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
 		OUT:
 			for _, locale := range availableLocales {
-				url, _ := utils.PatchURL(ctx.Request.RequestURI, "locale", locale)
+				url, _ := utils.PatchURL(path.Join(ctx.Request.URL.Path, fmt.Sprintf("%v", primaryKey)), "locale", locale)
 				for _, localized := range languageCodes {
 					if locale == localized {
 						results += fmt.Sprintf("<a class='qor-label active' href='%s'>%s</a> ", url, context.T(locale))
