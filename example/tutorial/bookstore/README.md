@@ -5,14 +5,14 @@ This tutorial shows you
 ## Prerequisites
 
 * GoLang 1.x+ (at the time of writing I am using >=1.4.0 versions)
-* Install qor:
+* Install QOR:
 
     go get github.com/qor/qor
 
 * A database - for example PostgreSQL or MySQL
-* Install dependencies: cd into the qor source directory and run
+* Install dependencies: cd into the QOR source directory and run
 
-    go get ./...
+    go get -u ./...
 
 * Install Gin - QOR does not require gin, but we use it in the tutorial:
 
@@ -22,7 +22,7 @@ This tutorial shows you
 
     go get github.com/pilu/fresh
 
-fresh is not necessary to use qor, but it will make your life easier when playing with the tutorial: it monitors for file changes and automatically recompiles your code every time something has changed.
+fresh is not necessary to use QOR, but it will make your life easier when playing with the tutorial: it monitors for file changes and automatically recompiles your code every time something has changed.
 
 If you don't want to go with fresh you will have to rebuild/rerun your code every time instead.
 
@@ -51,7 +51,7 @@ Before we dive into our models we need to create a database:
 
 
 #### MySQL
-
+    $ mysql -uroot -p
     mysql> DROP DATABASE IF EXISTS qor_bookstore;
     mysql> CREATE DATABASE qor_bookstore DEFAULT CHARACTER SET utf8mb4;
 
@@ -65,7 +65,7 @@ Before we dive into our models we need to create a database:
     mysql> FLUSH PRIVILEGES;
 
 TODO: it's a bug that this is needed - but for now this needs to be called manually:
-
+    mysql> use qor_bookstore;
     mysql> CREATE TABLE `translations` (`key` varchar(255),`locale` varchar(255),`value` varchar(255) , PRIMARY KEY (`key`(100),`locale`(100)));
 
 
@@ -98,11 +98,11 @@ The `Author` model is very simple:
     	Name string
     }
 
-All qor models "inherit" from `gorm.model`. (see https://github.com/jinzhu/gorm).
+All QOR models "inherit" from `gorm.model`. (see https://github.com/jinzhu/gorm).
 Our author model for now only has a `Name`.
 Ignore `publish.Status` and `l10n.Locale` for now - we will address these in later parts of the tutorial.
 
-The Bookmodel has a few more fields:
+The Book model has a few more fields:
 
     type Book struct {
     	gorm.Model
@@ -120,11 +120,11 @@ The Bookmodel has a few more fields:
 
 The only interesting part here is the gorm struct tag: `gorm:many2many:book_authors"`; It tells `gorm` to create a join table `book_authors`.
 
-Ignore `publish.Status` and `l10n.Locale` for now - we will address these in later parts of the tutorial.
+Ignore `publish.Status`, `l10n.Locale` and `media_library.FileSystem` for now - we will address these in later parts of the tutorial.
 
-That's almost it: If you [look at models.go](https://github.com/qor/qor/tree/master/example/tutorial/bookstore/01/models.go) you can see an `init()` function at the end: It sets up a db connection and `db.AutoMigrate(&Author{}, &Book{}, &User{})` tells QOR to automatically create the tables for our models.
+That's almost it: If you [look at models.go](https://github.com/qor/qor/tree/master/example/tutorial/bookstore/01/app/models/models.go) you can see an `init()` function at the end: It sets up a db connection and `db.AutoMigrate(&Author{}, &Book{}, &User{})` tells QOR to automatically create the tables for our models.
 
-You can ignore the user model for now - we will look at that part later.
+You can ignore the User model for now - we will look at that part later.
 
 Let's start the tutorial app once to see what happens when models get auto-migrated.
 
@@ -225,7 +225,7 @@ Go to [http://localhost:9000/admin](http://localhost:9000/admin) and you should 
 
 ![qor_admin](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin1.png)
 
-The menu at the top gets created by adding your models as resources to the admin in [main.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/main.go):
+The menu at the top gets created by adding your models as resources to the admin in [main.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/app/resources/resources.go):
 
 	Admin := admin.New(&qor.Config{DB: &db})
 
@@ -237,7 +237,7 @@ The menu at the top gets created by adding your models as resources to the admin
 		},
 	)
 
-you can see how the rest of the resources was added in [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources.go), the `db` object referenced here is set up in [models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/models/models.go#L66:L72)
+you can see how the rest of the resources was added in [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources/resources.go), the `db` object referenced here is set up in [models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/models/models.go)
 
 Go ahead and go to the authors admin and add an author...
 
@@ -253,7 +253,7 @@ Go ahead and go to the authors admin and add an author...
 #### Meta Module - Controlling display and editable fields in the admin
 
 Go to [http://localhost:9000/admin/books](http://localhost:9000/admin/books).
-Now comment the following line from [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources.go)
+Now comment the following line from [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources/resources.go)
 
 	book.IndexAttrs("ID", "Title", "AuthorNames", "FormattedDate", "DisplayPrice")
 
@@ -303,7 +303,7 @@ To get a searchfield on the list display of your resource you simply add a line 
 
     book.SearchAttrs("ID", "Title")
 
-Wich will add a search(field) for resources matching on the defined fields.
+Which will add a search(field) for resources matching on the defined fields.
 
 
 #### Meta Field Types
@@ -333,7 +333,7 @@ The Publish module allows you edit contents of your site without having them go 
     	Name string
     }
 
-Then initialize `Publish` and set up AutoMigrate (see [init() in models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/models/models.go#L83)):
+Then initialize `Publish` and set up AutoMigrate (see [init() in models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/models/models.go#L106)):
 
 	Pub = publish.New(&Db)
 	Pub.AutoMigrate(&Author{}, &Book{})
@@ -361,7 +361,7 @@ You can check that before bublishing the first time your `authors` table should 
 
     import "github.com/qor/qor/media_library"
 
-We will only briefly touch on the `qor/media_library`. It provides support for upload, storage, and resizing of images. Define an attribute with the `media_library.FileSystem` type:
+We will only briefly touch on the `qor/media_library`. It provides support for uploading, storage, and resizing of images. Define an attribute with the `media_library.FileSystem` type:
 
     type Book struct {
     	gorm.Model

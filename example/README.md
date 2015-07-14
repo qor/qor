@@ -1,4 +1,4 @@
-# How to setup and run qor example
+# How to setup and run QOR example
 
 1. Setup database.
 
