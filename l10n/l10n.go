@@ -112,7 +112,20 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 			return template.HTML(results)
 		}})
 
-		res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode")...)
+		attrs := res.IndexAttrs()
+		var hasLocalization bool
+		for _, attr := range attrs {
+			if attr == "Localization" {
+				hasLocalization = true
+				break
+			}
+		}
+
+		if hasLocalization {
+			res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode")...)
+		} else {
+			res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode", "Localization")...)
+		}
 		res.ShowAttrs(append(res.ShowAttrs(), "-LanguageCode", "-Localization")...)
 		res.EditAttrs(append(res.EditAttrs(), "-LanguageCode", "-Localization")...)
 		res.NewAttrs(append(res.NewAttrs(), "-LanguageCode", "-Localization")...)
