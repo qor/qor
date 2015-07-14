@@ -17,8 +17,6 @@
 
   Widgets.init = function () {
     this.confirm();
-    this.checkAll();
-    this.tooltip();
   };
 
   Widgets.confirm = function () {
@@ -47,28 +45,6 @@
         }
       }
     });
-  };
-
-  Widgets.checkAll = function () {
-    $('.qor-check-all').each(function () {
-      var $this = $(this);
-
-      $this.attr('title', 'Check all').tooltip().on('click', function () {
-        if (this.disabled) {
-          return;
-        }
-
-        $(this).attr('data-original-title', this.checked ? 'Uncheck all' : 'Check all').closest('table').find(':checkbox:not(.qor-check-all)').prop('checked', this.checked);
-      });
-
-      if (this.checked) {
-        $this.triggerHandler('click');
-      }
-    });
-  };
-
-  Widgets.tooltip = function () {
-    $('[data-toggle="tooltip"]').tooltip();
   };
 
   $(function () {

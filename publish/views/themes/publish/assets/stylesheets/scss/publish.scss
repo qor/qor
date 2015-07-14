@@ -13,4 +13,14 @@
     margin-bottom: 0;
     padding: 10px 30px;
   }
+
+  .qor-publish-modal {
+    .modal-body {
+      padding-top: 16px;
+    }
+
+    .qor-list-container {
+      box-shadow: none;
+    }
+  }
 }

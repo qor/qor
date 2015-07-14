@@ -1,5 +1,7 @@
-{{if .Value.IsImage}}
-  <img src="{{.Value.URL}}" alt="{{.Value.GetFileName}}">
-{{else}}
-  <a href="{{.Value.URL}}">{{.Value.GetFileName}}</a>
+{{if .Value}}
+  {{if .Value.IsImage}}
+    <img src="{{.Value.URL}}" alt="{{.Value.GetFileName}}">
+  {{else}}
+    <a href="{{.Value.URL}}">{{.Value.GetFileName}}</a>
+  {{end}}
 {{end}}

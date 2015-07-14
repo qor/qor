@@ -21,6 +21,7 @@ var Default = "en-US"
 
 type I18n struct {
 	scope        string
+	value        string
 	Backends     []Backend
 	Translations map[string]map[string]*Translation
 }
@@ -76,24 +77,32 @@ func (i18n *I18n) DeleteTransaltion(translation *Translation) {
 }
 
 func (i18n *I18n) Scope(scope string) admin.I18n {
-	return &I18n{Translations: i18n.Translations, scope: scope, Backends: i18n.Backends}
+	return &I18n{Translations: i18n.Translations, scope: scope, value: i18n.value, Backends: i18n.Backends}
+}
+
+func (i18n *I18n) Default(value string) admin.I18n {
+	return &I18n{Translations: i18n.Translations, scope: i18n.scope, value: value, Backends: i18n.Backends}
 }
 
 func (i18n *I18n) T(locale, key string, args ...interface{}) string {
-	var value string
+	var value = i18n.value
 	var translationKey = key
 	if i18n.scope != "" {
 		translationKey = strings.Join([]string{i18n.scope, key}, ".")
 	}
 
-	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil {
+	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil && translations[translationKey].Value != "" {
+		// Get localized translation
+		value = translations[translationKey].Value
+	} else if translations := i18n.Translations[Default]; translations != nil && translations[translationKey] != nil {
+		// Get default translation if not translated
 		value = translations[translationKey].Value
 	} else {
-		if Default == locale {
+		if value == "" {
 			value = key
 		}
 		// Save translations
-		err := i18n.SaveTranslation(&Translation{Key: translationKey, Locale: locale, Backend: i18n.Backends[0]})
+		err := i18n.SaveTranslation(&Translation{Key: translationKey, Value: value, Locale: locale, Backend: i18n.Backends[0]})
 		log.Printf("Error saving translation: [%s]: %s\n", locale, translationKey)
 		if err != nil {
 			return err.Error()
@@ -101,13 +110,7 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 	}
 
 	if value == "" {
-		// Get default translation if not translated
-		if translations := i18n.Translations[Default]; translations != nil && translations[translationKey] != nil {
-			value = translations[translationKey].Value
-		}
-		if value == "" {
-			value = key
-		}
+		value = key
 	}
 
 	if str, err := cldr.Parse(locale, value, args...); err == nil {
@@ -164,13 +167,18 @@ func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	res.SearchHandler = func(keyword string, context *qor.Context) *gorm.DB { return context.GetDB() }
 
 	res.GetAdmin().RegisterFuncMap("lt", func(locale, key string, withDefault bool) string {
-		translations := i18n.Translations[locale]
-		if (translations == nil) && withDefault {
-			translations = i18n.Translations[Default]
+		if translations := i18n.Translations[locale]; translations != nil {
+			if t := translations[key]; t != nil && t.Value != "" {
+				return t.Value
+			}
 		}
 
-		if translation := translations[key]; translation != nil {
-			return translation.Value
+		if withDefault {
+			if translations := i18n.Translations[Default]; translations != nil {
+				if t := translations[key]; t != nil {
+					return t.Value
+				}
+			}
 		}
 
 		return ""

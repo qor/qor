@@ -18,7 +18,7 @@
       <table class="qor-list">
         <thead>
           <tr>
-            <th><input class="qor-check-all" type="checkbox"></th>
+            <th><input class="qor-check-all" type="checkbox" title="{{t "Check All"}}"></th>
             {{range $meta := (index_metas $res)}}
               <th>{{ rt $res $meta.Label }}</th>
             {{end}}
@@ -51,7 +51,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="qorPublishModalLabel">{{t "Diff"}}</h4>
+          <h4 class="modal-title" id="qorPublishModalLabel">{{t "Changes"}}</h4>
         </div>
         <div class="modal-body"></div>
         <!-- <div class="modal-footer">

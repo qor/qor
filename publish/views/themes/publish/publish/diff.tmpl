@@ -1,7 +1,7 @@
 {{$context := .}}
 
-<div class="table-responsive">
-  <table class="table table-striped">
+<div class="qor-list-container">
+  <table class="qor-list">
     <thead>
       <tr>
         <th>{{t "Column"}}</th>
@@ -23,11 +23,15 @@
         <tr {{if $diff}}class="danger"{{end}}>
           <td>{{ rt $res $meta.Label }}</td>
           {{if $has_production}}
-            <td>{{$production_value}}</td>
+            <td>
+              <div class="qor-list-text">{{$production_value}}</div>
+            </td>
           {{else}}
             <td></td>
           {{end}}
-          <td>{{$draft_value}}</td>
+          <td>
+            <div class="qor-list-text">{{$draft_value}}</div>
+          </td>
         </tr>
       {{end}}
     </tbody>
