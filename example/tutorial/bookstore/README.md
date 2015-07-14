@@ -1,6 +1,22 @@
-# Tutorial
+# QOR example application
 
-This tutorial shows you
+This is an example application to show and explain features of QOR.
+
+You need basic understanding of Go to understand the documentation of this app.
+
+Run the code from the QOR repository in
+
+    cd $GOPATH/src/github.com/qor/qor/example/tutorial/01
+
+Once you have gone through this doc you could copy the directory structure of the app to use it as a template or start your own application from scratch.
+
+
+## Get Started
+
+We want to create a simple bookstore application. We will start by building a catalog of books and then later add a storefront. We will add a staging environment (database rather) so that editors can make changes to contents and then later publish them to a live database.
+
+We will add Localization(L10n) for the books and authors and Internationalization(I18n) support for the complete backoffice we built with `qor/admin`.
+
 
 ## Prerequisites
 
@@ -12,9 +28,10 @@ This tutorial shows you
 * A database - for example PostgreSQL or MySQL
 * Install dependencies: cd into the QOR source directory and run
 
+    cd $GOPATH/src/github.com/qor/qor
     go get -u ./...
 
-* Install Gin - QOR does not require gin, but we use it in the tutorial:
+* Install [Gin](https://github.com/gin-gonic/gin) - QOR does not require gin, but we use it in the example application for routing and templating:
 
     go get github.com/gin-gonic/gin
 
@@ -22,9 +39,9 @@ This tutorial shows you
 
     go get github.com/pilu/fresh
 
-fresh is not necessary to use QOR, but it will make your life easier when playing with the tutorial: it monitors for file changes and automatically recompiles your code every time something has changed.
+`fresh` is not necessary to use QOR, but it will make your life easier when playing with the tutorial: It monitors for file changes and automatically recompiles your code every time something has changed.
 
-If you don't want to go with fresh you will have to rebuild/rerun your code every time instead.
+If you don't want to go with fresh you will have to terminate, rebuild, and rerun your code every time instead.
 
 
 
@@ -55,11 +72,13 @@ Before we dive into our models we need to create a database:
     mysql> DROP DATABASE IF EXISTS qor_bookstore;
     mysql> CREATE DATABASE qor_bookstore DEFAULT CHARACTER SET utf8mb4;
 
-    mysql> CREATE USER 'qor'@'%' IDENTIFIED BY 'qor';         -- some versions don't like this use the previous line instead
+    mysql> CREATE USER 'qor'@'%' IDENTIFIED BY 'qor';         -- some versions don't like this use the next line instead
 
     OR
 
     mysql> CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor'; -- some versions don't like this use the next line instead
+
+
 
     mysql> GRANT ALL ON qor_bookstore.* TO 'qor'@'localhost';
     mysql> FLUSH PRIVILEGES;
@@ -67,18 +86,6 @@ Before we dive into our models we need to create a database:
 TODO: it's a bug that this is needed - but for now this needs to be called manually:
     mysql> use qor_bookstore;
     mysql> CREATE TABLE `translations` (`key` varchar(255),`locale` varchar(255),`value` varchar(255) , PRIMARY KEY (`key`(100),`locale`(100)));
-
-
-NB: There is one more step - [INSERTing initial users](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore#insert-some-users). You need to run the app once before you can do it (running it the first time creates the `users` table we want to insert into...)
-
-
-## Get Started
-
-We want to create a simple bookstore application. We will start by building a catalog of books and then later add a storefront. We will add a staging environment (database rather) so that editors can make changes to contents and then later publish them to a live database.
-
-We will add Localization(L10n) for the books and authors and Internationalization(I18n) support for the complete backoffice we built with `qor/admin`.
-
-
 
 
 ### The basic models
@@ -209,11 +216,12 @@ NB: If you add new fields to your model they will get added to the database auto
 
 #### Insert some users
 
-One last setup step: We need some users. Run this on your database:
+In the next step we want to log into the admin so we need some users. Run this on your database:
 
     INSERT INTO users (name,role) VALUES ('admin','admin');
     INSERT INTO users (name,role) VALUES ('user1','user');
 
+You must have run the application *once* before this step, otherwise the users table would not yet exist.
 
 ### Admin
 
@@ -221,7 +229,7 @@ If the bookstore app is not yet running, start it by running `fresh` in the book
 
     go/src/github.com/qor/qor/example/tutorial/bookstore/01 [bookstore (master)] $ fresh
 
-Go to [http://localhost:9000/admin](http://localhost:9000/admin) and you should see the main admin interface:
+Go to [http://localhost:9000/admin](http://localhost:9000/admin) and log in as `admin`. You should see the main admin interface:
 
 ![qor_admin](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin1.png)
 
@@ -237,7 +245,7 @@ The menu at the top gets created by adding your models as resources to the admin
 		},
 	)
 
-you can see how the rest of the resources was added in [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources/resources.go), the `db` object referenced here is set up in [models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/models/models.go)
+You can see how the rest of the resources was added in [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources/resources.go), the `db` object referenced here is set up in [models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/models/models.go)
 
 Go ahead and go to the authors admin and add an author...
 
@@ -267,15 +275,16 @@ You will see a much more crowded list: We had 5 attributes `"ID", "Title", "Auth
 		Name:  "AuthorNames",
 		Label: "Authors",
 		Valuer: func(value interface{}, context *qor.Context) interface{} {
+			// log.Println("LOCALE:", context.MustGet("locale"))
+			// log.Println("ctxt", context)
 			if value == nil {
 				return value
 			}
 			book := value.(*Book)
-			if err := db.Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
+			if err := context.GetDB().Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
 				panic(err)
 			}
 
-			log.Println(book.Authors)
 			var authors string
 			for i, author := range book.Authors {
 				if i >= 1 {
@@ -290,10 +299,11 @@ You will see a much more crowded list: We had 5 attributes `"ID", "Title", "Auth
 We define a `Meta` field for the `book` `Resource`. It's internal name is "AuthorNames", which we use in `book.IndexAttrs()` to use it in our admin book listing. The `Label` is what goes into the table header and the `Valuer` is a function that will return the display value we want - in our case the comma separated list of author names.
 
 
-##### Editable fields
+##### Editable and Create fields
 
-By default all defined model attributes and `Meta` attributes are included in the edit interface. If you need to limit the fields that are editable you can manually set the `EditAttrs`:
+By default all defined model attributes and `Meta` attributes are included in the edit interface. If you need to limit the fields that are editable you can manually set the `EditAttrs` (for editing existing objects) and `NewAttrs` (for object creation):
 
+	book.NewAttrs("Title", "Authors", "Synopsis", "ReleaseDate", "Price", "CoverImage")
 	book.EditAttrs("Title", "Authors", "Synopsis", "ReleaseDate", "Price", "CoverImage")
 
 

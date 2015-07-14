@@ -150,10 +150,10 @@ func init() {
 		},
 	})
 
-	// book.Meta(&admin.Meta{
-	// 	Name: "Synopsis",
-	// 	Type: "rich_editor",
-	// })
+	book.Meta(&admin.Meta{
+		Name: "Synopsis",
+		Type: "rich_editor",
+	})
 
 	// what fields should be displayed in the books list on admin
 	book.IndexAttrs("ID", "Title", "AuthorNames", "FormattedDate", "DisplayPrice")
