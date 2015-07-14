@@ -34,7 +34,9 @@
                 <input type="checkbox" name="checked_ids[]" value="{{$key}}"/>
               </td>
               {{range $index, $meta := index_metas $res}}
-                <td><p class="qor-list-text">{{render_publish_meta $record $meta $context}}</p></td>
+                <td>
+                  <div class="qor-list-text">{{render_publish_meta $record $meta $context}}</div>
+                </td>
               {{end}}
               <td><a class="qor-action-diff" data-url="publish/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a></td>
             </tr>
