@@ -1,6 +1,6 @@
 <div class="qor-sidebar">
   <div class="sidebar-header">
-    <a href="/admin">QOR</a>
+    {{raw (dt "logo" "<a href='{{.Prefix}}'>QOR</a>" .Admin.GetRouter)}}
     <a href="/" target="_blank">View Site <i class="md md-14" aria-hidden="true">open_in_new</i></a>
   </div>
   <div class="sidebar-body">
@@ -9,6 +9,6 @@
     </div>
   </div>
   <div class="sidebar-footer">
-    {{raw (t "Powered by <a href='http://getqor.com'>QOR</a>")}}
+    {{raw (dt "powered_by" "Powered by <a href='http://getqor.com'>QOR</a>")}}
   </div>
 </div>
