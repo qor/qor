@@ -5,4 +5,3 @@ CREATE USER 'qor'@'%' IDENTIFIED BY 'qor';         -- some versions don't like t
 GRANT ALL ON qor_bookstore.* TO 'qor'@'localhost';
 FLUSH PRIVILEGES;
 USE qor_bookstore;
-CREATE TABLE `translations` (`key` varchar(255),`locale` varchar(255),`value` varchar(255) , PRIMARY KEY (`key`(100),`locale`(100)));
