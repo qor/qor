@@ -45,7 +45,7 @@ If you don't want to go with fresh you will have to terminate, rebuild, and reru
 
 
 
-### Create a database and a db user for the tutorial
+### Create a database and a db user for the example application
 
 Before we dive into our models we need to create a database:
 
@@ -66,20 +66,11 @@ Before we dive into our models we need to create a database:
 
 
 
-
 #### MySQL
     $ mysql -uroot -p
     mysql> DROP DATABASE IF EXISTS qor_bookstore;
     mysql> CREATE DATABASE qor_bookstore DEFAULT CHARACTER SET utf8mb4;
-
-    mysql> CREATE USER 'qor'@'%' IDENTIFIED BY 'qor';         -- some versions don't like this use the next line instead
-
-    OR
-
-    mysql> CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor'; -- some versions don't like this use the next line instead
-
-On Linux for me the first line works - second does not. The opposite on OSX. (I have no idea why)
-
+    mysql> CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
     mysql> GRANT ALL ON qor_bookstore.* TO 'qor'@'localhost';
     mysql> FLUSH PRIVILEGES;
 
@@ -251,6 +242,7 @@ Before we look at the actual admin here is a brief breakdown of the directory st
 * main.go starts the webserver and additionally contains the routes right now. In a bigger project you would put them probably somewhere like `app/config/routes.go`
 * Static files are served from `public`. `public/system` is where the `qor/medialibrary` puts files related to your resources - eg. ad uploaded image
 
+NB: The symlinks (public, templates) are here so that we can reuse them in later parts of a tutorial.
 
 ### Admin
 
