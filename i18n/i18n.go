@@ -20,6 +20,7 @@ var Default = "en-US"
 
 type I18n struct {
 	scope        string
+	value        string
 	Backends     []Backend
 	Translations map[string]map[string]*Translation
 }
@@ -71,35 +72,38 @@ func (i18n *I18n) DeleteTransaltion(translation *Translation) {
 }
 
 func (i18n *I18n) Scope(scope string) admin.I18n {
-	return &I18n{Translations: i18n.Translations, scope: scope, Backends: i18n.Backends}
+	return &I18n{Translations: i18n.Translations, scope: scope, value: i18n.value, Backends: i18n.Backends}
+}
+
+func (i18n *I18n) Default(value string) admin.I18n {
+	return &I18n{Translations: i18n.Translations, scope: i18n.scope, value: value, Backends: i18n.Backends}
 }
 
 func (i18n *I18n) T(locale, key string, args ...interface{}) string {
-	var value string
+	var value = i18n.value
 	var translationKey = key
 	if i18n.scope != "" {
 		translationKey = strings.Join([]string{i18n.scope, key}, ".")
 	}
 
 	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil {
+		// Get localized translation
 		value = translations[translationKey].Value
-	} else {
-		var value string
-		if Default == locale {
-			value = key
-		}
-		// Save translations
-		i18n.SaveTransaltion(&Translation{Key: translationKey, Value: value, Locale: locale, Backend: i18n.Backends[0]})
 	}
 
 	if value == "" {
-		// Get default translation if not translated
 		if translations := i18n.Translations[Default]; translations != nil && translations[translationKey] != nil {
+			// Get default translation if not translated
 			value = translations[translationKey].Value
+		} else {
+			if value == "" {
+				value = key
+			}
+			// Save translations
+			i18n.SaveTransaltion(&Translation{Key: translationKey, Value: value, Locale: Default, Backend: i18n.Backends[0]})
 		}
-		if value == "" {
-			value = key
-		}
+	} else {
+		value = key
 	}
 
 	if str, err := cldr.Parse(locale, value, args...); err == nil {

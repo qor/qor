@@ -428,16 +428,16 @@ func (context *Context) logoutURL() string {
 	return ""
 }
 
-func (context *Context) T(key string, values ...interface{}) string {
+func (context *Context) dt(key string, value string, values ...interface{}) string {
 	locale := utils.GetLocale(context.Context)
 
 	if context.Admin.I18n == nil {
-		if result, err := cldr.Parse(locale, key, values...); err == nil {
+		if result, err := cldr.Parse(locale, value, values...); err == nil {
 			return result
 		}
 		return key
 	} else {
-		return context.Admin.I18n.Scope("qor_admin").T(locale, key, values...)
+		return context.Admin.I18n.Scope("qor_admin").Default(value).T(locale, key, values...)
 	}
 }
 
@@ -452,6 +452,10 @@ func (context *Context) rt(resource *Resource, key string, values ...interface{}
 	} else {
 		return context.Admin.I18n.Scope(strings.Join([]string{"qor_admin", resource.ToParam()}, ".")).T(locale, key, values...)
 	}
+}
+
+func (context *Context) T(key string, values ...interface{}) string {
+	return context.dt(key, key, values...)
 }
 
 func (context *Context) FuncMap() template.FuncMap {
@@ -505,6 +509,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		},
 
 		"t":       context.T,
+		"dt":      context.dt,
 		"rt":      context.rt,
 		"flashes": context.GetFlashes,
 	}
