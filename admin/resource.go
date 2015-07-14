@@ -95,9 +95,51 @@ func (res *Resource) Decode(context *qor.Context, value interface{}) (errs []err
 	return resource.Decode(context, value, res)
 }
 
+func (res *Resource) allAttrs() []string {
+	var attrs []string
+	scope := &gorm.Scope{Value: res.Value}
+
+Fields:
+	for _, field := range scope.GetModelStruct().StructFields {
+		for _, meta := range res.Metas {
+			if field.Name == meta.Alias {
+				attrs = append(attrs, meta.Name)
+				continue Fields
+			}
+		}
+
+		if field.IsForeignKey {
+			continue
+		}
+
+		for _, value := range []string{"CreatedAt", "UpdatedAt", "DeletedAt"} {
+			if value == field.Name {
+				continue Fields
+			}
+		}
+
+		attrs = append(attrs, field.Name)
+	}
+
+MetaIncluded:
+	for _, meta := range res.Metas {
+		for _, attr := range attrs {
+			if attr == meta.Alias || attr == meta.Name {
+				continue MetaIncluded
+			}
+		}
+		attrs = append(attrs, meta.Name)
+	}
+
+	return attrs
+}
+
 func (res *Resource) IndexAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.indexAttrs = columns
+	}
+	if len(res.indexAttrs) == 0 {
+		return res.allAttrs()
 	}
 	return res.indexAttrs
 }
@@ -106,6 +148,9 @@ func (res *Resource) NewAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.newAttrs = columns
 	}
+	if len(res.newAttrs) == 0 {
+		return res.allAttrs()
+	}
 	return res.newAttrs
 }
 
@@ -113,12 +158,18 @@ func (res *Resource) EditAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.editAttrs = columns
 	}
+	if len(res.editAttrs) == 0 {
+		return res.allAttrs()
+	}
 	return res.editAttrs
 }
 
 func (res *Resource) ShowAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.showAttrs = columns
+	}
+	if len(res.showAttrs) == 0 {
+		return res.allAttrs()
 	}
 	return res.showAttrs
 }
@@ -199,55 +250,16 @@ func (res *Resource) getCachedMetas(cacheKey string, fc func() []resource.Metaor
 	}
 }
 
-func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
-	var attrs, ignoredAttrs []string
-	for _, value := range _attrs {
-		if len(value) != 0 {
-			for _, v := range value {
-				if strings.HasPrefix(v, "-") {
-					ignoredAttrs = append(ignoredAttrs, strings.TrimLeft(v, "-"))
-				} else {
-					attrs = append(attrs, v)
-				}
-			}
-			break
-		}
-	}
-
+func (res *Resource) GetMetas(attrs []string) []resource.Metaor {
 	if len(attrs) == 0 {
-		scope := &gorm.Scope{Value: res.Value}
-		structFields := scope.GetModelStruct().StructFields
-
-	Fields:
-		for _, field := range structFields {
-			for _, meta := range res.Metas {
-				if field.Name == meta.Alias {
-					attrs = append(attrs, meta.Name)
-					continue Fields
-				}
-			}
-
-			if field.IsForeignKey {
-				continue
-			}
-
-			for _, value := range []string{"CreatedAt", "UpdatedAt", "DeletedAt"} {
-				if value == field.Name {
-					continue Fields
-				}
-			}
-
-			attrs = append(attrs, field.Name)
-		}
-
-	MetaIncluded:
-		for _, meta := range res.Metas {
-			for _, attr := range attrs {
-				if attr == meta.Alias || attr == meta.Name {
-					continue MetaIncluded
-				}
-			}
-			attrs = append(attrs, meta.Name)
+		attrs = res.allAttrs()
+	}
+	var showAttrs, ignoredAttrs []string
+	for _, attr := range attrs {
+		if strings.HasPrefix(attr, "-") {
+			ignoredAttrs = append(ignoredAttrs, strings.TrimLeft(attr, "-"))
+		} else {
+			showAttrs = append(showAttrs, attr)
 		}
 	}
 
@@ -255,7 +267,7 @@ func (res *Resource) GetMetas(_attrs ...[]string) []resource.Metaor {
 
 	metas := []resource.Metaor{}
 Attrs:
-	for _, attr := range attrs {
+	for _, attr := range showAttrs {
 		for _, a := range ignoredAttrs {
 			if attr == a {
 				continue Attrs
@@ -297,31 +309,31 @@ func (res *Resource) GetMeta(name string) *Meta {
 
 func (res *Resource) indexMetas() []*Meta {
 	return res.getCachedMetas("index_metas", func() []resource.Metaor {
-		return res.GetMetas(res.indexAttrs, res.showAttrs)
+		return res.GetMetas(res.IndexAttrs())
 	})
 }
 
 func (res *Resource) newMetas() []*Meta {
 	return res.getCachedMetas("new_metas", func() []resource.Metaor {
-		return res.GetMetas(res.newAttrs, res.editAttrs)
+		return res.GetMetas(res.NewAttrs())
 	})
 }
 
 func (res *Resource) editMetas() []*Meta {
 	return res.getCachedMetas("edit_metas", func() []resource.Metaor {
-		return res.GetMetas(res.editAttrs)
+		return res.GetMetas(res.EditAttrs())
 	})
 }
 
 func (res *Resource) showMetas() []*Meta {
 	return res.getCachedMetas("show_metas", func() []resource.Metaor {
-		return res.GetMetas(res.showAttrs, res.editAttrs)
+		return res.GetMetas(res.ShowAttrs())
 	})
 }
 
 func (res *Resource) allMetas() []*Meta {
 	return res.getCachedMetas("all_metas", func() []resource.Metaor {
-		return res.GetMetas()
+		return res.GetMetas([]string{})
 	})
 }
 

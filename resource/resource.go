@@ -22,7 +22,7 @@ type Resource struct {
 
 type Resourcer interface {
 	GetResource() *Resource
-	GetMetas(...[]string) []Metaor
+	GetMetas([]string) []Metaor
 	CallFindMany(interface{}, *qor.Context) error
 	CallFindOne(interface{}, *MetaValues, *qor.Context) error
 	CallSaver(interface{}, *qor.Context) error
@@ -91,6 +91,6 @@ func (res *Resource) NewStruct() interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
 }
 
-func (res *Resource) GetMetas(...[]string) []Metaor {
+func (res *Resource) GetMetas([]string) []Metaor {
 	panic("not defined")
 }

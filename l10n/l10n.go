@@ -112,7 +112,7 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 			return template.HTML(results)
 		}})
 
-		res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode", "Localization")...)
+		res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode")...)
 		res.ShowAttrs(append(res.ShowAttrs(), "-LanguageCode", "-Localization")...)
 		res.EditAttrs(append(res.EditAttrs(), "-LanguageCode", "-Localization")...)
 		res.NewAttrs(append(res.NewAttrs(), "-LanguageCode", "-Localization")...)

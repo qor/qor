@@ -48,7 +48,7 @@ func (meta *Meta) GetMetas() []resource.Metaor {
 	} else if meta.Resource == nil {
 		return []resource.Metaor{}
 	} else {
-		return meta.Resource.GetMetas()
+		return meta.Resource.GetMetas([]string{})
 	}
 }
 

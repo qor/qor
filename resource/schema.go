@@ -114,7 +114,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 func Decode(context *qor.Context, result interface{}, res Resourcer) (errs []error) {
 	var err error
 	var metaValues *MetaValues
-	metaors := res.GetMetas()
+	metaors := res.GetMetas([]string{})
 
 	responder.With("html", func() {
 		metaValues, err = ConvertFormToMetaValues(context.Request, metaors, "QorResource.")
