@@ -86,23 +86,21 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 		translationKey = strings.Join([]string{i18n.scope, key}, ".")
 	}
 
-	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil {
+	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil && translations[translationKey].Value != "" {
 		// Get localized translation
 		value = translations[translationKey].Value
+	} else if translations := i18n.Translations[Default]; translations != nil && translations[translationKey] != nil {
+		// Get default translation if not translated
+		value = translations[translationKey].Value
+	} else {
+		if value == "" {
+			value = key
+		}
+		// Save translations
+		i18n.SaveTransaltion(&Translation{Key: translationKey, Value: value, Locale: Default, Backend: i18n.Backends[0]})
 	}
 
 	if value == "" {
-		if translations := i18n.Translations[Default]; translations != nil && translations[translationKey] != nil {
-			// Get default translation if not translated
-			value = translations[translationKey].Value
-		} else {
-			if value == "" {
-				value = key
-			}
-			// Save translations
-			i18n.SaveTransaltion(&Translation{Key: translationKey, Value: value, Locale: Default, Backend: i18n.Backends[0]})
-		}
-	} else {
 		value = key
 	}
 
