@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -82,6 +83,7 @@ func init() {
 	})
 
 	user.IndexAttrs("ID", "Name", "Role")
+	user.NewAttrs("Name", "UserRole")
 	user.EditAttrs("Name", "UserRole")
 
 	author := Admin.AddResource(
@@ -103,24 +105,24 @@ func init() {
 		},
 	)
 
-	// // alternate price display
-	// book.Meta(&admin.Meta{
-	// 	Name:  "DisplayPrice",
-	// 	Label: "Price",
-	// 	Valuer: func(value interface{}, context *qor.Context) interface{} {
-	// 		book := value.(*Book)
-	// 		return fmt.Sprintf("¥%v", book.Price)
-	// 	},
-	// })
+	// alternate price display
+	book.Meta(&admin.Meta{
+		Name:  "DisplayPrice",
+		Label: "Price",
+		Valuer: func(value interface{}, context *qor.Context) interface{} {
+			book := value.(*Book)
+			return fmt.Sprintf("¥%v", book.Price)
+		},
+	})
 
-	// book.Meta(&admin.Meta{
-	// 	Name:  "FormattedDate",
-	// 	Label: "Release Date",
-	// 	Valuer: func(value interface{}, context *qor.Context) interface{} {
-	// 		book := value.(*Book)
-	// 		return book.ReleaseDate.Format("Jan 2, 2006")
-	// 	},
-	// })
+	book.Meta(&admin.Meta{
+		Name:  "FormattedDate",
+		Label: "Release Date",
+		Valuer: func(value interface{}, context *qor.Context) interface{} {
+			book := value.(*Book)
+			return book.ReleaseDate.Format("Jan 2, 2006")
+		},
+	})
 
 	// defines the display field for authors in the product list
 	book.Meta(&admin.Meta{
