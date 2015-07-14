@@ -91,15 +91,18 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 		translationKey = strings.Join([]string{i18n.scope, key}, ".")
 	}
 
-	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil {
+	if translations := i18n.Translations[locale]; translations != nil && translations[translationKey] != nil && translations[translationKey].Value != "" {
 		// Get localized translation
 		value = translations[translationKey].Value
+	} else if translations := i18n.Translations[Default]; translations != nil && translations[translationKey] != nil {
+		// Get default translation if not translated
+		value = translations[translationKey].Value
 	} else {
-		if Default == locale {
+		if value == "" {
 			value = key
 		}
 		// Save translations
-		err := i18n.SaveTranslation(&Translation{Key: translationKey, Locale: locale, Backend: i18n.Backends[0]})
+		err := i18n.SaveTranslation(&Translation{Key: translationKey, Value: value, Locale: Default, Backend: i18n.Backends[0]})
 		log.Printf("Error saving translation: [%s]: %s\n", locale, translationKey)
 		if err != nil {
 			return err.Error()
@@ -107,17 +110,6 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 	}
 
 	if value == "" {
-		if translations := i18n.Translations[Default]; translations != nil && translations[translationKey] != nil {
-			// Get default translation if not translated
-			value = translations[translationKey].Value
-		} else {
-			if value == "" {
-				value = key
-			}
-			// Save translations
-			i18n.SaveTransaltion(&Translation{Key: translationKey, Value: value, Locale: Default, Backend: i18n.Backends[0]})
-		}
-	} else {
 		value = key
 	}
 

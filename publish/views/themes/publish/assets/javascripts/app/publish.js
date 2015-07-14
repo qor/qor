@@ -27,14 +27,20 @@
     constructor: Publish,
 
     init: function () {
-      var $this = this.$element;
+      var options = this.options,
+          $this = this.$element;
 
-      this.$modal = $this.find(this.options.modal);
+      this.$modal = $this.find(options.modal);
+
+      if ($.fn.tooltip) {
+        $this.find(options.toggleCheck).tooltip();
+      }
+
       this.bind();
     },
 
     bind: function () {
-      this.$element.on(EVENT_CLICK, this.options.toggle, $.proxy(this.click, this));
+      this.$element.on(EVENT_CLICK, $.proxy(this.click, this));
     },
 
     unbind: function () {
@@ -42,16 +48,23 @@
     },
 
     click: function (e) {
-      var $target = $(e.target);
+      var options = this.options,
+          $target = $(e.target);
 
-      e.preventDefault();
+      if ($target.is(options.toggleView)) {
+        e.preventDefault();
 
-      if (this.loading) {
-        return;
+        if (this.loading) {
+          return;
+        }
+
+        this.loading = true;
+        this.$modal.find('.modal-body').empty().load($target.data('url'), $.proxy(this.show, this));
+      } else if ($target.is(options.toggleCheck)) {
+        if (!$target.prop('disabled')) {
+          $target.closest('table').parent().find('tbody :checkbox').prop('checked', $target.prop('checked'));
+        }
       }
-
-      this.loading = true;
-      this.$modal.find('.modal-body').empty().load($target.data('url'), $.proxy(this.show, this));
     },
 
     show: function () {
@@ -67,7 +80,8 @@
 
   Publish.DEFAULTS = {
     modal: '.qor-publish-modal',
-    toggle: '.qor-action-diff'
+    toggleView: '.qor-action-diff',
+    toggleCheck: '.qor-check-all'
   };
 
   Publish.plugin = function (options) {
