@@ -78,7 +78,7 @@ Before we dive into our models we need to create a database:
 
     mysql> CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor'; -- some versions don't like this use the next line instead
 
-
+On Linux for me the first line works - second does not. The opposite on OSX. (I have no idea why)
 
     mysql> GRANT ALL ON qor_bookstore.* TO 'qor'@'localhost';
     mysql> FLUSH PRIVILEGES;
@@ -222,6 +222,35 @@ In the next step we want to log into the admin so we need some users. Run this o
     INSERT INTO users (name,role) VALUES ('user1','user');
 
 You must have run the application *once* before this step, otherwise the users table would not yet exist.
+
+### Directory structure
+
+Before we look at the actual admin here is a brief breakdown of the directory structure of the example app:
+
+    .
+    ├── app
+    │   ├── handlers
+    │   │   └── handlers.go
+    │   ├── models
+    │   │   └── models.go
+    │   └── resources
+    │       └── resources.go
+    ├── main.go
+    ├── public -> ../public
+    │   ├── assets
+    │   │   └── css
+    │   │       └── bookstore.css
+    │   ├── system
+    └── templates -> ../templates
+        ├── book.tmpl
+        └── list.tmpl
+
+* The controllers are in `app/handlers`
+* models and db initialization happen in `app/models`
+* Resources are an itegral part of QOR/admin. Whenever resources or `Meta...`  is mentioned in this doc you will find the code it's referring to in `app/resources`
+* main.go starts the webserver and additionally contains the routes right now. In a bigger project you would put them probably somewhere like `app/config/routes.go`
+* Static files are served from `public`. `public/system` is where the `qor/medialibrary` puts files related to your resources - eg. ad uploaded image
+
 
 ### Admin
 
