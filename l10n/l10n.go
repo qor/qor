@@ -22,7 +22,7 @@ type l10nInterface interface {
 }
 
 type Locale struct {
-	LanguageCode string `sql:"size:8" gorm:"primary_key"`
+	LanguageCode string `sql:"size:6" gorm:"primary_key"`
 }
 
 func (l Locale) IsGlobal() bool {

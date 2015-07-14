@@ -61,8 +61,6 @@ We are planning to update the godoc documentation for all modules after the API 
 * [x] Define a first set of resources
 * [x] Introduce Meta - Back Office display control for your resources
 * [x] Using Publish
-* [-] L10n & I18n
-  * [x] L10n & I18n for qor/admin
-  * [ ] L10n & I18n for the frontend
-* [ ] Roles - currently only very briefly touched
-* [ ] Next: Worker
+* [ ] L10n & I18n
+* [ ] Roles
+* [ ] Worker
