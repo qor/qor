@@ -62,7 +62,7 @@
         this.$modal.find('.modal-body').empty().load($target.data('url'), $.proxy(this.show, this));
       } else if ($target.is(options.toggleCheck)) {
         if (!$target.prop('disabled')) {
-          $target.closest('table').parent().find('tbody :checkbox').prop('checked', $target.prop('checked'));
+          $target.closest('table').find(':checkbox').not($target).prop('checked', $target.prop('checked'));
         }
       }
     },
