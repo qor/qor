@@ -160,7 +160,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 			panic(err)
 		}
 	} else {
-		panic(fmt.Sprintf("%v: form type %v not supported", meta.Name, meta.Type))
+		utils.ExitWithMsg(fmt.Sprintf("%v: form type %v not supported: got error %v", meta.Name, meta.Type, err))
 	}
 }
 
