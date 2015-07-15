@@ -68,11 +68,10 @@
       this.maxTop = $this.outerHeight() - $thead.height() - $tbody.find('> tr:last').height() - $tfoot.height();
 
       if (!$clone) {
-        this.$clone = $clone = $thead.clone();
+        this.$clone = $clone = $thead.clone().prependTo($this);
       }
 
       $clone.
-        prependTo($this).
         css({
           position: 'fixed',
           top: 0,
