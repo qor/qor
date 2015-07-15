@@ -4,20 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/qor/qor/l10n"
 
 	"github.com/qor/qor/example/tutorial/bookstore/01/app/handlers"
 	. "github.com/qor/qor/example/tutorial/bookstore/01/app/resources"
 )
-
-const (
-	ENV_STAGING = iota
-	ENV_PRODUCTION
-)
-
-func init() {
-	l10n.Global = "en-US"
-}
 
 func main() {
 	mux := http.NewServeMux()

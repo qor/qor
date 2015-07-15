@@ -63,6 +63,7 @@ func (user User) EditableLocales() []string {
 	if user.Role == "admin" {
 		log.Println("EditableLocales() admin")
 		return []string{l10n.Global, "jp"}
+		// return []string{l10n.Global}
 	} else {
 		log.Println("EditableLocales() NOT admin")
 		return []string{l10n.Global, "jp"}
@@ -108,5 +109,6 @@ func init() {
 	StagingDB = Pub.DraftDB()         // Draft resources are saved here
 	ProductionDB = Pub.ProductionDB() // Published resources are saved here
 
+	l10n.Global = "en-US"
 	l10n.RegisterCallbacks(&Db)
 }

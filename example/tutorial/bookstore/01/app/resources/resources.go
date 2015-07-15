@@ -21,13 +21,11 @@ var (
 
 func init() {
 	// setting up QOR admin
-	// Admin := admin.New(&qor.Config{DB: &db})
 	Admin = admin.New(&qor.Config{DB: Pub.DraftDB()})
 	Admin.AddResource(Pub)
 	Admin.SetAuth(&Auth{})
 
 	I18n = i18n.New(database.New(StagingDB))
-	// Admin.AddResource(I18n, &admin.Config{Name: "Translations", Menu: []string{"Site Management"}})
 	Admin.AddResource(I18n)
 
 	roles.Register("admin", func(req *http.Request, currentUser qor.CurrentUser) bool {

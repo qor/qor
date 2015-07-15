@@ -346,7 +346,7 @@ QOR will pick an input type based on your struct types - but sometimes you want 
 		Type: "rich_editor",
 	})
 
-TODO: other types - at least select_one and select_many. add list.
+TODO: other types - at least select_one and select_many.
 
 
 
@@ -407,6 +407,7 @@ and you're almost done. You need a route to serve the files from:
 
 	router.StaticFS("/system/", http.Dir("public/system")) # this is in main.go
 
+The `public/system` directories must already exist - they do not get created by QOR.
 Support for publish (draft version, publish to live) is built in. This is what the directory structure for the `Book` `CoverImage`s looks like:
 
     /public [public (docs_and_tutorial)] $ tree
@@ -423,7 +424,7 @@ Support for publish (draft version, publish to live) is built in. This is what t
                     ├── P1210896.20150604163815084702067.jpg
                     └── P1210896.20150604163815084702067.original.jpg
 
-In your templates you can use the image like this:
+The directories for you resources (like books and books_draft) are created by the media_library. In your templates you can use the image like this:
 
     <img src="{{.book.CoverImage}}" />
 
@@ -449,7 +450,7 @@ Any model you want to have localization support on needs to inherit from l10n.Lo
     	Name string
     }
 
-Set your default locale:
+Set your default locale (In the example app these are called at the end of the `init()` function in [app/models/models.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/app/models/models.go)):
 
     func init() {
         l10n.Global = "en"
@@ -459,7 +460,19 @@ Set your default locale:
 
 TODO @jinzhu: what exactly does l10n.RegisterCallbacks
 
-You're almost done
+The last step is to define who can view or edit which locales. In `models.go` we have two methods defined on our `User` type:
+
+    func (User) ViewableLocales() []string {
+    	return []string{l10n.Global, "jp"}
+    }
+
+    func (user User) EditableLocales() []string {
+    	if user.Role == "admin" {
+    		return []string{l10n.Global, "jp"}
+    	} else {
+    		return []string{}
+    	}
+    }
 
 
 
@@ -477,15 +490,32 @@ To add I18N support for the `qor/admin`
     func init() {
     	// setting up QOR admin
     	Admin = admin.New(&qor.Config{DB: Pub.DraftDB()})
-    	Admin.AddResource(Pub)
-    	Admin.SetAuth(&Auth{})
+        [...]
 
     	I18n := i18n.New(database.New(StagingDB))
     	Admin.AddResource(I18n)
+        [...]
 
-TODO: screenshots
+You can find the code in [app/resources/resources.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/app/resources/resources.go)
 
-TODO: Add the funcMap with the `T` template functions and import frontend strings into QOR too. (@bom-d-van)
+This gives you the `I18n` menu entry in admin.
+
+TODO: screenshot
+
+Go ahead and look for the translation key `qor_admin.I18n` and translate it:
+
+![qor_translate1](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate1.png)
+
+Set the english translation to `Translations`, use the target language switcher in the table header and change the target language to `jp` (japanese) and translate it to `翻訳`. Now reload admin and you will see your translation in the menu on the left.
+
+![qor_translate2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate2.png)
+
+If you go to eg. Authors and set the locale to `jp` you will see your translation appear in the admin menu on the left:
+
+![qor_translate3](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate3.png)
+
+NB: Currently the example app is set up in a way that only
+
 
 
 
@@ -494,5 +524,7 @@ TODO: Add the funcMap with the `T` template functions and import frontend string
 QOR does not provide any builtin templating or routing support - use whatever library is best fit for your needs. In this tutorial we will use [gin](https://github.com/gin-gonic/gin) and the stl `html/template`s.
 
 http://localhost:9000/books
+
+
 
 TODO: switching the language/locale on the frontend
