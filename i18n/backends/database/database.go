@@ -45,7 +45,7 @@ func (backend *Backend) SaveTranslation(t *i18n.Translation) (err error) {
 		err = fmt.Errorf("Translation locale is too long: %v. Maximum locale length is 8: %s", len(t.Locale), t.Locale)
 		return
 	}
-	backend.DB.Where(Translation{Key: t.Key, Locale: t.Locale}).Assign(Translation{Value: t.Value}).FirstOrCreate(&Translation{})
+	err = backend.DB.Where(Translation{Key: t.Key, Locale: t.Locale}).Assign(Translation{Value: t.Value}).FirstOrCreate(&Translation{})
 	return
 }
 
