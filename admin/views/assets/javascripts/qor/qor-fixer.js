@@ -39,8 +39,7 @@
       this.$tbody = $this.find('tbody:first');
       this.$tfoot = $this.find('tfoot:first');
 
-      this.build();
-      this.toggle();
+      this.resize();
       this.bind();
     },
 
@@ -53,7 +52,7 @@
     unbind: function () {
       $window
         .off(EVENT_SCROLL, this.toggle)
-        .off(EVENT_RESIZE, this.build);
+        .off(EVENT_RESIZE, this.resize);
     },
 
     build: function () {
@@ -95,6 +94,11 @@
       } else {
         $clone.hide();
       }
+    },
+
+    resize: function () {
+      this.build();
+      this.toggle();
     },
 
     destroy: function () {
