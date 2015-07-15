@@ -1,9 +1,12 @@
 package utils
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 var pluralInflections = [][]string{
-	[]string{"$", "s"},
+	[]string{"([a-z])$", "${1}s"},
 	[]string{"s$", "s"},
 	[]string{"^(ax|test)is$", "${1}es"},
 	[]string{"(octop|vir)us$", "${1}i"},
@@ -88,45 +91,41 @@ func compile() {
 	}
 
 	for _, value := range irregularInflections {
-		inf := inflection{
-			regexp:  regexp.MustCompile(value[0] + "$"),
-			replace: value[1],
+		infs := []inflection{
+			inflection{regexp: regexp.MustCompile(strings.ToUpper(value[0]) + "$"), replace: strings.ToUpper(value[1])},
+			inflection{regexp: regexp.MustCompile(strings.Title(value[0]) + "$"), replace: strings.Title(value[1])},
+			inflection{regexp: regexp.MustCompile(value[0] + "$"), replace: value[1]},
 		}
-		compiledPluralMaps = append(compiledPluralMaps, inf)
+		compiledPluralMaps = append(compiledPluralMaps, infs...)
 	}
 
 	for _, value := range irregularInflections {
-		inf := inflection{
-			regexp:  regexp.MustCompile(value[0] + "$"),
-			replace: value[1],
+		infs := []inflection{
+			inflection{regexp: regexp.MustCompile(strings.ToUpper(value[1]) + "$"), replace: strings.ToUpper(value[0])},
+			inflection{regexp: regexp.MustCompile(strings.Title(value[1]) + "$"), replace: strings.Title(value[0])},
+			inflection{regexp: regexp.MustCompile(value[1] + "$"), replace: value[0]},
 		}
-		compiledPluralMaps = append(compiledPluralMaps, inf)
-	}
-
-	for _, value := range irregularInflections {
-		inf := inflection{
-			regexp:  regexp.MustCompile(value[1] + "$"),
-			replace: value[0],
-		}
-		compiledSingularMaps = append(compiledSingularMaps, inf)
+		compiledSingularMaps = append(compiledSingularMaps, infs...)
 	}
 
 	for i := len(pluralInflections) - 1; i >= 0; i-- {
 		value := pluralInflections[i]
-		inf := inflection{
-			regexp:  regexp.MustCompile("(?i)" + value[0]),
-			replace: value[1],
+		infs := []inflection{
+			inflection{regexp: regexp.MustCompile(strings.ToUpper(value[0])), replace: strings.ToUpper(value[1])},
+			inflection{regexp: regexp.MustCompile(value[0]), replace: value[1]},
+			inflection{regexp: regexp.MustCompile("(?i)" + value[0]), replace: value[1]},
 		}
-		compiledPluralMaps = append(compiledPluralMaps, inf)
+		compiledPluralMaps = append(compiledPluralMaps, infs...)
 	}
 
 	for i := len(singularInflections) - 1; i >= 0; i-- {
 		value := singularInflections[i]
-		inf := inflection{
-			regexp:  regexp.MustCompile("(?i)" + value[0]),
-			replace: value[1],
+		infs := []inflection{
+			inflection{regexp: regexp.MustCompile(strings.ToUpper(value[0])), replace: strings.ToUpper(value[1])},
+			inflection{regexp: regexp.MustCompile(value[0]), replace: value[1]},
+			inflection{regexp: regexp.MustCompile("(?i)" + value[0]), replace: value[1]},
 		}
-		compiledSingularMaps = append(compiledSingularMaps, inf)
+		compiledSingularMaps = append(compiledSingularMaps, infs...)
 	}
 }
 
