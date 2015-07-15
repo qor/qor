@@ -443,16 +443,7 @@ func (context *Context) dt(key string, value string, values ...interface{}) stri
 }
 
 func (context *Context) rt(resource *Resource, key string, values ...interface{}) string {
-	locale := utils.GetLocale(context.Context)
-
-	if context.Admin.I18n == nil {
-		if result, err := cldr.Parse(locale, key, values); err == nil {
-			return result
-		}
-		return key
-	} else {
-		return context.Admin.I18n.Scope(strings.Join([]string{"qor_admin", resource.ToParam()}, ".")).T(locale, key, values...)
-	}
+	return context.dt(strings.Join([]string{"qor_admin", resource.ToParam(), key}, "."), key, values)
 }
 
 func (context *Context) T(key string, values ...interface{}) string {
