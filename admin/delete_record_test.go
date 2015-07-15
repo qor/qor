@@ -14,7 +14,7 @@ func TestDeleteRecord(t *testing.T) {
 		"_method": {"delete"},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/user/"+strconv.Itoa(user.Id), form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users/"+strconv.Itoa(user.Id), form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Delete request should be processed successfully")
 		}
