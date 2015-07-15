@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/inflection"
 	"github.com/qor/qor"
 	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
@@ -159,7 +160,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 			panic(err)
 		}
 	} else {
-		panic(fmt.Sprintf("%v: form type %v not supported", meta.Name, meta.Type))
+		utils.ExitWithMsg(fmt.Sprintf("%v: form type %v not supported: got error %v", meta.Name, meta.Type, err))
 	}
 }
 
@@ -442,16 +443,7 @@ func (context *Context) dt(key string, value string, values ...interface{}) stri
 }
 
 func (context *Context) rt(resource *Resource, key string, values ...interface{}) string {
-	locale := utils.GetLocale(context.Context)
-
-	if context.Admin.I18n == nil {
-		if result, err := cldr.Parse(locale, key, values); err == nil {
-			return result
-		}
-		return key
-	} else {
-		return context.Admin.I18n.Scope(strings.Join([]string{"qor_admin", resource.ToParam()}, ".")).T(locale, key, values...)
-	}
+	return context.dt(strings.Join([]string{"qor_admin", resource.ToParam(), key}, "."), key, values)
 }
 
 func (context *Context) T(key string, values ...interface{}) string {
@@ -471,10 +463,13 @@ func (context *Context) FuncMap() template.FuncMap {
 		"menus":      context.Admin.GetMenus,
 		"get_scopes": context.GetScopes,
 
-		"escape":                 html.EscapeString,
-		"raw":                    func(str string) template.HTML { return template.HTML(str) },
-		"equal":                  equal,
-		"stringify":              utils.Stringify,
+		"escape":    html.EscapeString,
+		"raw":       func(str string) template.HTML { return template.HTML(str) },
+		"equal":     equal,
+		"stringify": utils.Stringify,
+		"plural":    inflection.Plural,
+		"singular":  inflection.Singular,
+
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
 		"render_index_meta":      context.renderIndexMeta,

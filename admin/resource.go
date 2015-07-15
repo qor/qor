@@ -9,6 +9,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
+	"github.com/qor/inflection"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
@@ -47,7 +48,7 @@ func (res Resource) GetAdmin() *Admin {
 }
 
 func (res Resource) ToParam() string {
-	return utils.ToParamString(res.Name)
+	return utils.ToParamString(inflection.Plural(res.Name))
 }
 
 func (res Resource) UseTheme(theme string) []string {

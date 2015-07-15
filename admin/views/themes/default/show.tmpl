@@ -1,5 +1,5 @@
 <div class="qor-navbar">
-  <h1 class="qor-title">{{t "Edit {{.Name}}" .Resource}}</h1>
+  <h1 class="qor-title">{{rt .Resource (printf "Edit %v" (singular .Resource.Name))}}</h1>
   {{render "toolbar"}}
 </div>
 

@@ -116,4 +116,8 @@ func (publish *Publish) InjectQorAdmin(res *admin.Resource) {
 		}
 		return template.HTML(result.String())
 	})
+
+	res.GetAdmin().RegisterFuncMap("publish_unique_key", func(res *admin.Resource, record interface{}, context *admin.Context) string {
+		return fmt.Sprintf("%s__%v", res.ToParam(), context.GetDB().NewScope(record).PrimaryKeyValue())
+	})
 }
