@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"text/template"
 
+	"github.com/qor/inflection"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
@@ -112,7 +113,7 @@ func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource 
 
 	if !res.Config.Invisible {
 		// TODO: move Menu out of res.Config, make the API looks better
-		menu := &Menu{rawPath: res.ToParam(), Name: res.Name}
+		menu := &Menu{rawPath: res.ToParam(), Name: inflection.Plural(res.Name)}
 		admin.menus = appendMenu(admin.menus, res.Config.Menu, menu)
 	}
 
