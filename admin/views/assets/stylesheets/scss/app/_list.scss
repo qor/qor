@@ -51,6 +51,22 @@
           background-color: #e8e8e8;
         }
       }
+
+      &.success {
+        background-color: #dff0d8;
+      }
+
+      &.info {
+        background-color: #d9edf7;
+      }
+
+      &.warning {
+        background-color: #fcf8e3;
+      }
+
+      &.danger {
+        background-color: #f2dede;
+      }
     }
   }
 
