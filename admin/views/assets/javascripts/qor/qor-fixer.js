@@ -39,8 +39,7 @@
       this.$tbody = $this.find('tbody:first');
       this.$tfoot = $this.find('tfoot:first');
 
-      this.build();
-      this.toggle();
+      this.resize();
       this.bind();
     },
 
@@ -53,7 +52,7 @@
     unbind: function () {
       $window
         .off(EVENT_SCROLL, this.toggle)
-        .off(EVENT_RESIZE, this.build);
+        .off(EVENT_RESIZE, this.resize);
     },
 
     build: function () {
@@ -68,11 +67,10 @@
       this.maxTop = $this.outerHeight() - $thead.height() - $tbody.find('> tr:last').height() - $tfoot.height();
 
       if (!$clone) {
-        this.$clone = $clone = $thead.clone();
+        this.$clone = $clone = $thead.clone().prependTo($this);
       }
 
       $clone.
-        prependTo($this).
         css({
           position: 'fixed',
           top: 0,
@@ -96,6 +94,11 @@
       } else {
         $clone.hide();
       }
+    },
+
+    resize: function () {
+      this.build();
+      this.toggle();
     },
 
     destroy: function () {
