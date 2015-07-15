@@ -13,14 +13,14 @@
     </div>
 
     {{range $res, $records := .Result}}
-    <h4 class="qor-publish-heading">{{rt $res $res.Name}}</h4>
+    <h4 class="qor-publish-heading">{{rt $res (plural $res.Name)}}</h4>
     <div class="qor-list-container">
       <table class="qor-list">
         <thead>
           <tr>
             <th><input class="qor-check-all" type="checkbox" title="{{t "Check All"}}"></th>
             {{range $meta := (index_metas $res)}}
-              <th>{{ rt $res $meta.Label }}</th>
+              <th>{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</th>
             {{end}}
             <th>{{t "Actions"}}</th>
           </tr>

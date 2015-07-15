@@ -4,7 +4,7 @@
   <thead>
     <tr>
       {{range $index, $meta := index_metas}}
-        <th>{{ rt $Resource $meta.Label }}</th>
+        <th>{{dt (printf "%v.attributes.%v" $Resource.ToParam $meta.Label) $meta.Label}}</th>
       {{end}}
       <th class="qor-list-action">{{t "Actions"}}</th>
     </tr>
