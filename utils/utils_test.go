@@ -26,6 +26,8 @@ func TestToParamString(t *testing.T) {
 		{"OrderItem", "order_item"},
 		{"order item", "order_item"},
 		{"Order Item", "order_item"},
+		{"FAQ", "faq"},
+		{"FAQPage", "faq_page"},
 	}
 	for _, c := range cases {
 		if got := ToParamString(c[0]); got != c[1] {
