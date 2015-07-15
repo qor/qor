@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/inflection"
 	"github.com/qor/qor"
 	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
@@ -471,10 +472,13 @@ func (context *Context) FuncMap() template.FuncMap {
 		"menus":      context.Admin.GetMenus,
 		"get_scopes": context.GetScopes,
 
-		"escape":                 html.EscapeString,
-		"raw":                    func(str string) template.HTML { return template.HTML(str) },
-		"equal":                  equal,
-		"stringify":              utils.Stringify,
+		"escape":    html.EscapeString,
+		"raw":       func(str string) template.HTML { return template.HTML(str) },
+		"equal":     equal,
+		"stringify": utils.Stringify,
+		"plural":    inflection.Plural,
+		"singular":  inflection.Singular,
+
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
 		"render_index_meta":      context.renderIndexMeta,
