@@ -1,7 +1,8 @@
 {{$context := .}}
+{{$resource := .Resource}}
 
 <div class="qor-navbar">
-  <h1 class="qor-title">{{t "{{.Name}}" .Resource}}</h1>
+  <h1 class="qor-title">{{t "{{.Name}}" $resource}}</h1>
   {{render "toolbar"}}
 </div>
 
@@ -28,7 +29,7 @@
 
         <tbody>
           {{range $record := $records}}
-            {{$key := (printf "%s__%v" $res.ToParam (primary_key_of $record))}}
+            {{$key := publish_unique_key $res $record $context}}
             <tr id="{{$key}}">
               <td>
                 <input type="checkbox" name="checked_ids[]" value="{{$key}}"/>
@@ -38,7 +39,7 @@
                   <div class="qor-list-text">{{render_publish_meta $record $meta $context}}</div>
                 </td>
               {{end}}
-              <td><a class="qor-action-diff" data-url="publish/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a></td>
+              <td><a class="qor-action-diff" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a></td>
             </tr>
           {{end}}
         </tbody>
