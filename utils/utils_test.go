@@ -1,9 +1,6 @@
 package utils
 
-import (
-	"errors"
-	"testing"
-)
+import "testing"
 
 func TestHumanizeString(t *testing.T) {
 	cases := []struct {
@@ -53,11 +50,6 @@ func TestPatchUrl(t *testing.T) {
 			original: "http://qor.com/admin/orders?locale=global&q=dotnet&test=1#test",
 			input:    []interface{}{"locale", ""},
 			want:     "http://qor.com/admin/orders?q=dotnet&test=1#test",
-		},
-		{
-			original: "http://qor.com/admin/orders?locale=global&q=dotnet&test=1#test",
-			input:    []interface{}{"locale", 1},
-			err:      errors.New("1 type is int, want string"),
 		},
 	}
 	for _, c := range cases {
