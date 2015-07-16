@@ -82,7 +82,10 @@
 
 .qor-action-edit,
 .qor-action-delete {
+  color: rgba(0,0,0,0.54);
+
   > i {
+    color: inherit;
     vertical-align: middle;
   }
 }
