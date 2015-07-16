@@ -564,13 +564,13 @@ We get the data for all or one book and then pass it to the template in `ctx.HTM
 
 Go ahead an point your browser to:
 
-http://localhost:9000/books
+[http://localhost:9000/books](http://localhost:9000/books)
 
 If you have books in your system but see an empty page you have most likely not yet published your data. Go to [Publish section](http://127.0.0.1:9000/admin/publish), select all items and hit publish:
 
 ![qor_publish2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_publish2.png)
 
-http://localhost:9000/books should now show your books.
+[http://localhost:9000/books](http://localhost:9000/books) should now show your books.
 
 TODO: switching the language/locale on the frontend
 
