@@ -46,6 +46,7 @@ func ToParamString(str string) string {
 		return strings.ToLower(str)
 	}
 
+	str = strings.Replace(str, " ", "_", -1)
 	str = upcaseRegexp.ReplaceAllStringFunc(str, func(s string) string {
 		return s[0:1] + strings.ToLower(s[1:len(s)-2]) + s[len(s)-2:]
 	})
