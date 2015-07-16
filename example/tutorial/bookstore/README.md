@@ -507,12 +507,76 @@ TODO: Add an example on how to import keys from eg. a YAML file.
 
 ### Frontend
 
-QOR does not provide any builtin templating or routing support - you can use whatever library is best fit for your needs. In this example application tutorial we use [gin](https://github.com/gin-gonic/gin).
+QOR does not provide any builtin templating or routing support - you can use whatever library is best fit for your needs. In this example application tutorial we use [gin](https://github.com/gin-gonic/gin):
 
+In [main.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/main.go)
 
+	// frontend routes
+	router := gin.Default()
+	router.LoadHTMLGlob("templates/*")
+
+we initialize a `gin.Router` and tell it where it can find our templates.
+
+	// serve static files
+	router.StaticFS("/system/", http.Dir("public/system"))
+	router.StaticFS("/assets/", http.Dir("public/assets"))
+
+add routes for static files
+
+	// books
+	bookRoutes := router.Group("/books")
+	{
+		// listing
+		bookRoutes.GET("", handlers.ListBooksHandler)
+		// single book - product page
+		bookRoutes.GET("/:id", handlers.ViewBookHandler)
+	}
+
+and add two endpoints - one to list all our books and one book details page.
+
+The handlers (controllers) are defined in [app/handlers/handlers.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/app/handlers/handlers.go):
+
+    func ListBooksHandler(ctx *gin.Context) {
+        # get the books data
+        [...]
+
+    	ctx.HTML(
+    		http.StatusOK,
+    		"list.tmpl",
+    		gin.H{
+    			"books": books,
+    			"t": func(key string, args ...interface{}) template.HTML {
+    				return template.HTML(resources.I18n.T(retrieveLocale(ctx), key, args...))
+    			},
+    		},
+    	)
+    }
+
+    func ViewBookHandler(ctx *gin.Context) {
+        [...]
+    }
+
+We get the data for all or one book and then pass it to the template in `ctx.HTML()`. One thing to note here is that we pass not only the data ( `"books": books`) but also a function `t` which is the translation function. It's used in the templates like this:
+
+    <h1>{{call .t "frontend.books.List of Books"}}</h1>
+
+`frontend.books.List of Books` will become the key that will appear in your translations resource. (after you accessed it once. See [I18N](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore#i18n---translating-strings) - the NB at the end of the section if you don't know why).
+
+Go ahead an point your browser to:
 
 http://localhost:9000/books
 
+If you have books in your system but see an empty page you have most likely not yet published your data. Go to [Publish section](http://127.0.0.1:9000/admin/publish), select all items and hit publish:
 
+![qor_publish2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_publish2.png)
+
+http://localhost:9000/books should now show your books.
 
 TODO: switching the language/locale on the frontend
+
+
+### Next steps
+
+This example app will be extended to eventually showcase most of QORs features and a tutorial that goes through building this app step by step is in planning too.
+
+Go ahead and copy the example application and start using your own resources. Have fun with QOR!
