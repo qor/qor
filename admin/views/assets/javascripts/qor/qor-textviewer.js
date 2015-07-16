@@ -31,7 +31,8 @@
       this.$element.find(this.options.toggle).each(function () {
         var $this = $(this);
 
-        if (this.scrollHeight > $this.height()) {
+        // 8 for correction as `scrollHeight` will large than `offsetHeight` most of the time.
+        if (this.scrollHeight > this.offsetHeight + 8) {
           $this.addClass('active').wrapInner(TextViewer.INNER);
         }
       });
@@ -69,7 +70,7 @@
       if ($target.hasClass('active')) {
         $modal = this.$modal;
         $modal.find('.modal-title').text($target.closest('td').attr('title'));
-        $modal.find('.modal-body').html($target.html());
+        $modal.find('.modal-body').html($target.find('.text-inner').html());
         $modal.modal('show');
       }
     },

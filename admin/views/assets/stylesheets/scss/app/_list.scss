@@ -123,7 +123,6 @@
   max-height: 180px;
   word-wrap: break-word;
   background-color: inherit;
-  overflow: hidden;
   vertical-align: middle;
 
   > .text-inner {
@@ -135,6 +134,7 @@
     margin: -8px;
     padding: 8px;
     cursor: pointer;
+    overflow: hidden;
 
     &:before,
     &:after {
@@ -204,7 +204,7 @@
 
   > a {
     + a {
-      margin-left: 5px;
+      margin-left: 32px;
     }
   }
 }
