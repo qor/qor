@@ -31,7 +31,8 @@
       this.$element.find(this.options.toggle).each(function () {
         var $this = $(this);
 
-        if (this.scrollHeight > $this.height()) {
+        // 8 for correction as `scrollHeight` will large than `offsetHeight` most of the time.
+        if (this.scrollHeight > this.offsetHeight + 8) {
           $this.addClass('active').wrapInner(TextViewer.INNER);
         }
       });
