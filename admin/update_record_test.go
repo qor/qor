@@ -19,7 +19,7 @@ func TestUpdateRecord(t *testing.T) {
 		"QorResource.Role": {"admin"},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/user/"+strconv.Itoa(user.Id), form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users/"+strconv.Itoa(user.Id), form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Create request should be processed successfully")
 		}
@@ -44,7 +44,7 @@ func TestUpdateHasOneRecord(t *testing.T) {
 		"QorResource.CreditCard.Issuer": {"UnionPay"},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/user/"+strconv.Itoa(user.Id), form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users/"+strconv.Itoa(user.Id), form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("User request should be processed successfully")
 		}
@@ -84,7 +84,7 @@ func TestUpdateHasManyRecord(t *testing.T) {
 		"QorResource.Addresses[3].Address1": {"address 4.1"},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/user/"+strconv.Itoa(user.Id), form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users/"+strconv.Itoa(user.Id), form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Create request should be processed successfully")
 		}
@@ -130,7 +130,7 @@ func TestDestroyEmbeddedHasOneRecord(t *testing.T) {
 		"QorResource.CreditCard.Issuer":   {"UnionPay"},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/user/"+strconv.Itoa(user.Id), form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users/"+strconv.Itoa(user.Id), form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("User request should be processed successfully")
 		}
@@ -167,7 +167,7 @@ func TestUpdateManyToManyRecord(t *testing.T) {
 		"QorResource.Languages": {strconv.Itoa(languageCN.Id)},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/user/"+strconv.Itoa(user.Id), form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users/"+strconv.Itoa(user.Id), form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Update request should be processed successfully")
 		}

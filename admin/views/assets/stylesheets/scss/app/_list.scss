@@ -51,6 +51,22 @@
           background-color: #e8e8e8;
         }
       }
+
+      &.success {
+        background-color: #dff0d8;
+      }
+
+      &.info {
+        background-color: #d9edf7;
+      }
+
+      &.warning {
+        background-color: #fcf8e3;
+      }
+
+      &.danger {
+        background-color: #f2dede;
+      }
     }
   }
 
@@ -153,6 +169,33 @@
         display: block;
       }
     }
+  }
+}
+
+.qor-list-label {
+  display: inline;
+  padding: .2em .6em;
+  border: 1px solid #ddd;
+  font-size: 75%;
+  font-weight: 500;
+  line-height: 1;
+  background-color: #fff;
+  color: #ccc;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
+
+  &:hover,
+  &:focus {
+    border-color: lighten(#666, 20%);
+    color: #666;
+    text-decoration: none;
+  }
+
+  &.active {
+    border-color: lighten(#03a9f4, 20%);
+    color: #03a9f4;
   }
 }
 

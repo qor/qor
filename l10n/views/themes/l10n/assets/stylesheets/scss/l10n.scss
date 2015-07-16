@@ -6,30 +6,3 @@
     box-shadow: 0 1px 0 rgba(0,0,0,0.16), 0 -1px 0 rgba(0,0,0,0.16);
   }
 }
-
-.qor-l10n-label {
-  display: inline;
-  padding: .2em .6em;
-  border: 1px solid #ddd;
-  font-size: 75%;
-  font-weight: 500;
-  line-height: 1;
-  background-color: #fff;
-  color: #ccc;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: baseline;
-  border-radius: .25em;
-
-  &:hover,
-  &:focus {
-    border-color: lighten(#666, 20%);
-    color: #666;
-    text-decoration: none;
-  }
-
-  &.active {
-    border-color: lighten(#03a9f4, 20%);
-    color: #03a9f4;
-  }
-}
