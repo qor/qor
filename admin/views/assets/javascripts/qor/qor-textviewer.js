@@ -70,7 +70,7 @@
       if ($target.hasClass('active')) {
         $modal = this.$modal;
         $modal.find('.modal-title').text($target.closest('td').attr('title'));
-        $modal.find('.modal-body').html($target.html());
+        $modal.find('.modal-body').html($target.find('.text-inner').html());
         $modal.modal('show');
       }
     },
