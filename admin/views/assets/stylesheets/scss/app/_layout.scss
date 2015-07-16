@@ -80,7 +80,7 @@ body {
     position: absolute;
     top: 64px;
     right: 0;
-    bottom: 80px;
+    bottom: 0;
     left: 0;
   }
 
@@ -89,14 +89,11 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    height: 80px;
-    padding: 15px 20px;
+    height: 56px;
+    display: none;
+    padding: 16px 24px;
     border-top: 1px solid #eee;
-
-    > p {
-      display: none;
-      margin-bottom: 0;
-    }
+    line-height: 24px;
   }
 }
 
@@ -134,14 +131,13 @@ body {
     }
 
     > .sidebar-body {
+      bottom: 56px;
       overflow-x: hidden;
       overflow-y: auto;
     }
 
     > .sidebar-footer {
-      > p {
-        display: block;
-      }
+      display: block;
     }
   }
 
