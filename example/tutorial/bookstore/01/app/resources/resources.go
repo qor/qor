@@ -1,7 +1,6 @@
 package resources
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -103,16 +102,6 @@ func init() {
 		},
 	)
 
-	// alternate price display
-	book.Meta(&admin.Meta{
-		Name:  "DisplayPrice",
-		Label: "Price",
-		Valuer: func(value interface{}, context *qor.Context) interface{} {
-			book := value.(*Book)
-			return fmt.Sprintf("¥%v", book.Price)
-		},
-	})
-
 	book.Meta(&admin.Meta{
 		Name:  "FormattedDate",
 		Label: "Release Date",
@@ -122,42 +111,17 @@ func init() {
 		},
 	})
 
-	// defines the display field for authors in the product list
-	book.Meta(&admin.Meta{
-		Name:  "AuthorNames",
-		Label: "Authors",
-		Valuer: func(value interface{}, context *qor.Context) interface{} {
-			// log.Println("LOCALE:", context.MustGet("locale"))
-			// log.Println("ctxt", context)
-			if value == nil {
-				return value
-			}
-			book := value.(*Book)
-			if err := context.GetDB().Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
-				panic(err)
-			}
-
-			var authors string
-			for i, author := range book.Authors {
-				if i >= 1 {
-					authors += ", "
-				}
-				authors += author.Name
-			}
-			return authors
-		},
-	})
-
 	book.Meta(&admin.Meta{
 		Name: "Synopsis",
 		Type: "rich_editor",
 	})
 
-	// what fields should be displayed in the books list on admin
-	book.IndexAttrs("ID", "Title", "AuthorNames", "FormattedDate", "DisplayPrice")
-	// what fields should be editable in the book esit interface
+	// which fields should be displayed in the books list on admin
+	book.IndexAttrs("ID", "Title", "Authors", "ReleaseDate", "Price")
+	// which fields should be editable in the book esit interface
 	book.NewAttrs("Title", "Authors", "Synopsis", "ReleaseDate", "Price", "CoverImage")
 	book.EditAttrs("Title", "Authors", "Synopsis", "ReleaseDate", "Price", "CoverImage")
+	// which fields should be searched when using the item search on the list view
 	book.SearchAttrs("ID", "Title")
 }
 

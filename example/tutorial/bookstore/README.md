@@ -282,42 +282,26 @@ Go ahead and go to the authors admin and add an author...
 #### Meta Module - Controlling display and editable fields in the admin
 
 Go to [http://localhost:9000/admin/books](http://localhost:9000/admin/books).
-Now comment the following line from [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources/resources.go)
+Look for the following line from [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources/resources.go)
 
-	book.IndexAttrs("ID", "Title", "AuthorNames", "FormattedDate", "DisplayPrice")
+	book.IndexAttrs("ID", "Title", "Authors", "FormattedDate", "Price")
 
-and reload the books admin page.
+and change `FormattedDate` to `ReleaseDate`
 
 ![qor_admin_books2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin_books2.png)
 
-You will see a much more crowded list: We had 5 attributes `"ID", "Title", "AuthorNames", "FormattedDate", and "DisplayPrice"`. `Id`, `Title`, and `ReleaseDate` are defined on our `Book` model, but the others are not. For the Authors field you only see a list of References to the `Author` objects - something like `[0xc208161bc0]`. We want the list of author names devided by `,` instead. You can achieve that by defining a `Meta` field:
+We are getting the value of the `Book.ReleaseDate`. We want to show the date only so we define a `Meta` field:
 
 	book.Meta(&admin.Meta{
-		Name:  "AuthorNames",
-		Label: "Authors",
+		Name:  "FormattedDate",
+		Label: "Release Date",
 		Valuer: func(value interface{}, context *qor.Context) interface{} {
-			// log.Println("LOCALE:", context.MustGet("locale"))
-			// log.Println("ctxt", context)
-			if value == nil {
-				return value
-			}
 			book := value.(*Book)
-			if err := context.GetDB().Model(&book).Related(&book.Authors, "Authors").Error; err != nil {
-				panic(err)
-			}
-
-			var authors string
-			for i, author := range book.Authors {
-				if i >= 1 {
-					authors += ", "
-				}
-				authors += author.Name
-			}
-			return authors
+			return book.ReleaseDate.Format("Jan 2, 2006")
 		},
 	})
 
-We define a `Meta` field for the `book` `Resource`. It's internal name is "AuthorNames", which we use in `book.IndexAttrs()` to use it in our admin book listing. The `Label` is what goes into the table header and the `Valuer` is a function that will return the display value we want - in our case the comma separated list of author names.
+We define a `Meta` field for the `book` `Resource`. It's internal name is "FormattedDate", which we use in `book.IndexAttrs()` to use it in our admin book listing. The `Label` is what goes into the table header and the `Valuer` is a function that will return the display value we want - in our case the formatted date that does not include the time.
 
 
 ##### Editable and Create fields
@@ -453,18 +437,20 @@ Any model you want to have localization support on needs to inherit from l10n.Lo
 Set your default locale (In the example app these are called at the end of the `init()` function in [app/models/models.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/app/models/models.go)):
 
     func init() {
-        l10n.Global = "en"
+        l10n.Global = "en-US"
 	    l10n.RegisterCallbacks(&Db)
     }
 
-
-TODO @jinzhu: what exactly does l10n.RegisterCallbacks
+`l10n.Global = "en-US"` is the default used by the `l10n` package, but better to be explicit here.
+`l10n.RegisterCallbacks` registeres callbacks with `gorm` to keep track of changes in the different locales.
 
 The last step is to define who can view or edit which locales. In `models.go` we have two methods defined on our `User` type:
 
     func (User) ViewableLocales() []string {
     	return []string{l10n.Global, "jp"}
     }
+
+And to make the different locales viewable and
 
     func (user User) EditableLocales() []string {
     	if user.Role == "admin" {
@@ -474,13 +460,14 @@ The last step is to define who can view or edit which locales. In `models.go` we
     	}
     }
 
+to make the different locales editable by the `admin` role.
 
 
 ### I18n - Translating strings
 
     import "github.com/qor/qor/i18n"
 
-To add I18N support for the `qor/admin`
+To add I18N support for `qor/admin` you need to register an `i18n.I18n` resource:
 
     var (
     	Admin *admin.Admin
@@ -498,9 +485,7 @@ To add I18N support for the `qor/admin`
 
 You can find the code in [app/resources/resources.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/app/resources/resources.go)
 
-This gives you the `I18n` menu entry in admin.
-
-TODO: screenshot
+This will give you the `I18n` menu entry in admin.
 
 Go ahead and look for the translation key `qor_admin.I18n` and translate it:
 
@@ -514,14 +499,17 @@ If you go to eg. Authors and set the locale to `jp` you will see your translatio
 
 ![qor_translate3](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate3.png)
 
-NB: Currently the example app is set up in a way that only
+NB: Currently the example app is set up in a way that translation keys are added to the database the first time they are read from templates. In order to see all the keys you have to access each page where they are used once.
 
+TODO: Add an example on how to import keys from eg. a YAML file.
 
 
 
 ### Frontend
 
-QOR does not provide any builtin templating or routing support - use whatever library is best fit for your needs. In this tutorial we will use [gin](https://github.com/gin-gonic/gin) and the stl `html/template`s.
+QOR does not provide any builtin templating or routing support - you can use whatever library is best fit for your needs. In this example application tutorial we use [gin](https://github.com/gin-gonic/gin).
+
+
 
 http://localhost:9000/books
 
