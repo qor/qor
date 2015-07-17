@@ -21,7 +21,7 @@
         {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}
 
         <tr {{if $diff}}class="danger"{{end}}>
-          <td>{{ rt $res $meta.Label }}</td>
+          <td>{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</td>
           {{if $has_production}}
             <td>
               <div class="qor-list-text">{{$production_value}}</div>

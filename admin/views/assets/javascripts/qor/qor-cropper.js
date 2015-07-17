@@ -124,7 +124,7 @@
     unbind: function () {
       this.$element.off(EVENT_CHANGE, this.read);
       this.$list.off(EVENT_CLICK, this.click);
-      this.$modal.off(EVENT_SHOWN, this.start).on(EVENT_HIDDEN, this.stop);
+      this.$modal.off(EVENT_SHOWN, this.start).off(EVENT_HIDDEN, this.stop);
     },
 
     click: function (e) {

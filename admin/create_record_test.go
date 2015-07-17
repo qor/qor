@@ -23,7 +23,7 @@ func TestCreateRecord(t *testing.T) {
 		"QorResource.Role": {"admin"},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/user", form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users", form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Create request should be processed successfully")
 		}
@@ -63,7 +63,7 @@ func TestCreateHasOneRecord(t *testing.T) {
 		"QorResource.CreditCard.Issuer": {"Visa"},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/user", form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users", form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Create request should be processed successfully")
 		}
@@ -92,7 +92,7 @@ func TestCreateHasManyRecord(t *testing.T) {
 		"QorResource.Addresses[2].Address1": {""},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/user", form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users", form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Create request should be processed successfully")
 		}
@@ -132,7 +132,7 @@ func TestCreateManyToManyRecord(t *testing.T) {
 		"QorResource.Languages": {strconv.Itoa(languageCN.Id), strconv.Itoa(languageEN.Id)},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/user", form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users", form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Create request should be processed successfully")
 		}
@@ -173,7 +173,7 @@ func TestUploadAttachment(t *testing.T) {
 		}
 		writer.Close()
 
-		if req, err := http.Post(server.URL+"/admin/user", writer.FormDataContentType(), body); err == nil {
+		if req, err := http.Post(server.URL+"/admin/users", writer.FormDataContentType(), body); err == nil {
 			if req.StatusCode != 200 {
 				t.Errorf("Create request should be processed successfully")
 			}
@@ -208,7 +208,7 @@ func TestCreateRecordWithJSON(t *testing.T) {
 
 	buf := strings.NewReader(json)
 
-	if req, err := http.Post(server.URL+"/admin/user", "application/json", buf); err == nil {
+	if req, err := http.Post(server.URL+"/admin/users", "application/json", buf); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Create request should be processed successfully")
 		}

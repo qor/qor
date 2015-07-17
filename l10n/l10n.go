@@ -97,21 +97,35 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 
 			var results string
 			availableLocales := getAvailableLocales(ctx.Request, ctx.CurrentUser)
+			primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
 		OUT:
 			for _, locale := range availableLocales {
-				url, _ := utils.PatchURL(ctx.Request.RequestURI, "locale", locale)
+				url, _ := utils.PatchURL(path.Join(ctx.Request.URL.Path, fmt.Sprintf("%v", primaryKey)), "locale", locale)
 				for _, localized := range languageCodes {
 					if locale == localized {
-						results += fmt.Sprintf("<a class='qor-label active' href='%s'>%s</a> ", url, context.T(locale))
+						results += fmt.Sprintf("<a class='qor-list-label active' href='%s'>%s</a> ", url, context.T(locale))
 						continue OUT
 					}
 				}
-				results += fmt.Sprintf("<a class='qor-label' href='%s'>%s</a> ", url, context.T(locale))
+				results += fmt.Sprintf("<a class='qor-list-label' href='%s'>%s</a> ", url, context.T(locale))
 			}
 			return template.HTML(results)
 		}})
 
-		res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode", "Localization")...)
+		attrs := res.IndexAttrs()
+		var hasLocalization bool
+		for _, attr := range attrs {
+			if attr == "Localization" {
+				hasLocalization = true
+				break
+			}
+		}
+
+		if hasLocalization {
+			res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode")...)
+		} else {
+			res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode", "Localization")...)
+		}
 		res.ShowAttrs(append(res.ShowAttrs(), "-LanguageCode", "-Localization")...)
 		res.EditAttrs(append(res.EditAttrs(), "-LanguageCode", "-Localization")...)
 		res.NewAttrs(append(res.NewAttrs(), "-LanguageCode", "-Localization")...)

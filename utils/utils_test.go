@@ -1,9 +1,6 @@
 package utils
 
-import (
-	"errors"
-	"testing"
-)
+import "testing"
 
 func TestHumanizeString(t *testing.T) {
 	cases := []struct {
@@ -29,6 +26,8 @@ func TestToParamString(t *testing.T) {
 		{"OrderItem", "order_item"},
 		{"order item", "order_item"},
 		{"Order Item", "order_item"},
+		{"FAQ", "faq"},
+		{"FAQPage", "faq_page"},
 	}
 	for _, c := range cases {
 		if got := ToParamString(c[0]); got != c[1] {
@@ -53,11 +52,6 @@ func TestPatchUrl(t *testing.T) {
 			original: "http://qor.com/admin/orders?locale=global&q=dotnet&test=1#test",
 			input:    []interface{}{"locale", ""},
 			want:     "http://qor.com/admin/orders?q=dotnet&test=1#test",
-		},
-		{
-			original: "http://qor.com/admin/orders?locale=global&q=dotnet&test=1#test",
-			input:    []interface{}{"locale", 1},
-			err:      errors.New("1 type is int, want string"),
 		},
 	}
 	for _, c := range cases {

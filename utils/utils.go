@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"runtime"
 	"runtime/debug"
 	"time"
@@ -37,16 +38,23 @@ func isUppercase(char byte) bool {
 // ToParamString replaces spaces and separates words (by uppercase letters) with
 // underscores in a string, also downcase it
 // e.g. ToParamString -> to_param_string, To ParamString -> to_param_string
+
+var upcaseRegexp = regexp.MustCompile("[A-Z]{3,}[a-z]")
+
 func ToParamString(str string) string {
 	if len(str) <= 1 {
 		return strings.ToLower(str)
 	}
 
 	str = strings.Replace(str, " ", "_", -1)
+	str = upcaseRegexp.ReplaceAllStringFunc(str, func(s string) string {
+		return s[0:1] + strings.ToLower(s[1:len(s)-2]) + s[len(s)-2:]
+	})
+
 	result := []rune{rune(str[0])}
 	for _, l := range str[1:] {
 		if rune('A') <= l && l <= rune('Z') {
-			if lr := len(result); lr == 0 || result[lr-1] != '_' {
+			if lr := len(result); lr == 0 || (result[lr-1] != '_' && !(rune('A') <= result[lr-1] && result[lr-1] <= rune('Z'))) {
 				result = append(result, rune('_'), l)
 				continue
 			}

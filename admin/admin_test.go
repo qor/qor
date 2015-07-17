@@ -19,7 +19,7 @@ func TestAddResource(t *testing.T) {
 		t.Error("resource not added")
 	}
 
-	if admin.GetMenus()[0].Name != "User" {
+	if admin.GetMenus()[0].Name != "Users" {
 		t.Error("resource not added to menu")
 	}
 }
@@ -41,7 +41,7 @@ func TestGetResource(t *testing.T) {
 	admin := New(&qor.Config{})
 	user := admin.AddResource(&User{})
 
-	if admin.GetResource("user") != user {
+	if admin.GetResource("User") != user {
 		t.Error("resource not returned")
 	}
 }

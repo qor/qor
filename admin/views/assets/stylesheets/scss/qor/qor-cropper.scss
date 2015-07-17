@@ -103,8 +103,10 @@
   }
 }
 
-.qor-cropper-modal {
+.qor-cropper-modal .modal-content {
   .modal-header {
+    padding-top: 16px;
+    padding-bottom: 16px;
     border-bottom-color: #fafafa;
   }
 
@@ -118,8 +120,8 @@
   }
 
   .modal-footer {
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 8px;
+    padding-bottom: 8px;
     border-top-color: #fafafa;
   }
 }

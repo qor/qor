@@ -46,6 +46,7 @@ func (backend *Backend) SaveTranslation(t *i18n.Translation) (err error) {
 		return
 	}
 	backend.DB.Where(Translation{Key: t.Key, Locale: t.Locale}).Assign(Translation{Value: t.Value}).FirstOrCreate(&Translation{})
+	err = backend.DB.Error
 	return
 }
 

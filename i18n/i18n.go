@@ -102,7 +102,7 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 			value = key
 		}
 		// Save translations
-		err := i18n.SaveTranslation(&Translation{Key: translationKey, Value: value, Locale: Default, Backend: i18n.Backends[0]})
+		err := i18n.SaveTranslation(&Translation{Key: translationKey, Value: value, Locale: locale, Backend: i18n.Backends[0]})
 		log.Printf("Error saving translation: [%s]: %s\n", locale, translationKey)
 		if err != nil {
 			return err.Error()
