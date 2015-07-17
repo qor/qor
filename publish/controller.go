@@ -32,41 +32,6 @@ func (db *publishController) Preview(context *admin.Context) {
 	context.Execute("publish/drafts", drafts)
 }
 
-// func (db *publishController) Preview(context *admin.Context) {
-// 	log.Println("BOON", l10n.Global)
-// 	introspect.PrintTypeDump(context)
-// 	introspect.PrintTypeDump(context.Resource)
-// 	// context.Resource.GetAdmin()
-// 	// Admin := res.GetAdmin()
-// 	// res.UseTheme("l10n")
-// 	context.Resource.UseTheme("l10n")
-
-// 	introspect.PrintTypeDump(context.Admin)
-// 	// introspect.PrintTypeDump(context.Admin.I18n)
-// 	// introspect.PrintTypeDump(context.CurrentUser)
-// 	// log.Println(reflect.ValueOf(context.CurrentUser).Type())
-// 	// u := reflect.New(reflect.TypeOf(context.CurrentUser)).Interface()
-// 	// log.Println("###", u)
-// 	// introspect.PrintTypeDump(u)
-// 	r := reflect.Indirect(reflect.ValueOf(context.CurrentUser)).MethodByName("EditableLocales").Call([]reflect.Value{})
-// 	log.Println(r[0].Interface().([]string))
-// 	// for _, v := range r {
-// 	// 	log.Println(v.Interface().([]string))
-// 	// }
-// 	log.Println("$$$")
-// 	// introspect.PrintTypeDump(reflect.Indirect(reflect.ValueOf(context.CurrentUser)))
-// 	drafts := make(map[*admin.Resource]interface{})
-// 	for _, res := range context.Admin.GetResources() {
-// 		results := res.NewSlice()
-// 		if isPublishableModel(res.Value) {
-// 			if db.DraftDB().Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
-// 				drafts[res] = results
-// 			}
-// 		}
-// 	}
-// 	context.Execute("publish/drafts", drafts)
-// }
-
 func (db *publishController) Diff(context *admin.Context) {
 	resourceID := strings.Split(context.Request.URL.Path, "/")[4]
 	params := strings.Split(resourceID, "__")
