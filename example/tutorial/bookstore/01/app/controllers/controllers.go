@@ -1,4 +1,4 @@
-package handlers
+package controllers
 
 import (
 	"fmt"
@@ -7,11 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/qor/qor/i18n"
-
 	"github.com/gin-gonic/gin"
 	. "github.com/qor/qor/example/tutorial/bookstore/01/app/models"
 	"github.com/qor/qor/example/tutorial/bookstore/01/app/resources"
+	"github.com/qor/qor/i18n"
 )
 
 // books

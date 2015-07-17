@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/qor/qor/example/tutorial/bookstore/01/app/handlers"
+	"github.com/qor/qor/example/tutorial/bookstore/01/app/controllers"
 	. "github.com/qor/qor/example/tutorial/bookstore/01/app/resources"
 )
 
@@ -25,17 +25,17 @@ func main() {
 	bookRoutes := router.Group("/books")
 	{
 		// listing
-		bookRoutes.GET("", handlers.ListBooksHandler)
-		bookRoutes.GET("/", handlers.ListBooksHandler) // really? i need both of those?...
+		bookRoutes.GET("", controllers.ListBooksHandler)
+		bookRoutes.GET("/", controllers.ListBooksHandler) // really? i need both of those?...
 		// single book - product page
-		bookRoutes.GET("/:id", handlers.ViewBookHandler)
+		bookRoutes.GET("/:id", controllers.ViewBookHandler)
 	}
 
 	mux.Handle("/", router)
 
 	// handle login and logout of users
-	mux.HandleFunc("/login", handlers.LoginHandler)
-	mux.HandleFunc("/logout", handlers.LogoutHandler)
+	mux.HandleFunc("/login", controllers.LoginHandler)
+	mux.HandleFunc("/logout", controllers.LogoutHandler)
 
 	// start the server
 	http.ListenAndServe(":9000", mux)

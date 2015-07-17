@@ -220,8 +220,8 @@ Before we look at the actual admin here is a brief breakdown of the directory st
 
     .
     ├── app
-    │   ├── handlers
-    │   │   └── handlers.go
+    │   ├── controllers
+    │   │   └── controllers.go
     │   ├── models
     │   │   └── models.go
     │   └── resources
@@ -236,7 +236,7 @@ Before we look at the actual admin here is a brief breakdown of the directory st
         ├── book.tmpl
         └── list.tmpl
 
-* The controllers are in `app/handlers`
+* The controllers are in `app/controllers`
 * models and db initialization happen in `app/models`
 * Resources are an integral part of QOR/admin. Whenever resources or `Meta...`  is mentioned in this doc you will find the code it's referring to in `app/resources`
 * main.go starts the webserver and additionally contains the routes right now. In a bigger project you would put them probably somewhere like `app/config/routes.go`
@@ -252,9 +252,9 @@ If the bookstore app is not yet running, start it by running `fresh` in the book
 
 Go to [http://localhost:9000/admin](http://localhost:9000/admin) and log in as `admin`. You should see the main admin interface:
 
-![qor_admin](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin1.png)
+![qor_admin](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_admin1.png)
 
-The menu at the top gets created by adding your models as resources to the admin in [main.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/app/resources/resources.go):
+The menu at the top gets created by adding your models as resources to the admin in [main.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources/resources.go):
 
 	Admin := admin.New(&qor.Config{DB: &db})
 
@@ -270,13 +270,13 @@ You can see how the rest of the resources were added in [resources.go](https://g
 
 Go ahead and go to the authors admin and add an author...
 
-![qor_admin_add_author](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin_add_author.png)
+![qor_admin_add_author](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_admin_add_author.png)
 
 ... and then a book via the admin:
 
-![qor_admin_add_book](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin_add_book.png)
+![qor_admin_add_book](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_admin_add_book.png)
 
-![qor_admin_books1](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin_books1.png)
+![qor_admin_books1](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_admin_books1.png)
 
 
 #### Meta Module - Controlling display and editable fields in the admin
@@ -288,7 +288,7 @@ Look for the following line from [resources.go](https://github.com/qor/qor/blob/
 
 and change `FormattedDate` to `ReleaseDate`
 
-![qor_admin_books2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_admin_books2.png)
+![qor_admin_books2](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_admin_books2.png)
 
 We are getting the value of the `Book.ReleaseDate`. We want to show the date only so we define a `Meta` field:
 
@@ -364,7 +364,7 @@ And change the `DB` config of `admin`:
 
 You now have a *Publish* menu: Changes you make on *publishable* objects do not appear in the front end until they are *published*. Add an author and/or a book and check out the [Publish section](http://localhost:9000/admin/publish):
 
-![qor_publish](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_publish.png)
+![qor_publish](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_publish.png)
 
 You can select the changes you want to publish (check out the "View Diff" link to see changes) and then either publish them to the live DB or discard them.
 
@@ -414,7 +414,7 @@ The directories for your resources (like books and books_draft) are created by t
 
 Edit the book you previously created and click on the image you uploaded there. The crop interface will appear:
 
-![qor_media](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_media.png)
+![qor_media](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_media.png)
 
 
 
@@ -434,7 +434,7 @@ Any model you want to have localization support on needs to inherit from l10n.Lo
     	Name string
     }
 
-Set your default locale (In the example app these are called at the end of the `init()` function in [app/models/models.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/app/models/models.go)):
+Set your default locale (In the example app these are called at the end of the `init()` function in [app/models/models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/models/models.go)):
 
     func init() {
         l10n.Global = "en-US"
@@ -483,21 +483,21 @@ To add I18n support for `qor/admin` you need to register an `i18n.I18n` resource
     	Admin.AddResource(I18n)
         [...]
 
-You can find the code in [app/resources/resources.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/app/resources/resources.go)
+You can find the code in [app/resources/resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources/resources.go)
 
 This will give you the `I18n` menu entry in admin.
 
 Go ahead and look for the translation key `qor_admin.I18n` and translate it:
 
-![qor_translate1](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate1.png)
+![qor_translate1](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_translate1.png)
 
 Set the English translation to `Translations`, use the target language switcher in the table header and change the target language to `ja-JP` (Japanese) and translate it to `翻訳`. Now reload admin and you will see your translation in the menu on the left.
 
-![qor_translate2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate2.png)
+![qor_translate2](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_translate2.png)
 
 If you go to eg. Authors and set the locale to `ja-JP` you will see your translation appear in the admin menu on the left:
 
-![qor_translate3](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate3.png)
+![qor_translate3](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_translate3.png)
 
 NB: Currently the example app is set up in a way that translation keys are added to the database the first time they are read from templates. In order to see all the keys you have to access each page where they are used once.
 
@@ -509,7 +509,7 @@ TODO: Add an example on how to import keys from eg. a YAML file.
 
 QOR does not provide any built-in templating or routing support - you can use whatever library best fits your needs. In this example application tutorial we use [gin](https://github.com/gin-gonic/gin):
 
-In [main.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/main.go)
+In [main.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/main.go)
 
 	// frontend routes
 	router := gin.Default()
@@ -527,14 +527,14 @@ add routes for static files
 	bookRoutes := router.Group("/books")
 	{
 		// listing
-		bookRoutes.GET("", handlers.ListBooksHandler)
+		bookRoutes.GET("", controllers.ListBooksHandler)
 		// single book - product page
-		bookRoutes.GET("/:id", handlers.ViewBookHandler)
+		bookRoutes.GET("/:id", controllers.ViewBookHandler)
 	}
 
 and add two endpoints - one to list all our books and one book details page.
 
-The handlers (controllers) are defined in [app/handlers/handlers.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/app/handlers/handlers.go):
+The controllers are defined in [app/controllers/controllers.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/controllers/controllers.go):
 
     func ListBooksHandler(ctx *gin.Context) {
         # get the books data
@@ -560,7 +560,7 @@ We get the data for all or one book and then pass it to the template in `ctx.HTM
 
     <h1>{{call .t "frontend.books.List of Books"}}</h1>
 
-`frontend.books.List of Books` will become the key that will appear in your translations resource. (after you accessed it once. See [I18n](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore#i18n---translating-strings) - the NB at the end of the section if you don't know why).
+`frontend.books.List of Books` will become the key that will appear in your translations resource. (after you accessed it once. See [I18n](https://github.com/qor/qor/tree/master/example/tutorial/bookstore#i18n---translating-strings) - the NB at the end of the section if you don't know why).
 
 Go ahead and point your browser to:
 
@@ -568,7 +568,7 @@ Go ahead and point your browser to:
 
 If you have books in your system but see an empty page you have most likely not yet published your data. Go to [Publish section](http://127.0.0.1:9000/admin/publish), select all items and hit publish:
 
-![qor_publish2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_publish2.png)
+![qor_publish2](https://raw.githubusercontent.com/qor/qor/master/example/tutorial/bookstore/screenshots/qor_publish2.png)
 
 [http://localhost:9000/books](http://localhost:9000/books) should now show your books.
 
