@@ -43,20 +43,20 @@ func New(backends ...Backend) *I18n {
 	for _, backend := range backends {
 		for _, translation := range backend.LoadTranslations() {
 			translation.Backend = backend
-			i18n.AddTransaltion(translation)
+			i18n.AddTranslation(translation)
 		}
 	}
 	return i18n
 }
 
-func (i18n *I18n) AddTransaltion(translation *Translation) {
+func (i18n *I18n) AddTranslation(translation *Translation) {
 	if i18n.Translations[translation.Locale] == nil {
 		i18n.Translations[translation.Locale] = map[string]*Translation{}
 	}
 	i18n.Translations[translation.Locale][translation.Key] = translation
 }
 
-func (i18n *I18n) SaveTransaltion(translation *Translation) {
+func (i18n *I18n) SaveTranslation(translation *Translation) {
 	if i18n.Translations[translation.Locale] == nil {
 		i18n.Translations[translation.Locale] = map[string]*Translation{}
 	}
@@ -66,7 +66,7 @@ func (i18n *I18n) SaveTransaltion(translation *Translation) {
 	}
 }
 
-func (i18n *I18n) DeleteTransaltion(translation *Translation) {
+func (i18n *I18n) DeleteTranslation(translation *Translation) {
 	delete(i18n.Translations[translation.Locale], translation.Key)
 	translation.Backend.DeleteTranslation(translation)
 }
@@ -97,7 +97,7 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 			value = key
 		}
 		// Save translations
-		i18n.SaveTransaltion(&Translation{Key: translationKey, Value: value, Locale: Default, Backend: i18n.Backends[0]})
+		i18n.SaveTranslation(&Translation{Key: translationKey, Value: value, Locale: Default, Backend: i18n.Backends[0]})
 	}
 
 	if value == "" {
