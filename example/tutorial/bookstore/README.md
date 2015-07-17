@@ -580,3 +580,8 @@ TODO: switching the language/locale on the frontend
 This example app will be extended to eventually showcase most QOR features and a tutorial that goes through building this app step by step is planned too.
 
 Go ahead and copy the example application and start using your own resources. Have fun with QOR!
+
+
+### Questions, suggestions, etc.
+
+[@QORSKD](https://twitter.com/qorsdk)

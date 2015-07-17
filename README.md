@@ -53,9 +53,9 @@ We are planning to update the godoc documentation for all modules after the API 
 * [ ] Roles
 
 
-## Tutorial
+## Example application
 
-[The tutorial](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore) is currently a work in progress.
+[The example application](https://github.com/qor/qor/tree/master/example/tutorial/bookstore) is currently a work in progress.
 
 * [x] Setup & Installation
 * [x] Define a first set of resources
@@ -64,5 +64,10 @@ We are planning to update the godoc documentation for all modules after the API 
 * [-] L10n & I18n
   * [x] L10n & I18n for qor/admin
   * [ ] L10n & I18n for the frontend
-* [ ] Roles - currently only very briefly touched
+* [ ] Roles - currently touched only very briefly
 * [ ] Next: Worker
+
+
+## Questions, suggestions, etc.
+
+[@QORSKD](https://twitter.com/qorsdk)
