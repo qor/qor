@@ -1,6 +1,10 @@
 package i18n
 
-import "github.com/qor/qor/admin"
+import (
+	"log"
+
+	"github.com/qor/qor/admin"
+)
 
 type i18nController struct {
 	*I18n
@@ -20,6 +24,10 @@ func (controller *i18nController) Update(context *admin.Context) {
 		}
 	}
 
-	controller.I18n.SaveTransaltion(&translation)
+	err := controller.I18n.SaveTranslation(&translation)
+	if err != nil {
+		context.Flash(context.T("Could not save translation: {{.Key}}: {{.Error}}", translation, err), "failure")
+		log.Println(err.Error, translation.Key)
+	}
 	context.Writer.Write([]byte("OK"))
 }
