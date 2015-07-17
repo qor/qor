@@ -15,7 +15,7 @@ Once you have gone through this doc you could copy the directory structure of th
 
 We want to create a simple bookstore application. We will start by building a catalog of books and then later add a storefront. We will add a staging environment (database rather) so that editors can make changes to contents and then later publish them to a live database.
 
-We will add Localization(L10n) for the books and authors and Internationalization(I18n) support for the complete backoffice we built with `qor/admin`.
+We will add Localization (L10n) for the books and authors and Internationalization (I18n) support for the complete back-office we built with `qor/admin`.
 
 
 ## Prerequisites
@@ -45,7 +45,7 @@ If you don't want to go with fresh you will have to terminate, rebuild, and reru
 
 
 
-### Create a database and a db user for the example application
+### Create a database and a DB user for the example application
 
 Before we dive into our models we need to create a database:
 
@@ -116,7 +116,7 @@ The Book model has a few more fields:
     }
 
 
-The only interesting part here is the gorm struct tag: `gorm:many2many:book_authors"`; It tells `gorm` to create a join table `book_authors`.
+The only interesting part here is the Gorm struct tag: `gorm:many2many:book_authors"`; It tells `gorm` to create a join table `book_authors`.
 
 Ignore `publish.Status`, `l10n.Locale` and `media_library.FileSystem` for now - we will address these in later parts of the tutorial.
 
@@ -128,7 +128,7 @@ Let's start the tutorial app once to see what happens when models get auto-migra
 
     go/src/github.com/qor/qor/example/tutorial/bookstore/01 [01 (master)] $ fresh
 
-or if you don't want to use fresh you can build and run the app:
+If you don't want to use fresh you can build and run the app:
 
     /go/src/github.com/qor/qor/example/tutorial/bookstore/01 [01 (master)] $ go build -o tutorial main.go
     /go/src/github.com/qor/qor/example/tutorial/bookstore/01 [01 (master)] $ ./tutorial
@@ -201,9 +201,9 @@ If you now check your db you would see something like this:
     +----------------+------------------+------+-----+---------+----------------+
     7 rows in set (0.00 sec)
 
-As you can see QOR/gorm added an `id` field as well as timestamp fields to keep track of creation, modification, and deletion times. We can ignore this for now - the main point is that you create your models without a unique identifier - QOR/gorm will do this for you automatically. (TODO: @jinzhu please confirm)
+As you can see QOR/Gorm added an `id` field as well as timestamp fields to keep track of creation, modification, and deletion times. We can ignore this for now - the main point is that you create your models without a unique identifier - QOR/Gorm will do this for you automatically. (TODO: @jinzhu please confirm)
 
-NB: If you add new fields to your model they will get added to the database automatically with `DB.AutoMigrate` - deletions or *changes* of eg. the type will *not* be automigrated. (TODO: @jinzhu please confirm)
+NB: If you add new fields to your model they will get added to the database automatically with `DB.AutoMigrate` - deletions or *changes* of eg. the type will *not* be automatically migrated. (TODO: @jinzhu please confirm)
 
 #### Insert some users
 
@@ -238,9 +238,9 @@ Before we look at the actual admin here is a brief breakdown of the directory st
 
 * The controllers are in `app/handlers`
 * models and db initialization happen in `app/models`
-* Resources are an itegral part of QOR/admin. Whenever resources or `Meta...`  is mentioned in this doc you will find the code it's referring to in `app/resources`
+* Resources are an integral part of QOR/admin. Whenever resources or `Meta...`  is mentioned in this doc you will find the code it's referring to in `app/resources`
 * main.go starts the webserver and additionally contains the routes right now. In a bigger project you would put them probably somewhere like `app/config/routes.go`
-* Static files are served from `public`. `public/system` is where the `qor/medialibrary` puts files related to your resources - eg. ad uploaded image
+* Static files are served from `public`. `public/system` is where the `qor/medialibrary` puts files related to your resources - eg. an uploaded image
 
 NB: The symlinks (public, templates) are here so that we can reuse them in later parts of a tutorial.
 
@@ -266,7 +266,7 @@ The menu at the top gets created by adding your models as resources to the admin
 		},
 	)
 
-You can see how the rest of the resources was added in [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources/resources.go), the `db` object referenced here is set up in [models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/models/models.go)
+You can see how the rest of the resources were added in [resources.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/resources/resources.go), the `db` object referenced here is set up in [models.go](https://github.com/qor/qor/blob/master/example/tutorial/bookstore/01/app/models/models.go)
 
 Go ahead and go to the authors admin and add an author...
 
@@ -304,9 +304,9 @@ We are getting the value of the `Book.ReleaseDate`. We want to show the date onl
 We define a `Meta` field for the `book` `Resource`. It's internal name is "FormattedDate", which we use in `book.IndexAttrs()` to use it in our admin book listing. The `Label` is what goes into the table header and the `Valuer` is a function that will return the display value we want - in our case the formatted date that does not include the time.
 
 
-##### Editable and Create fields
+##### Fields for Creation and Edit
 
-By default all defined model attributes and `Meta` attributes are included in the edit interface. If you need to limit the fields that are editable you can manually set the `EditAttrs` (for editing existing objects) and `NewAttrs` (for object creation):
+By default all defined model attributes and `Meta` attributes are included in the edit interface. If you need to limit the fields that are editable you can call `EditAttrs` (for editing existing objects) and `NewAttrs` (for object creation):
 
 	book.NewAttrs("Title", "Authors", "Synopsis", "ReleaseDate", "Price", "CoverImage")
 	book.EditAttrs("Title", "Authors", "Synopsis", "ReleaseDate", "Price", "CoverImage")
@@ -362,13 +362,13 @@ And change the `DB` config of `admin`:
 	Admin = admin.New(&qor.Config{DB: Pub.DraftDB()})   // with publish
 	Admin.AddResource(Pub)
 
-You have now a *"Publish"* menu: Changes you make on *publishable* objects are not going online right away. Add an author and/or a book and check out the [Publish section](http://localhost:9000/admin/publish):
+You now have a *Publish* menu: Changes you make on *publishable* objects do not appear in the front end until they are *published*. Add an author and/or a book and check out the [Publish section](http://localhost:9000/admin/publish):
 
 ![qor_publish](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_publish.png)
 
 You can select the changes you want to publish (check out the "View Diff" link to see changes) and then either publish them to the live DB or discard them.
 
-You can check that before bublishing the first time your `authors` table should be empty, while `authors_draft` contains the contents you see in QOR admin. After publishing these contents get copied to the live `authors` table.
+You can check that before publishing the first time your `authors` table should be empty, while `authors_draft` contains the contents you see in the QOR admin. After publishing these contents get copied to the live `authors` table.
 
 
 
@@ -408,11 +408,11 @@ Support for publish (draft version, publish to live) is built in. This is what t
                     ├── P1210896.20150604163815084702067.jpg
                     └── P1210896.20150604163815084702067.original.jpg
 
-The directories for you resources (like books and books_draft) are created by the media_library. In your templates you can use the image like this:
+The directories for your resources (like books and books_draft) are created by the media_library. In your templates you can use the image like this:
 
     <img src="{{.book.CoverImage}}" />
 
-Edit the book you previously created and click on the image you uploaded there. The crop interface will pop up:
+Edit the book you previously created and click on the image you uploaded there. The crop interface will appear:
 
 ![qor_media](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_media.png)
 
@@ -420,7 +420,7 @@ Edit the book you previously created and click on the image you uploaded there. 
 
 ### L10n - Localizing your resources
 
-To localize your resources, for example having an english and a japanese "version" of an author or a book you need to use the `l10n` module.
+To localize your resources, for example to have an English and a Japanese "version" of an author or a book you need to use the `l10n` module.
 
     import "github.com/qor/qor/l10n"
 
@@ -442,7 +442,7 @@ Set your default locale (In the example app these are called at the end of the `
     }
 
 `l10n.Global = "en-US"` is the default used by the `l10n` package, but better to be explicit here.
-`l10n.RegisterCallbacks` registeres callbacks with `gorm` to keep track of changes in the different locales.
+`l10n.RegisterCallbacks` registers callbacks with `gorm` to keep track of changes in the different locales.
 
 The last step is to define who can view or edit which locales. In `models.go` we have two methods defined on our `User` type:
 
@@ -467,7 +467,7 @@ to make the different locales editable by the `admin` role.
 
     import "github.com/qor/qor/i18n"
 
-To add I18N support for `qor/admin` you need to register an `i18n.I18n` resource:
+To add I18n support for `qor/admin` you need to register an `i18n.I18n` resource:
 
     var (
     	Admin *admin.Admin
@@ -491,7 +491,7 @@ Go ahead and look for the translation key `qor_admin.I18n` and translate it:
 
 ![qor_translate1](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate1.png)
 
-Set the english translation to `Translations`, use the target language switcher in the table header and change the target language to `jp` (japanese) and translate it to `翻訳`. Now reload admin and you will see your translation in the menu on the left.
+Set the English translation to `Translations`, use the target language switcher in the table header and change the target language to `jp` (Japanese) and translate it to `翻訳`. Now reload admin and you will see your translation in the menu on the left.
 
 ![qor_translate2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate2.png)
 
@@ -505,9 +505,9 @@ TODO: Add an example on how to import keys from eg. a YAML file.
 
 
 
-### Frontend
+### Front-end
 
-QOR does not provide any builtin templating or routing support - you can use whatever library is best fit for your needs. In this example application tutorial we use [gin](https://github.com/gin-gonic/gin):
+QOR does not provide any built-in templating or routing support - you can use whatever library best fits your needs. In this example application tutorial we use [gin](https://github.com/gin-gonic/gin):
 
 In [main.go](https://github.com/qor/qor/blob/docs_and_tutorial/example/tutorial/bookstore/01/main.go)
 
@@ -560,9 +560,9 @@ We get the data for all or one book and then pass it to the template in `ctx.HTM
 
     <h1>{{call .t "frontend.books.List of Books"}}</h1>
 
-`frontend.books.List of Books` will become the key that will appear in your translations resource. (after you accessed it once. See [I18N](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore#i18n---translating-strings) - the NB at the end of the section if you don't know why).
+`frontend.books.List of Books` will become the key that will appear in your translations resource. (after you accessed it once. See [I18n](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore#i18n---translating-strings) - the NB at the end of the section if you don't know why).
 
-Go ahead an point your browser to:
+Go ahead and point your browser to:
 
 [http://localhost:9000/books](http://localhost:9000/books)
 
@@ -577,6 +577,6 @@ TODO: switching the language/locale on the frontend
 
 ### Next steps
 
-This example app will be extended to eventually showcase most of QORs features and a tutorial that goes through building this app step by step is in planning too.
+This example app will be extended to eventually showcase most QOR features and a tutorial that goes through building this app step by step is planned too.
 
 Go ahead and copy the example application and start using your own resources. Have fun with QOR!
