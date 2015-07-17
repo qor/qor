@@ -447,14 +447,14 @@ Set your default locale (In the example app these are called at the end of the `
 The last step is to define who can view or edit which locales. In `models.go` we have two methods defined on our `User` type:
 
     func (User) ViewableLocales() []string {
-    	return []string{l10n.Global, "jp"}
+	return []string{l10n.Global, "ja-JP"}
     }
 
 And to make the different locales viewable and
 
     func (user User) EditableLocales() []string {
     	if user.Role == "admin" {
-    		return []string{l10n.Global, "jp"}
+    		return []string{l10n.Global, "ja-JP"}
     	} else {
     		return []string{}
     	}
@@ -491,11 +491,11 @@ Go ahead and look for the translation key `qor_admin.I18n` and translate it:
 
 ![qor_translate1](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate1.png)
 
-Set the English translation to `Translations`, use the target language switcher in the table header and change the target language to `jp` (Japanese) and translate it to `翻訳`. Now reload admin and you will see your translation in the menu on the left.
+Set the English translation to `Translations`, use the target language switcher in the table header and change the target language to `ja-JP` (Japanese) and translate it to `翻訳`. Now reload admin and you will see your translation in the menu on the left.
 
 ![qor_translate2](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate2.png)
 
-If you go to eg. Authors and set the locale to `jp` you will see your translation appear in the admin menu on the left:
+If you go to eg. Authors and set the locale to `ja-JP` you will see your translation appear in the admin menu on the left:
 
 ![qor_translate3](https://raw.githubusercontent.com/qor/qor/docs_and_tutorial/example/tutorial/bookstore/screenshots/qor_translate3.png)
 

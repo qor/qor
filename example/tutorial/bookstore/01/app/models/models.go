@@ -56,17 +56,17 @@ func (u User) DisplayName() string {
 }
 
 func (User) ViewableLocales() []string {
-	return []string{l10n.Global, "jp"}
+	return []string{l10n.Global, "ja-JP"}
 }
 
 func (user User) EditableLocales() []string {
 	if user.Role == "admin" {
 		log.Println("EditableLocales() admin")
-		return []string{l10n.Global, "jp"}
+		return []string{l10n.Global, "ja-JP"}
 		// return []string{l10n.Global}
 	} else {
 		log.Println("EditableLocales() NOT admin")
-		return []string{l10n.Global, "jp"}
+		return []string{l10n.Global, "ja-JP"}
 		// return []string{}
 	}
 }
