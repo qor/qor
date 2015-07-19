@@ -64,3 +64,68 @@ We are planning to update the godoc documentation for all modules after the API 
 * [ ] L10n & I18n
 * [ ] Roles
 * [ ] Worker
+
+
+## Front End Build
+
+### Main
+
+Main asset directories of Admin and other modules:
+
+```
+/
+├── admin/views/assets/
+│   ├── fonts
+│   ├── images
+│   ├── javascripts
+│   └── stylesheets
+│
+├── i18n/views/themes/i18n/assets/
+│   ├── javascripts
+│   └── stylesheets
+│
+├── l10n/views/themes/l10n/assets/
+│   ├── javascripts
+│   └── stylesheets
+│
+└── publish/views/themes/publish/assets/
+    ├── javascripts
+    └── stylesheets
+```
+
+
+### Build
+
+> Requires [Node.js](https://nodejs.org/) (with [NPM](https://www.npmjs.com/) built-in) development environment.
+
+
+#### Install [Gulp](http://gulpjs.com/)
+
+```bash
+npm install -g gulp
+```
+
+#### Install dependencies
+
+```bash
+npm install
+```
+
+#### Run Admin tasks
+
+- Watch: `gulp`
+- Build JS: `gulp js`
+- Build CSS: `gulp css`
+- Compile SCSS: `gulp sass`
+- Release: `gulp release`
+
+
+#### Run module tasks
+
+Take I18n module for example:
+
+- Watch: `gulp --i18n`
+- Build JS: `gulp js --i18n`
+- Build CSS: `gulp css --i18n`
+- Compile SCSS: `gulp sass --i18n`
+- Release: `gulp release --i18n`
