@@ -17,7 +17,13 @@ func initalizePosition(scope *gorm.Scope) {
 	}
 }
 
+func beforeQuery(scope *gorm.Scope) {
+	scope.Search.Order("position")
+}
+
 func RegisterCallbacks(db *gorm.DB) {
+	db.Callback().Query().Before("gorm:query").Register("sorting:before_query", beforeQuery)
+
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").
 		Register("sorting:initalize_position", initalizePosition)
 }
