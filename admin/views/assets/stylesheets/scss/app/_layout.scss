@@ -15,7 +15,7 @@ body {
   bottom: 0;
   z-index: $zindex-sidebar;
   width: 56px;
-  border: 1px solid #eee;
+  outline: 1px solid rgba(0,0,0,0.12);
   background-color: #fff;
   -webkit-transition: width 0.35s ease;
        -o-transition: width 0.35s ease;
@@ -27,7 +27,7 @@ body {
     left: 0;
     right: 0;
     height: 64px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid rgba(0,0,0,0.12);
     @extend .clearfix;
 
     > a {
@@ -89,10 +89,9 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    height: 56px;
     display: none;
-    padding: 16px 24px;
-    border-top: 1px solid #eee;
+    padding: 8px 16px;
+    border-top: 1px solid rgba(0,0,0,0.12);
     line-height: 24px;
   }
 }
@@ -131,7 +130,7 @@ body {
     }
 
     > .sidebar-body {
-      bottom: 56px;
+      bottom: 40px;
       overflow-x: hidden;
       overflow-y: auto;
     }
