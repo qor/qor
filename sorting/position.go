@@ -1,9 +1,9 @@
 package sorting
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/jinzhu/gorm"
 )
@@ -13,15 +13,15 @@ type positionInterface interface {
 	SetPosition(int)
 }
 
-type Position struct {
-	Position int
+type Sorting struct {
+	Position int `sql:"DEFAULT:NULL"`
 }
 
-func (position Position) GetPosition() int {
+func (position Sorting) GetPosition() int {
 	return position.Position
 }
 
-func (position Position) SetPosition(pos int) {
+func (position Sorting) SetPosition(pos int) {
 	position.Position = pos
 }
 
@@ -29,71 +29,37 @@ func newModel(value interface{}) interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(value)).Type()).Interface()
 }
 
+func getSum(a, b interface{}) int {
+	ai, _ := strconv.Atoi(fmt.Sprintf("%d", a))
+	bi, _ := strconv.Atoi(fmt.Sprintf("%d", b))
+	return ai + bi
+}
+
 func MoveUp(db *gorm.DB, value positionInterface, pos int) error {
+	if pos == 0 {
+		return nil
+	}
+
 	clone := db
 	for _, field := range db.NewScope(value).PrimaryFields() {
-		primaryKey := field.Field.Interface()
-		if field.DBName == "id" {
-			clone = clone.Where(fmt.Sprintf("%s > ? AND %s <= (? + ?)", field.DBName, field.DBName), primaryKey, primaryKey, pos)
-		} else {
-			clone = clone.Where(fmt.Sprintf("%s = ?", field.DBName), primaryKey)
+		if field.DBName != "id" {
+			clone = clone.Where(fmt.Sprintf("%s = ?", field.DBName), field.Field.Interface())
 		}
 	}
 
-	if clone.Model(newModel(value)).Update("position", gorm.Expr("position - 1")).Error == nil {
-		return db.Model(value).Update("position", gorm.Expr(fmt.Sprintf("position + %v", pos))).Error
+	if err := clone.Model(newModel(value)).
+		Where("position > ? AND position <= ?", value.GetPosition(), gorm.Expr("? + ?", value.GetPosition(), pos)).
+		UpdateColumn("position", gorm.Expr("position - ?", 1)).Error; err == nil {
+		return clone.Model(value).UpdateColumn("position", gorm.Expr("position + ?", pos)).Error
+	} else {
+		return err
 	}
-	return errors.New("failed to update position")
 }
 
 func MoveDown(db *gorm.DB, value positionInterface, pos int) error {
-	clone := db
-	for _, field := range db.NewScope(value).PrimaryFields() {
-		primaryKey := field.Field.Interface()
-		if field.DBName == "id" {
-			clone = clone.Where(fmt.Sprintf("%s < ? AND %s >= (? - ?)", field.DBName, field.DBName), primaryKey, primaryKey, pos)
-		} else {
-			clone = clone.Where(fmt.Sprintf("%s = ?", field.DBName), primaryKey)
-		}
-	}
-
-	if clone.Model(newModel(value)).Update("position", gorm.Expr("position + 1")).Error == nil {
-		return db.Model(value).Update("position", gorm.Expr(fmt.Sprintf("position - %v", pos))).Error
-	}
-	return errors.New("failed to update position")
+	return MoveUp(db, value, -pos)
 }
 
 func MoveTo(db *gorm.DB, value positionInterface, pos int) error {
-	clone := db
-	if curPos := value.GetPosition(); pos < curPos {
-		for _, field := range db.NewScope(value).PrimaryFields() {
-			primaryKey := field.Field.Interface()
-			if field.DBName == "id" {
-				clone = clone.Where(fmt.Sprintf("%s < ? AND %s >= ?", field.DBName, field.DBName), primaryKey, pos)
-			} else {
-				clone = clone.Where(fmt.Sprintf("%s = ?", field.DBName), primaryKey)
-			}
-		}
-
-		if clone.Model(newModel(value)).Update("position", gorm.Expr("position + 1")).Error == nil {
-			return db.Model(value).Update("position", pos).Error
-		}
-		return errors.New("failed to update position")
-	} else if pos > curPos {
-		for _, field := range db.NewScope(value).PrimaryFields() {
-			primaryKey := field.Field.Interface()
-			if field.DBName == "id" {
-				clone = clone.Where(fmt.Sprintf("%s > ? AND %s <= ?", field.DBName, field.DBName), primaryKey, pos)
-			} else {
-				clone = clone.Where(fmt.Sprintf("%s = ?", field.DBName), primaryKey)
-			}
-		}
-
-		if clone.Model(newModel(value)).Update("position", gorm.Expr("position - 1")).Error == nil {
-			return db.Model(value).Update("position", pos).Error
-		}
-		return errors.New("failed to update position")
-	}
-
-	return nil
+	return MoveUp(db, value, value.GetPosition()-pos)
 }
