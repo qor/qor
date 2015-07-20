@@ -11,38 +11,6 @@ $(function () {
     }
   });
 
-  // Toggle submenus
-  $('.qor-menu-group').on('click', '> ul > li > a', function () {
-    var $next = $(this).next();
-
-    if ($next.is('ul') && $next.css('position') !== 'absolute') {
-      if (!$next.hasClass('collapsable')) {
-        $next.addClass('collapsable').height($next.prop('scrollHeight'));
-      }
-
-      if ($next.hasClass('collapsed')) {
-        $next.height($next.prop('scrollHeight'));
-
-        setTimeout(function () {
-          $next.removeClass('collapsed');
-        }, 350);
-      } else {
-        $next.addClass('collapsed').height(0);
-      }
-    }
-  });
-
-  $('.qor-menu > li').each(function () {
-    var $this = $(this),
-        $ul = $this.find('> ul');
-
-    if (!$ul.length) {
-      $this.append($ul = $('<ul class="qor-menu"></ul>'));
-    }
-
-    $ul.attr('data-menu', $this.data('menuItem'));
-  });
-
   $('.qor-search').each(function () {
     var $this = $(this),
         $label = $this.find('.qor-search-label'),
