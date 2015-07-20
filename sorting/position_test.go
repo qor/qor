@@ -67,4 +67,9 @@ func TestMoveUpPosition(t *testing.T) {
 	if !checkPosition("user2", "user3", "user4", "user1", "user5") {
 		t.Errorf("user1 should be moved up")
 	}
+
+	sorting.MoveUp(db, getUser("user5"), 2)
+	if !checkPosition("user2", "user3", "user4", "user1", "user5") {
+		t.Errorf("user1 should be moved up")
+	}
 }

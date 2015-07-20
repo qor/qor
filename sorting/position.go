@@ -35,11 +35,7 @@ func getSum(a, b interface{}) int {
 	return ai + bi
 }
 
-func MoveUp(db *gorm.DB, value positionInterface, pos int) error {
-	if pos == 0 {
-		return nil
-	}
-
+func move(db *gorm.DB, value positionInterface, pos int) error {
 	clone := db
 	for _, field := range db.NewScope(value).PrimaryFields() {
 		if field.DBName != "id" {
@@ -47,19 +43,30 @@ func MoveUp(db *gorm.DB, value positionInterface, pos int) error {
 		}
 	}
 
-	if err := clone.Model(newModel(value)).
-		Where("position > ? AND position <= ?", value.GetPosition(), gorm.Expr("? + ?", value.GetPosition(), pos)).
-		UpdateColumn("position", gorm.Expr("position - ?", 1)).Error; err == nil {
-		return clone.Model(value).UpdateColumn("position", gorm.Expr("position + ?", pos)).Error
-	} else {
-		return err
+	if pos > 0 {
+		if results := clone.Model(newModel(value)).
+			Where("position > ? AND position <= ?", value.GetPosition(), value.GetPosition()+pos).
+			UpdateColumn("position", gorm.Expr("position - ?", 1)); results.Error == nil {
+			return clone.Model(value).UpdateColumn("position", gorm.Expr("position + ?", results.RowsAffected)).Error
+		}
+	} else if pos < 0 {
+		if results := clone.Model(newModel(value)).
+			Where("position < ? AND position >= ?", value.GetPosition(), value.GetPosition()+pos).
+			UpdateColumn("position", gorm.Expr("position + ?", 1)); results.Error == nil {
+			return clone.Model(value).UpdateColumn("position", gorm.Expr("position - ?", results.RowsAffected)).Error
+		}
 	}
+	return nil
+}
+
+func MoveUp(db *gorm.DB, value positionInterface, pos int) error {
+	return move(db, value, pos)
 }
 
 func MoveDown(db *gorm.DB, value positionInterface, pos int) error {
-	return MoveUp(db, value, -pos)
+	return move(db, value, -pos)
 }
 
 func MoveTo(db *gorm.DB, value positionInterface, pos int) error {
-	return MoveUp(db, value, value.GetPosition()-pos)
+	return move(db, value, value.GetPosition()-pos)
 }
