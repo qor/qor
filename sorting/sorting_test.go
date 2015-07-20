@@ -44,7 +44,7 @@ func checkPosition(names ...string) bool {
 	var users []User
 	var positions []string
 
-	db.Order("position").Find(&users)
+	db.Find(&users)
 	for _, user := range users {
 		positions = append(positions, user.Name)
 	}
