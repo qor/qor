@@ -1,8 +1,6 @@
 package database
 
 import (
-	"sync"
-
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/i18n"
 )
@@ -17,13 +15,12 @@ type Translation struct {
 func New(db *gorm.DB) i18n.Backend {
 	db.AutoMigrate(&Translation{})
 	quotedKey := db.NewScope(&Translation{}).Quote("key") + "(190)"
-	db.Model(&Translation{}).AddIndex("idx_translations_key_with_locale", "locale", quotedKey)
-	return &Backend{DB: db, mutex: &sync.Mutex{}}
+	db.Model(&Translation{}).AddUniqueIndex("idx_translations_key_with_locale", "locale", quotedKey)
+	return &Backend{DB: db}
 }
 
 type Backend struct {
-	DB    *gorm.DB
-	mutex *sync.Mutex
+	DB *gorm.DB
 }
 
 func (backend *Backend) LoadTranslations() []*i18n.Translation {
@@ -32,14 +29,12 @@ func (backend *Backend) LoadTranslations() []*i18n.Translation {
 	return translations
 }
 
-func (backend *Backend) SaveTranslation(t *i18n.Translation) {
-	backend.mutex.Lock()
-	backend.DB.Where(Translation{Key: t.Key, Locale: t.Locale}).Assign(Translation{Value: t.Value}).FirstOrCreate(&Translation{})
-	backend.mutex.Unlock()
+func (backend *Backend) SaveTranslation(t *i18n.Translation) error {
+	return backend.DB.Where(Translation{Key: t.Key, Locale: t.Locale}).
+		Assign(Translation{Value: t.Value}).
+		FirstOrCreate(&Translation{}).Error
 }
 
-func (backend *Backend) DeleteTranslation(t *i18n.Translation) {
-	backend.mutex.Lock()
-	backend.DB.Where(Translation{Key: t.Key, Locale: t.Locale}).Delete(&Translation{})
-	backend.mutex.Unlock()
+func (backend *Backend) DeleteTranslation(t *i18n.Translation) error {
+	return backend.DB.Where(Translation{Key: t.Key, Locale: t.Locale}).Delete(&Translation{}).Error
 }
