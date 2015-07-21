@@ -20,6 +20,6 @@ func (controller *i18nController) Update(context *admin.Context) {
 		}
 	}
 
-	controller.I18n.SaveTransaltion(&translation)
+	controller.I18n.SaveTranslation(&translation)
 	context.Writer.Write([]byte("OK"))
 }
