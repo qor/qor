@@ -1,6 +1,8 @@
 package database
 
 import (
+	"fmt"
+
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/i18n"
 )
@@ -13,8 +15,9 @@ type Translation struct {
 
 func New(db *gorm.DB) i18n.Backend {
 	db.AutoMigrate(&Translation{})
-	quotedKey := db.NewScope(&Translation{}).Quote("key") + "(190)"
-	db.Model(&Translation{}).AddUniqueIndex("idx_translations_key_with_locale", "locale", quotedKey)
+	if err := db.Model(&Translation{}).AddUniqueIndex("idx_translations_key_with_locale", "locale", "key").Error; err != nil {
+		fmt.Printf("Failed to create unique index for translations key & locale, got: %v\n", err.Error())
+	}
 	return &Backend{DB: db}
 }
 
