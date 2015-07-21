@@ -1,6 +1,7 @@
 package i18n
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -27,8 +28,8 @@ type I18n struct {
 
 type Backend interface {
 	LoadTranslations() []*Translation
-	SaveTranslation(*Translation)
-	DeleteTranslation(*Translation)
+	SaveTranslation(*Translation) error
+	DeleteTranslation(*Translation) error
 }
 
 type Translation struct {
@@ -56,19 +57,22 @@ func (i18n *I18n) AddTranslation(translation *Translation) {
 	i18n.Translations[translation.Locale][translation.Key] = translation
 }
 
-func (i18n *I18n) SaveTranslation(translation *Translation) {
-	if i18n.Translations[translation.Locale] == nil {
-		i18n.Translations[translation.Locale] = map[string]*Translation{}
-	}
-	i18n.Translations[translation.Locale][translation.Key] = translation
+func (i18n *I18n) SaveTranslation(translation *Translation) error {
 	if backend := translation.Backend; backend != nil {
-		backend.SaveTranslation(translation)
+		if backend.SaveTranslation(translation) == nil {
+			i18n.AddTranslation(translation)
+			return nil
+		}
 	}
+	return errors.New("failed to save translation")
 }
 
-func (i18n *I18n) DeleteTranslation(translation *Translation) {
-	delete(i18n.Translations[translation.Locale], translation.Key)
-	translation.Backend.DeleteTranslation(translation)
+func (i18n *I18n) DeleteTranslation(translation *Translation) error {
+	err := translation.Backend.DeleteTranslation(translation)
+	if err == nil {
+		delete(i18n.Translations[translation.Locale], translation.Key)
+	}
+	return err
 }
 
 func (i18n *I18n) Scope(scope string) admin.I18n {
