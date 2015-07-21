@@ -16,7 +16,8 @@ type Translation struct {
 
 func New(db *gorm.DB) i18n.Backend {
 	db.AutoMigrate(&Translation{})
-	db.Model(&Translation{}).AddIndex("idx_translations_key_with_locale", "locale", "`key`(190)")
+	quotedKey := db.NewScope(&Translation{}).Quote("key") + "(190)"
+	db.Model(&Translation{}).AddIndex("idx_translations_key_with_locale", "locale", quotedKey)
 	return &Backend{DB: db, mutex: &sync.Mutex{}}
 }
 
