@@ -89,43 +89,43 @@
         }
       }
 
-      &[data-menu-item*="Asset"] {
+      &[data-menu-item*="Assets"] {
         > a::before {
           content: "\e2c7";
         }
       }
 
-      &[data-menu-item*="Product"] {
+      &[data-menu-item*="Products"] {
         > a::before {
           content: "\e1db";
         }
       }
 
-      &[data-menu-item*="Site"] {
+      &[data-menu-item*="Sites"] {
         > a::before {
           content: "\e051";
         }
       }
 
-      &[data-menu-item*="Order"] {
+      &[data-menu-item*="Orders"] {
         > a::before {
           content: "\e8cc";
         }
       }
 
-      &[data-menu-item*="User"] {
+      &[data-menu-item*="Users"] {
         > a::before {
           content: "\e7fd";
         }
       }
 
-      &[data-menu-item*="I18n"] {
+      &[data-menu-item*="Translations"] {
         > a::before {
           content: "\e894";
         }
       }
 
-      &[data-menu-item*="Publish"] {
+      &[data-menu-item*="Publishes"] {
         > a::before {
           content: "\e255";
         }

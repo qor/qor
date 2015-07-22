@@ -26,6 +26,10 @@ type I18n struct {
 	Translations map[string]map[string]*Translation
 }
 
+func (I18n) ResourceName() string {
+	return "Translation"
+}
+
 type Backend interface {
 	LoadTranslations() []*Translation
 	SaveTranslation(*Translation) error

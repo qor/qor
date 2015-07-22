@@ -1,5 +1,5 @@
 <div class="qor-navbar">
-  <h1 class="qor-title">{{t "{{.Name}}" .Resource}}</h1>
+  <h1 class="qor-title">{{t (plural .Resource.Name)}}</h1>
   {{render "toolbar"}}
 </div>
 
