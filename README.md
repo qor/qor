@@ -55,16 +55,17 @@ We are planning to update the godoc documentation for all modules after the API 
 * [ ] Roles
 
 
-## Tutorial
+## Example Application
 
-[The tutorial](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore) is currently a work in progress.
+[The example application](https://github.com/qor/qor-example) is a work in progress but already covers the following modules:
 
 * [x] Setup & Installation
-* [x] Define a first set of resources
+* [x] Define a first set of resources (qor/admin)
 * [x] Introduce Meta - Back Office display control for your resources
+* [x] Basic Media library usage
 * [x] Using Publish
-* [ ] L10n & I18n
-* [ ] Roles
+* [x] L10n & I18n
+* [\] Roles (very little)
 * [ ] Worker
 
 
