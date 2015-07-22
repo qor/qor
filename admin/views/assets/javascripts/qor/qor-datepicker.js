@@ -1,7 +1,7 @@
 (function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as anonymous module.
-    define('qor-datepicker', ['jquery'], factory);
+    define(['jquery'], factory);
   } else if (typeof exports === 'object') {
     // Node / CommonJS
     factory(require('jquery'));
@@ -13,9 +13,18 @@
 
   'use strict';
 
-  var QorDatepicker = function (element, options) {
+  var NAMESPACE = 'qor.datepicker',
+      EVENT_ENABLE = 'enable.' + NAMESPACE,
+      EVENT_DISABLE = 'disable.' + NAMESPACE,
+      EVENT_CHANGE = 'change.' + NAMESPACE,
+      EVENT_CLICK = 'click.' + NAMESPACE,
+
+      CLASS_EMBEDDED = '.qor-datepicker-embedded',
+      CLASS_SAVE = '.qor-datepicker-save',
+
+      QorDatepicker = function (element, options) {
         this.$element = $(element);
-        this.options = $.extend({}, QorDatepicker.DEFAULTS, options);
+        this.options = $.extend({}, QorDatepicker.DEFAULTS, $.isPlainObject(options) && options);
         this.date = null;
         this.formatDate = null;
         this.built = false;
@@ -24,24 +33,19 @@
 
   QorDatepicker.prototype = {
     init: function () {
-      if (!$.fn.datepicker) {
-        return;
-      }
+      this.bind();
+    },
 
-      this.$element.on('click', $.proxy(this.show, this));
+    bind: function () {
+      this.$element.on(EVENT_CLICK, $.proxy(this.show, this));
+    },
 
-      if (this.options.show) {
-        this.show();
-      }
+    unbind: function () {
+      this.$element.off(EVENT_CLICK, this.show);
     },
 
     build: function () {
-      var _this = this,
-          $modal,
-          $year,
-          $month,
-          $week,
-          $day;
+      var $modal;
 
       if (this.built) {
         return;
@@ -49,30 +53,51 @@
 
       this.$modal = $modal = $(QorDatepicker.TEMPLATE).appendTo('body');
 
-      $year = $modal.find('.qor-datepicker-year');
-      $month = $modal.find('.qor-datepicker-month');
-      $week = $modal.find('.qor-datepicker-week');
-      $day = $modal.find('.qor-datepicker-day');
+      $modal.
+        find(CLASS_EMBEDDED).
+          on(EVENT_CHANGE, $.proxy(this.change, this)).
+          datepicker({
+            date: this.$element.val(),
+            dateFormat: 'yyyy-mm-dd',
+            inline: true
+          }).
+          triggerHandler(EVENT_CHANGE);
 
-      $modal.find('.qor-datepicker-embedded').on('change', function () {
-        var $this = $(this),
-            date;
-
-        _this.date = date = $this.datepicker('getDate');
-        _this.formatDate = $this.datepicker('getDate', true);
-        $year.text(date.getFullYear());
-        $month.text(String($this.datepicker('getMonthByNumber', date.getMonth(), true)).toUpperCase());
-        $week.text($this.datepicker('getDayByNumber', date.getDay()));
-        $day.text(date.getDate());
-      }).datepicker({
-        date: this.$element.val(),
-        dateFormat: 'yyyy-mm-dd',
-        inline: true
-      }).triggerHandler('change');
-
-      $modal.find('.qor-datepicker-save').on('click', $.proxy(this.pick, this));
+      $modal.
+        find(CLASS_SAVE).
+          on(EVENT_CLICK, $.proxy(this.pick, this));
 
       this.built = true;
+    },
+
+    unbuild: function () {
+      if (!this.built) {
+        return;
+      }
+
+      this.$modal.
+        find(CLASS_EMBEDDED).
+          off(EVENT_CHANGE, this.change).
+          datepicker('destroy').
+          end().
+        find(CLASS_SAVE).
+          off(EVENT_CLICK, this.pick).
+          end().
+        remove();
+    },
+
+    change: function (e) {
+      var $modal = this.$modal,
+          $target = $(e.target),
+          date;
+
+      this.date = date = $target.datepicker('getDate');
+      this.formatDate = $target.datepicker('getDate', true);
+
+      $modal.find('.qor-datepicker-year').text(date.getFullYear());
+      $modal.find('.qor-datepicker-month').text(String($target.datepicker('getMonthByNumber', date.getMonth(), true)).toUpperCase());
+      $modal.find('.qor-datepicker-week').text($target.datepicker('getDayByNumber', date.getDay()));
+      $modal.find('.qor-datepicker-day').text(date.getDate());
     },
 
     show: function () {
@@ -86,12 +111,16 @@
     pick: function () {
       this.$element.val(this.formatDate);
       this.$modal.modal('hide');
+    },
+
+    destroy: function () {
+      this.unbind();
+      this.unbuild();
+      this.$element.removeData(NAMESPACE);
     }
   };
 
-  QorDatepicker.DEFAULTS = {
-    show: true
-  };
+  QorDatepicker.DEFAULTS = {};
 
   QorDatepicker.TEMPLATE = (
     '<div class="modal fade qor-datepicker-modal" id="qorDatepickerModal" tabindex="-1" role="dialog" aria-labelledby="qorDatepickerModalLabel" aria-hidden="true">' +
@@ -119,50 +148,45 @@
   );
 
   QorDatepicker.plugin = function (options) {
-    var args = [].slice.call(arguments, 1),
-        result;
-
-    this.each(function () {
+    return this.each(function () {
       var $this = $(this),
-          data = $this.data('qor.datepicker'),
+          data = $this.data(NAMESPACE),
           fn;
 
       if (!data) {
-        $this.data('qor.datepicker', (data = new QorDatepicker(this, options)));
+        if (!$.fn.datepicker) {
+          return;
+        }
+
+        if (/destroy/.test(options)) {
+          return;
+        }
+
+        $this.data(NAMESPACE, (data = new QorDatepicker(this, options)));
       } else {
         options = 'show';
       }
 
-      if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
-        result = fn.apply(data, args);
+      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+        fn.apply(data);
       }
     });
-
-    return typeof result === 'undefined' ? this : result;
   };
 
   $(function () {
-    if (!$.fn.datepicker) {
-      return;
-    }
+    var selector = '[data-toggle="qor.datepicker"]';
 
-    $(document).on('click.qor.datepicker.initiator', '[data-toggle="qor.datepicker"]', function () {
-      var $this = $(this);
-
-      QorDatepicker.plugin.call($this, $this.data());
-    });
-
-    $(document).on('click.datepicker.initiator', '[data-toggle="datepicker"]', function () {
-      var $this = $(this);
-
-      if (!$this.data('datepicker')) {
-        $this.datepicker({
-          autoClose: true
-        });
-      }
-
-      $this.datepicker('show');
-    });
+    $(document)
+      .on(EVENT_CLICK, selector, function () {
+        QorDatepicker.plugin.call($(this));
+      })
+      .on(EVENT_DISABLE, function (e) {
+        QorDatepicker.plugin.call($(selector, e.target), 'destroy');
+      })
+      .on(EVENT_ENABLE, function (e) {
+        QorDatepicker.plugin.call($(selector, e.target));
+      })
+      .triggerHandler(EVENT_ENABLE);
   });
 
   return QorDatepicker;

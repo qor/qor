@@ -13,11 +13,8 @@
 
   'use strict';
 
-  var NAMESPACE = 'qor.alert',
-      EVENT_CLICK = 'click.' + NAMESPACE;
-
   $(function () {
-    $(document).on(EVENT_CLICK, '[data-dismiss="alert"]', function () {
+    $(document).on('click.qor.alert', '[data-dismiss="alert"]', function () {
       $(this).closest('.qor-alert').remove();
     });
 

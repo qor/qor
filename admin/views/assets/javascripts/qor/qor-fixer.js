@@ -15,6 +15,8 @@
 
   var $window = $(window),
       NAMESPACE = 'qor.fixer',
+      EVENT_ENABLE = 'enable.' + NAMESPACE,
+      EVENT_DISABLE = 'disable.' + NAMESPACE,
       EVENT_RESIZE = 'resize.' + NAMESPACE,
       EVENT_SCROLL = 'scroll.' + NAMESPACE;
 
@@ -85,6 +87,10 @@
             });
     },
 
+    unbuild: function () {
+      this.$clone.remove();
+    },
+
     toggle: function () {
       var $clone = this.$clone,
         top = $window.scrollTop() - this.offsetTop;
@@ -103,16 +109,14 @@
 
     destroy: function () {
       this.unbind();
+      this.unbuild();
       this.$element.removeData(NAMESPACE);
     }
   };
 
-  QorFixer.DEFAULTS = {
-  };
+  QorFixer.DEFAULTS = {};
 
   QorFixer.plugin = function (options) {
-    var args = [].slice.call(arguments, 1);
-
     return this.each(function () {
       var $this = $(this),
           data = $this.data(NAMESPACE),
@@ -123,21 +127,22 @@
       }
 
       if (typeof options === 'string' && $.isFunction(fn = data[options])) {
-        fn.call(data, args);
+        fn.call(data);
       }
     });
   };
 
   $(function () {
-    $(document)
-      .on('renew.qor.initiator', function (e) {
-        var $element = $('.qor-list', e.target);
+    var selector = '.qor-list';
 
-        if ($element.length) {
-          QorFixer.plugin.call($element);
-        }
+    $(document)
+      .on(EVENT_DISABLE, function (e) {
+        QorFixer.plugin.call($(selector, e.target), 'destroy');
       })
-      .triggerHandler('renew.qor.initiator');
+      .on(EVENT_ENABLE, function (e) {
+        QorFixer.plugin.call($(selector, e.target));
+      })
+      .triggerHandler(EVENT_ENABLE);
   });
 
   return QorFixer;

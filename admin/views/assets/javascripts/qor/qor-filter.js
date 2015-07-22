@@ -1,7 +1,7 @@
 (function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as anonymous module.
-    define('qor-filter', ['jquery'], factory);
+    define(['jquery'], factory);
   } else if (typeof exports === 'object') {
     // Node / CommonJS
     factory(require('jquery'));
@@ -14,14 +14,15 @@
   'use strict';
 
   var location = window.location,
-
       NAMESPACE = 'qor.filter',
+      EVENT_ENABLE = 'enable.' + NAMESPACE,
+      EVENT_DISABLE = 'disable.' + NAMESPACE,
       EVENT_CLICK = 'click.' + NAMESPACE,
       EVENT_CHANGE = 'change.' + NAMESPACE,
 
       QorFilter = function (element, options) {
         this.$element = $(element);
-        this.options = $.extend({}, QorFilter.DEFAULTS, options);
+        this.options = $.extend({}, QorFilter.DEFAULTS, $.isPlainObject(options) && options);
         this.init();
       };
 
@@ -217,27 +218,39 @@
 
   QorFilter.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this);
+      var $this = $(this),
+          data = $this.data(NAMESPACE),
+          fn;
 
-      if (!$this.data(NAMESPACE)) {
-        $this.data(NAMESPACE, new QorFilter(this, options));
+      if (!data) {
+        if (/destroy/.test(options)) {
+          return;
+        }
+
+        $this.data(NAMESPACE, (data = new QorFilter(this, options)));
+      }
+
+      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+        fn.apply(data);
       }
     });
   };
 
   $(function () {
-    $(document)
-      .on('renew.qor.initiator', function (e) {
-        var $element = $('.qor-label-container', e.target);
+    var selector = '.qor-label-container',
+        options = {
+          label: '.qor-label',
+          group: '.qor-label-group'
+        };
 
-        if ($element.length) {
-          QorFilter.plugin.call($element, {
-            label: '.qor-label',
-            group: '.qor-label-group'
-          });
-        }
+    $(document)
+      .on(EVENT_DISABLE, function (e) {
+        QorFilter.plugin.call($(selector, e.target), 'destroy');
       })
-      .triggerHandler('renew.qor.initiator');
+      .on(EVENT_ENABLE, function (e) {
+        QorFilter.plugin.call($(selector, e.target), options);
+      })
+      .triggerHandler(EVENT_ENABLE);
   });
 
   return QorFilter;
