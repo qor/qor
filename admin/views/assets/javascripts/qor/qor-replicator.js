@@ -1,7 +1,7 @@
 (function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as anonymous module.
-    define('qor-replicator', ['jquery'], factory);
+    define(['jquery'], factory);
   } else if (typeof exports === 'object') {
     // Node / CommonJS
     factory(require('jquery'));
@@ -13,9 +13,14 @@
 
   'use strict';
 
-  var QorReplicator = function (element, options) {
+  var NAMESPACE = 'qor.replicator',
+      EVENT_ENABLE = 'enable.' + NAMESPACE,
+      EVENT_DISABLE = 'disable.' + NAMESPACE,
+      EVENT_CLICK = 'click.' + NAMESPACE,
+
+      QorReplicator = function (element, options) {
         this.$element = $(element);
-        this.options = $.extend({}, QorReplicator.DEFAULTS, options);
+        this.options = $.extend({}, QorReplicator.DEFAULTS, $.isPlainObject(options) && options);
         this.index = 0;
         this.init();
       };
@@ -66,11 +71,17 @@
     },
 
     bind: function () {
-      var $this = this.$element,
-          options = this.options;
+      var options = this.options;
 
-      $this.on('click', options.addClass, $.proxy(this.add, this));
-      $this.on('click', options.delClass, $.proxy(this.del, this));
+      this.$element.
+        on(EVENT_CLICK, options.addClass, $.proxy(this.add, this)).
+        on(EVENT_CLICK, options.delClass, $.proxy(this.del, this));
+    },
+
+    unbind: function () {
+      this.$element.
+        off(EVENT_CLICK, this.add).
+        off(EVENT_CLICK, this.del);
     },
 
     add: function (e) {
@@ -99,7 +110,7 @@
       } else {
         $item.children(':visible').addClass('hidden').hide();
         $alert = $(options.alertTemplate.replace('{{name}}', this.parseName($item)));
-        $alert.find(options.undoClass).one('click', function () {
+        $alert.find(options.undoClass).one(EVENT_CLICK, function () {
           $alert.remove();
           $item.children('.hidden').removeClass('hidden').show();
         });
@@ -113,23 +124,34 @@
       if (name) {
         return name.replace(/[^\[\]]+$/, '');
       }
+    },
+
+    destroy: function () {
+      this.unbind();
+      this.$element.removeData(NAMESPACE);
     }
   };
 
   QorReplicator.DEFAULTS = {
-    itemClass: '',
-    newClass: '',
-    addClass: '',
-    delClass: '',
+    itemClass: false,
+    newClass: false,
+    addClass: false,
+    delClass: false,
     alertTemplate: ''
   };
 
   QorReplicator.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this);
+      var $this = $(this),
+          data = $this.data(NAMESPACE),
+          fn;
 
-      if (!$this.data('qor.replicator')) {
-        $this.data('qor.replicator', new QorReplicator(this, options));
+      if (!data) {
+        $this.data(NAMESPACE, (data = new QorReplicator(this, options)));
+      }
+
+      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+        fn.call(data);
       }
     });
   };
@@ -146,17 +168,16 @@
         };
 
     $(document)
-      .on('click.qor.replicator.initiator', selector, function () {
+      .on(EVENT_CLICK, selector, function () {
         QorReplicator.plugin.call($(this), options);
       })
-      .on('renew.qor.initiator', function (e) {
-        var $element = $(selector, e.target);
-
-        if ($element.length) {
-          QorReplicator.plugin.call($element, options);
-        }
+      .on(EVENT_DISABLE, function (e) {
+        QorReplicator.plugin.call($(selector, e.target), 'destroy');
       })
-      .triggerHandler('renew.qor.initiator');
+      .on(EVENT_ENABLE, function (e) {
+        QorReplicator.plugin.call($(selector, e.target), options);
+      })
+      .triggerHandler(EVENT_ENABLE);
   });
 
   return QorReplicator;

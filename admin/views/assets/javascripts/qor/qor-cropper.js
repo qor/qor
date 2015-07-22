@@ -15,6 +15,8 @@
 
   var URL = window.URL || window.webkitURL,
       NAMESPACE = 'qor.cropper',
+      EVENT_ENABLE = 'enable.' + NAMESPACE,
+      EVENT_DISABLE = 'disable.' + NAMESPACE,
       EVENT_CHANGE = 'change.' + NAMESPACE,
       EVENT_CLICK = 'click.' + NAMESPACE,
       EVENT_SHOWN = 'shown.bs.modal',
@@ -23,7 +25,7 @@
 
       QorCropper = function (element, options) {
         this.$element = $(element);
-        this.options = $.extend(true, {}, QorCropper.DEFAULTS, options);
+        this.options = $.extend(true, {}, QorCropper.DEFAULTS, $.isPlainObject(options) && options);
         this.data = null;
         this.init();
       };
@@ -115,6 +117,17 @@
       this.center($img);
     },
 
+    unbuild: function () {
+      var $list = this.$list;
+
+      $list.find('.qor-cropper-toggle').remove();
+      $list.find('.qor-cropper-canvas').each(function () {
+        var $this = $(this);
+
+        $this.before($this.html()).remove();
+      });
+    },
+
     bind: function () {
       this.$element.on(EVENT_CHANGE, $.proxy(this.read, this));
       this.$list.on(EVENT_CLICK, $.proxy(this.click, this));
@@ -198,6 +211,7 @@
         aspectRatio: sizeAspectRatio,
         data: getLowerCaseKeyObject(data[options.key][sizeName]),
         background: false,
+        movable: false,
         zoomable: false,
         rotatable: false,
         checkImageOrigin: false,
@@ -343,6 +357,7 @@
 
     destroy: function () {
       this.unbind();
+      this.unbuild();
       this.$element.removeData(NAMESPACE);
     }
   };
@@ -372,10 +387,14 @@
           return;
         }
 
+        if (/destroy/.test(options)) {
+          return;
+        }
+
         $this.data(NAMESPACE, (data = new QorCropper(this, options)));
       }
 
-      if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
+      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
         fn.apply(data);
       }
     });
@@ -394,17 +413,16 @@
         };
 
     $(document)
-      .on('click.qor.cropper.initiator', selector, function () {
+      .on(EVENT_CLICK, selector, function () {
         QorCropper.plugin.call($(this), options);
       })
-      .on('renew.qor.initiator', function (e) {
-        var $element = $(selector, e.target);
-
-        if ($element.length) {
-          QorCropper.plugin.call($element, options);
-        }
+      .on(EVENT_DISABLE, function (e) {
+        QorCropper.plugin.call($(selector, e.target), 'destroy');
       })
-      .triggerHandler('renew.qor.initiator');
+      .on(EVENT_ENABLE, function (e) {
+        QorCropper.plugin.call($(selector, e.target), options);
+      })
+      .triggerHandler(EVENT_ENABLE);
   });
 
   return QorCropper;

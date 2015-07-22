@@ -23,13 +23,13 @@
         <tr {{if $diff}}class="danger"{{end}}>
           <td>{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</td>
           {{if $has_production}}
-            <td>
+            <td data-heading="{{rt $res $meta.Label}} ({{t "Live"}})">
               <div class="qor-list-text">{{$production_value}}</div>
             </td>
           {{else}}
             <td></td>
           {{end}}
-          <td>
+          <td data-heading="{{rt $res $meta.Label}} ({{t "Draft"}})">
             <div class="qor-list-text">{{$draft_value}}</div>
           </td>
         </tr>

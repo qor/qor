@@ -15,8 +15,9 @@
 
   var $document = $(document),
       FormData = window.FormData,
-
       NAMESPACE = 'qor.slideout',
+      EVENT_ENABLE = 'enable.' + NAMESPACE,
+      EVENT_DISABLE = 'disable.' + NAMESPACE,
       EVENT_CLICK = 'click.' + NAMESPACE,
       EVENT_SUBMIT = 'submit.' + NAMESPACE,
       EVENT_SHOW = 'show.' + NAMESPACE,
@@ -26,7 +27,7 @@
 
       QorSlideout = function (element, options) {
         this.$element = $(element);
-        this.options = $.extend({}, QorSlideout.DEFAULTS, options);
+        this.options = $.extend({}, QorSlideout.DEFAULTS, $.isPlainObject(options) && options);
         this.active = false;
         this.disabled = false;
         this.animating = false;
@@ -37,16 +38,26 @@
     constructor: QorSlideout,
 
     init: function () {
-      var $slideout;
-
       if (!this.$element.find('.qor-list').length) {
         return;
       }
 
+      this.build();
+      this.bind();
+    },
+
+    build: function () {
+      var $slideout;
+
       this.$slideout = $slideout = $(QorSlideout.TEMPLATE).appendTo('body');
       this.$title = $slideout.find('.slideout-title');
       this.$body = $slideout.find('.slideout-body');
-      this.bind();
+    },
+
+    unbuild: function () {
+      this.$title = null;
+      this.$body = null;
+      this.$slideout.remove();
     },
 
     bind: function () {
@@ -148,56 +159,61 @@
     },
 
     load: function (url, options) {
-      var _this = this,
-          data = $.isPlainObject(options) ? options : {},
+      var data = $.isPlainObject(options) ? options : {},
           method = data.method ? data.method : 'GET',
-          load = function () {
-            $.ajax(url, {
-              method: method,
-              data: data,
-              success: function (response) {
-                var $response,
-                    $content;
-
-                if (method === 'GET') {
-                  $response = $(response);
-
-                  if ($response.is('.qor-form-container')) {
-                    $content = $response;
-                  } else {
-                    $content = $response.find('.qor-form-container');
-                  }
-
-                  $content.find('.qor-action-cancel').attr('data-dismiss', 'slideout').removeAttr('href');
-
-                  _this.$title.html($response.find('.qor-title').html());
-                  _this.$body.html($content.html());
-
-                  _this.$slideout.one(EVENT_SHOWN, function () {
-                    $(this).trigger('renew.qor.initiator'); // Renew Qor Components
-                  });
-
-                  _this.show();
-                } else {
-                  if (data.returnUrl) {
-                    _this.disabled = false; // For reload
-                    _this.load(data.returnUrl);
-                  } else {
-                    _this.refresh();
-                  }
-                }
-              },
-              complete: function () {
-                _this.disabled = false;
-              }
-            });
-          };
+          load;
 
       if (!url || this.disabled) {
         return;
       }
 
       this.disabled = true;
+
+      load = $.proxy(function () {
+        $.ajax(url, {
+          method: method,
+          data: data,
+          success: $.proxy(function (response) {
+            var $response,
+                $content;
+
+            if (method === 'GET') {
+              $response = $(response);
+
+              if ($response.is('.qor-form-container')) {
+                $content = $response;
+              } else {
+                $content = $response.find('.qor-form-container');
+              }
+
+              $content.find('.qor-action-cancel').attr('data-dismiss', 'slideout').removeAttr('href');
+              this.$title.html($response.find('.qor-title').html());
+              this.$body.empty().html($content.html());
+              this.$slideout.one(EVENT_SHOWN, function () {
+
+                // Initialize all QOR Components within the slideout
+                $(this).trigger('enable.qor');
+              }).one(EVENT_HIDDEN, function () {
+
+                // Destroy all QOR components within the slideout
+                $(this).trigger('disable.qor');
+              });
+
+              this.show();
+            } else {
+              if (data.returnUrl) {
+                this.disabled = false; // For reload
+                this.load(data.returnUrl);
+              } else {
+                this.refresh();
+              }
+            }
+          }, this),
+          complete: $.proxy(function () {
+            this.disabled = false;
+          }, this)
+        });
+      }, this);
 
       if (this.active) {
         this.hide();
@@ -278,18 +294,20 @@
 
     destroy: function () {
       this.unbind();
+      this.unbuild();
       this.$element.removeData(NAMESPACE);
     }
   };
 
-  QorSlideout.DEFAULTS = {
-  };
+  QorSlideout.DEFAULTS = {};
 
   QorSlideout.TEMPLATE = (
     '<div class="qor-slideout">' +
       '<div class="slideout-dialog">' +
         '<div class="slideout-header">' +
-          '<button type="button" class="slideout-close" data-dismiss="slideout" aria-div="Close"><span class="md md-24">close</span></button>' +
+          '<button type="button" class="slideout-close" data-dismiss="slideout" aria-div="Close">' +
+            '<span class="md md-24">close</span>' +
+          '</button>' +
           '<h3 class="slideout-title"></h3>' +
         '</div>' +
         '<div class="slideout-body"></div>' +
@@ -299,24 +317,41 @@
 
   QorSlideout.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this);
+      var $this = $(this),
+          data = $this.data(NAMESPACE),
+          fn;
 
-      if (!$this.data(NAMESPACE)) {
-        $this.data(NAMESPACE, new QorSlideout(this, options));
+      if (!data) {
+        if (/destroy/.test(options)) {
+          return;
+        }
+
+        $this.data(NAMESPACE, (data = new QorSlideout(this, options)));
+      }
+
+      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+        fn.apply(data);
       }
     });
   };
 
   $(function () {
-    $(document)
-      .on('renew.qor.initiator', function (e) {
-        var $element = $('.qor-theme-slideout', e.target);
+    var selector = '.qor-theme-slideout';
 
-        if ($element.length) {
-          QorSlideout.plugin.call($element);
+    $(document)
+      .on(EVENT_DISABLE, function (e) {
+
+        if (/slideout/.test(e.namespace)) {
+          QorSlideout.plugin.call($(selector, e.target), 'destroy');
         }
       })
-      .triggerHandler('renew.qor.initiator');
+      .on(EVENT_ENABLE, function (e) {
+
+        if (/slideout/.test(e.namespace)) {
+          QorSlideout.plugin.call($(selector, e.target));
+        }
+      })
+      .triggerHandler(EVENT_ENABLE);
   });
 
   return QorSlideout;

@@ -16,6 +16,12 @@
   var $window = $(window),
       $document = $(document),
 
+      NAMESPACE = 'datepicker',
+      EVENT_CLICK = 'click.' + NAMESPACE,
+      EVENT_KEYUP = 'keyup.' + NAMESPACE,
+      EVENT_FOCUS = 'focus.' + NAMESPACE,
+      EVENT_RESIZE = 'resize.' + NAMESPACE,
+
       Datepicker = function (element, options) {
         this.$element = $(element);
         this.options = $.extend({}, Datepicker.DEFAULTS, $.isPlainObject(options) && options);
@@ -27,20 +33,6 @@
 
   function isNumber(n) {
     return typeof n === 'number';
-  }
-
-  function isUndefined(n) {
-    return typeof n === 'undefined';
-  }
-
-  function toArray(obj, offset) {
-    var args = [];
-
-    if (isNumber(offset)) { // It's necessary for IE8
-      args.push(offset);
-    }
-
-    return args.slice.apply(obj, args);
   }
 
   function isLeapYear (year) {
@@ -204,18 +196,37 @@
       var $this = this.$element,
           options = this.options;
 
-      this.$picker.on('click', $.proxy(this.click, this));
+      this.$picker.on(EVENT_CLICK, $.proxy(this.click, this));
 
       if (!this.isInline) {
         if (this.isInput) {
-          $this.on('keyup', $.proxy(this.update, this));
+          $this.on(EVENT_KEYUP, $.proxy(this.update, this));
 
           if (!options.trigger) {
-            $this.on('focus', $.proxy(this.show, this));
+            $this.on(EVENT_FOCUS, $.proxy(this.show, this));
           }
         }
 
-        this.$trigger.on('click', $.proxy(this.show, this));
+        this.$trigger.on(EVENT_CLICK, $.proxy(this.show, this));
+      }
+    },
+
+    unbind: function () {
+      var $this = this.$element,
+          options = this.options;
+
+      this.$picker.off(EVENT_CLICK, this.click);
+
+      if (!this.isInline) {
+        if (this.isInput) {
+          $this.off(EVENT_KEYUP, this.update);
+
+          if (!options.trigger) {
+            $this.off(EVENT_FOCUS, this.show);
+          }
+        }
+
+        this.$trigger.off(EVENT_CLICK, this.show);
       }
     },
 
@@ -296,8 +307,8 @@
       this.$picker.show();
 
       if (!this.isInline) {
-        $window.on('resize', $.proxy(this.place, this));
-        $document.on('click', $.proxy(function (e) {
+        $window.on(EVENT_RESIZE, $.proxy(this.place, this));
+        $document.on(EVENT_CLICK, $.proxy(function (e) {
           if (e.target !== this.$element[0]) {
             this.hide();
           }
@@ -316,8 +327,8 @@
       this.$picker.hide();
 
       if (!this.isInline) {
-        $window.off('resize', this.place);
-        $document.off('click', this.hide);
+        $window.off(EVENT_RESIZE, this.place);
+        $document.off(EVENT_CLICK, this.hide);
       }
     },
 
@@ -686,6 +697,12 @@
 
         // No default
       }
+    },
+
+    destroy: function () {
+      this.unbind();
+      this.$picker.remove();
+      this.$element.removeData(NAMESPACE);
     }
   };
 
@@ -748,7 +765,7 @@
   };
 
   Datepicker.setDefaults = function (options) {
-    $.extend(Datepicker.DEFAULTS, options);
+    $.extend(Datepicker.DEFAULTS, $.isPlainObject(options) && options);
   };
 
   // Save the other datepicker
@@ -756,24 +773,28 @@
 
   // Register as jQuery plugin
   $.fn.datepicker = function (options) {
-    var args = toArray(arguments, 1),
+    var args = [].slice.call(arguments, 1),
         result;
 
     this.each(function () {
       var $this = $(this),
-          data = $this.data('datepicker'),
+          data = $this.data(NAMESPACE),
           fn;
 
       if (!data) {
-        $this.data('datepicker', (data = new Datepicker(this, options)));
+        if (/destroy/.test(options)) {
+          return;
+        }
+
+        $this.data(NAMESPACE, (data = new Datepicker(this, options)));
       }
 
-      if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
+      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
         result = fn.apply(data, args);
       }
     });
 
-    return isUndefined(result) ? this : result;
+    return typeof result === 'undefined' ? this : result;
   };
 
   $.fn.datepicker.Constructor = Datepicker;
