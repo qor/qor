@@ -14,7 +14,9 @@
   'use strict';
 
   var NAMESPACE = 'qor.publish',
-      EVENT_CLICK = 'click.' + NAMESPACE;
+      EVENT_CLICK = 'click.' + NAMESPACE,
+      EVENT_SHOWN = 'shown.bs.modal',
+      EVENT_HIDDEN = 'hidden.bs.modal';
 
   function Publish(element, options) {
     this.$element = $(element);
@@ -41,10 +43,18 @@
 
     bind: function () {
       this.$element.on(EVENT_CLICK, $.proxy(this.click, this));
+      this.$modal.
+        on(EVENT_SHOWN, function () {
+          $(this).trigger('enable.qor.textviewer');
+        }).
+        on(EVENT_HIDDEN, function () {
+          $(this).trigger('disable.qor.textviewer');
+        });
     },
 
     unbind: function () {
       this.$element.off(EVENT_CLICK, this.click);
+      this.$modal.off(EVENT_SHOWN).off(EVENT_HIDDEN);
     },
 
     click: function (e) {
