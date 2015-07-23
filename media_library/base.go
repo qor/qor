@@ -88,7 +88,7 @@ func (b Base) Value() (driver.Value, error) {
 }
 
 func (b Base) URL(styles ...string) string {
-	if len(styles) > 0 {
+	if b.Url != "" && len(styles) > 0 {
 		ext := path.Ext(b.Url)
 		return fmt.Sprintf("%v.%v%v", strings.TrimSuffix(b.Url, ext), styles[0], ext)
 	}
