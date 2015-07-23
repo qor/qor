@@ -96,7 +96,7 @@
 
       this.$parent = $parent;
       this.$button = $(QorRedactor.BUTTON);
-      this.$modal = $parent.find(options.modal);
+      this.$modal = $(QorRedactor.MODAL).appendTo('body');
       this.bind();
     },
 
@@ -209,6 +209,7 @@
 
     destroy: function () {
       this.unbind();
+      this.$modal.modal('hide').remove();
       this.$element.removeData(NAMESPACE);
     }
   };
@@ -224,6 +225,22 @@
   };
 
   QorRedactor.BUTTON = '<span class="redactor-image-cropper">Crop</span>';
+  QorRedactor.MODAL = (
+    '<div class="modal fade qor-cropper-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
+      '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+          '<div class="modal-header">' +
+            '<h5 class="modal-title">Crop the image</h5>' +
+          '</div>' +
+          '<div class="modal-body"></div>' +
+          '<div class="modal-footer">' +
+            '<button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>' +
+            '<button type="button" class="btn btn-link qor-cropper-save">OK</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
 
   QorRedactor.plugin = function (options) {
     return this.each(function () {

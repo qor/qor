@@ -96,7 +96,7 @@
       this.$parent = $parent;
       this.$output = $output = $parent.find(options.output);
       this.$list = $parent.find(options.list);
-      this.$modal = $parent.find(options.modal);
+      this.$modal = $(QorCropper.MODAL).appendTo('body');
 
       try {
         data = JSON.parse($.trim($output.val()));
@@ -181,7 +181,7 @@
           $img;
 
       if (!$list.find('ul').length) {
-        $list.html(QorCropper.TEMPLATE);
+        $list.html(QorCropper.LIST);
         this.build();
       }
 
@@ -358,6 +358,7 @@
     destroy: function () {
       this.unbind();
       this.unbuild();
+      this.$modal.modal('hide').remove();
       this.$element.removeData(NAMESPACE);
     }
   };
@@ -372,9 +373,25 @@
     data: null
   };
 
-  QorCropper.TOGGLE = ('<div class="qor-cropper-toggle"></div>');
-  QorCropper.CANVAS = ('<div class="qor-cropper-canvas"></div>');
-  QorCropper.TEMPLATE = ('<ul><li><img></li></ul>');
+  QorCropper.TOGGLE = '<div class="qor-cropper-toggle"></div>';
+  QorCropper.CANVAS = '<div class="qor-cropper-canvas"></div>';
+  QorCropper.LIST = '<ul><li><img></li></ul>';
+  QorCropper.MODAL = (
+    '<div class="modal fade qor-cropper-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
+      '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+          '<div class="modal-header">' +
+            '<h5 class="modal-title">Crop the image</h5>' +
+          '</div>' +
+          '<div class="modal-body"></div>' +
+          '<div class="modal-footer">' +
+            '<button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>' +
+            '<button type="button" class="btn btn-link qor-cropper-save">OK</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
 
   QorCropper.plugin = function (options) {
     return this.each(function () {
