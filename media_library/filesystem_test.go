@@ -4,6 +4,7 @@ import (
 	"image"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/jinzhu/gorm"
@@ -34,6 +35,55 @@ type User struct {
 
 func init() {
 	db.AutoMigrate(&User{})
+}
+
+func TestURLWithoutFile(t *testing.T) {
+	user := User{Name: "jinzhu"}
+
+	if got, want := user.Avatar.URL(), ""; got != want {
+		t.Errorf(`media_library.Base#URL() == %q, want %q`, got, want)
+	}
+	if got, want := user.Avatar.URL("big"), ""; got != want {
+		t.Errorf(`media_library.Base#URL("big") == %q, want %q`, got, want)
+	}
+	if got, want := user.Avatar.URL("small1", "small2"), ""; got != want {
+		t.Errorf(`media_library.Base#URL("small1", "small2") == %q, want %q`, got, want)
+	}
+}
+
+func TestURLWithFile(t *testing.T) {
+	var filePath string
+	user := User{Name: "jinzhu"}
+
+	if avatar, err := os.Open("test/logo.png"); err != nil {
+		panic("file doesn't exist")
+	} else {
+		user.Avatar.Scan(avatar)
+	}
+	if err := db.Save(&user).Error; err != nil {
+		panic(err)
+	}
+
+	filePath = user.Avatar.URL()
+	if _, err := os.Stat(path.Join("public", filePath)); err != nil {
+		t.Errorf(`media_library.Base#URL() == %q, it's an invalid path`, filePath)
+	}
+
+	styleCases := []struct {
+		styles []string
+	}{
+		{[]string{"big"}},
+		{[]string{"small1", "small2"}},
+	}
+	for _, c := range styleCases {
+		filePath = user.Avatar.URL(c.styles...)
+		if _, err := os.Stat(path.Join("public", filePath)); err != nil {
+			t.Errorf(`media_library.Base#URL(%q) == %q, it's an invalid path`, strings.Join(c.styles, ","), filePath)
+		}
+		if strings.Split(path.Base(filePath), ".")[2] != c.styles[0] {
+			t.Errorf(`media_library.Base#URL(%q) == %q, it's a wrong path`, strings.Join(c.styles, ","), filePath)
+		}
+	}
 }
 
 func TestSaveIntoFileSystem(t *testing.T) {
