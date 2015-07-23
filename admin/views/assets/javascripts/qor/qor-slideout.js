@@ -115,7 +115,7 @@
           }
 
           if (target) {
-            dismissible = true;
+            // dismissible = true;
             target = target.parentNode;
           } else {
             break;
@@ -123,10 +123,10 @@
         }
       }
 
-      if (dismissible) {
-        $this.find('tbody > tr').removeClass('active');
-        this.hide();
-      }
+      // if (dismissible) {
+      //   $this.find('tbody > tr').removeClass('active');
+      //   this.hide();
+      // }
     },
 
     submit: function (e) {
