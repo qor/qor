@@ -89,43 +89,43 @@
         }
       }
 
-      &[data-menu-item*="Assets"] {
+      &[data-menu-item*="Asset"] {
         > a::before {
           content: "\e2c7";
         }
       }
 
-      &[data-menu-item*="Products"] {
+      &[data-menu-item*="Product"] {
         > a::before {
           content: "\e1db";
         }
       }
 
-      &[data-menu-item*="Sites"] {
+      &[data-menu-item*="Site"] {
         > a::before {
           content: "\e051";
         }
       }
 
-      &[data-menu-item*="Orders"] {
+      &[data-menu-item*="Order"] {
         > a::before {
           content: "\e8cc";
         }
       }
 
-      &[data-menu-item*="Users"] {
+      &[data-menu-item*="User"] {
         > a::before {
           content: "\e7fd";
         }
       }
 
-      &[data-menu-item*="Translations"] {
+      &[data-menu-item*="Translation"] {
         > a::before {
           content: "\e894";
         }
       }
 
-      &[data-menu-item*="Publishes"] {
+      &[data-menu-item*="Publish"] {
         > a::before {
           content: "\e255";
         }
@@ -224,8 +224,6 @@
             left: 8px;
           }
         }
-
-
 
         > ul {
           position: static;
