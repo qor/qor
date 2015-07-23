@@ -30,7 +30,7 @@
       var $this = this.$element;
 
       if (!$this.prop('multiple')) {
-        $this.prepend('<option value="" selected></option>');
+        $this.prepend('<option value=""></option>');
       }
 
       $this.chosen({
