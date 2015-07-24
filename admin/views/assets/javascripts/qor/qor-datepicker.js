@@ -163,8 +163,6 @@
         }
 
         $this.data(NAMESPACE, (data = new QorDatepicker(this, options)));
-      } else {
-        options = 'show';
       }
 
       if (typeof options === 'string' && $.isFunction(fn = data[options])) {
