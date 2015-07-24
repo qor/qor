@@ -148,7 +148,7 @@ func (b *Base) NeedCrop() bool {
 }
 
 func (b *Base) GetCropOption(name string) *image.Rectangle {
-	if cropOption := b.CropOptions[name]; cropOption != nil {
+	if cropOption := b.CropOptions[strings.Split(name, "@")[0]]; cropOption != nil {
 		return &image.Rectangle{
 			Min: image.Point{X: cropOption.X, Y: cropOption.Y},
 			Max: image.Point{X: cropOption.X + cropOption.Width, Y: cropOption.Y + cropOption.Height},
