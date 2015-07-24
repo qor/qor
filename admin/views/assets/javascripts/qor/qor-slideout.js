@@ -78,6 +78,11 @@
           $target,
           data;
 
+      function toggleClass() {
+        $this.find('tbody > tr').removeClass('active');
+        $target.addClass('active');
+      }
+
       if (e.isDefaultPrevented()) {
         return;
       }
@@ -98,11 +103,7 @@
           break;
         } else if ($target.is('tbody > tr')) {
           if (!$target.hasClass('active')) {
-            $this.one(EVENT_SHOW, function () {
-              $this.find('tbody > tr').removeClass('active');
-              $target.addClass('active');
-            });
-
+            $this.one(EVENT_SHOW, toggleClass);
             this.load($target.find('.qor-action-edit').attr('href'));
           }
 
