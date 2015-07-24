@@ -98,8 +98,11 @@
           break;
         } else if ($target.is('tbody > tr')) {
           if (!$target.hasClass('active')) {
-            $this.find('tbody > tr').removeClass('active');
-            $target.addClass('active');
+            $this.one(EVENT_SHOW, function () {
+              $this.find('tbody > tr').removeClass('active');
+              $target.addClass('active');
+            });
+
             this.load($target.find('.qor-action-edit').attr('href'));
           }
 
