@@ -1,0 +1,4 @@
+<div class="form-group">
+  <label for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
+  <input class="form-control" id="{{.InputId}}" name="{{.InputName}}" {{if .Value}}value="{{.Value}}"{{end}} type="number" step="any" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
+</div>

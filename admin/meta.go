@@ -136,7 +136,7 @@ func (meta *Meta) updateMeta() {
 				if regexp.MustCompile(`^(.*)?(u)?(int)(\d+)?`).MatchString(fieldType.Kind().String()) {
 					meta.Type = "number"
 				} else if regexp.MustCompile(`^(.*)?(float)(\d+)?`).MatchString(fieldType.Kind().String()) {
-					meta.Type = "string"
+					meta.Type = "float"
 				} else if _, ok := reflect.New(fieldType).Interface().(*time.Time); ok {
 					meta.Type = "datetime"
 				} else if _, ok := reflect.New(fieldType).Interface().(media_library.MediaLibrary); ok {
