@@ -109,7 +109,6 @@
           break;
         } else if ($target.is('.qor-action-new')) {
           e.preventDefault();
-          $this.find('tbody > tr').removeClass('active');
           this.load($target.attr('href'));
           break;
         } else {
