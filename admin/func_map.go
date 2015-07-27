@@ -164,7 +164,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 	}
 }
 
-func (context *Context) isIncluded(value interface{}, primaryKey interface{}) bool {
+func (context *Context) isIncluded(value interface{}, hasValue interface{}) bool {
 	primaryKeys := []interface{}{}
 	reflectValue := reflect.Indirect(reflect.ValueOf(value))
 	if reflectValue.Kind() == reflect.Slice {
@@ -181,6 +181,8 @@ func (context *Context) isIncluded(value interface{}, primaryKey interface{}) bo
 	} else if reflectValue.Kind() == reflect.Struct {
 		scope := &gorm.Scope{Value: value}
 		primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
+	} else if reflectValue.Kind() == reflect.String {
+		return strings.Contains(reflectValue.Interface().(string), fmt.Sprintf("%v", hasValue))
 	} else {
 		if reflectValue.IsValid() {
 			primaryKeys = append(primaryKeys, reflect.Indirect(reflectValue).Interface())
@@ -188,7 +190,7 @@ func (context *Context) isIncluded(value interface{}, primaryKey interface{}) bo
 	}
 
 	for _, key := range primaryKeys {
-		if fmt.Sprintf("%v", primaryKey) == fmt.Sprintf("%v", key) {
+		if fmt.Sprintf("%v", hasValue) == fmt.Sprintf("%v", key) {
 			return true
 		}
 	}
