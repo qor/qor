@@ -48,6 +48,12 @@ func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
 
 			result = reflectValue.Elem().Interface()
 		}
+
+		if meta.Type == "number" || meta.Type == "float" {
+			if context.isNewRecord(value) && reflect.DeepEqual(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
+				return nil
+			}
+		}
 		return result
 	}
 
