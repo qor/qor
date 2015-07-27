@@ -23,7 +23,7 @@
         {{range $key, $v := $value.GetSizes}}
           <li>
             <img src="{{$value.URL $key}}" data-original-url="{{$value.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $v}}">
-            <span>{{$key}} ({{$v.Width}} &times; {{$v.Height}} px)</span>
+            <span>{{$key}} ({{$v.Width}}&times;{{$v.Height}} px)</span>
           </li>
         {{end}}
       {{else}}
