@@ -45,7 +45,9 @@
       }
 
       this.$template = $template;
-      this.template = $template.clone().removeClass('hide').prop('outerHTML');
+      this.template = $template.prop('outerHTML');
+      $template.hide();
+
       this.parse();
       this.bind();
     },
@@ -88,8 +90,8 @@
       var $template = this.$template,
           $target;
 
-      if ($template.hasClass('hide')) {
-        $template.removeClass('hide');
+      if ($template.is(':hidden')) {
+        $template.show();
         return;
       }
 
