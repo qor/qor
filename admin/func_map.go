@@ -48,12 +48,6 @@ func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
 
 			result = reflectValue.Elem().Interface()
 		}
-
-		if !(meta.Type == "collection_edit" || meta.Type == "single_edit") {
-			if context.isNewRecord(value) && reflect.DeepEqual(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
-				return nil
-			}
-		}
 		return result
 	}
 

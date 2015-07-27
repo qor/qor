@@ -77,7 +77,7 @@ func (ac *controller) Show(context *Context) {
 
 func (ac *controller) New(context *Context) {
 	if context.checkResourcePermission(roles.Create) {
-		context.Execute("new", nil)
+		context.Execute("new", context.Resource.NewStruct())
 	}
 }
 

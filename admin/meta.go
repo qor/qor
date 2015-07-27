@@ -166,7 +166,7 @@ func (meta *Meta) updateMeta() {
 	if meta.Valuer == nil {
 		if hasColumn {
 			meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
-				scope := &gorm.Scope{Value: value}
+				scope := context.GetDB().NewScope(value)
 				alias := meta.Alias
 				if nestedField {
 					fields := strings.Split(alias, ".")
