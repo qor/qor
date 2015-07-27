@@ -194,12 +194,12 @@
               this.$body.empty().html($content.html());
               this.$slideout.one(EVENT_SHOWN, function () {
 
-                // Initialize all QOR Components within the slideout
-                $(this).trigger('enable.qor');
+                // Enable all JavaScript components within the slideout
+                $(this).trigger('enable');
               }).one(EVENT_HIDDEN, function () {
 
-                // Destroy all QOR components within the slideout
-                $(this).trigger('disable.qor');
+                // Destroy all JavaScript components within the slideout
+                $(this).trigger('disable');
               });
 
               this.show();
