@@ -107,12 +107,10 @@
   .modal-header {
     padding-top: 16px;
     padding-bottom: 16px;
-    border-bottom-color: #fafafa;
   }
 
   .modal-body {
     padding: 0;
-    background-color: #fafafa;
 
     img {
       max-width: 100%;
@@ -122,7 +120,58 @@
   .modal-footer {
     padding-top: 8px;
     padding-bottom: 8px;
-    border-top-color: #fafafa;
+  }
+}
+
+.qor-cropper-container {
+}
+
+.qor-cropper-optionbox {
+  display: none;
+  margin: 16px 16px 0;
+  overflow: hidden;
+
+  > h5 {
+    float: left;
+    margin-top: 0;
+    margin-right: 16px;
+    margin-bottom: 0;
+    line-height: 20px;
+  }
+
+  > ul {
+    float: left;
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style: none;
+    overflow: hidden;
+
+    > li {
+      float: left;
+      margin-right: 16px;
+
+      > label {
+        margin-bottom: 0;
+        font-weight: normal;
+
+        > input {
+          margin-right: 2px;
+        }
+
+        > span {
+          display: inline-block;
+
+          &:first-letter {
+            text-transform: uppercase;
+          }
+
+          > small {
+            margin-left: 4px;
+            color: #999;
+          }
+        }
+      }
+    }
   }
 }
 

@@ -13,22 +13,26 @@
 
   'use strict';
 
-  var URL = window.URL || window.webkitURL,
-      NAMESPACE = 'qor.cropper',
-      EVENT_ENABLE = 'enable.' + NAMESPACE,
-      EVENT_DISABLE = 'disable.' + NAMESPACE,
-      EVENT_CHANGE = 'change.' + NAMESPACE,
-      EVENT_CLICK = 'click.' + NAMESPACE,
-      EVENT_SHOWN = 'shown.bs.modal',
-      EVENT_HIDDEN = 'hidden.bs.modal',
-      REGEXP_OPTIONS = /x|y|width|height/,
+  var URL = window.URL || window.webkitURL;
+  var NAMESPACE = 'qor.cropper';
 
-      QorCropper = function (element, options) {
-        this.$element = $(element);
-        this.options = $.extend(true, {}, QorCropper.DEFAULTS, $.isPlainObject(options) && options);
-        this.data = null;
-        this.init();
-      };
+  // Events
+  var EVENT_ENABLE = 'enable.' + NAMESPACE;
+  var EVENT_DISABLE = 'disable.' + NAMESPACE;
+  var EVENT_CHANGE = 'change.' + NAMESPACE;
+  var EVENT_CLICK = 'click.' + NAMESPACE;
+  var EVENT_SHOWN = 'shown.bs.modal';
+  var EVENT_HIDDEN = 'hidden.bs.modal';
+
+  // Classes
+  var CLASS_TOGGLE = '.qor-cropper-toggle';
+  var CLASS_CANVAS = '.qor-cropper-canvas';
+  var CLASS_CONTAINER = '.qor-cropper-container';
+  var CLASS_OPTIONBOX = '.qor-cropper-optionbox';
+  var CLASS_SAVE = '.qor-cropper-save';
+
+  // RegExps
+  var REGEXP_OPTIONS = /x|y|width|height/;
 
   function capitalize (str) {
     if (typeof str === 'string') {
@@ -39,8 +43,8 @@
   }
 
   function getLowerCaseKeyObject (obj) {
-    var newObj = {},
-        key;
+    var newObj = {};
+    var key;
 
     if ($.isPlainObject(obj)) {
       for (key in obj) {
@@ -53,9 +57,9 @@
     return newObj;
   }
 
-  function getCapitalizeKeyObject (obj) {
-    var newObj = {},
-        key;
+  /*function getCapitalizeKeyObject (obj) {
+    var newObj = {};
+    var key;
 
     if ($.isPlainObject(obj)) {
       for (key in obj) {
@@ -66,40 +70,45 @@
     }
 
     return newObj;
-  }
+  }*/
 
   function getValueByNoCaseKey (obj, key) {
-    var originalKey = String(key),
-        lowerCaseKey = originalKey.toLowerCase(),
-        upperCaseKey = originalKey.toUpperCase(),
-        capitalizeKey = capitalize(originalKey);
+    var originalKey = String(key);
+    var lowerCaseKey = originalKey.toLowerCase();
+    var upperCaseKey = originalKey.toUpperCase();
+    var capitalizeKey = capitalize(originalKey);
 
     if ($.isPlainObject(obj)) {
       return (obj[lowerCaseKey] || obj[capitalizeKey] || obj[upperCaseKey]);
     }
   }
 
+  function QorCropper(element, options) {
+    this.$element = $(element);
+    this.options = $.extend(true, {}, QorCropper.DEFAULTS, $.isPlainObject(options) && options);
+    this.data = null;
+    this.init();
+  }
+
   QorCropper.prototype = {
     constructor: QorCropper,
 
     init: function () {
-      var $this = this.$element,
-          options = this.options,
-          $parent = $this.closest(options.parent),
-          $output,
-          data;
+      var options = this.options;
+      var $this = this.$element;
+      var $parent = $this.closest(options.parent);
+      var data;
 
       if (!$parent.length) {
         $parent = $this.parent();
       }
 
       this.$parent = $parent;
-      this.$output = $output = $parent.find(options.output);
+      this.$output = $parent.find(options.output);
       this.$list = $parent.find(options.list);
-      this.$modal = $(QorCropper.MODAL).appendTo('body');
 
       try {
-        data = JSON.parse($.trim($output.val()));
+        data = JSON.parse($.trim(this.$output.val()));
       } catch (e) {}
 
       this.data = $.extend(data || {}, options.data);
@@ -108,8 +117,18 @@
     },
 
     build: function () {
-      var $list = this.$list,
-          $img;
+      this.wrap();
+      this.$modal = $(QorCropper.MODAL).appendTo('body');
+    },
+
+    unbuild: function () {
+      this.unwrap();
+      this.$modal.remove();
+    },
+
+    wrap: function () {
+      var $list = this.$list;
+      var $img;
 
       $list.find('li').append(QorCropper.TOGGLE);
       $img = $list.find('img');
@@ -117,11 +136,11 @@
       this.center($img);
     },
 
-    unbuild: function () {
+    unwrap: function () {
       var $list = this.$list;
 
-      $list.find('.qor-cropper-toggle').remove();
-      $list.find('.qor-cropper-canvas').each(function () {
+      $list.find(CLASS_TOGGLE).remove();
+      $list.find(CLASS_CANVAS).each(function () {
         var $this = $(this);
 
         $this.before($this.html()).remove();
@@ -129,22 +148,34 @@
     },
 
     bind: function () {
-      this.$element.on(EVENT_CHANGE, $.proxy(this.read, this));
-      this.$list.on(EVENT_CLICK, $.proxy(this.click, this));
-      this.$modal.on(EVENT_SHOWN, $.proxy(this.start, this)).on(EVENT_HIDDEN, $.proxy(this.stop, this));
+      this.$element.
+        on(EVENT_CHANGE, $.proxy(this.read, this));
+
+      this.$list.
+        on(EVENT_CLICK, $.proxy(this.click, this));
+
+      this.$modal.
+        on(EVENT_SHOWN, $.proxy(this.start, this)).
+        on(EVENT_HIDDEN, $.proxy(this.stop, this));
     },
 
     unbind: function () {
-      this.$element.off(EVENT_CHANGE, this.read);
-      this.$list.off(EVENT_CLICK, this.click);
-      this.$modal.off(EVENT_SHOWN, this.start).off(EVENT_HIDDEN, this.stop);
+      this.$element.
+        off(EVENT_CHANGE, this.read);
+
+      this.$list.
+        off(EVENT_CLICK, this.click);
+
+      this.$modal.
+        off(EVENT_SHOWN, this.start).
+        off(EVENT_HIDDEN, this.stop);
     },
 
     click: function (e) {
-      var target = e.target,
-          $target;
+      var target = e.target;
+      var $target;
 
-      if (e.target === this.$list[0]) {
+      if (target === this.$list[0]) {
         return;
       }
 
@@ -158,9 +189,9 @@
       this.$modal.modal('show');
     },
 
-    read: function () {
-      var files = this.$element.prop('files'),
-          file;
+    read: function (e) {
+      var files = e.target.files;
+      var file;
 
       if (files && files.length) {
         file = files[0];
@@ -177,12 +208,12 @@
     },
 
     load: function (url) {
-      var $list = this.$list,
-          $img;
+      var $list = this.$list;
+      var $img;
 
       if (!$list.find('ul').length) {
         $list.html(QorCropper.LIST);
-        this.build();
+        this.wrap();
       }
 
       $img = $list.find('img');
@@ -191,22 +222,38 @@
     },
 
     start: function () {
-      var options = this.options,
-          $modal = this.$modal,
-          $target = this.$target,
-          sizeData = $target.data(),
-          sizeName = sizeData.sizeName || 'original',
-          sizeResolution = sizeData.sizeResolution,
-          $clone = $('<img>').attr('src', sizeData.originalUrl),
-          sizeAspectRatio = (sizeResolution ? getValueByNoCaseKey(sizeResolution, 'width') / getValueByNoCaseKey(sizeResolution, 'height') : NaN),
-          data = this.data,
-          _this = this;
+      var options = this.options;
+      var $modal = this.$modal;
+      var $target = this.$target;
+      var sizeData = $target.data();
+      var sizeName = sizeData.sizeName || 'original';
+      var sizeResolution = sizeData.sizeResolution;
+      var $clone = $('<img>').attr('src', sizeData.originalUrl);
+      var data = this.data;
+      var _this = this;
+      var sizeAspectRatio = NaN;
+      var sizeWidth;
+      var sizeHeight;
+      var list;
+
+      if (sizeResolution) {
+        sizeWidth = getValueByNoCaseKey(sizeResolution, 'width');
+        sizeHeight = getValueByNoCaseKey(sizeResolution, 'height');
+        sizeAspectRatio = sizeWidth / sizeHeight;
+      }
 
       if (!data[options.key]) {
         data[options.key] = {};
       }
 
-      $modal.find('.modal-body').html($clone);
+      $modal.find(CLASS_CONTAINER).html($clone);
+
+      list = this.getList(sizeAspectRatio);
+
+      if (list) {
+        $modal.find(CLASS_OPTIONBOX).show().find('ul').html(list);
+      }
+
       $clone.cropper({
         aspectRatio: sizeAspectRatio,
         data: getLowerCaseKeyObject(data[options.key][sizeName]),
@@ -217,9 +264,10 @@
         checkImageOrigin: false,
 
         built: function () {
-          $modal.find(options.save).one('click', function () {
-            var cropData = {},
-                url;
+          $modal.find(CLASS_SAVE).one('click', function () {
+            var cropData = {};
+            var syncData = [];
+            var url;
 
             $.each($clone.cropper('getData'), function (i, n) {
               if (REGEXP_OPTIONS.test(i)) {
@@ -227,7 +275,7 @@
               }
             });
 
-            data[options.key][sizeName] = getCapitalizeKeyObject(cropData);
+            data[options.key][sizeName] = cropData;
             _this.imageData = $clone.cropper('getImageData');
             _this.cropData = cropData;
 
@@ -235,18 +283,64 @@
               url = $clone.cropper('getCroppedCanvas').toDataURL();
             } catch (e) {}
 
-            _this.output(url);
+            $modal.find(CLASS_OPTIONBOX + ' input').each(function () {
+              var $this = $(this);
+
+              if ($this.prop('checked')) {
+                syncData.push($this.attr('name'));
+              }
+            });
+
+            _this.output(url, syncData);
             $modal.modal('hide');
           });
-        }
+        },
       });
     },
 
     stop: function () {
-      this.$modal.find('.modal-body > img').cropper('destroy').remove();
+      this.$modal.
+        find(CLASS_CONTAINER + ' > img').
+          cropper('destroy').
+          remove().
+          end().
+        find(CLASS_OPTIONBOX).
+          hide().
+          find('ul').
+            empty();
     },
 
-    output: function (url) {
+    getList: function (aspectRatio) {
+      var list = [];
+
+      this.$list.find('img').not(this.$target).each(function () {
+        var data = $(this).data();
+        var resolution = data.sizeResolution;
+        var name = data.sizeName;
+        var width;
+        var height;
+
+        if (resolution) {
+          width = getValueByNoCaseKey(resolution, 'width');
+          height = getValueByNoCaseKey(resolution, 'height');
+
+          if (width / height === aspectRatio) {
+            list.push(
+              '<label>' +
+                '<input type="checkbox" name="' + name + '" checked> ' +
+                '<span>' + name +
+                  '<small>(' + width + '&times;' + height + ' px)</small>' +
+                '</span>' +
+              '</label>'
+            );
+          }
+        }
+      });
+
+      return list.length ? ('<li>' + list.join('</li><li>') + '</li>') : '';
+    },
+
+    output: function (url, data) {
       var $target = this.$target;
 
       if (url) {
@@ -255,21 +349,28 @@
         this.preview($target);
       }
 
-      this.autoCrop(url);
+      if ($.isArray(data) && data.length) {
+        this.autoCrop(url, data);
+      }
+
       this.$output.val(JSON.stringify(this.data));
     },
 
     preview: function ($target) {
-      var $canvas = $target.parent(),
-          $container = $canvas.parent(),
-          containerWidth = Math.max($container.width(), 160), // minContainerWidth: 160
-          containerHeight = Math.max($container.height(), 160), // minContainerHeight: 160
-          imageData = this.imageData,
-          cropData = $.extend({}, this.cropData), // Clone one to avoid changing it
-          cropAspectRatio = cropData.width / cropData.height,
-          newWidth = containerWidth,
-          newHeight = containerHeight,
-          newRatio;
+      var $canvas = $target.parent();
+      var $container = $canvas.parent();
+
+      // minContainerWidth: 160, minContainerHeight: 160
+      var containerWidth = Math.max($container.width(), 160);
+      var containerHeight = Math.max($container.height(), 160);
+      var imageData = this.imageData;
+
+      // Clone one to avoid changing it
+      var cropData = $.extend({}, this.cropData);
+      var cropAspectRatio = cropData.width / cropData.height;
+      var newWidth = containerWidth;
+      var newHeight = containerHeight;
+      var newRatio;
 
       if (containerHeight * cropAspectRatio > containerWidth) {
         newHeight = newWidth / cropAspectRatio;
@@ -285,7 +386,7 @@
 
       $canvas.css({
         width: cropData.width,
-        height: cropData.height
+        height: cropData.height,
       });
 
       $target.css({
@@ -294,7 +395,7 @@
         maxWidth: 'none',
         maxHeight: 'none',
         marginLeft: -cropData.x,
-        marginTop: -cropData.y
+        marginTop: -cropData.y,
       });
 
       this.center($target);
@@ -302,20 +403,21 @@
 
     center: function ($target, reset) {
       $target.each(function () {
-        var $this = $(this),
-            $canvas = $this.parent(),
-            $container = $canvas.parent(),
-            center = function () {
-              var containerHeight = $container.height(),
-                  canvasHeight = $canvas.height(),
-                  marginTop = 'auto';
+        var $this = $(this);
+        var $canvas = $this.parent();
+        var $container = $canvas.parent();
 
-              if (canvasHeight < containerHeight) {
-                marginTop = (containerHeight - canvasHeight) / 2;
-              }
+        function center() {
+          var containerHeight = $container.height();
+          var canvasHeight = $canvas.height();
+          var marginTop = 'auto';
 
-              $canvas.css('margin-top', marginTop);
-            };
+          if (canvasHeight < containerHeight) {
+            marginTop = (containerHeight - canvasHeight) / 2;
+          }
+
+          $canvas.css('margin-top', marginTop);
+        }
 
         if (reset) {
           $canvas.removeAttr('style');
@@ -329,22 +431,17 @@
       });
     },
 
-    autoCrop: function (url) {
-      var cropData = $.extend({}, this.cropData),
-          cropAspectRatio = cropData.width / cropData.height,
-          cropOptions = this.data[this.options.key],
-          _this = this;
+    autoCrop: function (url, data) {
+      var cropData = this.cropData;
+      var cropOptions = this.data[this.options.key];
+      var _this = this;
 
       this.$list.find('img').not(this.$target).each(function () {
-        var $this = $(this),
-            sizeData = $this.data(),
-            sizeName = sizeData.sizeName,
-            sizeResolution = sizeData.sizeResolution,
-            sizeAspectRatio = (sizeResolution ? getValueByNoCaseKey(sizeResolution, 'width') / getValueByNoCaseKey(sizeResolution, 'height') : NaN);
+        var $this = $(this);
+        var sizeName = $this.data('sizeName');
 
-        // Crop the other not cropped images which has the same aspect ratio automatically
-        if (sizeName && sizeAspectRatio && sizeAspectRatio === cropAspectRatio && !cropOptions[sizeName]) {
-          cropOptions[sizeName] = getCapitalizeKeyObject(cropData);
+        if ($.inArray(sizeName, data) > -1) {
+          cropOptions[sizeName] = $.extend({}, cropData);
 
           if (url) {
             _this.center($this.attr('src', url));
@@ -358,19 +455,16 @@
     destroy: function () {
       this.unbind();
       this.unbuild();
-      this.$modal.modal('hide').remove();
       this.$element.removeData(NAMESPACE);
-    }
+    },
   };
 
   QorCropper.DEFAULTS = {
     parent: false,
     output: false,
     list: false,
-    modal: '.qor-cropper-modal',
-    save: '.qor-cropper-save',
     key: 'data',
-    data: null
+    data: null,
   };
 
   QorCropper.TOGGLE = '<div class="qor-cropper-toggle"></div>';
@@ -383,7 +477,13 @@
           '<div class="modal-header">' +
             '<h5 class="modal-title">Crop the image</h5>' +
           '</div>' +
-          '<div class="modal-body"></div>' +
+          '<div class="modal-body">' +
+            '<div class="qor-cropper-container"></div>' +
+            '<div class="qor-cropper-optionbox">' +
+              '<h5>Sync cropping result to:</h5>' +
+              '<ul></ul>' +
+            '</div>' +
+          '</div>' +
           '<div class="modal-footer">' +
             '<button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>' +
             '<button type="button" class="btn btn-link qor-cropper-save">OK</button>' +
@@ -395,9 +495,9 @@
 
   QorCropper.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this),
-          data = $this.data(NAMESPACE),
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var fn;
 
       if (!data) {
         if (!$.fn.cropper) {
@@ -418,15 +518,15 @@
   };
 
   $(function () {
-    var selector = '.qor-file-input',
-        options = {
+    var selector = '.qor-file-input';
+    var options = {
           parent: '.form-group',
           output: '.qor-file-options',
           list: '.qor-file-list',
           key: 'CropOptions',
           data: {
-            Crop: true
-          }
+            Crop: true,
+          },
         };
 
     $(document)
