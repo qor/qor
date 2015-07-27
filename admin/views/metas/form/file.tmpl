@@ -16,27 +16,23 @@
   </textarea>
 
   <div class="qor-file-list">
-  {{if $value}}
-    {{if $value.IsImage}}
-      <ul>
-      {{if $value.GetSizes}}
-        {{range $key, $v := $value.GetSizes}}
-          {{if not (is_included $key "@")}}
-          <li>
-            <img src="{{$value.URL $key}}" data-original-url="{{$value.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $v}}">
-            <span>{{$key}} ({{$v.Width}}&times;{{$v.Height}} px)</span>
-          </li>
-          {{end}}
-        {{end}}
-      {{else}}
+    <ul>
+    {{if $value.GetSizes}}
+      {{range $key, $v := $value.GetSizes}}
+        {{if not (is_included $key "@")}}
         <li>
-          <img src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}" data-size-name="original" alt="{{$value.GetFileName}}">
+          <img src="{{$value.URL $key}}" data-original-url="{{$value.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $v}}">
+          <span>{{$key}} ({{$v.Width}}&times;{{$v.Height}} px)</span>
         </li>
+        {{end}}
       {{end}}
-      </ul>
+    {{else if $value.IsImage}}
+      <li>
+        <img src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}" data-size-name="original" alt="{{$value.GetFileName}}">
+      </li>
     {{else if $value.URL}}
       <span>{{$value.GetFileName}} <a href="{{$value.URL}}">{{t "Download"}}</a></span>
     {{end}}
-  {{end}}
+    </ul>
   </div>
 </div>
