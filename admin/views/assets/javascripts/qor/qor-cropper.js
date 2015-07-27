@@ -97,6 +97,7 @@
       var options = this.options;
       var $this = this.$element;
       var $parent = $this.closest(options.parent);
+      var $list;
       var data;
 
       if (!$parent.length) {
@@ -105,7 +106,11 @@
 
       this.$parent = $parent;
       this.$output = $parent.find(options.output);
-      this.$list = $parent.find(options.list);
+      this.$list = $list = $parent.find(options.list);
+
+      if (!$list.find('img').attr('src')) {
+        $list.find('ul').hide();
+      }
 
       try {
         data = JSON.parse($.trim(this.$output.val()));
@@ -209,11 +214,17 @@
 
     load: function (url) {
       var $list = this.$list;
+      var $ul = $list.find('ul');
       var $img;
 
-      if (!$list.find('ul').length) {
-        $list.html(QorCropper.LIST);
+      if (!$ul.length) {
+        $ul  = $(QorCropper.LIST);
+        $list.html($ul);
         this.wrap();
+      }
+
+      if ($ul.is(':hidden')) {
+        $ul.show();
       }
 
       $img = $list.find('img');
