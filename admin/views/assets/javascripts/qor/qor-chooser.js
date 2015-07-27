@@ -30,7 +30,11 @@
       var $this = this.$element;
 
       if (!$this.prop('multiple')) {
-        $this.prepend('<option value=""></option>');
+        if ($this.children('[selected]').length) {
+          $this.prepend('<option value=""></option>');
+        } else {
+          $this.prepend('<option value="" selected></option>');
+        }
       }
 
       $this.chosen({
