@@ -33,7 +33,7 @@ func TestDeny(t *testing.T) {
 	}
 
 	if !permission.HasPermission(Update, "api") {
-		t.Errorf("API should has no permission to Update")
+		t.Errorf("API should has permission to Update")
 	}
 
 	if permission.HasPermission(Create, "api") {
