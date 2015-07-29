@@ -7,13 +7,13 @@
           <select class="qor-label-group form-control" name="scopes">
             <optgroup label="{{$scope.Group}}">
               {{range $s := $scope.Scopes}}
-                <option value="{{$s.Name}}">{{t $s.Label}}</option>
+                <option value="{{$s.Name}}" {{if $s.Active}}selected{{end}}>{{t $s.Label}}</option>
               {{end}}
             </optgroup>
           </select>
         {{else}}
           {{range $s := $scope.Scopes}}
-            <a class="qor-label" href="?scopes={{$s.Name}}">{{t $s.Label}}</a>
+            <a class="qor-label{{if $s.Active}} active{{end}}" href="?scopes={{$s.Name}}">{{t $s.Label}}</a>
           {{end}}
         {{end}}
       {{end}}
