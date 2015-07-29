@@ -24,6 +24,7 @@
       EVENT_SHOWN = 'shown.' + NAMESPACE,
       EVENT_HIDE = 'hide.' + NAMESPACE,
       EVENT_HIDDEN = 'hidden.' + NAMESPACE,
+      EVENT_WHEEL = 'wheel mousewheel DOMMouseScroll',
 
       QorSlideout = function (element, options) {
         this.$element = $(element);
@@ -61,13 +62,21 @@
     },
 
     bind: function () {
-      this.$slideout.on(EVENT_SUBMIT, 'form', $.proxy(this.submit, this));
-      $document.on(EVENT_CLICK, $.proxy(this.click, this));
+      this.$slideout.
+        on(EVENT_SUBMIT, 'form', $.proxy(this.submit, this)).
+        on(EVENT_WHEEL, $.proxy(this.wheel, this));
+
+      $document.
+        on(EVENT_CLICK, $.proxy(this.click, this));
     },
 
     unbind: function () {
-      this.$slideout.off(EVENT_SUBMIT, this.submit);
-      $document.off(EVENT_CLICK, this.click);
+      this.$slideout.
+        off(EVENT_SUBMIT, this.submit);
+
+      $document.
+        off(EVENT_CLICK, this.click).
+        off(EVENT_WHEEL, this.wheel);
     },
 
     click: function (e) {
@@ -159,6 +168,10 @@
           }
         });
       }
+    },
+
+    wheel: function (e) {
+      e.stopPropagation();
     },
 
     load: function (url, options) {
