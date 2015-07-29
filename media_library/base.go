@@ -40,7 +40,7 @@ func (fileWrapper *fileWrapper) Open() (multipart.File, error) {
 }
 
 type Base struct {
-	FileName    string `sql:"size:10240"`
+	FileName    string
 	Url         string
 	CropOptions map[string]*CropOption `json:",omitempty"`
 	Crop        bool                   `json:"-"`
