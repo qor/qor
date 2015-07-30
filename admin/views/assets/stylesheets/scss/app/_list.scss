@@ -131,13 +131,11 @@
   display: inline-block;
   max-width: 320px;
   max-height: 100px;
+  min-height: 24px;
   word-wrap: break-word;
   background-color: inherit;
   vertical-align: middle;
-
-  &.scrollable {
-    overflow: auto;
-  }
+  overflow: auto;
 }
 
 .qor-list-label {
