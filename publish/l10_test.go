@@ -12,17 +12,17 @@ type Book struct {
 	gorm.Model
 	l10n.Locale
 	publish.Status
-	Name       string
-	CategoryID uint
-	Category   Category
-	Publisher  Publisher
-	Comments   []Comment
-	Authors    []Author `gorm:"many2many:author_books"`
+	Name        string
+	CategoryID  uint
+	Category    Category
+	PublisherID uint
+	Publisher   Publisher
+	Comments    []Comment
+	Authors     []Author `gorm:"many2many:author_books"`
 }
 
 type Publisher struct {
 	gorm.Model
-	l10n.Locale
 	publish.Status
 	Name string
 }
