@@ -205,7 +205,7 @@
           return;
         }
 
-        options = $.extend({}, QorSelector.DEFAULTS, $this.data(), typeof option == 'object' && option);
+        options = $.extend({}, QorSelector.DEFAULTS, $this.data(), typeof option === 'object' && option);
         $this.data(NAMESPACE, (data = new QorSelector(this, options)));
       }
 
