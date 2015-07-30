@@ -6,7 +6,7 @@
     <section class="qor-label-container" data-toggle="qor.filter">
       {{range $scope := $scopes}}
         {{if $scope.Group}}
-          <select class="qor-label-group form-control" data-toggle="qor.selector" name="scopes" placeholder="{{$scope.Group}}">
+          <select class="qor-label-group form-control" data-toggle="qor.selector" data-clearable="true" name="scopes" placeholder="{{$scope.Group}}">
             {{range $s := $scope.Scopes}}
               <option value="{{$s.Name}}"{{if $s.Active}} selected{{end}}>{{t $s.Label}}</option>
             {{end}}
@@ -26,7 +26,7 @@
   {{end}}
 
   {{$current_locale := current_locale .}}
-  <select class="qor-locale-selector form-control" name="locale">
+  <select class="qor-locale-selector form-control" data-toggle="qor.selector" name="locale">
     {{range $locale := viewable_locales .}}
       <option{{if (eq $current_locale $locale)}} selected{{end}} value="{{patch_current_url "locale" $locale}}">{{t $locale}}</option>
     {{end}}

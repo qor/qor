@@ -29,6 +29,12 @@
     text-decoration: none;
   }
 
+  &.active {
+    padding-right: 0;
+    color: rgba(0,0,0,.87);
+    border-color: #03a9f4;
+  }
+
   > .material-icons {
     width: 20px;
     height: 20px;
@@ -42,11 +48,7 @@
     display: none;
   }
 
-  &.active {
-    padding-right: 0;
-    color: rgba(0,0,0,.87);
-    border-color: #03a9f4;
-
+  &.clearable {
     > .qor-selector-clear {
       display: inline-block;
       width: 22px;

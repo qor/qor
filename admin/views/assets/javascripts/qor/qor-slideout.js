@@ -24,7 +24,8 @@
       EVENT_SHOWN = 'shown.' + NAMESPACE,
       EVENT_HIDE = 'hide.' + NAMESPACE,
       EVENT_HIDDEN = 'hidden.' + NAMESPACE,
-      EVENT_WHEEL = 'wheel mousewheel DOMMouseScroll',
+      // EVENT_WHEEL = 'wheel mousewheel DOMMouseScroll',
+      CLASS_OPEN = 'qor-slideout-open',
 
       QorSlideout = function (element, options) {
         this.$element = $(element);
@@ -53,6 +54,7 @@
       this.$slideout = $slideout = $(QorSlideout.TEMPLATE).appendTo('body');
       this.$title = $slideout.find('.slideout-title');
       this.$body = $slideout.find('.slideout-body');
+      this.$documentBody = $('body');
     },
 
     unbuild: function () {
@@ -63,8 +65,7 @@
 
     bind: function () {
       this.$slideout.
-        on(EVENT_SUBMIT, 'form', $.proxy(this.submit, this)).
-        on(EVENT_WHEEL, $.proxy(this.wheel, this));
+        on(EVENT_SUBMIT, 'form', $.proxy(this.submit, this));
 
       $document.
         on(EVENT_CLICK, $.proxy(this.click, this));
@@ -75,8 +76,7 @@
         off(EVENT_SUBMIT, this.submit);
 
       $document.
-        off(EVENT_CLICK, this.click).
-        off(EVENT_WHEEL, this.wheel);
+        off(EVENT_CLICK, this.click);
     },
 
     click: function (e) {
@@ -170,10 +170,6 @@
       }
     },
 
-    wheel: function (e) {
-      e.stopPropagation();
-    },
-
     load: function (url, options) {
       var data = $.isPlainObject(options) ? options : {},
           method = data.method ? data.method : 'GET',
@@ -264,6 +260,9 @@
       this.active = true;
       this.animating = false;
       this.$slideout.trigger(EVENT_SHOWN);
+
+      // Disable to scroll body element
+      this.$documentBody.addClass(CLASS_OPEN);
     },
 
     hide: function () {
@@ -290,6 +289,9 @@
       this.animating = false;
       this.$element.find('tbody > tr').removeClass('active');
       this.$slideout.removeClass('active').trigger(EVENT_HIDDEN);
+
+      // Enable to scroll body element
+      this.$documentBody.removeClass(CLASS_OPEN);
     },
 
     refresh: function () {

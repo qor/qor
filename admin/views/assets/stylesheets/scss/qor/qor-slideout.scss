@@ -1,6 +1,14 @@
 // Popper
 // --------------------------------------------------
 
+
+// Class for body element to prevent scroll
+
+.qor-slideout-open {
+  overflow: hidden;
+}
+
+
 .qor-slideout {
   position: fixed;
   top: 0;
@@ -67,8 +75,7 @@
   }
 
   .qor-btn-group {
-    clear: both;
-    min-height: 36px;
+    @extend .clearfix;
 
     > .btn {
       float: right;

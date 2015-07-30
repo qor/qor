@@ -116,7 +116,7 @@
         data = JSON.parse($.trim(this.$output.val()));
       } catch (e) {}
 
-      this.data = $.extend(data || {}, options.data);
+      this.data = data || {};
       this.build();
       this.bind();
     },
@@ -201,9 +201,6 @@
       if (files && files.length) {
         file = files[0];
 
-        this.data[this.options.key] = {};
-        this.$output.val(JSON.stringify(this.data));
-
         if (/^image\/\w+$/.test(file.type) && URL) {
           this.load(URL.createObjectURL(file));
         } else {
@@ -230,10 +227,6 @@
         $ul.show();
       }
 
-      if (!data[options.key]) {
-        data[options.key] = {};
-      }
-
       $image = $list.find('img');
       $image.one('load', function () {
         var naturalWidth = this.naturalWidth;
@@ -252,7 +245,7 @@
           height = getValueByNoCaseKey(sizeResolution, 'height');
           aspectRatio = width / height;
 
-          if (height * aspectRatio > width) {
+          if (naturalHeight * aspectRatio > naturalWidth) {
             width = naturalWidth;
             height = width / aspectRatio;
           } else {
@@ -276,16 +269,21 @@
           };
 
           _this.preview($image, emulateImageData, emulateCropData);
+
+          if (sizeName) {
+            data.crop = true;
+
+            if (!data[options.key]) {
+              data[options.key] = {};
+            }
+
+            data[options.key][sizeName] = emulateCropData;
+          }
         } else {
           _this.center($image);
         }
 
-        if (sizeName) {
-          data[options.key][sizeName] = emulateCropData;
-        }
-
         _this.$output.val(JSON.stringify(data));
-
       }).attr('src', url).data('originalUrl', url);
     },
 
@@ -343,6 +341,7 @@
               }
             });
 
+            data.crop = true;
             data[options.key][sizeName] = cropData;
             _this.imageData = $clone.cropper('getImageData');
             _this.cropData = cropData;
@@ -592,9 +591,6 @@
           output: '.qor-file-options',
           list: '.qor-file-list',
           key: 'CropOptions',
-          data: {
-            Crop: true,
-          },
         };
 
     $(document)

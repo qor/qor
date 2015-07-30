@@ -3,8 +3,9 @@
 
 .qor-list-container {
   position: relative;
+  // margin: 24px;
   background-color: #fff;
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.1);
+  box-shadow: 0 1px 1px rgba(0,0,0,.12),0 2px 2px rgba(0,0,0,.24);
 
   .qor-action-new {
     position: absolute;
@@ -73,8 +74,8 @@
   // Bottom align for column headings
   > thead > tr > th {
     vertical-align: bottom;
-    border-bottom: 2px solid #ddd;
-    background-color: #e0e0e0;
+    border-bottom: 1px solid #ddd;
+    background-color: #eee;
     font-weight: 500;
     white-space: nowrap;
   }
@@ -96,6 +97,7 @@
   }
 
   // Account for multiple tbody instances
+  > thead + tbody,
   > tbody + tbody {
     border-top: 2px solid #ddd;
   }
@@ -111,6 +113,14 @@
   }
 }
 
+.qor-list-heading {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: rgba(0,0,0,.54);
+}
+
 .qor-list-text-container {
   margin: -8px;
   padding: 8px;
@@ -120,55 +130,13 @@
   position: relative;
   display: inline-block;
   max-width: 320px;
-  max-height: 180px;
+  max-height: 100px;
   word-wrap: break-word;
   background-color: inherit;
   vertical-align: middle;
 
-  > .text-inner {
-    max-height: 160px;
-    overflow: hidden;
-  }
-
-  &.active {
-    margin: -8px;
-    padding: 8px;
-    cursor: pointer;
-    overflow: hidden;
-
-    &:before,
-    &:after {
-      position: absolute;
-      z-index: 1;
-      display: none;
-      content: " ";
-    }
-
-    &:before {
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      background-color: rgba(0,0,0,0.3);
-    }
-
-    &:after {
-      top: 50%;
-      left: 50%;
-      margin-top: -18px;
-      margin-left: -12px;
-      font-size: 24px;
-      line-height: 1;
-      color: #fff;
-      content: "...";
-    }
-
-    &:hover {
-      &:before,
-      &:after {
-        display: block;
-      }
-    }
+  &.scrollable {
+    overflow: auto;
   }
 }
 
