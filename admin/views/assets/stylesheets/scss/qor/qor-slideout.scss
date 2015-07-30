@@ -1,6 +1,14 @@
 // Popper
 // --------------------------------------------------
 
+
+// Class for body element to prevent scroll
+
+.qor-slideout-open {
+  overflow: hidden;
+}
+
+
 .qor-slideout {
   position: fixed;
   top: 0;
