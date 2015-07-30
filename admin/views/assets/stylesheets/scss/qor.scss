@@ -1,5 +1,9 @@
-// Qor Components
-@import "qor/utilities";
+// Utilities
+@import "util/variables";
+@import "util/mixins";
+@import "util/utilities";
+
+// Components
 @import "qor/qor-modal";
 @import "qor/qor-cropper";
 @import "qor/qor-redactor";
