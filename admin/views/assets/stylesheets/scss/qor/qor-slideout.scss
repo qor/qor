@@ -75,8 +75,15 @@
   }
 
   .qor-btn-group {
-    clear: both;
-    min-height: 36px;
+    &:before,
+    &:after {
+      content: " "; // 1
+      display: table; // 2
+    }
+
+    &:after {
+      clear: both;
+    }
 
     > .btn {
       float: right;
