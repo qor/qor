@@ -13,22 +13,22 @@
 
   'use strict';
 
-  var location = window.location,
-      NAMESPACE = 'qor.filter',
-      EVENT_ENABLE = 'enable.' + NAMESPACE,
-      EVENT_DISABLE = 'disable.' + NAMESPACE,
-      EVENT_CLICK = 'click.' + NAMESPACE,
-      EVENT_CHANGE = 'change.' + NAMESPACE,
+  var location = window.location;
+  var NAMESPACE = 'qor.filter';
+  var EVENT_ENABLE = 'enable.' + NAMESPACE;
+  var EVENT_DISABLE = 'disable.' + NAMESPACE;
+  var EVENT_CLICK = 'click.' + NAMESPACE;
+  var EVENT_CHANGE = 'change.' + NAMESPACE;
 
-      QorFilter = function (element, options) {
-        this.$element = $(element);
-        this.options = $.extend({}, QorFilter.DEFAULTS, $.isPlainObject(options) && options);
-        this.init();
-      };
+  function QorFilter(element, options) {
+    this.$element = $(element);
+    this.options = $.extend({}, QorFilter.DEFAULTS, $.isPlainObject(options) && options);
+    this.init();
+  }
 
   function encodeSearch(data, detached) {
-    var search = location.search,
-        params;
+    var search = location.search;
+    var params;
 
     if ($.isArray(data)) {
       params = decodeSearch(search);
@@ -62,8 +62,8 @@
       if (search) {
         // search = search.toLowerCase();
         data = $.map(search.split('&'), function (n) {
-          var param = [],
-              value;
+          var param = [];
+          var value;
 
           n = n.split('=');
           value = n[1];
@@ -89,28 +89,28 @@
     constructor: QorFilter,
 
     init: function () {
-      this.parse();
+      // this.parse();
       this.bind();
     },
 
     bind: function () {
       var options = this.options;
 
-      this.$element
-        .on(EVENT_CLICK, options.label, $.proxy(this.toggle, this))
-        .on(EVENT_CHANGE, options.group, $.proxy(this.toggle, this));
+      this.$element.
+        on(EVENT_CLICK, options.label, $.proxy(this.toggle, this)).
+        on(EVENT_CHANGE, options.group, $.proxy(this.toggle, this));
     },
 
     unbind: function () {
-      this.$element
-        .off(EVENT_CLICK, this.toggle)
-        .off(EVENT_CHANGE, this.toggle);
+      this.$element.
+        off(EVENT_CLICK, this.toggle).
+        off(EVENT_CHANGE, this.toggle);
     },
 
-    parse: function () {
-      var options = this.options,
-          $this = this.$element,
-          params = decodeSearch(location.search);
+    /*parse: function () {
+      var options = this.options;
+      var $this = this.$element;
+      var params = decodeSearch(location.search);
 
       $this.find(options.label).each(function () {
         var $this = $(this);
@@ -127,8 +127,8 @@
       });
 
       $this.find(options.group).each(function () {
-        var $this = $(this),
-            name = $this.attr('name');
+        var $this = $(this);
+        var name = $this.attr('name');
 
         $this.find('option').each(function () {
           var $this = $(this),
@@ -140,18 +140,18 @@
           }
         });
       });
-    },
+    },*/
 
     toggle: function (e) {
-      var $target = $(e.currentTarget),
-          data = {},
-          params,
-          param,
-          search,
-          name,
-          value,
-          index,
-          matched;
+      var $target = $(e.currentTarget);
+      var data = {};
+      var params;
+      var param;
+      var search;
+      var name;
+      var value;
+      var index;
+      var matched;
 
       if ($target.is('select')) {
         params = decodeSearch(location.search);
@@ -167,10 +167,10 @@
         param = param.join('=');
         data = [param];
 
-        $target.find('option').each(function () {
-          var $this = $(this),
-              param = [name],
-              value = $.trim($this.prop('value'));
+        $target.children().each(function () {
+          var $this = $(this);
+          var param = [name];
+          var value = $.trim($this.prop('value'));
 
           if (value) {
             param.push(value);
@@ -208,7 +208,7 @@
     destroy: function () {
       this.unbind();
       this.$element.removeData(NAMESPACE);
-    }
+    },
   };
 
   QorFilter.DEFAULTS = {
@@ -218,9 +218,9 @@
 
   QorFilter.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this),
-          data = $this.data(NAMESPACE),
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var fn;
 
       if (!data) {
         if (/destroy/.test(options)) {
@@ -237,10 +237,10 @@
   };
 
   $(function () {
-    var selector = '.qor-label-container',
-        options = {
+    var selector = '[data-toggle="qor.filter"]';
+    var options = {
           label: '.qor-label',
-          group: '.qor-label-group'
+          group: '.qor-label-group',
         };
 
     $(document)

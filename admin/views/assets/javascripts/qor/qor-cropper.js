@@ -213,9 +213,12 @@
     },
 
     load: function (url) {
+      var options = this.options;
+      var _this = this;
       var $list = this.$list;
       var $ul = $list.find('ul');
-      var $img;
+      var data = this.data;
+      var $image;
 
       if (!$ul.length) {
         $ul  = $(QorCropper.LIST);
@@ -227,9 +230,63 @@
         $ul.show();
       }
 
-      $img = $list.find('img');
-      $img.attr('src', url).data('originalUrl', url);
-      this.center($img, true);
+      if (!data[options.key]) {
+        data[options.key] = {};
+      }
+
+      $image = $list.find('img');
+      $image.one('load', function () {
+        var naturalWidth = this.naturalWidth;
+        var naturalHeight = this.naturalHeight;
+        var sizeData = $(this).data();
+        var sizeResolution = sizeData.sizeResolution;
+        var sizeName = sizeData.sizeName;
+        var emulateImageData = {};
+        var emulateCropData = {};
+        var aspectRatio;
+        var width;
+        var height;
+
+        if (sizeResolution) {
+          width = getValueByNoCaseKey(sizeResolution, 'width');
+          height = getValueByNoCaseKey(sizeResolution, 'height');
+          aspectRatio = width / height;
+
+          if (height * aspectRatio > width) {
+            width = naturalWidth;
+            height = width / aspectRatio;
+          } else {
+            height = naturalHeight;
+            width = height * aspectRatio;
+          }
+
+          width *= 0.8;
+          height *= 0.8;
+
+          emulateImageData = {
+            naturalWidth: naturalWidth,
+            naturalHeight: naturalHeight,
+          };
+
+          emulateCropData = {
+            x: (naturalWidth - width) / 2,
+            y: (naturalHeight - height) / 2,
+            width: width,
+            height: height,
+          };
+
+          _this.preview($image, emulateImageData, emulateCropData);
+        } else {
+          _this.center($image);
+        }
+
+        if (sizeName) {
+          data[options.key][sizeName] = emulateCropData;
+        }
+
+        _this.$output.val(JSON.stringify(data));
+
+      }).attr('src', url).data('originalUrl', url);
     },
 
     start: function () {
@@ -367,17 +424,17 @@
       this.$output.val(JSON.stringify(this.data));
     },
 
-    preview: function ($target) {
+    preview: function ($target, emulateImageData, emulateCropData) {
       var $canvas = $target.parent();
       var $container = $canvas.parent();
 
       // minContainerWidth: 160, minContainerHeight: 160
       var containerWidth = Math.max($container.width(), 160);
       var containerHeight = Math.max($container.height(), 160);
-      var imageData = this.imageData;
+      var imageData = emulateImageData || this.imageData;
 
       // Clone one to avoid changing it
-      var cropData = $.extend({}, this.cropData);
+      var cropData = $.extend({}, emulateCropData || this.cropData);
       var cropAspectRatio = cropData.width / cropData.height;
       var newWidth = containerWidth;
       var newHeight = containerHeight;

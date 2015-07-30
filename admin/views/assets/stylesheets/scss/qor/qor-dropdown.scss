@@ -1,0 +1,92 @@
+// Dropdown
+// --------------------------------------------------
+
+.qor-dropdown {
+  position: relative;
+  display: inline-block;
+  margin-right: 2px;
+
+  &.open > .qor-dropdown-menu {
+    display: block;
+  }
+}
+
+.qor-dropdown-toggle {
+  cursor: pointer;
+  color: rgba(0,0,0,.54);
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
+
+  > .material-icons {
+    width: 20px;
+    height: 20px;
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+    vertical-align: top;
+  }
+}
+
+.qor-dropdown-menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: none;
+  min-width: 128px;
+  max-height: 480px;
+  padding: 8px 0;
+  margin: 0;
+  list-style: none;
+  font-size: 14px;
+  text-align: left;
+  background-color: #fff;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+  overflow: auto;
+
+  .divider {
+    margin: 8px 0;
+    padding: 0;
+    height: 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  > li > a {
+    display: block;
+    height: 48px;
+    padding: 0 16px;
+    color: rgba(0,0,0,.87);
+    font-weight: normal;
+    line-height: 48px;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover,
+    &:focus {
+      background-color: #eee;
+      text-decoration: none;
+    }
+  }
+
+  > .active > a {
+    &,
+    &:hover,
+    &:focus {
+      background-color: #eee;
+      text-decoration: none;
+    }
+  }
+
+  > .disabled > a {
+    &,
+    &:hover,
+    &:focus {
+      color: #bdbdbd;
+      background-color: transparent;
+      cursor: auto;
+    }
+  }
+}

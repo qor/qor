@@ -65,6 +65,15 @@
   .slideout-action-cancel {
     color: rgba(0,0,0,0.54) !important;
   }
+
+  .qor-btn-group {
+    clear: both;
+    min-height: 36px;
+
+    > .btn {
+      float: right;
+    }
+  }
 }
 
 @media (min-width: 768px) {

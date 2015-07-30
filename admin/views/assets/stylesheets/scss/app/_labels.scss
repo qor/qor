@@ -10,29 +10,50 @@
 
 .qor-label {
   display: inline-block;
-  padding: 4px 8px;
-  border: 1px solid $gray-light;
+  padding: 0 8px;
   font-size: 12px;
-  font-weight: 500;
-  line-height: 14px;
-  background-color: #fff;
-  color: $gray;
-  text-align: center;
+  line-height: 20px;
   white-space: nowrap;
-  vertical-align: baseline;
-  border-radius: .25em;
+  color: rgba(0,0,0,.54);
+  background-color: #fff;
+  border: 2px solid #eee;
+  border-radius: 2px;
 
   &:hover,
-  &:focus {
-    border-color: lighten($brand-primary, 10%);
-    color: $brand-primary;
+  &:focus
+  &.active,
+  &.active:hover,
+  &.active:focus,
+  &.active {
+    border-color: #03a9f4;
+    color: rgba(0,0,0,.87);
     text-decoration: none;
   }
 
+  > .material-icons {
+    width: 20px;
+    height: 20px;
+    font-size: 18px;
+    line-height: 20px;
+    text-align: center;
+    vertical-align: top;
+  }
+
+  > .qor-label-clear {
+    display: none;
+  }
+
   &.active {
-    border-color: darken($brand-primary, 5%);
-    background-color: $brand-primary;
-    color: #fff;
+    padding-right: 0;
+
+    > .qor-label-clear {
+      display: inline-block;
+      width: 22px;
+      margin-left: 4px;
+      padding-left: 2px;
+      background-color: #03a9f4;
+      color: #fff;
+    }
   }
 
   + .qor-label {

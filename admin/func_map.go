@@ -238,25 +238,39 @@ func (context *Context) styleSheetTag(name string) template.HTML {
 	return template.HTML(fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
 }
 
+type scope struct {
+	*Scope
+	Active bool
+}
+
 type scopeMenu struct {
 	Group  string
-	Scopes []*Scope
+	Scopes []scope
 }
 
 func (context *Context) GetScopes() (menus []*scopeMenu) {
+	scopes := context.Request.URL.Query()["scopes"]
 OUT:
-	for _, scope := range context.Resource.scopes {
-		if !scope.Default {
-			if scope.Group != "" {
-				for _, menu := range menus {
-					if menu.Group == scope.Group {
-						menu.Scopes = append(menu.Scopes, scope)
+	for _, s := range context.Resource.scopes {
+		menu := scope{Scope: s}
+
+		for _, s := range scopes {
+			if s == menu.Name {
+				menu.Active = true
+			}
+		}
+
+		if !menu.Default {
+			if menu.Group != "" {
+				for _, m := range menus {
+					if m.Group == menu.Group {
+						m.Scopes = append(m.Scopes, menu)
 						continue OUT
 					}
 				}
-				menus = append(menus, &scopeMenu{Group: scope.Group, Scopes: []*Scope{scope}})
+				menus = append(menus, &scopeMenu{Group: menu.Group, Scopes: []scope{menu}})
 			} else {
-				menus = append(menus, &scopeMenu{Group: scope.Group, Scopes: []*Scope{scope}})
+				menus = append(menus, &scopeMenu{Group: menu.Group, Scopes: []scope{menu}})
 			}
 		}
 	}
