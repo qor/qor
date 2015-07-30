@@ -22,6 +22,7 @@
   var CLASS_ACTIVE = 'active';
   var CLASS_SELECTED = 'selected';
   var CLASS_DISABLED = 'disabled';
+  var CLASS_CLEARABLE = 'clearable';
   var SELECTOR_SELECTED = '.' + CLASS_SELECTED;
   var SELECTOR_TOGGLE = '.qor-selector-toggle';
   var SELECTOR_LABEL = '.qor-selector-label';
@@ -29,8 +30,8 @@
   var SELECTOR_MENU = '.qor-selector-menu';
 
   function QorSelector(element, options) {
+    this.options = options;
     this.$element = $(element);
-    this.options = $.extend({}, QorSelector.DEFAULTS, $.isPlainObject(options) && options);
     this.init();
   }
 
@@ -126,10 +127,12 @@
 
     pick: function (data, initialized) {
       var $selector = this.$selector;
+      var selected = !!data.value;
 
       $selector.
         find(SELECTOR_TOGGLE).
-        toggleClass(CLASS_ACTIVE, !!data.value).
+        toggleClass(CLASS_ACTIVE, selected).
+        toggleClass(CLASS_CLEARABLE, selected && this.options.clearable).
           find(SELECTOR_LABEL).
           text(data.label || this.placeholder);
 
@@ -149,6 +152,7 @@
       this.$selector.
         find(SELECTOR_TOGGLE).
         removeClass(CLASS_ACTIVE).
+        removeClass(CLASS_CLEARABLE).
           find(SELECTOR_LABEL).
           text(this.placeholder).
           end().
@@ -174,7 +178,9 @@
     },
   };
 
-  QorSelector.DEFAULTS = {};
+  QorSelector.DEFAULTS = {
+    clearable: false,
+  };
 
   QorSelector.TEMPLATE = (
     '<div class="qor-selector">' +
@@ -187,21 +193,23 @@
     '</div>'
   );
 
-  QorSelector.plugin = function (options) {
+  QorSelector.plugin = function (option) {
     return this.each(function () {
       var $this = $(this);
       var data = $this.data(NAMESPACE);
+      var options;
       var fn;
 
       if (!data) {
-        if (/destroy/.test(options)) {
+        if (/destroy/.test(option)) {
           return;
         }
 
+        options = $.extend({}, QorSelector.DEFAULTS, $this.data(), typeof option == 'object' && option);
         $this.data(NAMESPACE, (data = new QorSelector(this, options)));
       }
 
-      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+      if (typeof option === 'string' && $.isFunction(fn = data[option])) {
         fn.apply(data);
       }
     });
