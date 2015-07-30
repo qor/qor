@@ -18,10 +18,10 @@ type resolver struct {
 type dependency struct {
 	Type                reflect.Type
 	ManyToManyRelations []*gorm.Relationship
-	PrimaryValues       [][]interface{}
+	PrimaryValues       [][][]interface{}
 }
 
-func includeValue(value []interface{}, values [][]interface{}) bool {
+func includeValue(value [][]interface{}, values [][][]interface{}) bool {
 	for _, v := range values {
 		if fmt.Sprintf("%v", v) == fmt.Sprintf("%v", value) {
 			return true
@@ -32,7 +32,7 @@ func includeValue(value []interface{}, values [][]interface{}) bool {
 
 func (resolver *resolver) AddDependency(dep *dependency) {
 	name := dep.Type.String()
-	var newPrimaryKeys [][]interface{}
+	var newPrimaryKeys [][][]interface{}
 
 	// append primary keys to dependency
 	if d, ok := resolver.Dependencies[name]; ok {
@@ -52,7 +52,7 @@ func (resolver *resolver) AddDependency(dep *dependency) {
 	}
 }
 
-func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][]interface{}) {
+func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][][]interface{}) {
 	value := reflect.New(dep.Type)
 	fromScope := resolver.DB.NewScope(value.Interface())
 
@@ -63,30 +63,45 @@ func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][]inter
 				toType := modelType(field.Field.Interface())
 				toScope := draftDB.NewScope(reflect.New(toType).Interface())
 				draftTable := draftTableName(toScope.TableName())
-				var dependencyKeys [][]interface{}
+				var dependencyKeys [][][]interface{}
 				var rows *sql.Rows
 				var err error
+				var selectPrimaryKeys []string
 
-				if relationship.Kind == "belongs_to" || relationship.Kind == "has_many" {
-					sql := fmt.Sprintf("%v IN (?) and publish_status = ?", relationship.ForeignDBName)
-					rows, err = draftDB.Table(draftTable).Select(toScope.PrimaryKey()).Where(sql, primaryKeys, DIRTY).Rows()
-				} else if relationship.Kind == "has_one" {
-					fromTable := fromScope.TableName()
-					fromPrimaryKey := fromScope.PrimaryKey()
-					toTable := toScope.TableName()
-					toPrimaryKey := toScope.PrimaryKey()
+				for _, field := range toScope.PrimaryFields() {
+					selectPrimaryKeys = append(selectPrimaryKeys, fmt.Sprintf("%v", toScope.Quote(field.DBName)))
+				}
 
-					sql := fmt.Sprintf("%v.%v IN (select %v.%v from %v where %v.%v IN (?)) and %v.publish_status = ?",
-						toTable, toPrimaryKey, fromTable, relationship.ForeignDBName, fromTable, fromTable, fromPrimaryKey, toTable)
+				if relationship.Kind == "has_one" || relationship.Kind == "has_many" {
+					sql := fmt.Sprintf("%v IN (%v)", toQueryCondition(toScope, relationship.ForeignDBNames), toQueryMarks(primaryKeys, relationship.AssociationForeignDBNames...))
+					rows, err = draftDB.Table(draftTable).Select(selectPrimaryKeys).Where("publish_status = ?", DIRTY).Where(sql, toQueryValues(primaryKeys, relationship.AssociationForeignDBNames...)...).Rows()
+				} else if relationship.Kind == "belongs_to" {
+					fromTable := draftTableName(fromScope.TableName())
+					// toTable := toScope.TableName()
 
-					rows, err = draftDB.Table(draftTable).Select(toTable+"."+toPrimaryKey).Where(sql, primaryKeys, DIRTY).Rows()
+					sql := fmt.Sprintf("%v IN (SELECT %v FROM %v WHERE %v IN (%v))",
+						strings.Join(relationship.AssociationForeignDBNames, ","), strings.Join(relationship.ForeignDBNames, ","), fromTable, scopePrimaryKeys(fromScope, fromTable), toQueryMarks(primaryKeys))
+
+					rows, err = draftDB.Table(draftTable).Select(selectPrimaryKeys).Where("publish_status = ?", DIRTY).Where(sql, toQueryValues(primaryKeys)...).Rows()
 				}
 
 				if rows != nil && err == nil {
+					defer rows.Close()
+					columns, _ := rows.Columns()
 					for rows.Next() {
-						var primaryValues = make([]interface{}, len(toScope.PrimaryFields()))
+						var primaryValues = make([]interface{}, len(columns))
+						for idx := range primaryValues {
+							var value interface{}
+							primaryValues[idx] = &value
+						}
 						rows.Scan(primaryValues...)
-						dependencyKeys = append(dependencyKeys, primaryValues)
+
+						var currentDependencyKeys [][]interface{}
+						for idx, value := range primaryValues {
+							currentDependencyKeys = append(currentDependencyKeys, []interface{}{columns[idx], value})
+						}
+
+						dependencyKeys = append(dependencyKeys, currentDependencyKeys)
 					}
 
 					resolver.AddDependency(&dependency{Type: toType, PrimaryValues: dependencyKeys})
@@ -104,11 +119,11 @@ func (resolver *resolver) GenerateDependencies() {
 	var addToDependencies = func(data interface{}) {
 		if isPublishableModel(data) {
 			scope := resolver.DB.NewScope(data)
-			var primaryValues []interface{}
+			var primaryValues [][]interface{}
 			for _, field := range scope.PrimaryFields() {
-				primaryValues = append(primaryValues, field.Field.Interface())
+				primaryValues = append(primaryValues, []interface{}{field.DBName, field.Field.Interface()})
 			}
-			resolver.AddDependency(&dependency{Type: modelType(data), PrimaryValues: [][]interface{}{primaryValues}})
+			resolver.AddDependency(&dependency{Type: modelType(data), PrimaryValues: [][][]interface{}{primaryValues}})
 		}
 	}
 
@@ -129,6 +144,7 @@ func (resolver *resolver) Publish() error {
 	tx := resolver.DB.Begin()
 
 	for _, dep := range resolver.Dependencies {
+
 		value := reflect.New(dep.Type).Elem()
 		productionScope := resolver.DB.Set("publish:draft_mode", false).NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
@@ -316,13 +332,35 @@ func scopePrimaryKeys(scope *gorm.Scope, tableName string) string {
 	return strings.Join(primaryKeys, "")
 }
 
-func toQueryMarks(primaryValues [][]interface{}) string {
+func toQueryCondition(scope *gorm.Scope, columns []string) string {
+	var newColumns []string
+	for _, column := range columns {
+		newColumns = append(newColumns, scope.Quote(column))
+	}
+
+	if len(columns) > 1 {
+		return fmt.Sprintf("(%v)", strings.Join(newColumns, ","))
+	} else {
+		return strings.Join(columns, ",")
+	}
+}
+
+func toQueryMarks(primaryValues [][][]interface{}, columns ...string) string {
 	var results []string
 
 	for _, primaryValue := range primaryValues {
 		var marks []string
-		for range primaryValue {
-			marks = append(marks, "?")
+		for _, value := range primaryValue {
+			if len(columns) == 0 {
+				marks = append(marks, "?")
+			} else {
+				for _, column := range columns {
+					if fmt.Sprintf("%v", value[0]) == fmt.Sprintf("%v", column) {
+						marks = append(marks, "?")
+					}
+					break
+				}
+			}
 		}
 
 		if len(marks) > 1 {
@@ -334,10 +372,19 @@ func toQueryMarks(primaryValues [][]interface{}) string {
 	return strings.Join(results, ",")
 }
 
-func toQueryValues(primaryValues [][]interface{}) (values []interface{}) {
+func toQueryValues(primaryValues [][][]interface{}, columns ...string) (values []interface{}) {
 	for _, primaryValue := range primaryValues {
 		for _, value := range primaryValue {
-			values = append(values, value)
+			if len(columns) == 0 {
+				values = append(values, value[1])
+			} else {
+				for _, column := range columns {
+					if fmt.Sprintf("%v", value[0]) == fmt.Sprintf("%v", column) {
+						values = append(values, value[1])
+					}
+					break
+				}
+			}
 		}
 	}
 	return values

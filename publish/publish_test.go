@@ -5,6 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/publish"
 	"github.com/qor/qor/test/utils"
 )
@@ -16,15 +17,23 @@ var db *gorm.DB
 
 func init() {
 	db = utils.TestDB()
+	l10n.RegisterCallbacks(db)
+
 	pb = publish.New(db)
 	pbdraft = pb.DraftDB()
 	pbprod = pb.ProductionDB()
 
-	for _, table := range []string{"products", "products_draft", "colors", "categories", "languages", "product_categories", "product_categories_draft", "languages", "product_languages_draft"} {
+	for _, table := range []string{"product_categories", "product_categories_draft", "product_languages", "product_languages_draft", "author_books", "author_books_draft"} {
 		pbprod.Exec(fmt.Sprintf("drop table %v", table))
 	}
-	pbprod.AutoMigrate(&Product{}, &Color{}, &Category{}, &Language{})
-	pb.AutoMigrate(&Product{}, &Category{})
+
+	for _, value := range []interface{}{&Product{}, &Color{}, &Category{}, &Language{}, &Book{}, &Publisher{}, &Comment{}, &Author{}} {
+		pbprod.DropTable(value)
+		pbdraft.DropTable(value)
+
+		pbprod.AutoMigrate(value)
+		pb.AutoMigrate(value)
+	}
 }
 
 type Product struct {
