@@ -28,7 +28,9 @@ func init() {
 	}
 
 	for _, value := range []interface{}{&Product{}, &Color{}, &Category{}, &Language{}, &Book{}, &Publisher{}, &Comment{}, &Author{}} {
-		db.DropTable(value)
+		pbprod.DropTable(value)
+		pbdraft.DropTable(value)
+
 		pbprod.AutoMigrate(value)
 		pb.AutoMigrate(value)
 	}

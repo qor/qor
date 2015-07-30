@@ -61,5 +61,5 @@ func TestPublishL10nRecords(t *testing.T) {
 		},
 	}
 
-	pbdraft.Debug().Save(&book)
+	pbdraft.Save(&book)
 }
