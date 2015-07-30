@@ -11,7 +11,7 @@ import (
 type Book struct {
 	gorm.Model
 	l10n.Locale
-	publish.Publish
+	publish.Status
 	Name       string
 	CategoryID uint
 	Category   Category
@@ -23,14 +23,14 @@ type Book struct {
 type Publisher struct {
 	gorm.Model
 	l10n.Locale
-	publish.Publish
+	publish.Status
 	Name string
 }
 
 type Comment struct {
 	gorm.Model
 	l10n.Locale
-	publish.Publish
+	publish.Status
 	Content string
 	BookID  uint
 }
@@ -38,28 +38,47 @@ type Comment struct {
 type Author struct {
 	gorm.Model
 	l10n.Locale
-	publish.Publish
+	publish.Status
 	Name string
 }
 
-func TestPublishL10nRecords(t *testing.T) {
+func generateBook(name string) *Book {
 	book := Book{
-		Name: "l10n-book1",
+		Name: name,
 		Category: Category{
-			Name: "l10n-category1",
+			Name: name + "_category",
 		},
 		Publisher: Publisher{
-			Name: "l10n-publisher",
+			Name: name + "_publisher",
 		},
 		Comments: []Comment{
-			{Content: "l10n-content1"},
-			{Content: "l10n-content2"},
+			{Content: name + "_comment1"},
+			{Content: name + "_comment2"},
 		},
 		Authors: []Author{
-			{Name: "l10n-author1"},
-			{Name: "l10n-author2"},
+			{Name: name + "_author1"},
+			{Name: name + "_author2"},
 		},
 	}
+	return &book
+}
 
-	pbdraft.Save(&book)
+func TestBelongsToForL10nResource(t *testing.T) {
+	name := "belongs_to_for_l10n"
+	book := generateBook(name)
+	pbdraft.Save(book)
+
+	pb.Publish(book)
+
+	if pbprod.Where("id = ?", book.ID).First(&Book{}).RecordNotFound() {
+		t.Errorf("should find book from production db")
+	}
+
+	if pbprod.Where("name LIKE ?", name+"%").First(&Publisher{}).RecordNotFound() {
+		t.Errorf("should find publisher from production db")
+	}
+
+	if pbprod.Where("name LIKE ?", name+"%").First(&Category{}).RecordNotFound() {
+		t.Errorf("should find category from production db")
+	}
 }

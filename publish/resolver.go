@@ -69,7 +69,7 @@ func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][]inter
 
 				if relationship.Kind == "belongs_to" || relationship.Kind == "has_many" {
 					sql := fmt.Sprintf("%v IN (?) and publish_status = ?", relationship.ForeignDBName)
-					rows, err = draftDB.Table(draftTable).Select(toScope.PrimaryKey()).Where(sql, primaryKeys, DIRTY).Rows()
+					rows, err = draftDB.Debug().Table(draftTable).Select(toScope.PrimaryKey()).Where(sql, primaryKeys, DIRTY).Rows()
 				} else if relationship.Kind == "has_one" {
 					fromTable := fromScope.TableName()
 					fromPrimaryKey := fromScope.PrimaryKey()
