@@ -72,32 +72,36 @@ func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][][]int
 					selectPrimaryKeys = append(selectPrimaryKeys, fmt.Sprintf("%v", toScope.Quote(field.DBName)))
 				}
 
-				if relationship.Kind == "belongs_to" || relationship.Kind == "has_many" {
-					sql := fmt.Sprintf("%v IN (%v)", toQueryCondition(toScope, relationship.ForeignDBNames), toQueryMarks(primaryKeys, relationship.ForeignDBNames...))
-					rows, err = draftDB.Table(draftTable).Select(selectPrimaryKeys).Where("publish_status = ?", DIRTY).Where(sql, toQueryValues(primaryKeys, relationship.ForeignDBNames...)...).Rows()
-				} else if relationship.Kind == "has_one" {
-					fromTable := fromScope.TableName()
-					toTable := toScope.TableName()
+				if relationship.Kind == "has_one" || relationship.Kind == "has_many" {
+					sql := fmt.Sprintf("%v IN (%v)", toQueryCondition(toScope, relationship.ForeignDBNames), toQueryMarks(primaryKeys, relationship.AssociationForeignDBNames...))
+					rows, err = draftDB.Table(draftTable).Select(selectPrimaryKeys).Where("publish_status = ?", DIRTY).Where(sql, toQueryValues(primaryKeys, relationship.AssociationForeignDBNames...)...).Rows()
+				} else if relationship.Kind == "belongs_to" {
+					fromTable := draftTableName(fromScope.TableName())
+					// toTable := toScope.TableName()
 
-					sql := fmt.Sprintf("%v IN (SELECT %v FROM %v WHERE %v IN (?))",
-						scopePrimaryKeys(toScope, toTable), strings.Join(selectPrimaryKeys, ","), fromTable, toQueryCondition(toScope, relationship.ForeignDBNames), toQueryMarks(primaryKeys, relationship.ForeignDBNames...))
+					sql := fmt.Sprintf("%v IN (SELECT %v FROM %v WHERE %v IN (%v))",
+						strings.Join(relationship.AssociationForeignDBNames, ","), strings.Join(relationship.ForeignDBNames, ","), fromTable, scopePrimaryKeys(fromScope, fromTable), toQueryMarks(primaryKeys))
 
-					rows, err = draftDB.Table(draftTable).Select(selectPrimaryKeys).Where("publish_status = ?", DIRTY).Where(sql, toQueryValues(primaryKeys, relationship.ForeignDBNames...)...).Rows()
+					rows, err = draftDB.Table(draftTable).Select(selectPrimaryKeys).Where("publish_status = ?", DIRTY).Where(sql, toQueryValues(primaryKeys)...).Rows()
 				}
 
 				if rows != nil && err == nil {
 					defer rows.Close()
 					columns, _ := rows.Columns()
 					for rows.Next() {
-						var dependencyKey [][]interface{}
-						var primaryValues = make([]interface{}, len(toScope.PrimaryFields()))
+						var primaryValues = make([]interface{}, len(columns))
+						for idx := range primaryValues {
+							var value interface{}
+							primaryValues[idx] = &value
+						}
 						rows.Scan(primaryValues...)
 
-						for idx, primaryValue := range primaryKeys {
-							dependencyKey = append(dependencyKey, []interface{}{columns[idx], primaryValue})
+						var currentDependencyKeys [][]interface{}
+						for idx, value := range primaryValues {
+							currentDependencyKeys = append(currentDependencyKeys, []interface{}{columns[idx], value})
 						}
 
-						dependencyKeys = append(dependencyKeys, dependencyKey)
+						dependencyKeys = append(dependencyKeys, currentDependencyKeys)
 					}
 
 					resolver.AddDependency(&dependency{Type: toType, PrimaryValues: dependencyKeys})
@@ -140,6 +144,7 @@ func (resolver *resolver) Publish() error {
 	tx := resolver.DB.Begin()
 
 	for _, dep := range resolver.Dependencies {
+
 		value := reflect.New(dep.Type).Elem()
 		productionScope := resolver.DB.Set("publish:draft_mode", false).NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
@@ -350,7 +355,7 @@ func toQueryMarks(primaryValues [][][]interface{}, columns ...string) string {
 				marks = append(marks, "?")
 			} else {
 				for _, column := range columns {
-					if value[0] == column {
+					if fmt.Sprintf("%v", value[0]) == fmt.Sprintf("%v", column) {
 						marks = append(marks, "?")
 					}
 					break
@@ -374,7 +379,7 @@ func toQueryValues(primaryValues [][][]interface{}, columns ...string) (values [
 				values = append(values, value[1])
 			} else {
 				for _, column := range columns {
-					if value[0] == column {
+					if fmt.Sprintf("%v", value[0]) == fmt.Sprintf("%v", column) {
 						values = append(values, value[1])
 					}
 					break
