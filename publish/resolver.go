@@ -195,8 +195,8 @@ func (resolver *resolver) Publish() error {
 					draftCondition = strings.Join(draftJoinKeys, ",")
 				}
 
-				sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionCondition, toQueryMarks(dep.PrimaryValues))
-				tx.Exec(sql, toQueryValues(dep.PrimaryValues)...)
+				sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionCondition, toQueryMarks(dep.PrimaryValues, relationship.ForeignFieldNames...))
+				tx.Exec(sql, toQueryValues(dep.PrimaryValues, relationship.ForeignFieldNames...)...)
 
 				rows, _ := tx.Raw(fmt.Sprintf("SELECT * FROM %s", draftTable)).Rows()
 				joinColumns, _ := rows.Columns()
@@ -213,8 +213,8 @@ func (resolver *resolver) Publish() error {
 
 				publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 					productionTable, strings.Join(productionJoinTableColumns, " ,"), strings.Join(draftJoinTableColumns, " ,"),
-					draftTable, draftCondition, toQueryMarks(dep.PrimaryValues))
-				tx.Exec(publishSql, toQueryValues(dep.PrimaryValues)...)
+					draftTable, draftCondition, toQueryMarks(dep.PrimaryValues, relationship.ForeignFieldNames...))
+				tx.Exec(publishSql, toQueryValues(dep.PrimaryValues, relationship.ForeignFieldNames...)...)
 			}
 
 			// set status to published

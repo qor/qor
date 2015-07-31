@@ -18,7 +18,7 @@ type Book struct {
 	PublisherID uint
 	Publisher   Publisher
 	Comments    []Comment
-	Authors     []Author `gorm:"many2many:author_books"`
+	Authors     []Author `gorm:"many2many:author_books;ForeignKey:ID;AssociationForeignKey:ID"`
 }
 
 type Publisher struct {
@@ -38,7 +38,6 @@ type Comment struct {
 type Author struct {
 	gorm.Model
 	l10n.Locale
-	publish.Status
 	Name string
 }
 
@@ -80,5 +79,33 @@ func TestBelongsToForL10nResource(t *testing.T) {
 
 	if pbprod.Where("name LIKE ?", name+"%").First(&Category{}).RecordNotFound() {
 		t.Errorf("should find category from production db")
+	}
+}
+
+func TestMany2ManyForL10nResource(t *testing.T) {
+	name := "many2many_for_l10n"
+	book := generateBook(name)
+	pbdraft.Save(book)
+
+	if pbdraft.Model(book).Association("Authors").Count() != 2 {
+		t.Errorf("should find two authors from draft db before publish")
+	}
+
+	if pbprod.Model(book).Association("Authors").Count() != 0 {
+		t.Errorf("should find none author from production db before publish")
+	}
+
+	pb.Publish(book)
+
+	if pbprod.Where("id = ?", book.ID).First(&Book{}).RecordNotFound() {
+		t.Errorf("should find book from production db")
+	}
+
+	if pbdraft.Model(book).Association("Authors").Count() != 2 {
+		t.Errorf("should find two authors from draft db after publish")
+	}
+
+	if pbprod.Model(book).Association("Authors").Count() != 2 {
+		t.Errorf("should find two authors from draft db after publish")
 	}
 }
