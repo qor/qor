@@ -15,9 +15,11 @@ type controller struct {
 	*Admin
 }
 
+const HTTPUnprocessableEntity = 422
+
 func renderError(context *Context, err error) {
 	responder.With("html", func() {
-		context.Writer.WriteHeader(http.StatusNotAcceptable)
+		context.Writer.WriteHeader(HTTPUnprocessableEntity)
 		if _, er := context.Writer.Write([]byte(err.Error())); er != nil {
 			println("failed to write response", er.Error())
 		}
@@ -26,7 +28,7 @@ func renderError(context *Context, err error) {
 		if er != nil {
 			println("failed to marshal error json")
 		}
-		context.Writer.WriteHeader(http.StatusNotAcceptable)
+		context.Writer.WriteHeader(HTTPUnprocessableEntity)
 		if _, er := context.Writer.Write(data); er != nil {
 			println("failed to write reponse", er.Error())
 		}
