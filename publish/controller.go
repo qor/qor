@@ -25,7 +25,7 @@ func (db *publishController) Preview(context *admin.Context) {
 		if !res.Config.Invisible {
 			results := res.NewSlice()
 			if isPublishableModel(res.Value) {
-				if draftDB.Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
+				if draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
 					drafts[res] = results
 				}
 			}
