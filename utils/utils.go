@@ -128,10 +128,14 @@ func Stringify(object interface{}) string {
 		}
 	}
 
-	if scope.PrimaryKeyZero() {
-		return ""
+	if scope.PrimaryField() != nil {
+		if scope.PrimaryKeyZero() {
+			return ""
+		} else {
+			return fmt.Sprintf("%v#%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue())
+		}
 	} else {
-		return fmt.Sprintf("%v#%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue())
+		return fmt.Sprintf("%v", object)
 	}
 }
 
