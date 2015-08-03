@@ -1,7 +1,6 @@
 package l10n
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/jinzhu/gorm"
@@ -35,7 +34,8 @@ func beforeCreate(scope *gorm.Scope) {
 			if isLocaleCreateable(scope) || !scope.PrimaryKeyZero() {
 				setLocale(scope, locale)
 			} else {
-				scope.Err(errors.New("permission denied to create from locale"))
+				err := fmt.Errorf("the resource %v cannot be created in %v", scope.GetModelStruct().ModelType.Name(), locale)
+				scope.Err(err)
 			}
 		} else {
 			setLocale(scope, Global)
