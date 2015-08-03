@@ -31,13 +31,10 @@ type Resourcer interface {
 	NewStruct() interface{}
 }
 
-func New(value interface{}, names ...string) *Resource {
+func New(value interface{}) *Resource {
 	structType := reflect.Indirect(reflect.ValueOf(value)).Type()
 	typeName := structType.String()
 	name := structType.Name()
-	for _, n := range names {
-		name = n
-	}
 
 	res := &Resource{Value: value, Name: name, StructType: typeName, Saver: DefaultSaver, FindOneHandler: DefaultFinder, FindManyHandler: DefaultSearcher, Deleter: DefaultDeleter}
 	return res
