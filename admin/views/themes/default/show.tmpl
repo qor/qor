@@ -1,21 +1,25 @@
-<div class="qor-navbar">
+<header class="qor-header">
   <h1 class="qor-title">{{rt .Resource (printf "Edit %v" (singular .Resource.Name))}}</h1>
-  {{render "toolbar"}}
-</div>
+  {{render "navbar"}}
+</header>
 
-{{range $flash := flashes}}
-  <div class="qor-alert qor-alert-{{$flash.Type}}" data-dismissible="true" role="alert">
-    <button type="button" class="md md-18" data-dismiss="alert">close</button>
-    {{$flash.Message}}
-  </div>
-{{end}}
-
-<div class="qor-form-container">
-  <form class="qor-form" action="{{url_for .Result}}" method="POST" enctype="multipart/form-data">
-    {{render_form .Result edit_metas}}
-    <div class="qor-btn-group">
-      <button class="btn btn-primary qor-action-save" type="submit">{{t "Save Changes"}}</button>
-      <a class="btn btn-default qor-action-cancel" href="javascript:history.back();">{{t "Cancel Edit"}}</a>
+<div class="qor-body">
+  {{range $flash := flashes}}
+    <div class="qor-alert qor-alert-{{$flash.Type}}" data-dismissible="true" role="alert">
+      <button type="button" class="material-icons md-18" data-dismiss="alert">close</button>
+      {{$flash.Message}}
     </div>
-  </form>
+  {{end}}
+
+  <div class="qor-form-container">
+    <form class="qor-form" action="{{url_for .Result}}" method="POST" enctype="multipart/form-data">
+      {{render_form .Result edit_metas}}
+      <div class="qor-btn-group">
+        <button class="btn btn-primary qor-action-save" type="submit">{{t "Save Changes"}}</button>
+        <a class="btn btn-default qor-action-cancel" href="javascript:history.back();">{{t "Cancel Edit"}}</a>
+      </div>
+    </form>
+  </div>
 </div>
+
+<footer class="qor-footer"></footer>

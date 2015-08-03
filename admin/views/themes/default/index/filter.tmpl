@@ -4,7 +4,7 @@
     <section class="qor-label-container" data-toggle="qor.filter">
       {{range $scope := $scopes}}
         {{if $scope.Group}}
-          <select class="qor-label-group form-control" data-toggle="qor.selector" data-clearable="true" data-clearable="true" name="scopes" placeholder="{{$scope.Group}}">
+          <select class="qor-label-group form-control" data-toggle="qor.selector" data-clearable="true" name="scopes" placeholder="{{$scope.Group}}">
             {{range $s := $scope.Scopes}}
               <option value="{{$s.Name}}"{{if $s.Active}} selected{{end}}>{{t $s.Label}}</option>
             {{end}}
