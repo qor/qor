@@ -1,13 +1,13 @@
-<div class="qor-navbar">
+<header class="qor-header">
   <h1 class="qor-title">{{t (plural .Resource.Name)}}</h1>
-  {{render "toolbar"}}
-</div>
+  {{render "navbar"}}
+</header>
 
-{{$primary_locale := (i18n_primary_locale .)}}
-{{$editing_locale := (i18n_editing_locale .)}}
+<div class="qor-body qor-i18n">
+  {{$primary_locale := (i18n_primary_locale .)}}
+  {{$editing_locale := (i18n_editing_locale .)}}
 
-<div class="qor-i18n">
-  <header class="i18n-header">
+  <header class="qor-subheader">
     <div class="row">
       <div class="col-sm-7">
         <div class="i18n-languages-group">
@@ -64,7 +64,7 @@
               <input type="hidden" name="Locale" value="{{$editing_locale}}">
               <textarea class="hide" name="Key">{{ $key }}</textarea>
               <textarea class="form-control i18n-translator" id="targetTranslation" name="Value" rows="1">{{lt $editing_locale $key false}}</textarea>
-              <p class="i18n-help-block"><span class="md md-14">check_circle</span> {{t "Saved"}}</p>
+              <p class="i18n-help-block"><span class="material-icons md-14">check_circle</span> {{t "Saved"}}</p>
             </form>
           </div>
         </div>
@@ -82,4 +82,6 @@
 
   {{render "index/pagination"}}
 
-</div>
+</main>
+
+<footer class="qor-footer"></footer>
