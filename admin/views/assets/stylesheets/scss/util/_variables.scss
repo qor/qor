@@ -20,6 +20,58 @@ $brand-info:            #5bc0de !default;
 $brand-warning:         #f0ad4e !default;
 $brand-danger:          #d9534f !default;
 
+$grey-50:  #FAFAFA;
+$grey-100: #F5F5F5;
+$grey-200: #EEEEEE;
+$grey-300: #E0E0E0;
+$grey-400: #BDBDBD;
+$grey-500: #9E9E9E;
+$grey-600: #757575;
+$grey-700: #616161;
+$grey-800: #424242;
+$grey-900: #212121;
+
+$blue-50:  #E1F5FE;
+$blue-100: #B3E5FC;
+$blue-200: #81D4FA;
+$blue-300: #4FC3F7;
+$blue-400: #29B6F6;
+$blue-500: #03A9F4;
+$blue-600: #039BE5;
+$blue-700: #0288D1;
+$blue-800: #0277BD;
+$blue-900: #01579B;
+
+$grey: $grey-500;
+$grey-light: $grey-100;
+$grey-dark: $grey-700;
+
+$color-primary: $blue-500;       // 500
+$color-primary-light: $blue-100; // 100
+$color-primary-dark: $blue-700;  // 700
+
+$color-accent: #ff4081;        // A200
+$color-accent-light: #ff80ab;  // A100
+$color-accent-dark: #f50057;   // A400
+
+$color-base: #000;
+$color-text: rgba(0,0,0,.87);
+$color-secondary: rgba(0,0,0,.54);
+$color-disabled: rgba(0,0,0,.26);
+$color-hint: rgba(0,0,0,.26);
+$color-icon: rgba(0,0,0,.26);
+$color-divider: rgba(0,0,0,.12);
+
+$color-dark-base: #fff;
+$color-dark-text: rgba(255,255,255,.7);
+$color-dark-secondary: rgba(255,255,255,.3);
+
+$box-shadow-1: 0 1px 1.5px rgba(0,0,0,.12), 0 1px 1px rgba(0,0,0,.24);
+$box-shadow-2: 0 3px 3px rgba(0,0,0,.16), 0 3px 3px rgba(0,0,0,.23);
+$box-shadow-3: 0 10px 10px rgba(0,0,0,.19), 0 6px 3px rgba(0,0,0,.23);
+$box-shadow-4: 0 14px 14px rgba(0,0,0,.25), 0 10px 5px rgba(0,0,0,.22);
+$box-shadow-5: 0 19px 19px rgba(0,0,0,.30), 0 15px 6px rgba(0,0,0,.22);
+
 //== Z-index master list
 //
 // Warning: Avoid customizing these values. They're used for a bird's eye view
