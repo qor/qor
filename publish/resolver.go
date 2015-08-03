@@ -358,7 +358,6 @@ func toQueryMarks(primaryValues [][][]interface{}, columns ...string) string {
 					if fmt.Sprintf("%v", value[0]) == fmt.Sprintf("%v", column) {
 						marks = append(marks, "?")
 					}
-					break
 				}
 			}
 		}
@@ -382,7 +381,6 @@ func toQueryValues(primaryValues [][][]interface{}, columns ...string) (values [
 					if fmt.Sprintf("%v", value[0]) == fmt.Sprintf("%v", column) {
 						values = append(values, value[1])
 					}
-					break
 				}
 			}
 		}
