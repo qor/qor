@@ -13,23 +13,23 @@
 
   'use strict';
 
-  var NAMESPACE = 'qor.datepicker',
-      EVENT_ENABLE = 'enable.' + NAMESPACE,
-      EVENT_DISABLE = 'disable.' + NAMESPACE,
-      EVENT_CHANGE = 'change.' + NAMESPACE,
-      EVENT_CLICK = 'click.' + NAMESPACE,
+  var NAMESPACE = 'qor.datepicker';
+  var EVENT_ENABLE = 'enable.' + NAMESPACE;
+  var EVENT_DISABLE = 'disable.' + NAMESPACE;
+  var EVENT_CHANGE = 'change.' + NAMESPACE;
+  var EVENT_CLICK = 'click.' + NAMESPACE;
 
-      CLASS_EMBEDDED = '.qor-datepicker-embedded',
-      CLASS_SAVE = '.qor-datepicker-save',
+  var CLASS_EMBEDDED = '.qor-datepicker-embedded';
+  var CLASS_SAVE = '.qor-datepicker-save';
 
-      QorDatepicker = function (element, options) {
-        this.$element = $(element);
-        this.options = $.extend({}, QorDatepicker.DEFAULTS, $.isPlainObject(options) && options);
-        this.date = null;
-        this.formatDate = null;
-        this.built = false;
-        this.init();
-      };
+  function QorDatepicker(element, options) {
+    this.$element = $(element);
+    this.options = $.extend({}, QorDatepicker.DEFAULTS, $.isPlainObject(options) && options);
+    this.date = null;
+    this.formatDate = null;
+    this.built = false;
+    this.init();
+  }
 
   QorDatepicker.prototype = {
     init: function () {
@@ -59,7 +59,7 @@
           datepicker({
             date: this.$element.val(),
             dateFormat: 'yyyy-mm-dd',
-            inline: true
+            inline: true,
           }).
           triggerHandler(EVENT_CHANGE);
 
@@ -87,9 +87,9 @@
     },
 
     change: function (e) {
-      var $modal = this.$modal,
-          $target = $(e.target),
-          date;
+      var $modal = this.$modal;
+      var $target = $(e.target);
+      var date;
 
       this.date = date = $target.datepicker('getDate');
       this.formatDate = $target.datepicker('getDate', true);
@@ -117,7 +117,7 @@
       this.unbind();
       this.unbuild();
       this.$element.removeData(NAMESPACE);
-    }
+    },
   };
 
   QorDatepicker.DEFAULTS = {};
@@ -149,9 +149,9 @@
 
   QorDatepicker.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this),
-          data = $this.data(NAMESPACE),
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var fn;
 
       if (!data) {
         if (!$.fn.datepicker) {
