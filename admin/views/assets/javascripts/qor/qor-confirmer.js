@@ -14,9 +14,9 @@
   'use strict';
 
   $(document).on('click.qor.confirmer', '[data-confirm]', function (e) {
-    var $this = $(this),
-        data = $this.data(),
-        url;
+    var $this = $(this);
+    var data = $this.data();
+    var url;
 
     if (data.confirm) {
       if (window.confirm(data.confirm)) {

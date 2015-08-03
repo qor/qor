@@ -48,9 +48,10 @@
     build: function () {
       var $this = this.$element;
       var $selector = $(QorSelector.TEMPLATE);
+      var alignedClass = this.options.aligned + '-aligned';
       var data = {};
 
-      $selector.find(SELECTOR_MENU).html(function () {
+      $selector.addClass(alignedClass).find(SELECTOR_MENU).html(function () {
         var list = [];
 
         $this.children().each(function () {
@@ -179,6 +180,7 @@
   };
 
   QorSelector.DEFAULTS = {
+    aligned: 'left',
     clearable: false,
   };
 

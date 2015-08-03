@@ -1,0 +1,19 @@
+{{if .CurrentUser}}
+<div class="qor-navbar">
+  <p class="navbar-text">{{t "Logged in as {{$1}}" .CurrentUser.DisplayName}}</p>
+  <ul class="navbar-menu">
+    <li>
+      <a href="{{logout_url}}"><i class="material-icons">exit_to_app</i></a>
+    </li>
+  </ul>
+
+  <!-- <div class="navbar-lang">
+    {{$current_locale := current_locale .}}
+    <select class="qor-lang-selector form-control" data-toggle="qor.selector" data-aligned="right" name="locale">
+      {{range $locale := viewable_locales .}}
+        <option{{if (eq $current_locale $locale)}} selected{{end}} value="{{patch_current_url "locale" $locale}}">{{t $locale}}</option>
+      {{end}}
+    </select>
+  </div> -->
+</div>
+{{end}}

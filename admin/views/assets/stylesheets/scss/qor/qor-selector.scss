@@ -4,23 +4,30 @@
 .qor-selector {
   position: relative;
   display: inline-block;
-  margin-right: 2px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  vertical-align: middle;
 
   &.open > .qor-selector-menu {
     display: block;
+  }
+
+  &.right-aligned > .qor-selector-menu {
+    right: 0;
+    left: auto;
   }
 }
 
 .qor-selector-toggle {
   position: relative;
   display: block;
-  height: 24px;
+  height: 32px;
   padding-left: 8px;
-  font-size: 12px;
-  line-height: 20px;
-  color: rgba(0,0,0,.54);
+  font-size: 14px;
+  line-height: 28px;
+  color: $color-secondary;
   background-color: #fff;
-  border: 2px solid #eee;
+  border: 2px solid $color-divider;
   border-radius: 2px;
   cursor: pointer;
 
@@ -31,15 +38,15 @@
 
   &.active {
     padding-right: 0;
-    color: rgba(0,0,0,.87);
-    border-color: #03a9f4;
+    color: $color-text;
+    border-color: $color-primary;
   }
 
   > .material-icons {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     font-size: 16px;
-    line-height: 20px;
+    line-height: 28px;
     text-align: center;
     vertical-align: top;
   }
@@ -51,9 +58,9 @@
   &.clearable {
     > .qor-selector-clear {
       display: inline-block;
-      width: 22px;
+      width: 30px;
       padding-left: 2px;
-      background-color: #03a9f4;
+      background-color: $color-primary;
       color: #fff;
     }
   }
@@ -80,7 +87,7 @@
     display: block;
     height: 48px;
     padding: 0 16px;
-    color: rgba(0,0,0,.87);
+    color: $color-text;
     font-weight: normal;
     line-height: 48px;
     white-space: nowrap;
@@ -104,7 +111,7 @@
     &,
     &:hover,
     &:focus {
-      color: #bdbdbd;
+      color: $color-disabled;
       background-color: transparent;
       cursor: auto;
     }

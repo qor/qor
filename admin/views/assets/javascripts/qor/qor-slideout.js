@@ -13,28 +13,27 @@
 
   'use strict';
 
-  var $document = $(document),
-      FormData = window.FormData,
-      NAMESPACE = 'qor.slideout',
-      EVENT_ENABLE = 'enable.' + NAMESPACE,
-      EVENT_DISABLE = 'disable.' + NAMESPACE,
-      EVENT_CLICK = 'click.' + NAMESPACE,
-      EVENT_SUBMIT = 'submit.' + NAMESPACE,
-      EVENT_SHOW = 'show.' + NAMESPACE,
-      EVENT_SHOWN = 'shown.' + NAMESPACE,
-      EVENT_HIDE = 'hide.' + NAMESPACE,
-      EVENT_HIDDEN = 'hidden.' + NAMESPACE,
-      // EVENT_WHEEL = 'wheel mousewheel DOMMouseScroll',
-      CLASS_OPEN = 'qor-slideout-open',
+  var $document = $(document);
+  var FormData = window.FormData;
+  var NAMESPACE = 'qor.slideout';
+  var EVENT_ENABLE = 'enable.' + NAMESPACE;
+  var EVENT_DISABLE = 'disable.' + NAMESPACE;
+  var EVENT_CLICK = 'click.' + NAMESPACE;
+  var EVENT_SUBMIT = 'submit.' + NAMESPACE;
+  var EVENT_SHOW = 'show.' + NAMESPACE;
+  var EVENT_SHOWN = 'shown.' + NAMESPACE;
+  var EVENT_HIDE = 'hide.' + NAMESPACE;
+  var EVENT_HIDDEN = 'hidden.' + NAMESPACE;
+  var CLASS_OPEN = 'qor-slideout-open';
 
-      QorSlideout = function (element, options) {
-        this.$element = $(element);
-        this.options = $.extend({}, QorSlideout.DEFAULTS, $.isPlainObject(options) && options);
-        this.active = false;
-        this.disabled = false;
-        this.animating = false;
-        this.init();
-      };
+  function QorSlideout(element, options) {
+    this.$element = $(element);
+    this.options = $.extend({}, QorSlideout.DEFAULTS, $.isPlainObject(options) && options);
+    this.active = false;
+    this.disabled = false;
+    this.animating = false;
+    this.init();
+  }
 
   QorSlideout.prototype = {
     constructor: QorSlideout,
@@ -80,12 +79,12 @@
     },
 
     click: function (e) {
-      var $this = this.$element,
-          slideout = this.$slideout.get(0),
-          target = e.target,
-          dismissible,
-          $target,
-          data;
+      var $this = this.$element;
+      var slideout = this.$slideout.get(0);
+      var target = e.target;
+      var dismissible;
+      var $target;
+      var data;
 
       function toggleClass() {
         $this.find('tbody > tr').removeClass('active');
@@ -142,9 +141,9 @@
     },
 
     submit: function (e) {
-      var form = e.target,
-          $form = $(form),
-          _this = this;
+      var form = e.target;
+      var $form = $(form);
+      var _this = this;
 
       if (FormData) {
         e.preventDefault();
@@ -165,15 +164,15 @@
           },
           error: function () {
             window.alert(arguments[1] + (arguments[2] || ''));
-          }
+          },
         });
       }
     },
 
     load: function (url, options) {
-      var data = $.isPlainObject(options) ? options : {},
-          method = data.method ? data.method : 'GET',
-          load;
+      var data = $.isPlainObject(options) ? options : {};
+      var method = data.method ? data.method : 'GET';
+      var load;
 
       if (!url || this.disabled) {
         return;
@@ -186,8 +185,8 @@
           method: method,
           data: data,
           success: $.proxy(function (response) {
-            var $response,
-                $content;
+            var $response;
+            var $content;
 
             if (method === 'GET') {
               $response = $(response);
@@ -223,7 +222,7 @@
           }, this),
           complete: $.proxy(function () {
             this.disabled = false;
-          }, this)
+          }, this),
         });
       }, this);
 
@@ -236,8 +235,8 @@
     },
 
     show: function () {
-      var $slideout = this.$slideout,
-          showEvent;
+      var $slideout = this.$slideout;
+      var showEvent;
 
       if (this.active || this.animating) {
         return;
@@ -266,8 +265,8 @@
     },
 
     hide: function () {
-      var $slideout = this.$slideout,
-          hideEvent;
+      var $slideout = this.$slideout;
+      var hideEvent;
 
       if (!this.active || this.animating) {
         return;
@@ -314,7 +313,7 @@
       this.unbind();
       this.unbuild();
       this.$element.removeData(NAMESPACE);
-    }
+    },
   };
 
   QorSlideout.DEFAULTS = {};
@@ -324,7 +323,7 @@
       '<div class="slideout-dialog">' +
         '<div class="slideout-header">' +
           '<button type="button" class="slideout-close" data-dismiss="slideout" aria-div="Close">' +
-            '<span class="md md-24">close</span>' +
+            '<span class="material-icons">close</span>' +
           '</button>' +
           '<h3 class="slideout-title"></h3>' +
         '</div>' +
@@ -335,9 +334,9 @@
 
   QorSlideout.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this),
-          data = $this.data(NAMESPACE),
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var fn;
 
       if (!data) {
         if (/destroy/.test(options)) {

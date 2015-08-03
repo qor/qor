@@ -2,16 +2,11 @@
   // Header
   // --------------------
 
-  .i18n-header {
-    position: relative;
-    padding: 8px 24px;
-    background-color: #fff;
-    box-shadow: 0 1px 0 rgba(0,0,0,0.16), 0 -1px 0 rgba(0,0,0,0.16);
-
+  .qor-subheader {
     .i18n-btn-group {
       display: inline-block;
-      padding-top: 2px;
-      padding-bottom: 2px;
+      padding-top: 12px;
+      padding-bottom: 12px;
       text-align: left;
       vertical-align: middle;
 
@@ -25,8 +20,8 @@
   .i18n-languages-group {
     display: inline-block;
     margin-right: 16px;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    padding-top: 12px;
+    padding-bottom: 12px;
     overflow: hidden;
     vertical-align: middle;
   }
@@ -38,13 +33,14 @@
     margin-bottom: 0;
     font-size: 12px;
     font-weight: normal;
-    line-height: 28px;
+    line-height: 32px;
     color: rgba(0,0,0,0.54);
   }
 
   .i18n-languages {
     float: left;
     width: auto;
+    height: 32px;
   }
 
   .i18n-btn-group {
@@ -68,8 +64,6 @@
     position: relative;
     margin-left: 24px;
     margin-right: 24px;
-    padding-top: 24px;
-    padding-bottom: 24px;
   }
 
   .i18n-translation-source,
@@ -252,10 +246,6 @@
 
   // Footer
   // --------------------
-
-  // .i18n-footer {
-  //   min-height: 100px;
-  // }
 
 
   // Responsive

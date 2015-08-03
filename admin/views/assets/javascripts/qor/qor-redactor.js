@@ -13,22 +13,22 @@
 
   'use strict';
 
-  var $window = $(window),
-      NAMESPACE = 'qor.redactor',
-      EVENT_ENABLE = 'enable.' + NAMESPACE,
-      EVENT_DISABLE = 'disable.' + NAMESPACE,
-      EVENT_CLICK = 'click.' + NAMESPACE,
-      EVENT_FOCUS = 'focus.' + NAMESPACE,
-      EVENT_BLUR = 'blur.' + NAMESPACE,
-      EVENT_IMAGE_UPLOAD = 'imageupload.' + NAMESPACE,
-      EVENT_IMAGE_DELETE = 'imagedelete.' + NAMESPACE,
-      REGEXP_OPTIONS = /x|y|width|height/,
+  var $window = $(window);
+  var NAMESPACE = 'qor.redactor';
+  var EVENT_ENABLE = 'enable.' + NAMESPACE;
+  var EVENT_DISABLE = 'disable.' + NAMESPACE;
+  var EVENT_CLICK = 'click.' + NAMESPACE;
+  var EVENT_FOCUS = 'focus.' + NAMESPACE;
+  var EVENT_BLUR = 'blur.' + NAMESPACE;
+  var EVENT_IMAGE_UPLOAD = 'imageupload.' + NAMESPACE;
+  var EVENT_IMAGE_DELETE = 'imagedelete.' + NAMESPACE;
+  var REGEXP_OPTIONS = /x|y|width|height/;
 
-      QorRedactor = function (element, options) {
-        this.$element = $(element);
-        this.options = $.extend(true, {}, QorRedactor.DEFAULTS, $.isPlainObject(options) && options);
-        this.init();
-      };
+  function QorRedactor(element, options) {
+    this.$element = $(element);
+    this.options = $.extend(true, {}, QorRedactor.DEFAULTS, $.isPlainObject(options) && options);
+    this.init();
+  }
 
   function encodeCropData(data) {
     var nums = [];
@@ -86,9 +86,9 @@
     constructor: QorRedactor,
 
     init: function () {
-      var options = this.options,
-          $this = this.$element,
-          $parent = $this.closest(options.parent);
+      var options = this.options;
+      var $this = this.$element;
+      var $parent = $this.closest(options.parent);
 
       if (!$parent.length) {
         $parent = $this.parent();
@@ -101,8 +101,8 @@
     },
 
     bind: function () {
-      var $parent = this.$parent,
-          click = $.proxy(this.click, this);
+      var $parent = this.$parent;
+      var click = $.proxy(this.click, this);
 
       this.$element.
         on(EVENT_IMAGE_UPLOAD, function (e, image) {
@@ -145,11 +145,11 @@
     },
 
     crop: function ($image) {
-      var options = this.options,
-          url = $image.attr('src'),
-          originalUrl = url,
-          $clone = $('<img>'),
-          $modal = this.$modal;
+      var options = this.options;
+      var url = $image.attr('src');
+      var originalUrl = url;
+      var $clone = $('<img>');
+      var $modal = this.$modal;
 
       if ($.isFunction(options.replace)) {
         originalUrl = options.replace(originalUrl);
@@ -200,7 +200,7 @@
                 }
               });
             });
-          }
+          },
         });
       }).one('hidden.bs.modal', function () {
         $clone.cropper('destroy').remove();
@@ -211,7 +211,7 @@
       this.unbind();
       this.$modal.modal('hide').remove();
       this.$element.removeData(NAMESPACE);
-    }
+    },
   };
 
   QorRedactor.DEFAULTS = {
@@ -221,7 +221,7 @@
     modal: '.qor-cropper-modal',
     save: '.qor-cropper-save',
     replace: null,
-    complete: null
+    complete: null,
   };
 
   QorRedactor.BUTTON = '<span class="redactor-image-cropper">Crop</span>';
@@ -244,10 +244,10 @@
 
   QorRedactor.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this),
-          data = $this.data(NAMESPACE),
-          config,
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var config;
+      var fn;
 
       if (!data) {
         if (!$.fn.redactor) {

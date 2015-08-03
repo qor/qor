@@ -3,22 +3,16 @@
 
 .qor-list-container {
   position: relative;
-  // margin: 24px;
+  margin: 0 24px 24px;
   background-color: #fff;
-  box-shadow: 0 1px 1px rgba(0,0,0,.12),0 2px 2px rgba(0,0,0,.24);
-
-  .qor-action-new {
-    position: absolute;
-    right: 24px;
-    bottom: -21px;
-    z-index: 1;
-  }
+  box-shadow: $box-shadow-1;
 }
 
 .qor-list {
   width: 100%;
   max-width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  color: $color-text;
 
   // Cells
   > thead,
@@ -29,6 +23,7 @@
       > td {
         padding: 8px;
         border-top: 1px solid #ddd;
+        height: 48px;
 
         &:first-child {
           padding-left: 24px;
@@ -76,20 +71,12 @@
     vertical-align: bottom;
     border-bottom: 1px solid #ddd;
     background-color: #eee;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 32px;
+    text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  // Remove top border from thead by default
-  > caption + thead,
-  > colgroup + thead,
-  > thead:first-child {
-    > tr:first-child {
-      > th,
-      > td {
-        border-top: 0;
-      }
-    }
+    color: $color-secondary;
   }
 
   > tbody > tr:hover {
@@ -102,11 +89,6 @@
     border-top: 2px solid #ddd;
   }
 
-  // Nesting
-  .table {
-    background-color: #fff;
-  }
-
   img {
     max-width: 160px;
     max-height: 90px;
@@ -114,28 +96,32 @@
 }
 
 .qor-list-heading {
-  margin-top: 0;
-  margin-bottom: 0;
+  margin: 8px 24px;
   font-size: 16px;
   line-height: 24px;
-  color: rgba(0,0,0,.54);
-}
-
-.qor-list-text-container {
-  margin: -8px;
-  padding: 8px;
+  color: $color-secondary;
 }
 
 .qor-list-text {
   position: relative;
   display: inline-block;
   max-width: 320px;
-  max-height: 100px;
+  max-height: 96px;
   min-height: 24px;
+  line-height: 24px;
   word-wrap: break-word;
   background-color: inherit;
   vertical-align: middle;
-  overflow: auto;
+  overflow: hidden;
+
+  &.viewable {
+    overflow: visible;
+  }
+}
+
+.qor-list-ellipsis {
+  margin-bottom: 0;
+  line-height: 1;
 }
 
 .qor-list-label {
@@ -167,10 +153,23 @@
 
 .qor-list-action {
   text-align: center;
+  white-space: nowrap;
 
   > a {
+    display: inline-block;
+    min-width: 32px;
+    min-height: 32px;
+    line-height: 32px;
+    white-space: nowrap;
+    vertical-align: top;
+
     + a {
-      margin-left: 32px;
+      margin-left: 8px;
+    }
+
+    > i {
+      color: inherit;
+      vertical-align: middle;
     }
   }
 }

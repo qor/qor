@@ -5,7 +5,7 @@
     {{range $index, $value := .Value }}
       <fieldset class="qor-collection">
         {{if has_delete_permission $meta}}
-          <button type="button" class="qor-collection-del close pull-right">&times;</button>
+          <a class="material-icons md-18 qor-collection-del" href="javascript:void(0);">delete</a>
         {{end}}
         {{render_form $value (edit_metas $meta.Resource) $index}}
       </fieldset>
@@ -14,7 +14,7 @@
 
   {{if has_create_permission .Meta}}
     <fieldset class="qor-collection qor-collection-new">
-      <button type="button" class="qor-collection-del close pull-right">&times;</button>
+      <a class="material-icons md-18 qor-collection-del" href="javascript:void(0);">delete</a>
       {{render_form $meta.Resource.GetResource.Value (new_metas $meta.Resource) (len .Value)}}
     </fieldset>
 

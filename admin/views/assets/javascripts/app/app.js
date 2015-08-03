@@ -2,8 +2,7 @@ $(function () {
 
   'use strict';
 
-  // Add Bootstrap's classes dynamically
-  $('.qor-locale-selector').on('change', function () {
+  $('.qor-lang-selector, .qor-locale-selector').on('change', function () {
     var url = $(this).val();
 
     if (url) {

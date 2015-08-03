@@ -37,14 +37,8 @@
 
     {{render "sidebar" .}}
 
-    <div class="qor-mainbody">
-      {{render "header" .}}
-
-      <div class="qor-body" id="content">
-        {{.Content}}
-      </div>
-
-      {{render "footer" .}}
+    <div class="qor-mainbody" id="content">
+      {{.Content}}
     </div>
 
     <!-- JavaScripts -->

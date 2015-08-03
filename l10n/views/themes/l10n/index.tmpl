@@ -1,15 +1,15 @@
-<div class="qor-navbar">
+<header class="qor-header">
   <h1 class="qor-title">{{rt .Resource (plural .Resource.Name)}}</h1>
-  {{render "toolbar"}}
-</div>
+  {{render "navbar"}}
+</header>
 
-<div class="qor-l10n">
-  <div class="l10n-header">
+<div class="qor-body qor-l10n">
+  <header class="qor-subheader">
     <div class="row">
       <div class="col-sm-6">{{render "index/filter"}}</div>
       <div class="col-sm-6">{{render "searchbar"}}</div>
     </div>
-  </div>
+  </header>
 
   <div class="qor-list-container">
     {{render "index/table"}}
@@ -22,3 +22,5 @@
 
   {{render "index/pagination"}}
 </div>
+
+<footer class="qor-footer"></footer>

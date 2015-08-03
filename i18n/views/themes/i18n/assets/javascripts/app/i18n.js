@@ -13,12 +13,12 @@
 
   'use strict';
 
-  var location = window.location,
+  var location = window.location;
 
-      NAMESPACE = 'qor.i18n',
-      EVENT_CLICK = 'click.' + NAMESPACE,
-      EVENT_CHANGE = 'change.' + NAMESPACE,
-      EVENT_KEYUP = 'keyup.' + NAMESPACE;
+  var NAMESPACE = 'qor.i18n';
+  var EVENT_CLICK = 'click.' + NAMESPACE;
+  var EVENT_CHANGE = 'change.' + NAMESPACE;
+  var EVENT_KEYUP = 'keyup.' + NAMESPACE;
 
   function I18n(element, options) {
     this.$element = $(element);
@@ -85,9 +85,9 @@
     },
 
     click: function (e) {
-      var $target = $(e.target),
-          $items = this.$items,
-          $item;
+      var $target = $(e.target);
+      var $items = this.$items;
+      var $item;
 
       if (!$target.is('button')) {
         $target = $target.closest('button');
@@ -169,8 +169,8 @@
     },
 
     reload: function (e) {
-      var $target = $(e.target),
-          search = decodeSearch(location.search);
+      var $target = $(e.target);
+      var search = decodeSearch(location.search);
 
       search[$target.attr('name')] = $target.val();
       location.search = encodeSearch(search);
@@ -195,18 +195,16 @@
     destroy: function () {
       this.unbind();
       this.$element.removeData(NAMESPACE);
-    }
+    },
   };
 
-  I18n.DEFAULTS = {
-
-  };
+  I18n.DEFAULTS = {};
 
   I18n.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this),
-          data = $this.data(NAMESPACE),
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var fn;
 
       if (!data) {
         $this.data(NAMESPACE, (data = new I18n(this, options)));

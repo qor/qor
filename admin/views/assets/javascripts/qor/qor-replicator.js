@@ -13,26 +13,27 @@
 
   'use strict';
 
-  var NAMESPACE = 'qor.replicator',
-      EVENT_ENABLE = 'enable.' + NAMESPACE,
-      EVENT_DISABLE = 'disable.' + NAMESPACE,
-      EVENT_CLICK = 'click.' + NAMESPACE,
+  var NAMESPACE = 'qor.replicator';
+  var EVENT_ENABLE = 'enable.' + NAMESPACE;
+  var EVENT_DISABLE = 'disable.' + NAMESPACE;
+  var EVENT_CLICK = 'click.' + NAMESPACE;
+  var IS_TEMPLATE = 'is-template';
 
-      QorReplicator = function (element, options) {
-        this.$element = $(element);
-        this.options = $.extend({}, QorReplicator.DEFAULTS, $.isPlainObject(options) && options);
-        this.index = 0;
-        this.init();
-      };
+  function QorReplicator(element, options) {
+    this.$element = $(element);
+    this.options = $.extend({}, QorReplicator.DEFAULTS, $.isPlainObject(options) && options);
+    this.index = 0;
+    this.init();
+  }
 
   QorReplicator.prototype = {
     constructor: QorReplicator,
 
     init: function () {
-      var $this = this.$element,
-          options = this.options,
-          $all = $this.find(options.itemClass),
-          $template;
+      var $this = this.$element;
+      var options = this.options;
+      var $all = $this.find(options.itemClass);
+      var $template;
 
       if (!$all.length) {
         return;
@@ -46,7 +47,7 @@
 
       this.$template = $template;
       this.template = $template.prop('outerHTML');
-      $template.hide();
+      $template.data(IS_TEMPLATE, true).hide();
 
       this.parse();
       this.bind();
@@ -87,28 +88,40 @@
     },
 
     add: function (e) {
-      var $template = this.$template,
-          $target;
+      var $template = this.$template;
+      var $item = $template;
+      var $target;
 
-      if ($template.is(':hidden')) {
+      if ($template && $template.is(':hidden')) {
         $template.show();
-        return;
+      } else {
+        $target = $(e.target).closest(this.options.addClass);
+
+        if ($target.length) {
+          $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
+          $target.before($item);
+        }
       }
 
-      $target = $(e.target).closest(this.options.addClass);
+      if ($item) {
 
-      if ($target.length) {
-        $target.before(this.template.replace(/\{\{index\}\}/g, ++this.index));
+        // Enable all JavaScript components within the fieldset
+        $item.trigger('enable');
       }
     },
 
     del: function (e) {
-      var options = this.options,
-          $item = $(e.target).closest(options.itemClass),
-          $alert;
+      var options = this.options;
+      var $item = $(e.target).closest(options.itemClass);
+      var $alert;
 
       if ($item.is(options.newClass)) {
-        $item.remove();
+        if ($item.data(IS_TEMPLATE)) {
+          this.$template = null;
+        }
+
+        // Destroy all JavaScript components within the fieldset
+        $item.trigger('disable').remove();
       } else {
         $item.children(':visible').addClass('hidden').hide();
         $alert = $(options.alertTemplate.replace('{{name}}', this.parseName($item)));
@@ -131,7 +144,7 @@
     destroy: function () {
       this.unbind();
       this.$element.removeData(NAMESPACE);
-    }
+    },
   };
 
   QorReplicator.DEFAULTS = {
@@ -139,14 +152,14 @@
     newClass: false,
     addClass: false,
     delClass: false,
-    alertTemplate: ''
+    alertTemplate: '',
   };
 
   QorReplicator.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this),
-          data = $this.data(NAMESPACE),
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var fn;
 
       if (!data) {
         $this.data(NAMESPACE, (data = new QorReplicator(this, options)));
@@ -159,14 +172,14 @@
   };
 
   $(function () {
-    var selector = '.qor-collection-group',
-        options = {
+    var selector = '.qor-collection-group';
+    var options = {
           itemClass: '.qor-collection',
           newClass: '.qor-collection-new',
           addClass: '.qor-collection-add',
           delClass: '.qor-collection-del',
           undoClass: '.qor-collection-undo',
-          alertTemplate: ('<div class="alert alert-danger"><input type="hidden" name="{{name}}._destroy" value="1"><a href="javascript:void(0);" class="alert-link qor-collection-undo">Undo Delete</a></div>')
+          alertTemplate: ('<div class="alert alert-danger"><input type="hidden" name="{{name}}._destroy" value="1"><a href="javascript:void(0);" class="alert-link qor-collection-undo">Undo Delete</a></div>'),
         };
 
     $(document)

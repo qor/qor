@@ -2,7 +2,18 @@
 // --------------------------------------------------
 
 body {
-  background-color: #f2f2f2;
+  background-color: #f5f5f5;
+  color: $color-text;
+}
+
+a {
+  color: $color-secondary;
+
+  &:hover,
+  &:focus {
+    color: $color-primary;
+    text-decoration: none;
+  }
 }
 
 // Sidebar
@@ -15,7 +26,7 @@ body {
   bottom: 0;
   z-index: $zindex-sidebar;
   width: 56px;
-  outline: 1px solid rgba(0,0,0,0.12);
+  box-shadow: $box-shadow-2;
   background-color: #fff;
   -webkit-transition: width 0.35s ease;
        -o-transition: width 0.35s ease;
@@ -107,6 +118,8 @@ body {
   -webkit-transition: margin-left 0.35s ease;
        -o-transition: margin-left 0.35s ease;
           transition: margin-left 0.35s ease;
+
+  @extend .clearfix;
 }
 
 
@@ -150,14 +163,36 @@ body {
 // --------------------------------------------------
 
 .qor-header {
+  position: relative;
+  z-index: 1;
+  height: 64px;
+  padding: 0 24px;
+  font-size: 24px;
+  line-height: 64px;
+  color: #fff;
+  background-color: $color-primary-dark;
+  box-shadow: $box-shadow-2;
+  @extend .clearfix;
 
+  > .qor-title {
+    float: left;
+    margin: 0;
+    font-size: inherit;
+    line-height: inherit;
+  }
 }
 
-.qor-sub-header {
+.qor-subheader {
   position: relative;
-  padding: 8px 24px;
+  max-height: 56px;
+  margin-bottom: 24px;
+  padding: 0 24px;
   background-color: #fff;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.16), 0 -1px 0 rgba(0,0,0,0.16);
+  box-shadow: $box-shadow-1;
+
+  &:empty {
+    display: none;
+  }
 }
 
 // Body
@@ -173,21 +208,10 @@ body {
   border-bottom: 1px solid #eee;
 }
 
-.qor-form-container {
-  padding: 30px;
-  background-color: #fff;
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.1);
-  @extend .clearfix;
-
-  > .qor-page-header {
-    margin-top: 10px;
-  }
-}
-
 
 // Footer
 // --------------------------------------------------
 
 .qor-footer {
-  min-height: 80px;
+  height: 40px;
 }
