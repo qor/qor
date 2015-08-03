@@ -1,20 +1,22 @@
 {{$context := .}}
 {{$resource := .Resource}}
 
-<div class="qor-navbar">
+<header class="qor-header">
   <h1 class="qor-title">{{t "{{.Name}}" $resource}}</h1>
-  {{render "toolbar"}}
-</div>
+  {{render "navbar"}}
+</header>
 
-<div class="qor-publish">
+<div class="qor-body qor-publish">
   <form class="qor-form" action="" method="POST">
-    <div class="qor-btn-group">
-      <button type="submit" class="btn btn-primary" data-confirm="{{t "Are you sure?"}}" name="publish_type" value="publish">{{t "Publish"}}</button>
-      <button type="submit" class="btn btn-danger" data-confirm="{{t "Are you sure?"}}" name="publish_type" value="discard">{{t "Discard"}}</button>
-    </div>
+    <header class="qor-subheader">
+      <div class="qor-btn-group">
+        <button type="submit" class="btn btn-sm btn-primary" data-confirm="{{t "Are you sure?"}}" name="publish_type" value="publish">{{t "Publish"}}</button>
+        <button type="submit" class="btn btn-sm btn-danger" data-confirm="{{t "Are you sure?"}}" name="publish_type" value="discard">{{t "Discard"}}</button>
+      </div>
+    </header>
 
     {{range $res, $records := .Result}}
-    <h4 class="qor-publish-heading">{{rt $res (plural $res.Name)}}</h4>
+    <h4 class="qor-list-heading">{{rt $res (plural $res.Name)}}</h4>
     <div class="qor-list-container">
       <table class="qor-list">
         <thead>
@@ -23,7 +25,7 @@
             {{range $meta := (index_metas $res)}}
               <th>{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</th>
             {{end}}
-            <th>{{t "Actions"}}</th>
+            <th class="qor-list-action">{{t "Actions"}}</th>
           </tr>
         </thead>
 
@@ -39,7 +41,7 @@
                   <div class="qor-list-text">{{render_publish_meta $record $meta $context}}</div>
                 </td>
               {{end}}
-              <td><a class="qor-action-diff" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a></td>
+              <td class="qor-list-action"><a class="qor-action-diff" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a></td>
             </tr>
           {{end}}
         </tbody>
@@ -64,3 +66,5 @@
     </div>
   </div>
 </div>
+
+<footer class="qor-footer"></footer>
