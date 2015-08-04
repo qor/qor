@@ -6,12 +6,13 @@
   margin: 0 24px 24px;
   background-color: #fff;
   box-shadow: $box-shadow-1;
+  overflow-x: auto;
 }
+
 
 .qor-list {
   width: 100%;
   max-width: 100%;
-  margin-bottom: 24px;
   color: $color-text;
 
   // Cells
