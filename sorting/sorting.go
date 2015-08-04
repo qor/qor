@@ -3,29 +3,40 @@ package sorting
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/jinzhu/gorm"
 )
 
 type positionInterface interface {
-	GetPosition() int
+	GetPosition() *int
 	SetPosition(int)
 }
 
 type Sorting struct {
-	Position int `sql:"DEFAULT:NULL"`
+	Position *int `sql:"DEFAULT:NULL"`
 }
 
-func (position Sorting) GetPosition() int {
+func (position Sorting) GetPosition() *int {
 	return position.Position
 }
 
 func (position *Sorting) SetPosition(pos int) {
-	position.Position = pos
+	position.Position = &pos
 }
 
 func newModel(value interface{}) interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(value)).Type()).Interface()
+}
+
+func getRealPosition(db *gorm.DB, value positionInterface) int {
+	var currentPos int
+	if pos := value.GetPosition(); pos == nil {
+		currentPos, _ = strconv.Atoi(fmt.Sprintf("%v", db.NewScope(value).PrimaryKeyValue()))
+	} else {
+		currentPos = *pos
+	}
+	return currentPos
 }
 
 func move(db *gorm.DB, value positionInterface, pos int) error {
@@ -36,7 +47,7 @@ func move(db *gorm.DB, value positionInterface, pos int) error {
 		}
 	}
 
-	currentPos := value.GetPosition()
+	currentPos := getRealPosition(db, value)
 	value.SetPosition(currentPos + pos)
 
 	if pos > 0 {
@@ -64,5 +75,5 @@ func MoveDown(db *gorm.DB, value positionInterface, pos int) error {
 }
 
 func MoveTo(db *gorm.DB, value positionInterface, pos int) error {
-	return move(db, value, pos-value.GetPosition())
+	return move(db, value, pos-getRealPosition(db, value))
 }

@@ -107,12 +107,12 @@ func TestMoveToPosition(t *testing.T) {
 	prepareUsers()
 	user := getUser("user5")
 
-	sorting.MoveTo(db, user, user.GetPosition()-3)
+	sorting.MoveTo(db, user, *user.GetPosition()-3)
 	if !checkPosition("user1", "user5", "user2", "user3", "user4") {
 		t.Errorf("user5 should be moved to position 2")
 	}
 
-	sorting.MoveTo(db, user, user.GetPosition()-1)
+	sorting.MoveTo(db, user, *user.GetPosition()-1)
 	if !checkPosition("user5", "user1", "user2", "user3", "user4") {
 		t.Errorf("user5 should be moved to position 1")
 	}
