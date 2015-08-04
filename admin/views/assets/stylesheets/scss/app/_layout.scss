@@ -184,11 +184,12 @@ a {
 
 .qor-subheader {
   position: relative;
-  max-height: 56px;
+  min-height: 56px;
   margin-bottom: 24px;
   padding: 0 24px;
   background-color: #fff;
   box-shadow: $box-shadow-1;
+  @extend .clearfix;
 
   &:empty {
     display: none;
