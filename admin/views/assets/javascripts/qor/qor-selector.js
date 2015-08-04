@@ -166,6 +166,11 @@
     },
 
     open: function () {
+
+      // Close other opened dropdowns first
+      $document.triggerHandler(EVENT_CLICK);
+
+      // Open the current dropdown
       this.$selector.addClass(CLASS_OPEN);
     },
 
