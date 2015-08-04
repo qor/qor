@@ -9,6 +9,11 @@
     }
   }
 
+  .qor-list > tbody > .deleted,
+  .qor-list > tbody > tr > .deleted  {
+    background-color: #fce4ec;
+  }
+
   .qor-publish-modal {
     .modal-body {
       padding-top: 16px;

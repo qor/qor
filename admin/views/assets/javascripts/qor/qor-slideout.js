@@ -144,6 +144,7 @@
       var form = e.target;
       var $form = $(form);
       var _this = this;
+      var $submit = $form.find(':submit');
 
       if (FormData) {
         e.preventDefault();
@@ -153,6 +154,9 @@
           data: new FormData(form),
           processData: false,
           contentType: false,
+          beforeSend: function () {
+            $submit.prop('disabled', true);
+          },
           success: function () {
             var returnUrl = $form.data('returnUrl');
 
@@ -164,6 +168,9 @@
           },
           error: function () {
             window.alert(arguments[1] + (arguments[2] || ''));
+          },
+          complete: function () {
+            $submit.prop('disabled', false);
           },
         });
       }

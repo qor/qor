@@ -111,13 +111,18 @@ a {
 // Mainbody
 // --------------------------------------------------
 
+// Inherit body height with absolute position
 .qor-mainbody {
-  margin-left: 56px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 56px;
   overflow-x: hidden;
   overflow-y: auto;
-  -webkit-transition: margin-left 0.35s ease;
-       -o-transition: margin-left 0.35s ease;
-          transition: margin-left 0.35s ease;
+  -webkit-transition: left 0.35s ease;
+       -o-transition: left 0.35s ease;
+          transition: left 0.35s ease;
 
   @extend .clearfix;
 }
@@ -154,7 +159,7 @@ a {
   }
 
   .qor-mainbody {
-    margin-left: 240px;
+    left: 240px;
   }
 }
 
