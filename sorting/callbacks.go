@@ -18,7 +18,9 @@ func initalizePosition(scope *gorm.Scope) {
 }
 
 func beforeQuery(scope *gorm.Scope) {
-	scope.Search.Order("position")
+	if _, ok := scope.Value.(positionInterface); ok {
+		scope.Search.Order("position")
+	}
 }
 
 func RegisterCallbacks(db *gorm.DB) {
