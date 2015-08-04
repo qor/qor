@@ -77,7 +77,7 @@ func (ac *controller) Show(context *Context) {
 
 func (ac *controller) New(context *Context) {
 	if context.checkResourcePermission(roles.Create) {
-		context.Execute("new", nil)
+		context.Execute("new", context.Resource.NewStruct())
 	}
 }
 
@@ -87,7 +87,10 @@ func (ac *controller) Create(context *Context) {
 
 		result := res.NewStruct()
 		if errs := res.Decode(context.Context, result); len(errs) == 0 {
-			res.CallSaver(result, context.Context)
+			if err := res.CallSaver(result, context.Context); err != nil {
+				renderError(context, err)
+				return
+			}
 			responder.With("html", func() {
 				context.Flash(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res), "success")
 				primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())

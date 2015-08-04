@@ -2,22 +2,54 @@
 // --------------------------------------------------
 
 .qor-navbar {
-  min-height: 64px;
-  padding: 8px 24px;
-  background-color: #0277bd;
+  float: right;
+  height: 64px;
   @extend .clearfix;
 
-  > .qor-title {
+  > .navbar-text {
     float: left;
     margin: 0;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    font-size: 24px;
-    line-height: 32px;
-    color: #fff;
+    padding: 0 12px;
+    font-size: 12px;
+    line-height: inherit;
+    color: $color-dark-text;
   }
 
-  > .qor-toolbar {
-    float: right;
+  > .navbar-menu {
+    float: left;
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style: none;
+
+    > li {
+      float: left;
+
+      > a {
+        display: block;
+        padding: 20px 12px;
+        color: #fff;
+        font-size: 16px;
+        line-height: 24px;
+
+        > i {
+          vertical-align: top;
+        }
+      }
+    }
+  }
+
+  > .navbar-lang {
+    float: left;
+    padding-left: 24px;
+
+    > .qor-selector {
+      padding-top: 16px;
+      padding-bottom: 16px;
+      vertical-align: top;
+
+      > .qor-selector-toggle {
+        border-color: #fff;
+      }
+    }
   }
 }

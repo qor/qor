@@ -136,7 +136,7 @@ func (meta *Meta) updateMeta() {
 				if regexp.MustCompile(`^(.*)?(u)?(int)(\d+)?`).MatchString(fieldType.Kind().String()) {
 					meta.Type = "number"
 				} else if regexp.MustCompile(`^(.*)?(float)(\d+)?`).MatchString(fieldType.Kind().String()) {
-					meta.Type = "string"
+					meta.Type = "float"
 				} else if _, ok := reflect.New(fieldType).Interface().(*time.Time); ok {
 					meta.Type = "datetime"
 				} else if _, ok := reflect.New(fieldType).Interface().(media_library.MediaLibrary); ok {
@@ -155,7 +155,10 @@ func (meta *Meta) updateMeta() {
 			} else if fieldType.Kind().String() == "slice" {
 				result = reflect.New(field.Field.Type().Elem()).Interface()
 			}
-			meta.Resource = meta.base.GetAdmin().NewResource(result)
+
+			res := meta.base.GetAdmin().NewResource(result)
+			res.compile()
+			meta.Resource = res
 		}
 	}
 
@@ -163,7 +166,7 @@ func (meta *Meta) updateMeta() {
 	if meta.Valuer == nil {
 		if hasColumn {
 			meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
-				scope := &gorm.Scope{Value: value}
+				scope := context.GetDB().NewScope(value)
 				alias := meta.Alias
 				if nestedField {
 					fields := strings.Split(alias, ".")

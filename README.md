@@ -1,5 +1,10 @@
 # QOR
 
+English Chat Room: [![Join the chat at https://gitter.im/qor/qor](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/qor/qor?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+中文聊天室： [![加入中国Qor聊天室 https://gitter.im/qor/qor/china](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/qor/qor/china)
+
+
 [![Build Status](https://semaphoreci.com/api/v1/projects/3a3db8d6-c6ac-46b8-9b34-453aabdced22/430434/badge.svg)](https://semaphoreci.com/theplant/qor)
 
 ## What is QOR?
@@ -53,14 +58,80 @@ We are planning to update the godoc documentation for all modules after the API 
 * [ ] Roles
 
 
-## Tutorial
+## Example Application
 
-[The tutorial](https://github.com/qor/qor/tree/docs_and_tutorial/example/tutorial/bookstore) is currently a work in progress.
+[The example application](https://github.com/qor/qor-example) is a work in progress but already covers the following modules:
 
 * [x] Setup & Installation
-* [x] Define a first set of resources
+* [x] Define a first set of resources (qor/admin)
 * [x] Introduce Meta - Back Office display control for your resources
+* [x] Basic Media library usage
 * [x] Using Publish
-* [ ] L10n & I18n
-* [ ] Roles
+* [x] L10n & I18n
+* [\] Roles (very little)
 * [ ] Worker
+
+
+## Front End Build
+
+### Main
+
+Main asset directories of Admin and other modules:
+
+```
+/
+├── admin/views/assets/
+│   ├── fonts
+│   ├── images
+│   ├── javascripts
+│   └── stylesheets
+│
+├── i18n/views/themes/i18n/assets/
+│   ├── javascripts
+│   └── stylesheets
+│
+├── l10n/views/themes/l10n/assets/
+│   ├── javascripts
+│   └── stylesheets
+│
+└── publish/views/themes/publish/assets/
+    ├── javascripts
+    └── stylesheets
+```
+
+
+### Build
+
+> Requires [Node.js](https://nodejs.org/) (with [NPM](https://www.npmjs.com/) built-in) development environment.
+
+
+#### Install [Gulp](http://gulpjs.com/)
+
+```bash
+npm install -g gulp
+```
+
+#### Install dependencies
+
+```bash
+npm install
+```
+
+#### Run Admin tasks
+
+- Watch: `gulp`
+- Build JS: `gulp js`
+- Build CSS: `gulp css`
+- Compile SCSS: `gulp sass`
+- Release: `gulp release`
+
+
+#### Run module tasks
+
+Take I18n module for example:
+
+- Watch: `gulp --i18n`
+- Build JS: `gulp js --i18n`
+- Build CSS: `gulp css --i18n`
+- Compile SCSS: `gulp sass --i18n`
+- Release: `gulp release --i18n`

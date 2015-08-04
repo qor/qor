@@ -22,10 +22,12 @@ func (db *publishController) Preview(context *admin.Context) {
 	drafts := make(map[*admin.Resource]interface{})
 	draftDB := context.GetDB().Set("publish:draft_mode", true).Unscoped()
 	for _, res := range context.Admin.GetResources() {
-		results := res.NewSlice()
-		if isPublishableModel(res.Value) {
-			if draftDB.Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
-				drafts[res] = results
+		if !res.Config.Invisible {
+			results := res.NewSlice()
+			if isPublishableModel(res.Value) {
+				if draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
+					drafts[res] = results
+				}
 			}
 		}
 	}

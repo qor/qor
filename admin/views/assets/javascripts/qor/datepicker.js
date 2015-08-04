@@ -13,34 +13,25 @@
 
   'use strict';
 
-  var $window = $(window),
-      $document = $(document),
+  var $window = $(window);
+  var $document = $(document);
+  var NAMESPACE = 'datepicker';
+  var EVENT_CLICK = 'click.' + NAMESPACE;
+  var EVENT_KEYUP = 'keyup.' + NAMESPACE;
+  var EVENT_FOCUS = 'focus.' + NAMESPACE;
+  var EVENT_RESIZE = 'resize.' + NAMESPACE;
 
-      Datepicker = function (element, options) {
-        this.$element = $(element);
-        this.options = $.extend({}, Datepicker.DEFAULTS, $.isPlainObject(options) && options);
-        this.visible = false;
-        this.isInput = false;
-        this.isInline = false;
-        this.init();
-      };
+  function Datepicker(element, options) {
+    this.$element = $(element);
+    this.options = $.extend({}, Datepicker.DEFAULTS, $.isPlainObject(options) && options);
+    this.visible = false;
+    this.isInput = false;
+    this.isInline = false;
+    this.init();
+  }
 
   function isNumber(n) {
     return typeof n === 'number';
-  }
-
-  function isUndefined(n) {
-    return typeof n === 'undefined';
-  }
-
-  function toArray(obj, offset) {
-    var args = [];
-
-    if (isNumber(offset)) { // It's necessary for IE8
-      args.push(offset);
-    }
-
-    return args.slice.apply(obj, args);
   }
 
   function isLeapYear (year) {
@@ -52,10 +43,10 @@
   }
 
   function parseFormat (format) {
-    var separator = format.match(/[.\/\-\s].*?/) || '/',
-        parts = format.split(/\W+/),
-        length,
-        i;
+    var separator = format.match(/[.\/\-\s].*?/) || '/';
+    var parts = format.split(/\W+/);
+    var length;
+    var i;
 
     if (!parts || parts.length === 0) {
       throw new Error('Invalid date format.');
@@ -93,13 +84,13 @@
   }
 
   function parseDate (date, format) {
-    var parts,
-        length,
-        year,
-        day,
-        month,
-        val,
-        i;
+    var parts;
+    var length;
+    var year;
+    var day;
+    var month;
+    var val;
+    var i;
 
     parts = typeof date === 'string' && date ? date.split(format.separator) : [];
     length = format.parts.length;
@@ -146,10 +137,10 @@
           m: date.getMonth() + 1,
           yy: date.getFullYear().toString().substring(2),
           yyyy: date.getFullYear()
-        },
-        parts = [],
-        length = format.parts.length,
-        i;
+        };
+    var parts = [];
+    var length = format.parts.length;
+    var i;
 
     val.dd = (val.d < 10 ? '0' : '') + val.d;
     val.mm = (val.m < 10 ? '0' : '') + val.m;
@@ -165,9 +156,9 @@
     constructor: Datepicker,
 
     init: function () {
-      var $this = this.$element,
-          options = this.options,
-          $picker;
+      var $this = this.$element;
+      var options = this.options;
+      var $picker;
 
       this.$trigger = $(options.trigger || $this);
       this.$picker = $picker = $(options.template);
@@ -201,21 +192,40 @@
     },
 
     bind: function () {
-      var $this = this.$element,
-          options = this.options;
+      var $this = this.$element;
+      var options = this.options;
 
-      this.$picker.on('click', $.proxy(this.click, this));
+      this.$picker.on(EVENT_CLICK, $.proxy(this.click, this));
 
       if (!this.isInline) {
         if (this.isInput) {
-          $this.on('keyup', $.proxy(this.update, this));
+          $this.on(EVENT_KEYUP, $.proxy(this.update, this));
 
           if (!options.trigger) {
-            $this.on('focus', $.proxy(this.show, this));
+            $this.on(EVENT_FOCUS, $.proxy(this.show, this));
           }
         }
 
-        this.$trigger.on('click', $.proxy(this.show, this));
+        this.$trigger.on(EVENT_CLICK, $.proxy(this.show, this));
+      }
+    },
+
+    unbind: function () {
+      var $this = this.$element;
+      var options = this.options;
+
+      this.$picker.off(EVENT_CLICK, this.click);
+
+      if (!this.isInline) {
+        if (this.isInput) {
+          $this.off(EVENT_KEYUP, this.update);
+
+          if (!options.trigger) {
+            $this.off(EVENT_FOCUS, this.show);
+          }
+        }
+
+        this.$trigger.off(EVENT_CLICK, this.show);
       }
     },
 
@@ -276,8 +286,8 @@
     },
 
     place: function () {
-      var $trigger = this.$trigger,
-          offset = $trigger.offset();
+      var $trigger = this.$trigger;
+      var offset = $trigger.offset();
 
       this.$picker.css({
         position: 'absolute',
@@ -296,8 +306,8 @@
       this.$picker.show();
 
       if (!this.isInline) {
-        $window.on('resize', $.proxy(this.place, this));
-        $document.on('click', $.proxy(function (e) {
+        $window.on(EVENT_RESIZE, $.proxy(this.place, this));
+        $document.on(EVENT_CLICK, $.proxy(function (e) {
           if (e.target !== this.$element[0]) {
             this.hide();
           }
@@ -316,14 +326,14 @@
       this.$picker.hide();
 
       if (!this.isInline) {
-        $window.off('resize', this.place);
-        $document.off('click', this.hide);
+        $window.off(EVENT_RESIZE, this.place);
+        $document.off(EVENT_CLICK, this.hide);
       }
     },
 
     update: function () {
-      var $this = this.$element,
-          date = $this.data('date') || (this.isInput ? $this.prop('value') : $this.text());
+      var $this = this.$element;
+      var date = $this.data('date') || (this.isInput ? $this.prop('value') : $this.text());
 
       this.date = date = parseDate(date, this.format);
       this.viewDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -331,8 +341,8 @@
     },
 
     change: function () {
-      var $this = this.$element,
-          date = formatDate(this.date, this.format);
+      var $this = this.$element;
+      var date = formatDate(this.date, this.format);
 
       if (this.isInput) {
         $this.prop('value', date);
@@ -344,15 +354,15 @@
     },
 
     getMonthByNumber: function (month, short) {
-      var options = this.options,
-          months = short ? options.monthsShort : options.months;
+      var options = this.options;
+      var months = short ? options.monthsShort : options.months;
 
       return months[isNumber(month) ? month : this.date.getMonth()];
     },
 
     getDayByNumber: function (day, short, min) {
-      var options = this.options,
-          days = min ? options.daysMin : short ? options.daysShort : options.days;
+      var options = this.options;
+      var days = min ? options.daysMin : short ? options.daysShort : options.days;
 
       return days[isNumber(day) ? day : this.date.getDay()];
     },
@@ -362,8 +372,8 @@
     },
 
     template: function (data) {
-      var options = this.options,
-          defaults = {
+      var options = this.options;
+      var defaults = {
             text: '',
             type: '',
             selected: false,
@@ -390,13 +400,13 @@
     },
 
     fillYears: function () {
-      var title = '',
-          items = [],
-          suffix = this.options.yearSuffix || '',
-          year = this.date.getFullYear(),
-          viewYear = this.viewDate.getFullYear(),
-          isCurrent,
-          i;
+      var title = '';
+      var items = [];
+      var suffix = this.options.yearSuffix || '';
+      var year = this.date.getFullYear();
+      var viewYear = this.viewDate.getFullYear();
+      var isCurrent;
+      var i;
 
       title = (viewYear - 5) + suffix + ' - ' + (viewYear + 6) + suffix;
 
@@ -415,14 +425,14 @@
     },
 
     fillMonths: function () {
-      var title = '',
-          items = [],
-          options = this.options.monthsShort,
-          year = this.date.getFullYear(),
-          month = this.date.getMonth(),
-          viewYear = this.viewDate.getFullYear(),
-          isCurrent,
-          i;
+      var title = '';
+      var items = [];
+      var options = this.options.monthsShort;
+      var year = this.date.getFullYear();
+      var month = this.date.getMonth();
+      var viewYear = this.viewDate.getFullYear();
+      var isCurrent;
+      var i;
 
       title = viewYear.toString() + this.options.yearSuffix || '';
 
@@ -441,11 +451,11 @@
     },
 
     fillWeek: function () {
-      var options = this.options,
-          items = [],
-          days = options.daysMin,
-          weekStart = parseInt(options.weekStart, 10) % 7,
-          i;
+      var options = this.options;
+      var items = [];
+      var days = options.daysMin;
+      var weekStart = parseInt(options.weekStart, 10) % 7;
+      var i;
 
       days = $.merge(days.slice(weekStart), days.slice(0, weekStart));
 
@@ -459,25 +469,25 @@
     },
 
     fillDays: function () {
-      var title = '',
-          items = [],
-          prevItems = [],
-          currentItems = [],
-          nextItems = [],
-          options = this.options.monthsShort,
-          suffix = this.options.yearSuffix || '',
-          year = this.date.getFullYear(),
-          month = this.date.getMonth(),
-          day = this.date.getDate(),
-          viewYear = this.viewDate.getFullYear(),
-          viewMonth = this.viewDate.getMonth(),
-          weekStart = parseInt(this.options.weekStart, 10) % 7,
-          isCurrent,
-          isDisabled,
-          length,
-          date,
-          i,
-          n;
+      var title = '';
+      var items = [];
+      var prevItems = [];
+      var currentItems = [];
+      var nextItems = [];
+      var options = this.options.monthsShort;
+      var suffix = this.options.yearSuffix || '';
+      var year = this.date.getFullYear();
+      var month = this.date.getMonth();
+      var day = this.date.getDate();
+      var viewYear = this.viewDate.getFullYear();
+      var viewMonth = this.viewDate.getMonth();
+      var weekStart = parseInt(this.options.weekStart, 10) % 7;
+      var isCurrent;
+      var isDisabled;
+      var length;
+      var date;
+      var i;
+      var n;
 
       // Title of current month
       title = this.options.showMonthAfterYear ? (viewYear + suffix + ' ' + options[viewMonth]) : options[viewMonth] + ' ' + viewYear + suffix;
@@ -538,14 +548,14 @@
     },
 
     click: function (e) {
-      var $target = $(e.target),
-          yearRegex = /^\d{2,4}$/,
-          isYear = false,
-          viewYear,
-          viewMonth,
-          viewDay,
-          year,
-          type;
+      var $target = $(e.target);
+      var yearRegex = /^\d{2,4}$/;
+      var isYear = false;
+      var viewYear;
+      var viewMonth;
+      var viewDay;
+      var year;
+      var type;
 
       e.stopPropagation();
       e.preventDefault();
@@ -686,6 +696,12 @@
 
         // No default
       }
+    },
+
+    destroy: function () {
+      this.unbind();
+      this.$picker.remove();
+      this.$element.removeData(NAMESPACE);
     }
   };
 
@@ -748,7 +764,7 @@
   };
 
   Datepicker.setDefaults = function (options) {
-    $.extend(Datepicker.DEFAULTS, options);
+    $.extend(Datepicker.DEFAULTS, $.isPlainObject(options) && options);
   };
 
   // Save the other datepicker
@@ -756,24 +772,28 @@
 
   // Register as jQuery plugin
   $.fn.datepicker = function (options) {
-    var args = toArray(arguments, 1),
-        result;
+    var args = [].slice.call(arguments, 1);
+    var result;
 
     this.each(function () {
-      var $this = $(this),
-          data = $this.data('datepicker'),
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var fn;
 
       if (!data) {
-        $this.data('datepicker', (data = new Datepicker(this, options)));
+        if (/destroy/.test(options)) {
+          return;
+        }
+
+        $this.data(NAMESPACE, (data = new Datepicker(this, options)));
       }
 
-      if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
+      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
         result = fn.apply(data, args);
       }
     });
 
-    return isUndefined(result) ? this : result;
+    return typeof result === 'undefined' ? this : result;
   };
 
   $.fn.datepicker.Constructor = Datepicker;

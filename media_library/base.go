@@ -18,6 +18,7 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/jinzhu/gorm"
+	"github.com/qor/inflection"
 )
 
 var ErrNotImplemented = errors.New("not implemented")
@@ -46,6 +47,7 @@ type Base struct {
 	Valid       bool                   `json:"-"`
 	FileHeader  fileHeader             `json:"-"`
 	Reader      io.Reader              `json:"-"`
+	cropped     bool                   `json:"-"`
 }
 
 func (b *Base) Scan(data interface{}) (err error) {
@@ -88,7 +90,7 @@ func (b Base) Value() (driver.Value, error) {
 }
 
 func (b Base) URL(styles ...string) string {
-	if len(styles) > 0 {
+	if b.Url != "" && len(styles) > 0 {
 		ext := path.Ext(b.Url)
 		return fmt.Sprintf("%v.%v%v", strings.TrimSuffix(b.Url, ext), styles[0], ext)
 	}
@@ -117,7 +119,7 @@ func (b Base) GetURLTemplate(option *Option) (path string) {
 func getFuncMap(scope *gorm.Scope, field *gorm.Field, filename string) template.FuncMap {
 	hash := func() string { return strings.Replace(time.Now().Format("20060102150506.000000000"), ".", "", -1) }
 	return template.FuncMap{
-		"class":       scope.TableName,
+		"class":       func() string { return strings.ToLower(inflection.Plural(scope.GetModelStruct().ModelType.Name())) },
 		"primary_key": func() string { return fmt.Sprintf("%v", scope.PrimaryKeyValue()) },
 		"column":      func() string { return field.Name },
 		"filename":    func() string { return filename },
@@ -143,12 +145,20 @@ func (b Base) GetURL(option *Option, scope *gorm.Scope, field *gorm.Field, templ
 	return ""
 }
 
+func (b *Base) Cropped(values ...bool) (result bool) {
+	result = b.cropped
+	for _, value := range values {
+		b.cropped = value
+	}
+	return result
+}
+
 func (b *Base) NeedCrop() bool {
 	return b.Crop
 }
 
 func (b *Base) GetCropOption(name string) *image.Rectangle {
-	if cropOption := b.CropOptions[name]; cropOption != nil {
+	if cropOption := b.CropOptions[strings.Split(name, "@")[0]]; cropOption != nil {
 		return &image.Rectangle{
 			Min: image.Point{X: cropOption.X, Y: cropOption.Y},
 			Max: image.Point{X: cropOption.X + cropOption.Width, Y: cropOption.Y + cropOption.Height},

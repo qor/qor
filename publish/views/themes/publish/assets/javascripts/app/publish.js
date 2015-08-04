@@ -13,8 +13,10 @@
 
   'use strict';
 
-  var NAMESPACE = 'qor.publish',
-      EVENT_CLICK = 'click.' + NAMESPACE;
+  var NAMESPACE = 'qor.publish';
+  var EVENT_CLICK = 'click.' + NAMESPACE;
+  var EVENT_SHOWN = 'shown.bs.modal';
+  var EVENT_HIDDEN = 'hidden.bs.modal';
 
   function Publish(element, options) {
     this.$element = $(element);
@@ -27,8 +29,8 @@
     constructor: Publish,
 
     init: function () {
-      var options = this.options,
-          $this = this.$element;
+      var options = this.options;
+      var $this = this.$element;
 
       this.$modal = $this.find(options.modal);
 
@@ -41,15 +43,23 @@
 
     bind: function () {
       this.$element.on(EVENT_CLICK, $.proxy(this.click, this));
+      this.$modal.
+        on(EVENT_SHOWN, function () {
+          $(this).trigger('enable.qor.textviewer');
+        }).
+        on(EVENT_HIDDEN, function () {
+          $(this).trigger('disable.qor.textviewer');
+        });
     },
 
     unbind: function () {
       this.$element.off(EVENT_CLICK, this.click);
+      this.$modal.off(EVENT_SHOWN).off(EVENT_HIDDEN);
     },
 
     click: function (e) {
-      var options = this.options,
-          $target = $(e.target);
+      var options = this.options;
+      var $target = $(e.target);
 
       if ($target.is(options.toggleView)) {
         e.preventDefault();
@@ -75,20 +85,20 @@
     destroy: function () {
       this.unbind();
       this.$element.removeData(NAMESPACE);
-    }
+    },
   };
 
   Publish.DEFAULTS = {
     modal: '.qor-publish-modal',
     toggleView: '.qor-action-diff',
-    toggleCheck: '.qor-check-all'
+    toggleCheck: '.qor-check-all',
   };
 
   Publish.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this),
-          data = $this.data(NAMESPACE),
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var fn;
 
       if (!data) {
         if (!$.fn.modal) {

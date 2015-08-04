@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/qor/qor"
@@ -99,13 +100,25 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 		}
 	}
 
-	for key, value := range request.Form {
-		newMetaValue(key, value)
+	var sortedFormKeys []string
+	for key := range request.Form {
+		sortedFormKeys = append(sortedFormKeys, key)
+	}
+	sort.Strings(sortedFormKeys)
+
+	for _, key := range sortedFormKeys {
+		newMetaValue(key, request.Form[key])
 	}
 
 	if request.MultipartForm != nil {
-		for key, value := range request.MultipartForm.File {
-			newMetaValue(key, value)
+		sortedFormKeys = []string{}
+		for key := range request.MultipartForm.File {
+			sortedFormKeys = append(sortedFormKeys, key)
+		}
+		sort.Strings(sortedFormKeys)
+
+		for _, key := range sortedFormKeys {
+			newMetaValue(key, request.MultipartForm.File[key])
 		}
 	}
 	return metaValues, nil

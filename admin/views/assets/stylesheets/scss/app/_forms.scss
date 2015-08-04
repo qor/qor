@@ -1,11 +1,43 @@
 // Forms
 // --------------------------------------------------
 
+.qor-form-container {
+  margin: 24px;
+  padding: 24px;
+  background-color: #fff;
+  box-shadow: $box-shadow-1;
+  @extend .clearfix;
+
+  > .qor-page-header {
+    margin-top: 10px;
+  }
+}
+
+.form-group {
+  label {
+    color: $color-secondary;
+    font-weight: normal;
+  }
+
+  .form-control {
+    font-size: 16px;
+    color: inherit;
+    background-image: linear-gradient($color-primary,$color-primary),linear-gradient($grey-300,$grey-300);
+
+    &:focus {
+      color: inherit;
+      background-image: linear-gradient($color-primary,$color-primary),linear-gradient($grey-300,$grey-300);
+    }
+  }
+}
+
 .qor-search-container {
-  width: 100%;
-  min-height: 28px;
-  padding-top: 2px;
-  padding-bottom: 2px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-height: 32px;
+  padding: 12px 24px;
+  background-color: #fff;
   @extend .clearfix;
 }
 
@@ -13,33 +45,31 @@
   position: relative;
   float: right;
   display: block;
-  min-width: 18px;
+  min-width: 32px;
   max-width: 320px;
-  height: 28px;
+  height: 32px;
 
   > .qor-search-label,
   > .qor-search-clear {
     position: absolute;
     top: 0;
-    z-index: 1;
     display: block;
-    width: 18px;
-    height: 28px;
-    padding: 5px 0;
+    width: 32px;
+    padding: 4px;
+    height: inherit;
     text-align: center;
     cursor: pointer;
   }
 
   > .qor-search-label {
     left: 0;
-    z-index: 2;
     margin-bottom: 0;
     color: rgba(0,0,0,0.54);
   }
 
   > .qor-search-clear {
     right: 0;
-    color: #0277bd;
+    color: $color-primary;
     visibility: hidden;
     background-color: transparent;
     border: 0;
@@ -56,7 +86,9 @@
   > .qor-search-input:focus,
   > .qor-search-input.focus {
     width: 320px;
-    padding-left: 24px;
+    height: 32px;
+    padding-left: 32px;
+    line-height: normal;
 
     + .qor-search-clear {
       visibility: visible;
@@ -70,19 +102,26 @@
   }
 }
 
+
 .qor-collection {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding: 10px 15px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  padding: 16px 24px;
   border: 1px solid #eee;
-  border-radius: 4px;
-  @include box-shadow(0 0 5px #eee);
+  border-radius: 2px;
+  // box-shadow: $box-shadow-1;
+  @extend .clearfix;
 
   > .form-group {
     &:last-child {
       margin-bottom: 0;
     }
   }
+}
+
+.qor-collection-del {
+  float: right;
+  margin-right: -8px;
 }
 
 

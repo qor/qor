@@ -30,9 +30,8 @@ func s3client() *s3.S3 {
 
 		if _, err := creds.Get(); err == nil {
 			S3Client = s3.New(&aws.Config{
-				Region:      AwsRegion,
+				Region:      &AwsRegion,
 				Credentials: creds,
-				LogLevel:    1,
 			})
 		}
 	}
@@ -51,7 +50,7 @@ func getEndpoint(option *media_library.Option) string {
 		return endpoint
 	}
 
-	return getBucket(option) + "." + S3Client.Config.Endpoint
+	return getBucket(option) + "." + *S3Client.Config.Endpoint
 }
 
 func (s S3) GetURLTemplate(option *media_library.Option) (path string) {
@@ -68,13 +67,14 @@ func (s S3) Store(url string, option *media_library.Option, reader io.Reader) er
 	fileBytes := bytes.NewReader(buffer)
 
 	path := strings.Replace(url, "//"+getEndpoint(option), "", -1)
+	fileBytesLen := int64(fileBytes.Len())
 
 	params := &s3.PutObjectInput{
 		Bucket:        aws.String(getBucket(option)), // required
 		Key:           aws.String(path),              // required
 		ACL:           aws.String("public-read"),
 		Body:          fileBytes,
-		ContentLength: aws.Long(int64(fileBytes.Len())),
+		ContentLength: &fileBytesLen,
 		ContentType:   aws.String(http.DetectContentType(buffer)),
 		Metadata: map[string]*string{
 			"Key": aws.String("MetadataValue"), //required

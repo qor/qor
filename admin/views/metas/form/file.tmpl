@@ -16,40 +16,25 @@
   </textarea>
 
   <div class="qor-file-list">
-  {{if $value}}
-    {{if $value.IsImage}}
+    {{if $value.GetSizes}}
       <ul>
-      {{if $value.GetSizes}}
-        {{range $key, $v := $value.GetSizes}}
-          <li>
-            <img src="{{$value.URL $key}}" data-original-url="{{$value.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $v}}">
-            <span>{{$key}} ({{$v.Width}} &times; {{$v.Height}} px)</span>
-          </li>
+      {{range $key, $v := $value.GetSizes}}
+        {{if not (is_included $key "@")}}
+        <li>
+          <img src="{{$value.URL $key}}" data-original-url="{{$value.URL "original"}}" data-size-name="{{$key}}" data-size-resolution="{{marshal $v}}">
+          <span>{{$key}} ({{$v.Width}}&times;{{$v.Height}} px)</span>
+        </li>
         {{end}}
-      {{else}}
+      {{end}}
+      </ul>
+    {{else if $value.IsImage}}
+      <ul>
         <li>
           <img src="{{$value.URL}}" data-original-url="{{$value.URL "original"}}" data-size-name="original" alt="{{$value.GetFileName}}">
         </li>
-      {{end}}
       </ul>
     {{else if $value.URL}}
       <span>{{$value.GetFileName}} <a href="{{$value.URL}}">{{t "Download"}}</a></span>
     {{end}}
-  {{end}}
-  </div>
-
-  <div class="modal fade qor-cropper-modal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">{{t "Crop the image"}}</h5>
-        </div>
-        <div class="modal-body"></div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-link" data-dismiss="modal">{{t "Cancel"}}</button>
-          <button type="button" class="btn btn-link qor-cropper-save">{{t "OK"}}</button>
-        </div>
-      </div>
-    </div>
   </div>
 </div>

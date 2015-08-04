@@ -13,19 +13,22 @@
 
   'use strict';
 
-  var NAMESPACE = 'qor.redactor',
-      EVENT_CLICK = 'click.' + NAMESPACE,
-      EVENT_FOCUS = 'focus.' + NAMESPACE,
-      EVENT_BLUR = 'blur.' + NAMESPACE,
-      EVENT_IMAGE_UPLOAD = 'imageupload.' + NAMESPACE,
-      EVENT_IMAGE_DELETE = 'imagedelete.' + NAMESPACE,
-      REGEXP_OPTIONS = /x|y|width|height/,
+  var $window = $(window);
+  var NAMESPACE = 'qor.redactor';
+  var EVENT_ENABLE = 'enable.' + NAMESPACE;
+  var EVENT_DISABLE = 'disable.' + NAMESPACE;
+  var EVENT_CLICK = 'click.' + NAMESPACE;
+  var EVENT_FOCUS = 'focus.' + NAMESPACE;
+  var EVENT_BLUR = 'blur.' + NAMESPACE;
+  var EVENT_IMAGE_UPLOAD = 'imageupload.' + NAMESPACE;
+  var EVENT_IMAGE_DELETE = 'imagedelete.' + NAMESPACE;
+  var REGEXP_OPTIONS = /x|y|width|height/;
 
-      QorRedactor = function (element, options) {
-        this.$element = $(element);
-        this.options = $.extend(true, {}, QorRedactor.DEFAULTS, options);
-        this.init();
-      };
+  function QorRedactor(element, options) {
+    this.$element = $(element);
+    this.options = $.extend(true, {}, QorRedactor.DEFAULTS, $.isPlainObject(options) && options);
+    this.init();
+  }
 
   function encodeCropData(data) {
     var nums = [];
@@ -83,53 +86,70 @@
     constructor: QorRedactor,
 
     init: function () {
-      var _this = this,
-          $this = this.$element,
-          options = this.options,
-          $parent = $this.closest(options.parent),
-          click = $.proxy(this.click, this);
+      var options = this.options;
+      var $this = this.$element;
+      var $parent = $this.closest(options.parent);
 
       if (!$parent.length) {
         $parent = $this.parent();
       }
 
+      this.$parent = $parent;
       this.$button = $(QorRedactor.BUTTON);
-      this.$modal = $parent.find(options.modal);
+      this.$modal = $(QorRedactor.MODAL).appendTo('body');
+      this.bind();
+    },
 
-      $this.on(EVENT_IMAGE_UPLOAD, function (e, image) {
-        $(image).on(EVENT_CLICK, click);
-      }).on(EVENT_IMAGE_DELETE, function (e, image) {
-        $(image).off(EVENT_CLICK, click);
-      }).on(EVENT_FOCUS, function () {
-        $parent.find('img').off(EVENT_CLICK, click).on(EVENT_CLICK, click);
-      }).on(EVENT_BLUR, function () {
-        $parent.find('img').off(EVENT_CLICK, click);
-      });
+    bind: function () {
+      var $parent = this.$parent;
+      var click = $.proxy(this.click, this);
 
-      $('body').on(EVENT_CLICK, function () {
-        _this.$button.off(EVENT_CLICK).detach();
-      });
+      this.$element.
+        on(EVENT_IMAGE_UPLOAD, function (e, image) {
+          $(image).on(EVENT_CLICK, click);
+        }).
+        on(EVENT_IMAGE_DELETE, function (e, image) {
+          $(image).off(EVENT_CLICK, click);
+        }).
+        on(EVENT_FOCUS, function () {
+          $parent.find('img').off(EVENT_CLICK, click).on(EVENT_CLICK, click);
+        }).
+        on(EVENT_BLUR, function () {
+          $parent.find('img').off(EVENT_CLICK, click);
+        });
+
+      $window.on(EVENT_CLICK, $.proxy(this.removeButton, this));
+    },
+
+    unbind: function () {
+      this.$element.
+        off(EVENT_IMAGE_UPLOAD).
+        off(EVENT_IMAGE_DELETE).
+        off(EVENT_FOCUS).
+        off(EVENT_BLUR);
+
+      $window.off(EVENT_CLICK, this.removeButton);
     },
 
     click: function (e) {
-      var _this = this,
-          $image = $(e.target);
-
       e.stopPropagation();
+      setTimeout($.proxy(this.addButton, this, $(e.target)), 1);
+    },
 
-      setTimeout(function () {
-        _this.$button.insertBefore($image).off(EVENT_CLICK).one(EVENT_CLICK, function () {
-          _this.crop($image);
-        });
-      }, 1);
+    addButton: function ($image) {
+      this.$button.insertBefore($image).off(EVENT_CLICK).one(EVENT_CLICK, $.proxy(this.crop, this, $image));
+    },
+
+    removeButton: function () {
+      this.$button.off(EVENT_CLICK).detach();
     },
 
     crop: function ($image) {
-      var options = this.options,
-          url = $image.attr('src'),
-          originalUrl = url,
-          $clone = $('<img>'),
-          $modal = this.$modal;
+      var options = this.options;
+      var url = $image.attr('src');
+      var originalUrl = url;
+      var $clone = $('<img>');
+      var $modal = this.$modal;
 
       if ($.isFunction(options.replace)) {
         originalUrl = options.replace(originalUrl);
@@ -140,6 +160,7 @@
         $clone.cropper({
           data: decodeCropData($image.attr('data-crop-options')),
           background: false,
+          movable: false,
           zoomable: false,
           rotatable: false,
           checkImageOrigin: false,
@@ -179,12 +200,18 @@
                 }
               });
             });
-          }
+          },
         });
       }).one('hidden.bs.modal', function () {
         $clone.cropper('destroy').remove();
       }).modal('show').find('.modal-body').append($clone);
-    }
+    },
+
+    destroy: function () {
+      this.unbind();
+      this.$modal.modal('hide').remove();
+      this.$element.removeData(NAMESPACE);
+    },
   };
 
   QorRedactor.DEFAULTS = {
@@ -194,31 +221,53 @@
     modal: '.qor-cropper-modal',
     save: '.qor-cropper-save',
     replace: null,
-    complete: null
+    complete: null,
   };
 
   QorRedactor.BUTTON = '<span class="redactor-image-cropper">Crop</span>';
+  QorRedactor.MODAL = (
+    '<div class="modal fade qor-cropper-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
+      '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+          '<div class="modal-header">' +
+            '<h5 class="modal-title">Crop the image</h5>' +
+          '</div>' +
+          '<div class="modal-body"></div>' +
+          '<div class="modal-footer">' +
+            '<button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>' +
+            '<button type="button" class="btn btn-link qor-cropper-save">OK</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
 
-  QorRedactor.plugin = function (/* options */) {
+  QorRedactor.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this),
-          data;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var config;
+      var fn;
 
-      if (!$this.data(NAMESPACE)) {
+      if (!data) {
         if (!$.fn.redactor) {
           return;
         }
 
-        $this.data(NAMESPACE, true);
-        data = $this.data();
+        if (/destroy/.test(options)) {
+          return;
+        }
+
+        $this.data(NAMESPACE, (data = {}));
+        config = $this.data();
 
         $this.redactor({
-          imageUpload: data.uploadUrl,
-          fileUpload: data.uploadUrl,
+          imageUpload: config.uploadUrl,
+          fileUpload: config.uploadUrl,
 
           initCallback: function () {
-            $this.data(NAMESPACE, new QorRedactor($this, {
-              remote: data.cropUrl,
+            $this.data(NAMESPACE, (data = new QorRedactor($this, {
+              remote: config.cropUrl,
               toggle: '.redactor-image-cropper',
               parent: '.form-group',
               replace: function (url) {
@@ -229,7 +278,7 @@
               complete: $.proxy(function () {
                 this.code.sync();
               }, this)
-            }));
+            })));
           },
 
           focusCallback: function (/*e*/) {
@@ -248,20 +297,29 @@
             $this.triggerHandler(EVENT_IMAGE_DELETE, arguments[1]);
           }
         });
+      } else {
+        if (/destroy/.test(options)) {
+          $this.redactor('core.destroy');
+        }
+      }
+
+      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+        fn.apply(data);
       }
     });
   };
 
   $(function () {
-    $(document)
-      .on('renew.qor.initiator', function (e) {
-        var $element = $('.qor-textarea', e.target);
+    var selector = '.qor-textarea';
 
-        if ($element.length) {
-          QorRedactor.plugin.call($element);
-        }
+    $(document)
+      .on(EVENT_DISABLE, function (e) {
+        QorRedactor.plugin.call($(selector, e.target), 'destroy');
       })
-      .triggerHandler('renew.qor.initiator');
+      .on(EVENT_ENABLE, function (e) {
+        QorRedactor.plugin.call($(selector, e.target));
+      })
+      .triggerHandler(EVENT_ENABLE);
   });
 
   return QorRedactor;

@@ -13,116 +13,77 @@
 
   'use strict';
 
-  var NAMESPACE = 'qor.textviewer',
-      EVENT_CLICK = 'click.' + NAMESPACE;
+  var NAMESPACE = 'qor.textviewer';
+  var EVENT_ENABLE = 'enable.' + NAMESPACE;
+  var EVENT_DISABLE = 'disable.' + NAMESPACE;
 
-  function TextViewer(element, options) {
+  function QorTextviewer(element, options) {
     this.$element = $(element);
-    this.options = $.extend({}, TextViewer.DEFAULTS, $.isPlainObject(options) && options);
-    this.$modal = null;
-    this.built = false;
+    this.options = $.extend({}, QorTextviewer.DEFAULTS, $.isPlainObject(options) && options);
     this.init();
   }
 
-  TextViewer.prototype = {
-    constructor: TextViewer,
+  QorTextviewer.prototype = {
+    constructor: QorTextviewer,
 
     init: function () {
       this.$element.find(this.options.toggle).each(function () {
         var $this = $(this);
 
-        // 8 for correction as `scrollHeight` will large than `offsetHeight` most of the time.
+        // 8 for correction as `scrollHeight` will large than `offsetHeight`.
         if (this.scrollHeight > this.offsetHeight + 8) {
-          $this.addClass('active').wrapInner(TextViewer.INNER);
+          $this.after(QorTextviewer.TEMPLATE);
+        } else {
+          $this.addClass('viewable');
         }
       });
-      this.bind();
-    },
-
-    build: function () {
-      if (this.built) {
-        return;
-      }
-
-      this.built = true;
-      this.$modal = $(TextViewer.TEMPLATE).modal({
-        show: false
-      }).appendTo('body');
-    },
-
-    bind: function () {
-      this.$element.on(EVENT_CLICK, this.options.toggle, $.proxy(this.click, this));
-    },
-
-    unbind: function () {
-      this.$element.off(EVENT_CLICK, this.click);
-    },
-
-    click: function (e) {
-      var target = e.currentTarget,
-          $target = $(target),
-          $modal;
-
-      if (!this.built) {
-        this.build();
-      }
-
-      if ($target.hasClass('active')) {
-        $modal = this.$modal;
-        $modal.find('.modal-title').text($target.closest('td').attr('title'));
-        $modal.find('.modal-body').html($target.find('.text-inner').html());
-        $modal.modal('show');
-      }
     },
 
     destroy: function () {
-      this.unbind();
       this.$element.removeData(NAMESPACE);
-    }
+    },
   };
 
-  TextViewer.DEFAULTS = {
-    toggle: '.qor-list-text'
+  QorTextviewer.DEFAULTS = {
+    toggle: false,
   };
 
-  TextViewer.INNER = ('<div class="text-inner"></div>');
+  QorTextviewer.TEMPLATE = '<p class="qor-list-ellipsis">...</p>';
 
-  TextViewer.TEMPLATE = (
-    '<div class="modal fade qor-list-modal" id="qorListModal" tabindex="-1" role="dialog" aria-labelledby="qorListModalLabel" aria-hidden="true">' +
-      '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-          '<div class="modal-header">' +
-            '<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-            '<h4 class="modal-title" id="qorPublishModalLabel"></h4>' +
-          '</div>' +
-          '<div class="modal-body"></div>' +
-        '</div>' +
-      '</div>' +
-    '</div>'
-  );
-
-  TextViewer.plugin = function (options) {
+  QorTextviewer.plugin = function (options) {
     return this.each(function () {
-      var $this = $(this),
-          data = $this.data(NAMESPACE),
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var fn;
 
       if (!data) {
-        if (!$.fn.modal) {
+        if (/destroy/.test(options)) {
           return;
         }
 
-        $this.data(NAMESPACE, (data = new TextViewer(this, options)));
+        $this.data(NAMESPACE, (data = new QorTextviewer(this, options)));
       }
 
-      if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
+      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
         fn.apply(data);
       }
     });
   };
 
   $(function () {
-    TextViewer.plugin.call($('.qor-list'));
+    var selector = '.qor-list';
+    var options = {
+          toggle: '.qor-list-text',
+        };
+
+    $(document)
+      .on(EVENT_DISABLE, function (e) {
+        QorTextviewer.plugin.call($(selector, e.target), 'destroy');
+      })
+      .on(EVENT_ENABLE, function (e) {
+        QorTextviewer.plugin.call($(selector, e.target), options);
+      })
+      .triggerHandler(EVENT_ENABLE);
   });
 
 });

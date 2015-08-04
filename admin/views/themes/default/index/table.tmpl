@@ -13,18 +13,18 @@
   <tbody>
     {{range $resource := .Result}}
       <tr data-primary-key="{{primary_key_of $resource}}">
-        {{range $index, $meta := index_metas}}
-          <td>
-            <div class="qor-list-text">{{if $index}}{{render_index_meta $resource $meta}}{{else}}{{link_to (render_index_meta $resource $meta) $resource}}{{end}}</div>
+        {{range $meta := index_metas}}
+          <td data-heading="{{rt $Resource $meta.Label}}">
+            <div class="qor-list-text">{{render_index_meta $resource $meta}}</div>
           </td>
         {{end}}
 
         <td class="qor-list-action">
           {{if has_update_permission $Resource}}
-            <a class="qor-action-edit" href="{{url_for $resource}}"><i class="md md-18">edit</i></a>
+            <a class="qor-action-edit" href="{{url_for $resource}}"><i class="material-icons md-18">edit</i></a>
           {{end}}
           {{if has_delete_permission $Resource}}
-            <a class="qor-action-delete" href="{{url_for $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}"><i class="md md-18">delete</i></a>
+            <a class="qor-action-delete" href="{{url_for $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}"><i class="material-icons md-18">delete</i></a>
           {{end}}
         </td>
       </tr>

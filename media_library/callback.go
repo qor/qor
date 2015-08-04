@@ -13,7 +13,8 @@ import (
 func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 	return func(scope *gorm.Scope) {
 		for _, field := range scope.Fields() {
-			if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok {
+			if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok && !media.Cropped() {
+
 				option := parseTagOption(field.Tag.Get("media_library"))
 				if media.GetFileHeader() != nil || media.NeedCrop() {
 					var file multipart.File
@@ -27,6 +28,7 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 					if scope.Err(err) != nil {
 						return
 					}
+					media.Cropped(true)
 
 					if url := media.GetURL(option, scope, field, media); url == "" {
 						scope.Err(errors.New("invalid URL"))

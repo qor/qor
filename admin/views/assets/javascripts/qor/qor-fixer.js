@@ -13,10 +13,12 @@
 
   'use strict';
 
-  var $window = $(window),
-      NAMESPACE = 'qor.fixer',
-      EVENT_RESIZE = 'resize.' + NAMESPACE,
-      EVENT_SCROLL = 'scroll.' + NAMESPACE;
+  var $window = $(window);
+  var NAMESPACE = 'qor.fixer';
+  var EVENT_ENABLE = 'enable.' + NAMESPACE;
+  var EVENT_DISABLE = 'disable.' + NAMESPACE;
+  var EVENT_RESIZE = 'resize.' + NAMESPACE;
+  var EVENT_SCROLL = 'scroll.' + NAMESPACE;
 
   function QorFixer(element, options) {
     this.$element = $(element);
@@ -56,12 +58,12 @@
     },
 
     build: function () {
-      var $this = this.$element,
-          $thead = this.$thead,
-          $tbody = this.$tbody,
-          $tfoot = this.$tfoot,
-          $clone = this.$clone,
-          $items = $thead.find('> tr').children();
+      var $this = this.$element;
+      var $thead = this.$thead;
+      var $tbody = this.$tbody;
+      var $tfoot = this.$tfoot;
+      var $clone = this.$clone;
+      var $items = $thead.find('> tr').children();
 
       this.offsetTop = $this.offset().top;
       this.maxTop = $this.outerHeight() - $thead.height() - $tbody.find('> tr:last').height() - $tfoot.height();
@@ -85,9 +87,13 @@
             });
     },
 
+    unbuild: function () {
+      this.$clone.remove();
+    },
+
     toggle: function () {
-      var $clone = this.$clone,
-        top = $window.scrollTop() - this.offsetTop;
+      var $clone = this.$clone;
+      var top = $window.scrollTop() - this.offsetTop;
 
       if (top > 0 && top < this.maxTop) {
         $clone.show();
@@ -103,41 +109,40 @@
 
     destroy: function () {
       this.unbind();
+      this.unbuild();
       this.$element.removeData(NAMESPACE);
-    }
+    },
   };
 
-  QorFixer.DEFAULTS = {
-  };
+  QorFixer.DEFAULTS = {};
 
   QorFixer.plugin = function (options) {
-    var args = [].slice.call(arguments, 1);
-
     return this.each(function () {
-      var $this = $(this),
-          data = $this.data(NAMESPACE),
-          fn;
+      var $this = $(this);
+      var data = $this.data(NAMESPACE);
+      var fn;
 
       if (!data) {
         $this.data(NAMESPACE, (data = new QorFixer(this, options)));
       }
 
       if (typeof options === 'string' && $.isFunction(fn = data[options])) {
-        fn.call(data, args);
+        fn.call(data);
       }
     });
   };
 
   $(function () {
-    $(document)
-      .on('renew.qor.initiator', function (e) {
-        var $element = $('.qor-list', e.target);
+    var selector = '.qor-list';
 
-        if ($element.length) {
-          QorFixer.plugin.call($element);
-        }
+    $(document)
+      .on(EVENT_DISABLE, function (e) {
+        QorFixer.plugin.call($(selector, e.target), 'destroy');
       })
-      .triggerHandler('renew.qor.initiator');
+      .on(EVENT_ENABLE, function (e) {
+        QorFixer.plugin.call($(selector, e.target));
+      })
+      .triggerHandler(EVENT_ENABLE);
   });
 
   return QorFixer;

@@ -1,7 +1,6 @@
 package l10n
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/jinzhu/gorm"
@@ -19,8 +18,8 @@ func beforeQuery(scope *gorm.Scope) {
 		case "unscoped":
 		default:
 			quotedPrimaryKey := scope.Quote(scope.PrimaryKey())
-			scope.Search.Unscoped = true
-			if scope.Fields()["deleted_at"] != nil {
+
+			if !scope.Search.Unscoped && scope.Fields()["deleted_at"] != nil {
 				scope.Search.Where(fmt.Sprintf("((%v NOT IN (SELECT DISTINCT(%v) FROM %v t2 WHERE t2.language_code = ? AND t2.deleted_at IS NULL) AND language_code = ?) OR language_code = ?) AND deleted_at IS NULL", quotedPrimaryKey, quotedPrimaryKey, quotedTableName), locale, Global, locale)
 			} else {
 				scope.Search.Where(fmt.Sprintf("(%v NOT IN (SELECT DISTINCT(%v) FROM %v t2 WHERE t2.language_code = ?) AND language_code = ?) OR (language_code = ?)", quotedPrimaryKey, quotedPrimaryKey, quotedTableName), locale, Global, locale)
@@ -35,7 +34,8 @@ func beforeCreate(scope *gorm.Scope) {
 			if isLocaleCreateable(scope) || !scope.PrimaryKeyZero() {
 				setLocale(scope, locale)
 			} else {
-				scope.Err(errors.New("permission denied to create from locale"))
+				err := fmt.Errorf("the resource %v cannot be created in %v", scope.GetModelStruct().ModelType.Name(), locale)
+				scope.Err(err)
 			}
 		} else {
 			setLocale(scope, Global)

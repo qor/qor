@@ -94,16 +94,15 @@ func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err
 }
 
 func GetLocale(context *qor.Context) string {
-	var locale = context.Request.URL.Query().Get("locale")
-
-	if locale == "" {
-		locale = context.Request.Form.Get("locale")
+	if locale := context.Request.Header.Get("Locale"); locale != "" {
+		return locale
 	}
 
-	if locale != "" {
+	if locale := context.Request.URL.Query().Get("locale"); locale != "" {
 		if context.Writer != nil {
-			cookie := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0), Path: "/"}
-			http.SetCookie(context.Writer, &cookie)
+			context.Request.Header.Set("Locale", locale)
+			c := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0), Path: "/"}
+			http.SetCookie(context.Writer, &c)
 		}
 		return locale
 	}
@@ -129,10 +128,14 @@ func Stringify(object interface{}) string {
 		}
 	}
 
-	if scope.PrimaryKeyZero() {
-		return ""
+	if scope.PrimaryField() != nil {
+		if scope.PrimaryKeyZero() {
+			return ""
+		} else {
+			return fmt.Sprintf("%v#%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue())
+		}
 	} else {
-		return fmt.Sprintf("%v#%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue())
+		return fmt.Sprintf("%v", object)
 	}
 }
 

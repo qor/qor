@@ -1,12 +1,14 @@
-@import "app/variables";
-@import "app/mixins";
-@import "app/utilities";
+// Utilities
+@import "util/variables";
+@import "util/mixins";
+@import "util/utilities";
+
+// Components
 @import "app/fonts";
 @import "app/icons";
 @import "app/layout";
 @import "app/navs";
 @import "app/navbar";
-@import "app/toolbar";
 @import "app/forms";
 @import "app/buttons";
 @import "app/filter";

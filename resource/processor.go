@@ -99,9 +99,12 @@ func (processor *processor) decode() (errors []error) {
 			DecodeToResource(res, association, metaValue.MetaValues, processor.Context).Start()
 		} else if field.Kind() == reflect.Slice {
 			value := reflect.New(field.Type().Elem())
-			DecodeToResource(res, value.Interface(), metaValue.MetaValues, processor.Context).Start()
-			if !reflect.DeepEqual(reflect.Zero(field.Type().Elem()).Interface(), value.Elem().Interface()) {
-				field.Set(reflect.Append(field, value.Elem()))
+			associationProcessor := DecodeToResource(res, value.Interface(), metaValue.MetaValues, processor.Context)
+			associationProcessor.Start()
+			if !associationProcessor.SkipLeft {
+				if !reflect.DeepEqual(reflect.Zero(field.Type().Elem()).Interface(), value.Elem().Interface()) {
+					field.Set(reflect.Append(field, value.Elem()))
+				}
 			}
 		}
 		processor.MetaValues.Errors = append(processor.MetaValues.Errors, metaValue.MetaValues.Errors...)

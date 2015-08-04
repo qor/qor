@@ -5,19 +5,4 @@
   {{else}}
     <textarea class="form-control qor-textarea" id="{{.InputId}}" name="{{.InputName}}" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>{{if .Value}}{{.Value}}{{end}}</textarea>
   {{end}}
-
-  <div class="modal fade qor-cropper-modal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">{{t "Crop the image"}}</h5>
-        </div>
-        <div class="modal-body"></div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-link" data-dismiss="modal">{{t "Cancel"}}</button>
-          <button type="button" class="btn btn-link qor-cropper-save">{{t "OK"}}</button>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
