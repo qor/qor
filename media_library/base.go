@@ -47,6 +47,7 @@ type Base struct {
 	Valid       bool                   `json:"-"`
 	FileHeader  fileHeader             `json:"-"`
 	Reader      io.Reader              `json:"-"`
+	cropped     bool                   `json:"-"`
 }
 
 func (b *Base) Scan(data interface{}) (err error) {
@@ -142,6 +143,14 @@ func (b Base) GetURL(option *Option, scope *gorm.Scope, field *gorm.Field, templ
 		}
 	}
 	return ""
+}
+
+func (b *Base) Cropped(values ...bool) (result bool) {
+	result = b.cropped
+	for _, value := range values {
+		b.cropped = value
+	}
+	return result
 }
 
 func (b *Base) NeedCrop() bool {
