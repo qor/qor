@@ -8,12 +8,12 @@
 
 <div class="qor-body qor-publish">
   <form class="qor-form" action="" method="POST">
+  {{$actions := load_index_actions}}
+  {{if $actions}}
     <header class="qor-subheader">
-      <div class="qor-btn-group">
-        <button type="submit" class="btn btn-sm btn-primary" data-confirm="{{t "Are you sure?"}}" name="publish_type" value="publish">{{t "Publish"}}</button>
-        <button type="submit" class="btn btn-sm btn-danger" data-confirm="{{t "Are you sure?"}}" name="publish_type" value="discard">{{t "Discard"}}</button>
-      </div>
+      {{$actions}}
     </header>
+  {{end}}
 
     {{range $res, $records := .Result}}
     <h4 class="qor-list-heading">{{rt $res (plural $res.Name)}}</h4>
