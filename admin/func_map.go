@@ -450,9 +450,45 @@ func (context *Context) loadIndexActions() template.HTML {
 
 	for j := len(viewPaths); j > 0; j-- {
 		view := viewPaths[j-1]
-		files, _ := filepath.Glob(path.Join(view, "actions/index", "*.tmpl"))
-		for _, file := range files {
-			actionKeys = append(actionKeys, path.Base(file))
+		globalfiles, _ := filepath.Glob(path.Join(view, "actions/*.tmpl"))
+		files, _ := filepath.Glob(path.Join(view, "actions/index/*.tmpl"))
+
+		for _, file := range append(globalfiles, files...) {
+			if _, ok := actions[path.Base(file)]; !ok {
+				actionKeys = append(actionKeys, path.Base(file))
+			}
+			actions[path.Base(file)] = file
+		}
+	}
+
+	sort.Strings(actionKeys)
+
+	var result = bytes.NewBufferString("")
+	for _, key := range actionKeys {
+		file := actions[key]
+		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
+			if err := tmpl.Execute(result, context); err != nil {
+				panic(err)
+			}
+		}
+	}
+	return template.HTML(strings.TrimSpace(result.String()))
+}
+
+func (context *Context) loadShowActions() template.HTML {
+	var actions = map[string]string{}
+	var actionKeys = []string{}
+	var viewPaths = context.getViewPaths()
+
+	for j := len(viewPaths); j > 0; j-- {
+		view := viewPaths[j-1]
+		globalfiles, _ := filepath.Glob(path.Join(view, "actions/*.tmpl"))
+		files, _ := filepath.Glob(path.Join(view, "actions/show/*.tmpl"))
+
+		for _, file := range append(globalfiles, files...) {
+			if _, ok := actions[path.Base(file)]; !ok {
+				actionKeys = append(actionKeys, path.Base(file))
+			}
 			actions[path.Base(file)] = file
 		}
 	}
@@ -533,6 +569,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"load_theme_stylesheets": context.loadThemeStyleSheets,
 		"load_theme_javascripts": context.loadThemeJavaScripts,
 		"load_index_actions":     context.loadIndexActions,
+		"load_show_actions":      context.loadShowActions,
 		"pagination":             context.Pagination,
 
 		"all_metas":   context.allMetas,
