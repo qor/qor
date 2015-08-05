@@ -1,8 +1,0 @@
-{{$current_locale := current_locale .}}
-<div class="qor-locale">
-  <select class="qor-locale-selector form-control" data-toggle="qor.selector" name="locale">
-    {{range $locale := viewable_locales .}}
-      <option{{if (eq $current_locale $locale)}} selected{{end}} value="{{patch_current_url "locale" $locale}}">{{t $locale}}</option>
-    {{end}}
-  </select>
-</div>
