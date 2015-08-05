@@ -8,7 +8,7 @@ var gulp = require('gulp'),
           n;
 
       while (i++ < length) {
-        n = String(args[i]).match(/^-*(i18n|l10n|publish)$/i);
+        n = String(args[i]).match(/^-+(\w+)$/i);
 
         if (n) {
           n = n[1];
@@ -390,11 +390,90 @@ tasks.publish = function () {
 };
 
 
+// Sorting
+// Command: gulp [task] --sorting
+// -----------------------------------------------------------------------------
+
+tasks.sorting = function () {
+  var namespace = 'sorting',
+      pathto = function (file) {
+        return (namespace + '/views/themes/' + namespace + '/assets/' + file);
+      },
+      scripts = {
+        src: pathto('javascripts/app/*.js'),
+        dest: pathto('javascripts/')
+      },
+      styles = {
+        src: pathto('stylesheets/scss/*.scss'),
+        dest: pathto('stylesheets/'),
+        main: pathto('stylesheets/' + namespace + '.css'),
+        scss: pathto('stylesheets/scss/**/*.scss')
+      };
+
+  gulp.task('jshint', function () {
+    return gulp.src(scripts.src)
+    .pipe(plugins.jshint())
+    .pipe(plugins.jshint.reporter('default'));
+  });
+
+  gulp.task('jscs', function () {
+    return gulp.src(scripts.src)
+    .pipe(plugins.jscs());
+  });
+
+  gulp.task('js', function () {
+    return gulp.src(scripts.src)
+    .pipe(plugins.concat(namespace + '.js'))
+    .pipe(plugins.uglify())
+    .pipe(gulp.dest(scripts.dest));
+  });
+
+  gulp.task('concat', function () {
+    return gulp.src(scripts.src)
+    .pipe(plugins.sourcemaps.init())
+    .pipe(plugins.concat(namespace + '.js'))
+    .pipe(plugins.sourcemaps.write('./'))
+    .pipe(gulp.dest(scripts.dest));
+  });
+
+  gulp.task('sass', function () {
+    return gulp.src(styles.src)
+    .pipe(plugins.sass())
+    .pipe(gulp.dest(styles.dest));
+  });
+
+  gulp.task('csslint', ['sass'], function () {
+    return gulp.src(styles.main)
+    .pipe(plugins.csslint('.csslintrc'))
+    .pipe(plugins.csslint.reporter());
+  });
+
+  gulp.task('css', ['csslint'], function () {
+    return gulp.src(styles.main)
+    .pipe(plugins.autoprefixer())
+    .pipe(plugins.csscomb())
+    .pipe(plugins.minifyCss())
+    .pipe(gulp.dest(styles.dest));
+  });
+
+  gulp.task('watch', function () {
+    gulp.watch(scripts.src, ['concat']);
+    gulp.watch(styles.scss, ['sass']);
+  });
+
+  gulp.task('release', ['js', 'css']);
+
+  gulp.task('default', ['watch']);
+};
+
+
 // Init
 // -----------------------------------------------------------------------------
 
 if (task && typeof tasks[task] === 'function') {
+  console.log('Running "' + task + '" task...');
   tasks[task]();
 } else {
+  console.log('Running "admin" task...');
   tasks.base();
 }
