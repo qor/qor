@@ -13,7 +13,7 @@
 
   'use strict';
 
-  var NAMESPACE = 'qor.sorter';
+  var NAMESPACE = 'qor.sorting';
   var EVENT_ENABLE = 'enable.' + NAMESPACE;
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
   var EVENT_CHANGE = 'change.' + NAMESPACE;
@@ -22,12 +22,16 @@
   var EVENT_DRAG_START = 'dragstart.' + NAMESPACE;
   var EVENT_DRAG_OVER = 'dragover.' + NAMESPACE;
   var EVENT_DROP = 'drop.' + NAMESPACE;
+  var CLASS_SORTING = 'qor-sorting';
+  var CLASS_HIGHLIGHT = 'qor-sorting-highlight';
   var SELECTOR_TR = 'tbody> tr';
 
   function QorSorter(element, options) {
     this.$element = $(element);
     this.options = $.extend({}, QorSorter.DEFAULTS, $.isPlainObject(options) && options);
     this.$source = null;
+    this.ascending = true;
+    // this.descending = false;
     this.init();
   }
 
@@ -35,8 +39,15 @@
     constructor: QorSorter,
 
     init: function () {
-      $('body').addClass('qor-sorter');
-      this.$element.find('tbody .qor-list-action').append(QorSorter.TEMPLATE);
+      var options = this.options;
+      var $this = this.$element;
+      var $rows = $this.find(SELECTOR_TR);
+      var firstPosition = $rows.first().find(options.input).data('position');
+      var lastPosition = $rows.last().find(options.input).data('position');
+
+      $('body').addClass(CLASS_SORTING);
+      $this.find('tbody .qor-list-action').append(QorSorter.TEMPLATE);
+      this.ascending = firstPosition < lastPosition;
       this.bind();
     },
 
@@ -60,6 +71,7 @@
 
     change: function (e) {
       var options = this.options;
+      var $rows = this.$element.find(SELECTOR_TR);
       var $sourceInput = $(e.currentTarget);
       var $source = $sourceInput.closest('tr');
       var $tbody = $source.parent();
@@ -67,29 +79,25 @@
       var sourcePosition = source.position;
       var targetPosition = parseInt($sourceInput.val(), 10);
       var largethan = targetPosition > sourcePosition;
-      var moved;
+      var ascending = this.ascending;
+      var targetIndex;
+      var $target;
 
-      this.$element.find(SELECTOR_TR).each(function () {
+      $rows.each(function (i) {
         var $this = $(this);
         var $input = $this.find(options.input);
         var position = $input.data('position');
 
+        if (position === targetPosition) {
+          targetIndex = i;
+        }
+
         if (largethan) {
           if (position > sourcePosition && position <= targetPosition) {
-            if (position === targetPosition) {
-              $this.before($source);
-              moved = true;
-            }
-
             $input.data('position', --position).val(position);
           }
         } else {
           if (position < sourcePosition && position >= targetPosition) {
-            if (position === targetPosition) {
-              $this.after($source);
-              moved = true;
-            }
-
             $input.data('position', ++position).val(position);
           }
         }
@@ -97,14 +105,39 @@
 
       $sourceInput.data('position', targetPosition);
 
-      if (!moved) {
+      if (typeof targetIndex === 'number') {
+        $target = $rows.eq(targetIndex);
+
         if (largethan) {
-          $tbody.prepend($source);
+          if (ascending) {
+            $target.after($source);
+          } else {
+            $target.before($source);
+          }
         } else {
-          $tbody.append($source);
+          if (ascending) {
+            $target.before($source);
+          } else {
+            $target.after($source);
+          }
+        }
+      } else {
+        if (largethan) {
+          if (ascending) {
+            $tbody.append($source);
+          } else {
+            $tbody.prepend($source);
+          }
+        } else {
+          if (ascending) {
+            $tbody.prepend($source);
+          } else {
+            $tbody.append($source);
+          }
         }
       }
 
+      this.highlight($source);
       this.sort(source.sortingUrl, sourcePosition, targetPosition);
     },
 
@@ -138,6 +171,7 @@
 
     drop: function (e) {
       var options = this.options;
+      var ascending = this.ascending;
       var $source = this.$source;
       var $sourceInput;
       var $target;
@@ -178,11 +212,20 @@
       $sourceInput.data('position', targetPosition).val(targetPosition);
 
       if (largethan) {
-        $target.before($source);
+        if (ascending) {
+          $target.after($source);
+        } else {
+          $target.before($source);
+        }
       } else {
-        $target.after($source);
+        if (ascending) {
+          $target.before($source);
+        } else {
+          $target.after($source);
+        }
       }
 
+      this.highlight($source);
       this.sort(source.sortingUrl, sourcePosition, targetPosition);
     },
 
@@ -193,6 +236,14 @@
           to: to,
         });
       }
+    },
+
+    highlight: function ($row) {
+      $row.addClass(CLASS_HIGHLIGHT);
+
+      setTimeout(function () {
+        $row.removeClass(CLASS_HIGHLIGHT);
+      }, 2000);
     },
 
     destroy: function () {
@@ -206,7 +257,7 @@
     input: false,
   };
 
-  QorSorter.TEMPLATE = '<a class="qor-sorter-toggle"><i class="material-icons">swap_vert</i></a>';
+  QorSorter.TEMPLATE = '<a class="qor-sorting-toggle"><i class="material-icons">swap_vert</i></a>';
 
   QorSorter.plugin = function (options) {
     return this.each(function () {
@@ -235,7 +286,7 @@
 
     var selector = '.qor-list';
     var options = {
-          toggle: '.qor-sorter-toggle',
+          toggle: '.qor-sorting-toggle',
           input: '.qor-sorting-position',
         };
 
