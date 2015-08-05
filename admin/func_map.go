@@ -8,7 +8,9 @@ import (
 	"html/template"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -382,14 +384,17 @@ func (context *Context) themesClass() (result string) {
 	return strings.Join(results, " ")
 }
 
-func (context *Context) loadThemeStyleSheets() template.HTML {
-	var results []string
+func (context *Context) getThemes() []string {
 	var themes = []string{"default"}
 	if context.Resource != nil {
 		themes = append(themes, context.Resource.Config.Themes...)
 	}
+	return themes
+}
 
-	for _, theme := range themes {
+func (context *Context) loadThemeStyleSheets() template.HTML {
+	var results []string
+	for _, theme := range context.getThemes() {
 		for _, view := range context.getViewPaths() {
 			file := path.Join("assets", "stylesheets", theme+".css")
 			if _, err := os.Stat(path.Join(view, file)); err == nil {
@@ -436,6 +441,34 @@ func (context *Context) loadThemeJavaScripts() template.HTML {
 	}
 
 	return template.HTML(strings.Join(results, " "))
+}
+
+func (context *Context) loadIndexActions() template.HTML {
+	var actions = map[string]string{}
+	var actionKeys = []string{}
+	var viewPaths = context.getViewPaths()
+
+	for j := len(viewPaths); j > 0; j-- {
+		view := viewPaths[j-1]
+		files, _ := filepath.Glob(path.Join(view, "actions/index", "*.tmpl"))
+		for _, file := range files {
+			actionKeys = append(actionKeys, path.Base(file))
+			actions[path.Base(file)] = file
+		}
+	}
+
+	sort.Strings(actionKeys)
+
+	var result = bytes.NewBufferString("")
+	for _, key := range actionKeys {
+		file := actions[key]
+		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
+			if err := tmpl.Execute(result, context); err != nil {
+				panic(err)
+			}
+		}
+	}
+	return template.HTML(strings.TrimSpace(result.String()))
 }
 
 func (context *Context) logoutURL() string {
@@ -499,6 +532,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"stylesheet_tag":         context.styleSheetTag,
 		"load_theme_stylesheets": context.loadThemeStyleSheets,
 		"load_theme_javascripts": context.loadThemeJavaScripts,
+		"load_index_actions":     context.loadIndexActions,
 		"pagination":             context.Pagination,
 
 		"all_metas":   context.allMetas,

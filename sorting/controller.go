@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
+	"strings"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
@@ -26,12 +28,21 @@ func updatePosition(context *admin.Context) {
 	context.Writer.Write([]byte("Error"))
 }
 
+var injected bool
+
 func (s *Sorting) InjectQorAdmin(res *admin.Resource) {
 	Admin := res.GetAdmin()
 	res.UseTheme("sorting")
 
 	if res.Config.Permission == nil {
 		res.Config.Permission = roles.NewPermission()
+	}
+
+	if !injected {
+		injected = true
+		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/sorting/views"))
+		}
 	}
 
 	role := res.Config.Permission.Role
