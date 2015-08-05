@@ -116,10 +116,8 @@ a {
   position: absolute;
   top: 0;
   right: 0;
-  bottom: 0;
   left: 56px;
-  overflow-x: hidden;
-  overflow-y: auto;
+  min-height: 100%;
   -webkit-transition: left 0.35s ease;
        -o-transition: left 0.35s ease;
           transition: left 0.35s ease;
