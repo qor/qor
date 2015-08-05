@@ -3,7 +3,7 @@
 
 .qor-filter {
   float: left;
-  margin-right: 56px;
+  margin-right: 8px;
   padding-bottom: 8px;
   padding-top: 8px;
   @extend .clearfix;
@@ -14,8 +14,8 @@
     vertical-align: middle;
   }
 
+  .qor-label,
   .qor-selector {
-    margin-top: 4px;
-    margin-bottom: 4px;
+    margin: 4px 4px 4px 0;
   }
 }
