@@ -59,7 +59,7 @@ func (s *Sorting) InjectQorAdmin(res *admin.Resource) {
 				primaryKey := ctx.GetDB().NewScope(value).PrimaryKeyValue()
 				url := path.Join(ctx.Request.URL.Path, fmt.Sprintf("%v", primaryKey), "sorting/update_position")
 				pos := getRealPosition(ctx.GetDB(), value.(sortingInterface))
-				return template.HTML(fmt.Sprintf("<input class=\"qor-sorting-position\" value=\"%v\" data-sorting-url=\"%v\" data-position=\"%v\">", pos, url, pos))
+				return template.HTML(fmt.Sprintf("<input type=\"number\" class=\"qor-sorting-position\" value=\"%v\" data-sorting-url=\"%v\" data-position=\"%v\">", pos, url, pos))
 			},
 			Permission: roles.Allow(roles.Read, "sorting_mode"),
 		})
