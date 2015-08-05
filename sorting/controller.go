@@ -15,7 +15,7 @@ import (
 func updatePosition(context *admin.Context) {
 	if result, err := context.FindOne(); err == nil {
 		if position, ok := result.(positionInterface); ok {
-			if pos, err := strconv.Atoi(context.Request.URL.Query().Get("to")); err == nil {
+			if pos, err := strconv.Atoi(context.Request.Form.Get("to")); err == nil {
 				if MoveTo(context.GetDB(), position, pos) == nil {
 					context.Writer.Write([]byte("OK"))
 					return
@@ -63,5 +63,5 @@ func (s *Sorting) InjectQorAdmin(res *admin.Resource) {
 	res.IndexAttrs(append(attrs, "Position")...)
 
 	router := Admin.GetRouter()
-	router.Get(fmt.Sprintf("^/%v/\\d+/sorting/update_position?to=\\d+$", res.ToParam()), updatePosition)
+	router.Post(fmt.Sprintf("^/%v/\\d+/sorting/update_position$", res.ToParam()), updatePosition)
 }
