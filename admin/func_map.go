@@ -240,6 +240,39 @@ func (context *Context) styleSheetTag(name string) template.HTML {
 	return template.HTML(fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
 }
 
+type menu struct {
+	*Menu
+	Active   bool
+	SubMenus []*menu
+}
+
+func (context *Context) getMenus() (menus []*menu) {
+	var globalMenu = &menu{}
+	var mostMatchedMenu *menu
+	var mostMatchedLength int
+
+	var addMenu func(parent *menu, menus []*Menu)
+	addMenu = func(parent *menu, menus []*Menu) {
+		for _, m := range menus {
+			menu := &menu{Menu: m}
+			if strings.Contains(context.Request.URL.Path, m.Link) && len(m.Link) > mostMatchedLength {
+				mostMatchedMenu = menu
+				mostMatchedLength = len(m.Link)
+			}
+			addMenu(menu, menu.GetSubMenus())
+			parent.SubMenus = append(parent.SubMenus, menu)
+		}
+	}
+
+	addMenu(globalMenu, context.Admin.GetMenus())
+
+	if mostMatchedMenu != nil {
+		mostMatchedMenu.Active = true
+	}
+
+	return globalMenu.SubMenus
+}
+
 type scope struct {
 	*Scope
 	Active bool
@@ -545,7 +578,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"primary_key_of":       context.primaryKeyOf,
 		"value_of":             context.ValueOf,
 
-		"menus":      context.Admin.GetMenus,
+		"get_menus":  context.getMenus,
 		"get_scopes": context.GetScopes,
 
 		"escape":    html.EscapeString,
