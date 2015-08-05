@@ -468,7 +468,7 @@ func (context *Context) loadIndexActions() template.HTML {
 			}
 		}
 	}
-	return template.HTML(result.String())
+	return template.HTML(strings.TrimSpace(result.String()))
 }
 
 func (context *Context) logoutURL() string {
