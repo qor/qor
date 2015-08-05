@@ -33,7 +33,7 @@
     init: function () {
       var $this = this.$element;
 
-      if ($this.is(':hidden') || $this.find('tbody:visible > tr:visible').length <= 1) {
+      if ($this.is(':hidden') || $this.find('tbody > tr:visible').length <= 1) {
         return;
       }
 
@@ -60,13 +60,8 @@
     build: function () {
       var $this = this.$element;
       var $thead = this.$thead;
-      var $tbody = this.$tbody;
-      var $tfoot = this.$tfoot;
       var $clone = this.$clone;
       var $items = $thead.find('> tr').children();
-
-      this.offsetTop = $this.offset().top;
-      this.maxTop = $this.outerHeight() - $thead.height() - $tbody.find('> tr:last').height() - $tfoot.height();
 
       if (!$clone) {
         this.$clone = $clone = $thead.clone().prependTo($this);
@@ -92,10 +87,16 @@
     },
 
     toggle: function () {
+      var $this = this.$element;
       var $clone = this.$clone;
-      var top = $window.scrollTop() - this.offsetTop;
+      var offset = $this.offset();
+      var top = $window.scrollTop() - offset.top;
+      var theadHeight = this.$thead.height();
+      var tbodyHeight = this.$tbody.find('> tr:last').height();
+      var tfootHeight = this.$tfoot.height();
+      var maxTop = $this.outerHeight() - theadHeight - tbodyHeight - tfootHeight;
 
-      if (top > 0 && top < this.maxTop) {
+      if (top > 0 && top < maxTop) {
         $clone.show();
       } else {
         $clone.hide();

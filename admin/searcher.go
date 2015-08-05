@@ -3,6 +3,7 @@ package admin
 import (
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -95,14 +96,26 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 		}
 	}
 
-	context.SetDB(db)
+	// add order by
+	if order_by := context.Request.Form.Get("order_by"); order_by != "" {
+		if regexp.MustCompile("^[a-zA-Z_]+$").MatchString(order_by) {
+			if strings.HasSuffix(order_by, "_desc") {
+				db = db.Order(strings.TrimSuffix(order_by, "_desc")+" DESC", true)
+			} else {
+				db = db.Order(order_by, true)
+			}
+		}
+	}
 
 	// call search
 	if keyword := context.Request.Form.Get("keyword"); keyword != "" {
 		if s.Resource.SearchHandler != nil {
 			context.SetDB(s.Resource.SearchHandler(keyword, context))
+			return context
 		}
 	}
+
+	context.SetDB(db)
 	return context
 }
 
@@ -138,7 +151,7 @@ func (s *Searcher) parseContext() *qor.Context {
 
 	// pagination
 	db := context.GetDB()
-	paginationDB := db.Select("count(*) total").Model(s.Resource.Value).Set("qor:no_ordering", true).Set("gorm:query_destination", &s.Pagination)
+	paginationDB := db.Select("count(*) total").Model(s.Resource.Value).Set("gorm:query_destination", &s.Pagination)
 	context.SetDB(paginationDB)
 	s.Resource.CallFindMany(s.Resource.Value, context)
 
