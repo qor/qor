@@ -3,6 +3,7 @@ package admin
 import (
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -95,14 +96,24 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 		}
 	}
 
-	context.SetDB(db)
+	// add order by
+	if order_by := context.Request.Form.Get("order_by"); order_by != "" {
+		if strings.HasSuffix(order_by, "_desc") {
+			db = db.Order(strings.TrimSuffix(order_by, "_desc") + " DESC")
+		} else {
+			db = db.Order(order_by)
+		}
+	}
 
 	// call search
 	if keyword := context.Request.Form.Get("keyword"); keyword != "" {
 		if s.Resource.SearchHandler != nil {
 			context.SetDB(s.Resource.SearchHandler(keyword, context))
+			return context
 		}
 	}
+
+	context.SetDB(db)
 	return context
 }
 
