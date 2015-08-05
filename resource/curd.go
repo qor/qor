@@ -15,11 +15,7 @@ var DefaultFinder = func(result interface{}, metaValues *MetaValues, context *qo
 }
 
 var DefaultSearcher = func(result interface{}, context *qor.Context) error {
-	if noOrdering, ok := context.GetDB().Get("qor:no_ordering"); ok && noOrdering.(bool) {
-		return context.GetDB().Find(result).Error
-	} else {
-		return context.GetDB().Set("gorm:order_by_primary_key", "DESC").Find(result).Error
-	}
+	return context.GetDB().Set("gorm:order_by_primary_key", "DESC").Find(result).Error
 }
 
 var DefaultSaver = func(result interface{}, context *qor.Context) error {
