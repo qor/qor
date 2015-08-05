@@ -98,10 +98,12 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 
 	// add order by
 	if order_by := context.Request.Form.Get("order_by"); order_by != "" {
-		if strings.HasSuffix(order_by, "_desc") {
-			db = db.Order(strings.TrimSuffix(order_by, "_desc")+" DESC", true)
-		} else {
-			db = db.Order(order_by, true)
+		if regexp.MustCompile("^[a-zA-Z_]+$").MatchString(order_by) {
+			if strings.HasSuffix(order_by, "_desc") {
+				db = db.Order(strings.TrimSuffix(order_by, "_desc")+" DESC", true)
+			} else {
+				db = db.Order(order_by, true)
+			}
 		}
 	}
 
