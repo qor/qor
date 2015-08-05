@@ -1,5 +1,3 @@
-{{$resource := .Resource}}
-
 <div class="qor-filter">
   {{$scopes := get_scopes}}
   {{if $scopes}}
@@ -24,11 +22,4 @@
       {{end}}
     </section>
   {{end}}
-
-  {{$current_locale := current_locale .}}
-  <select class="qor-locale-selector form-control" data-toggle="qor.selector" name="locale">
-    {{range $locale := viewable_locales .}}
-      <option{{if (eq $current_locale $locale)}} selected{{end}} value="{{patch_current_url "locale" $locale}}">{{t $locale}}</option>
-    {{end}}
-  </select>
 </div>

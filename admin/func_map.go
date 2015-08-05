@@ -8,7 +8,9 @@ import (
 	"html/template"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -443,20 +445,23 @@ func (context *Context) loadThemeJavaScripts() template.HTML {
 
 func (context *Context) loadIndexActions() template.HTML {
 	var actions = map[string]string{}
-	var themes = context.getThemes()
+	var actionKeys = []string{}
 	var viewPaths = context.getViewPaths()
 
-	for i := len(themes); i > 0; i-- {
-		theme := themes[i-1]
-		for j := len(viewPaths); j > 0; j-- {
-			view := viewPaths[j-1]
-			file := path.Join(view, "../..", "themes", theme, "actions", "*.tmpl")
+	for j := len(viewPaths); j > 0; j-- {
+		view := viewPaths[j-1]
+		files, _ := filepath.Glob(path.Join(view, "actions/index", "*.tmpl"))
+		for _, file := range files {
+			actionKeys = append(actionKeys, path.Base(file))
 			actions[path.Base(file)] = file
 		}
 	}
 
+	sort.Strings(actionKeys)
+
 	var result = bytes.NewBufferString("")
-	for _, file := range actions {
+	for _, key := range actionKeys {
+		file := actions[key]
 		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
 			if err := tmpl.Execute(result, context); err != nil {
 				panic(err)
