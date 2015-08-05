@@ -2,6 +2,7 @@ package sorting
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 
 	"github.com/jinzhu/gorm"
@@ -17,10 +18,25 @@ func initalizePosition(scope *gorm.Scope) {
 	}
 }
 
+func modelValue(value interface{}) interface{} {
+	reflectValue := reflect.Indirect(reflect.ValueOf(value))
+	typ := reflectValue.Type()
+
+	if reflectValue.Kind() == reflect.Slice {
+		typ = reflectValue.Type().Elem()
+		if typ.Kind() == reflect.Ptr {
+			typ = typ.Elem()
+		}
+	}
+
+	return reflect.New(typ).Interface()
+}
+
 func beforeQuery(scope *gorm.Scope) {
-	if _, ok := scope.Value.(sortingDescInterface); ok {
+	modelValue := modelValue(scope.Value)
+	if _, ok := modelValue.(sortingDescInterface); ok {
 		scope.Search.Order("position desc")
-	} else if _, ok := scope.Value.(sortingInterface); ok {
+	} else if _, ok := modelValue.(sortingInterface); ok {
 		scope.Search.Order("position")
 	}
 }
