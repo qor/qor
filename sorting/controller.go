@@ -14,7 +14,7 @@ import (
 
 func updatePosition(context *admin.Context) {
 	if result, err := context.FindOne(); err == nil {
-		if position, ok := result.(positionInterface); ok {
+		if position, ok := result.(sortingInterface); ok {
 			if pos, err := strconv.Atoi(context.Request.Form.Get("to")); err == nil {
 				if MoveTo(context.GetDB(), position, pos) == nil {
 					context.Writer.Write([]byte("OK"))
@@ -47,7 +47,7 @@ func (s *Sorting) InjectQorAdmin(res *admin.Resource) {
 			Valuer: func(value interface{}, ctx *qor.Context) interface{} {
 				primaryKey := ctx.GetDB().NewScope(value).PrimaryKeyValue()
 				url := path.Join(ctx.Request.URL.Path, fmt.Sprintf("%v", primaryKey), "sorting/update_position")
-				pos := getRealPosition(ctx.GetDB(), value.(positionInterface))
+				pos := getRealPosition(ctx.GetDB(), value.(sortingInterface))
 				return template.HTML(fmt.Sprintf("<input class=\"qor-sorting-position\" value=\"%v\" data-sorting-url=\"%v\" data-position=\"%v\">", pos, url, pos))
 			},
 			Permission: roles.Allow(roles.Read, "sorting_mode"),
