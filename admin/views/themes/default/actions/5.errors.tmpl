@@ -1,0 +1,8 @@
+{{$errors := get_validation_errors}}
+{{if $errors}}
+  <ul>
+  {{range $key, $error := $errors}}
+    <li data-for="{{$key}}">{{$error}}</li>
+  {{end}}
+  </ul>
+{{end}}
