@@ -137,8 +137,11 @@
         }
       }
 
-      this.highlight($source);
-      this.sort(source.sortingUrl, sourcePosition, targetPosition);
+      this.sort($source, {
+        url: source.sortingUrl,
+        from: sourcePosition,
+        to: targetPosition,
+      });
     },
 
     mousedown: function (e) {
@@ -225,15 +228,35 @@
         }
       }
 
-      this.highlight($source);
-      this.sort(source.sortingUrl, sourcePosition, targetPosition);
+      this.sort($source, {
+        url: source.sortingUrl,
+        from: sourcePosition,
+        to: targetPosition,
+      });
     },
 
-    sort: function (url, from, to) {
-      if (url) {
-        $.post(url, {
-          from: from,
-          to: to,
+    sort: function ($row, data) {
+      var options = this.options;
+
+      if (data.url) {
+        this.highlight($row);
+
+        $.ajax(data.url, {
+          method: 'post',
+          data: {
+            from: data.from,
+            to: data.to,
+          },
+          success: function (actualPosition, textStatus, jqXHR) {
+            if (jqXHR.status === 200) {
+              $row.find(options.input).data('position', actualPosition).val(actualPosition);
+            }
+          },
+          error:function () {
+            if (windwo.alert('Fail to sort!')) {
+              window.location.reload();
+            }
+          }
         });
       }
     },

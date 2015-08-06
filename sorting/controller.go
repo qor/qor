@@ -18,14 +18,26 @@ func updatePosition(context *admin.Context) {
 	if result, err := context.FindOne(); err == nil {
 		if position, ok := result.(sortingInterface); ok {
 			if pos, err := strconv.Atoi(context.Request.Form.Get("to")); err == nil {
+				var count int
+				if _, ok := result.(sortingDescInterface); ok {
+					context.GetDB().New().Model(modelValue(result)).Count(&count)
+					pos = count - pos + 1
+				}
+
 				if MoveTo(context.GetDB(), position, pos) == nil {
-					context.Writer.Write([]byte("OK"))
+					var pos = position.GetPosition()
+					if _, ok := result.(sortingDescInterface); ok {
+						pos = count - pos + 1
+					}
+
+					context.Writer.Write([]byte(fmt.Sprintf("%d", pos)))
 					return
 				}
 			}
 		}
 	}
 	context.Writer.Write([]byte("Error"))
+	context.Writer.WriteHeader(422)
 }
 
 var injected bool
@@ -56,9 +68,21 @@ func (s *Sorting) InjectQorAdmin(res *admin.Resource) {
 		res.Meta(&admin.Meta{
 			Name: "Position",
 			Valuer: func(value interface{}, ctx *qor.Context) interface{} {
+				db := ctx.GetDB()
+				var count int
+				var pos = value.(sortingInterface).GetPosition()
+
+				if _, ok := modelValue(value).(sortingDescInterface); ok {
+					if total, ok := db.Get("sorting_total_count"); ok {
+						count = total.(int)
+					} else {
+						db.New().Model(modelValue(value)).Count(&count)
+					}
+					pos = count - pos + 1
+				}
+
 				primaryKey := ctx.GetDB().NewScope(value).PrimaryKeyValue()
 				url := path.Join(ctx.Request.URL.Path, fmt.Sprintf("%v", primaryKey), "sorting/update_position")
-				pos := getRealPosition(ctx.GetDB(), value.(sortingInterface))
 				return template.HTML(fmt.Sprintf("<input type=\"number\" class=\"qor-sorting-position\" value=\"%v\" data-sorting-url=\"%v\" data-position=\"%v\">", pos, url, pos))
 			},
 			Permission: roles.Allow(roles.Read, "sorting_mode"),

@@ -15,7 +15,9 @@
     </header>
   {{end}}
 
-    {{range $res, $records := .Result}}
+    {{range $result := .Result}}
+    {{$res := $result.Resource}}
+    {{$records := $result.Value}}
     <h4 class="qor-list-heading">{{rt $res (plural $res.Name)}}</h4>
     <div class="qor-list-container">
       <table class="qor-list">

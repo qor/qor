@@ -3,32 +3,31 @@ package sorting
 import (
 	"fmt"
 	"reflect"
-	"strconv"
 
 	"github.com/jinzhu/gorm"
 )
 
 type sortingInterface interface {
-	GetPosition() *int
+	GetPosition() int
 	SetPosition(int)
 }
 
 type sortingDescInterface interface {
-	GetPosition() *int
+	GetPosition() int
 	SetPosition(int)
 	SortingDesc()
 }
 
 type Sorting struct {
-	Position *int `sql:"DEFAULT:NULL"`
+	Position int `sql:"DEFAULT:NULL"`
 }
 
-func (position Sorting) GetPosition() *int {
+func (position Sorting) GetPosition() int {
 	return position.Position
 }
 
 func (position *Sorting) SetPosition(pos int) {
-	position.Position = &pos
+	position.Position = pos
 }
 
 type SortingDESC struct {
@@ -41,16 +40,6 @@ func newModel(value interface{}) interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(value)).Type()).Interface()
 }
 
-func getRealPosition(db *gorm.DB, value sortingInterface) int {
-	var currentPos int
-	if pos := value.GetPosition(); pos == nil {
-		currentPos, _ = strconv.Atoi(fmt.Sprintf("%v", db.NewScope(value).PrimaryKeyValue()))
-	} else {
-		currentPos = *pos
-	}
-	return currentPos
-}
-
 func move(db *gorm.DB, value sortingInterface, pos int) error {
 	clone := db
 	for _, field := range db.NewScope(value).PrimaryFields() {
@@ -59,19 +48,20 @@ func move(db *gorm.DB, value sortingInterface, pos int) error {
 		}
 	}
 
-	currentPos := getRealPosition(db, value)
-	value.SetPosition(currentPos + pos)
+	currentPos := value.GetPosition()
 
 	if pos > 0 {
 		if results := clone.Model(newModel(value)).
 			Where("position > ? AND position <= ?", currentPos, currentPos+pos).
 			UpdateColumn("position", gorm.Expr("position - ?", 1)); results.Error == nil {
+			value.SetPosition(currentPos + int(results.RowsAffected))
 			return clone.Model(value).UpdateColumn("position", gorm.Expr("position + ?", results.RowsAffected)).Error
 		}
 	} else if pos < 0 {
 		if results := clone.Model(newModel(value)).
 			Where("position < ? AND position >= ?", currentPos, currentPos+pos).
 			UpdateColumn("position", gorm.Expr("position + ?", 1)); results.Error == nil {
+			value.SetPosition(currentPos - int(results.RowsAffected))
 			return clone.Model(value).UpdateColumn("position", gorm.Expr("position - ?", results.RowsAffected)).Error
 		}
 	}
@@ -87,5 +77,5 @@ func MoveDown(db *gorm.DB, value sortingInterface, pos int) error {
 }
 
 func MoveTo(db *gorm.DB, value sortingInterface, pos int) error {
-	return move(db, value, pos-getRealPosition(db, value))
+	return move(db, value, pos-value.GetPosition())
 }

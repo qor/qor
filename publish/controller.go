@@ -19,14 +19,23 @@ type publishController struct {
 }
 
 func (db *publishController) Preview(context *admin.Context) {
-	drafts := make(map[*admin.Resource]interface{})
+	type resource struct {
+		*admin.Resource
+		Value interface{}
+	}
+
+	var drafts = []resource{}
+
 	draftDB := context.GetDB().Set("publish:draft_mode", true).Unscoped()
 	for _, res := range context.Admin.GetResources() {
 		if !res.Config.Invisible {
 			results := res.NewSlice()
 			if isPublishableModel(res.Value) {
 				if draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
-					drafts[res] = results
+					drafts = append(drafts, resource{
+						Resource: res,
+						Value:    results,
+					})
 				}
 			}
 		}
