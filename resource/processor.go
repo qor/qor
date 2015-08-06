@@ -107,7 +107,6 @@ func (processor *processor) decode() (errors []error) {
 				}
 			}
 		}
-		processor.MetaValues.Errors = append(processor.MetaValues.Errors, metaValue.MetaValues.Errors...)
 	}
 
 	return
