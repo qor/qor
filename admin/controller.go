@@ -133,19 +133,15 @@ func (ac *controller) Update(context *Context) {
 func (ac *controller) Delete(context *Context) {
 	if context.checkResourcePermission(roles.Delete) {
 		res := context.Resource
+		status := http.StatusOK
+		if err := res.CallDeleter(res.NewStruct(), context.Context); err != nil {
+			status = http.StatusNotFound
+		}
 
 		responder.With("html", func() {
-			if res.CallDeleter(res.NewStruct(), context.Context) == nil {
-				http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), http.StatusFound)
-			} else {
-				http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), http.StatusNotFound)
-			}
+			http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), status)
 		}).With("json", func() {
-			if res.CallDeleter(res.NewStruct(), context.Context) == nil {
-				context.Writer.WriteHeader(http.StatusOK)
-			} else {
-				context.Writer.WriteHeader(http.StatusNotFound)
-			}
+			context.Writer.WriteHeader(status)
 		}).Respond(context.Writer, context.Request)
 	}
 }
