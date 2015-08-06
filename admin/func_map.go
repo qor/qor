@@ -148,7 +148,8 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 	if tmpl, err := context.FindTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
 		data := map[string]interface{}{}
 		data["Base"] = meta.base
-		data["InputId"] = strings.Join(prefix, "")
+		scope := context.GetDB().NewScope(value)
+		data["InputId"] = fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name)
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
 		data["Value"] = context.ValueOf(value, meta)
