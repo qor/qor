@@ -29,8 +29,14 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(*gorm.Scope) {
 				scope.Search.Table(draftTableName(scope.TableName()))
 			}
 
-			if isDraftMode(scope) && ensureDraftMode {
-				scope.SetColumn("PublishStatus", DIRTY)
+			if isDraftMode(scope) {
+				if attrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
+					updateAttrs := attrs.(map[string]interface{})
+					updateAttrs["publish_status"] = DIRTY
+					scope.InstanceSet("gorm:update_attrs", updateAttrs)
+				} else {
+					scope.SetColumn("PublishStatus", DIRTY)
+				}
 			}
 		}
 	}

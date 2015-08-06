@@ -1,6 +1,6 @@
-<div class="qor-filter">
-  {{$scopes := get_scopes}}
-  {{if $scopes}}
+{{$scopes := get_scopes}}
+{{if $scopes}}
+  <div class="qor-filter">
     <section class="qor-label-container" data-toggle="qor.filter">
       {{range $scope := $scopes}}
         {{if $scope.Group}}
@@ -21,5 +21,5 @@
         {{end}}
       {{end}}
     </section>
-  {{end}}
-</div>
+  </div>
+{{end}}

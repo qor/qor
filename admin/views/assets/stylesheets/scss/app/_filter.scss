@@ -2,11 +2,20 @@
 // --------------------------------------------------
 
 .qor-filter {
+  float: left;
+  margin-right: 8px;
+  padding-bottom: 8px;
+  padding-top: 8px;
   @extend .clearfix;
 
   .qor-locale-selector {
     display: inline-block;
     width: auto;
     vertical-align: middle;
+  }
+
+  .qor-label,
+  .qor-selector {
+    margin: 4px 4px 4px 0;
   }
 }

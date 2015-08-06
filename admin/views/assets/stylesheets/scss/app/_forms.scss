@@ -32,10 +32,12 @@
 }
 
 .qor-search-container {
-  width: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
   min-height: 32px;
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding: 12px 24px;
+  background-color: #fff;
   @extend .clearfix;
 }
 
@@ -100,12 +102,14 @@
   }
 }
 
+
 .qor-collection {
   margin-top: 16px;
   margin-bottom: 16px;
   padding: 16px 24px;
   border: 1px solid #eee;
   border-radius: 2px;
+  background-color: $grey-50;
   // box-shadow: $box-shadow-1;
   @extend .clearfix;
 

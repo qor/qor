@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/utils"
@@ -163,7 +162,6 @@ func getEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
 	res.UseTheme("i18n")
 	res.GetAdmin().I18n = i18n
-	res.SearchHandler = func(keyword string, context *qor.Context) *gorm.DB { return context.GetDB() }
 
 	res.GetAdmin().RegisterFuncMap("lt", func(locale, key string, withDefault bool) string {
 		if translations := i18n.Translations[locale]; translations != nil {

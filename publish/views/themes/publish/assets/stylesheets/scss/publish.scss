@@ -1,12 +1,24 @@
 .qor-publish {
+  .qor-subheader {
+    padding-right: 24px;
+  }
+
   .qor-btn-group {
+    float: right;
     padding-top: 14px;
     padding-bottom: 14px;
 
     > .btn {
+      float: right;
       margin-top: 0;
       margin-bottom: 0;
+      margin-left: 8px;
     }
+  }
+
+  .qor-list > tbody > .deleted,
+  .qor-list > tbody > tr > .deleted  {
+    background-color: #fce4ec;
   }
 
   .qor-publish-modal {

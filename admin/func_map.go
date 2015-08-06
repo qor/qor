@@ -8,7 +8,9 @@ import (
 	"html/template"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -238,6 +240,39 @@ func (context *Context) styleSheetTag(name string) template.HTML {
 	return template.HTML(fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
 }
 
+type menu struct {
+	*Menu
+	Active   bool
+	SubMenus []*menu
+}
+
+func (context *Context) getMenus() (menus []*menu) {
+	var globalMenu = &menu{}
+	var mostMatchedMenu *menu
+	var mostMatchedLength int
+
+	var addMenu func(parent *menu, menus []*Menu)
+	addMenu = func(parent *menu, menus []*Menu) {
+		for _, m := range menus {
+			menu := &menu{Menu: m}
+			if strings.Contains(context.Request.URL.Path, m.Link) && len(m.Link) > mostMatchedLength {
+				mostMatchedMenu = menu
+				mostMatchedLength = len(m.Link)
+			}
+			addMenu(menu, menu.GetSubMenus())
+			parent.SubMenus = append(parent.SubMenus, menu)
+		}
+	}
+
+	addMenu(globalMenu, context.Admin.GetMenus())
+
+	if mostMatchedMenu != nil {
+		mostMatchedMenu.Active = true
+	}
+
+	return globalMenu.SubMenus
+}
+
 type scope struct {
 	*Scope
 	Active bool
@@ -382,14 +417,17 @@ func (context *Context) themesClass() (result string) {
 	return strings.Join(results, " ")
 }
 
-func (context *Context) loadThemeStyleSheets() template.HTML {
-	var results []string
+func (context *Context) getThemes() []string {
 	var themes = []string{"default"}
 	if context.Resource != nil {
 		themes = append(themes, context.Resource.Config.Themes...)
 	}
+	return themes
+}
 
-	for _, theme := range themes {
+func (context *Context) loadThemeStyleSheets() template.HTML {
+	var results []string
+	for _, theme := range context.getThemes() {
 		for _, view := range context.getViewPaths() {
 			file := path.Join("assets", "stylesheets", theme+".css")
 			if _, err := os.Stat(path.Join(view, file)); err == nil {
@@ -438,6 +476,70 @@ func (context *Context) loadThemeJavaScripts() template.HTML {
 	return template.HTML(strings.Join(results, " "))
 }
 
+func (context *Context) loadIndexActions() template.HTML {
+	var actions = map[string]string{}
+	var actionKeys = []string{}
+	var viewPaths = context.getViewPaths()
+
+	for j := len(viewPaths); j > 0; j-- {
+		view := viewPaths[j-1]
+		globalfiles, _ := filepath.Glob(path.Join(view, "actions/*.tmpl"))
+		files, _ := filepath.Glob(path.Join(view, "actions/index/*.tmpl"))
+
+		for _, file := range append(globalfiles, files...) {
+			if _, ok := actions[path.Base(file)]; !ok {
+				actionKeys = append(actionKeys, path.Base(file))
+			}
+			actions[path.Base(file)] = file
+		}
+	}
+
+	sort.Strings(actionKeys)
+
+	var result = bytes.NewBufferString("")
+	for _, key := range actionKeys {
+		file := actions[key]
+		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
+			if err := tmpl.Execute(result, context); err != nil {
+				panic(err)
+			}
+		}
+	}
+	return template.HTML(strings.TrimSpace(result.String()))
+}
+
+func (context *Context) loadShowActions() template.HTML {
+	var actions = map[string]string{}
+	var actionKeys = []string{}
+	var viewPaths = context.getViewPaths()
+
+	for j := len(viewPaths); j > 0; j-- {
+		view := viewPaths[j-1]
+		globalfiles, _ := filepath.Glob(path.Join(view, "actions/*.tmpl"))
+		files, _ := filepath.Glob(path.Join(view, "actions/show/*.tmpl"))
+
+		for _, file := range append(globalfiles, files...) {
+			if _, ok := actions[path.Base(file)]; !ok {
+				actionKeys = append(actionKeys, path.Base(file))
+			}
+			actions[path.Base(file)] = file
+		}
+	}
+
+	sort.Strings(actionKeys)
+
+	var result = bytes.NewBufferString("")
+	for _, key := range actionKeys {
+		file := actions[key]
+		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
+			if err := tmpl.Execute(result, context); err != nil {
+				panic(err)
+			}
+		}
+	}
+	return template.HTML(strings.TrimSpace(result.String()))
+}
+
 func (context *Context) logoutURL() string {
 	if context.Admin.auth != nil {
 		return context.Admin.auth.LogoutURL(context)
@@ -476,7 +578,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"primary_key_of":       context.primaryKeyOf,
 		"value_of":             context.ValueOf,
 
-		"menus":      context.Admin.GetMenus,
+		"get_menus":  context.getMenus,
 		"get_scopes": context.GetScopes,
 
 		"escape":    html.EscapeString,
@@ -499,6 +601,8 @@ func (context *Context) FuncMap() template.FuncMap {
 		"stylesheet_tag":         context.styleSheetTag,
 		"load_theme_stylesheets": context.loadThemeStyleSheets,
 		"load_theme_javascripts": context.loadThemeJavaScripts,
+		"load_index_actions":     context.loadIndexActions,
+		"load_show_actions":      context.loadShowActions,
 		"pagination":             context.Pagination,
 
 		"all_metas":   context.allMetas,

@@ -111,13 +111,16 @@ a {
 // Mainbody
 // --------------------------------------------------
 
+// Inherit body height with absolute position
 .qor-mainbody {
-  margin-left: 56px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-transition: margin-left 0.35s ease;
-       -o-transition: margin-left 0.35s ease;
-          transition: margin-left 0.35s ease;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 56px;
+  min-height: 100%;
+  -webkit-transition: left 0.35s ease;
+       -o-transition: left 0.35s ease;
+          transition: left 0.35s ease;
 
   @extend .clearfix;
 }
@@ -154,7 +157,7 @@ a {
   }
 
   .qor-mainbody {
-    margin-left: 240px;
+    left: 240px;
   }
 }
 
@@ -184,11 +187,12 @@ a {
 
 .qor-subheader {
   position: relative;
-  max-height: 56px;
+  min-height: 56px;
   margin-bottom: 24px;
-  padding: 0 24px;
+  padding: 0 80px 0 24px;
   background-color: #fff;
   box-shadow: $box-shadow-1;
+  @extend .clearfix;
 
   &:empty {
     display: none;

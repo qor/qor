@@ -8,35 +8,42 @@
   {{$editing_locale := (i18n_editing_locale .)}}
 
   <header class="qor-subheader">
-    <div class="row">
-      <div class="col-sm-7">
-        <div class="i18n-languages-group">
-          <label class="i18n-languages-label" for="sourceLanguages">{{t "Source"}}:</label>
-          <select class="form-control i18n-languages" id="sourceLanguages" name="primary_locale">
-            {{range $locale := (i18n_viewable_locales .)}}
-              <option value="{{$locale}}"{{if (eq $locale $primary_locale)}} selected{{end}}>{{t $locale}}</option>
-            {{end}}
-          </select>
-        </div>
-        <div class="i18n-languages-group">
-          <label class="i18n-languages-label" for="targetLanguages">{{t "Target"}}:</label>
-          <select class="form-control i18n-languages" id="targetLanguages" name="to_locale">
-            {{range $locale := (i18n_editable_locales .)}}
-              <option value="{{$locale}}"{{if (eq $locale $editing_locale)}} selected{{end}}>{{t $locale}}</option>
-            {{end}}
-          </select>
-        </div>
-        <div class="i18n-btn-group">
-          <button class="btn btn-xs btn-primary i18n-btn-bulk-edit" data-toggle="bulk.qor.i18n" type="button">{{t "Bulk Edit"}}</button>
-          <button class="btn btn-xs btn-primary i18n-btn-exit hide" data-toggle="exit.qor.i18n" type="button">{{t "Exit Bulk Edit"}}</button>
-          <button class="btn btn-xs btn-primary i18n-btn-copy-all hide" data-toggle="copyall.qor.i18n" type="button">{{t "Copy All"}}</button>
-        </div>
-      </div>
-      <div class="col-sm-5">
-        {{render "searchbar"}}
-      </div>
+    <div class="i18n-languages-group">
+      <label class="i18n-languages-label" for="sourceLanguages">{{t "Source"}}:</label>
+      <select class="form-control i18n-languages" id="sourceLanguages" name="primary_locale">
+        {{range $locale := (i18n_viewable_locales .)}}
+          <option value="{{$locale}}"{{if (eq $locale $primary_locale)}} selected{{end}}>{{t $locale}}</option>
+        {{end}}
+      </select>
+    </div>
+    <div class="i18n-languages-group">
+      <label class="i18n-languages-label" for="targetLanguages">{{t "Target"}}:</label>
+      <select class="form-control i18n-languages" id="targetLanguages" name="to_locale">
+        {{range $locale := (i18n_editable_locales .)}}
+          <option value="{{$locale}}"{{if (eq $locale $editing_locale)}} selected{{end}}>{{t $locale}}</option>
+        {{end}}
+      </select>
+    </div>
+    <div class="i18n-btn-group">
+      <button class="btn btn-xs btn-primary i18n-btn-bulk-edit" data-toggle="bulk.qor.i18n" type="button">{{t "Bulk Edit"}}</button>
+      <button class="btn btn-xs btn-primary i18n-btn-exit hide" data-toggle="exit.qor.i18n" type="button">{{t "Exit Bulk Edit"}}</button>
+      <button class="btn btn-xs btn-primary i18n-btn-copy-all hide" data-toggle="copyall.qor.i18n" type="button">{{t "Copy All"}}</button>
+    </div>
+
+    {{ $keyword := .Context.Request.URL.Query.Get "keyword" }}
+    <div class="qor-search-container">
+      <form class="qor-search" role="form">
+        {{range $scope := (index .Context.Request.URL.Query "scopes")}}
+          <input name="scopes" value="{{ $scope }}" type="hidden">
+        {{end}}
+
+        <label class="qor-search-label" for="inputSearch"><i class="material-icons">search</i></label>
+        <input class="qor-search-input form-control{{if $keyword }} focus{{end}}" id="inputSearch" type="search" name="keyword" value="{{ $keyword }}" placeholder="{{t "Search"}}">
+        <button class="qor-search-clear" type="button"><span class="material-icons">clear</span></button>
+      </form>
     </div>
   </header>
+
   <div class="i18n-body">
     <ul class="i18n-list">
       {{range $key := i18n_available_keys .}}
