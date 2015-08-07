@@ -1,8 +1,14 @@
-{{$errors := get_validation_errors}}
-{{if $errors}}
+{{$validation_errors := get_validation_errors}}
+{{if $validation_errors}}
   <ul id="errors">
-  {{range $key, $error := $errors}}
-    <li><label for="{{$key}}">{{$error}}</label></li>
+  {{range $key, $errors := $validation_errors}}
+    <li>
+      <label for="{{$key}}">
+        {{range $error := $errors}}
+          <span>{{$error}}</span>
+        {{end}}
+      </label>
+    </li>
   {{end}}
   </ul>
 {{end}}

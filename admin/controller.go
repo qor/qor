@@ -9,7 +9,6 @@ import (
 
 	"github.com/qor/qor/responder"
 	"github.com/qor/qor/roles"
-	"github.com/qor/qor/validations"
 )
 
 type controller struct {
@@ -67,7 +66,6 @@ func (ac *controller) Index(context *Context) {
 func (ac *controller) Show(context *Context) {
 	if context.checkResourcePermission(roles.Read) {
 		result, _ := context.FindOne()
-		validations.AddError(context.GetDB(), result, "Name", "can't be blank")
 
 		responder.With("html", func() {
 			context.Execute("show", result)

@@ -582,7 +582,7 @@ func (context *Context) FuncMap() template.FuncMap {
 
 		"get_menus":             context.getMenus,
 		"get_scopes":            context.GetScopes,
-		"get_validation_errors": func() map[string]string { return validations.GetErrors(context.GetDB()) },
+		"get_validation_errors": func() map[string][]string { return validations.GetErrors(context.GetDB()) },
 
 		"escape":    html.EscapeString,
 		"raw":       func(str string) template.HTML { return template.HTML(str) },
