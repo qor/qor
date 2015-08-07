@@ -1,7 +1,6 @@
 package validations
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/jinzhu/gorm"
@@ -16,7 +15,7 @@ func AddError(db *gorm.DB, resource interface{}, err string) {
 	key := fmt.Sprintf("%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue())
 	validationErrors[key] = append(validationErrors[key], err)
 
-	db.InstantSet(settingKey, validationErrors).Error = errors.New(err)
+	db.InstantSet(settingKey, validationErrors).Error = fmt.Errorf("RecordInvalid: %v", err)
 }
 
 func AddErrorForColumn(db *gorm.DB, resource interface{}, column, err string) {
@@ -26,7 +25,7 @@ func AddErrorForColumn(db *gorm.DB, resource interface{}, column, err string) {
 	key := fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), column)
 	validationErrors[key] = append(validationErrors[key], err)
 
-	db.InstantSet(settingKey, validationErrors).Error = errors.New(err)
+	db.InstantSet(settingKey, validationErrors).Error = fmt.Errorf("RecordInvalid: %v", err)
 }
 
 func GetErrors(db *gorm.DB) map[string][]string {
