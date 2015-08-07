@@ -19,6 +19,7 @@ type User struct {
 	Company    Company
 	CreditCard CreditCard
 	Addresses  []Address
+	Languages  []Language `gorm:"many2many:user_languages"`
 }
 
 func (user *User) Validate(db *gorm.DB) {
@@ -62,10 +63,21 @@ func (address *Address) Validate(db *gorm.DB) {
 	}
 }
 
+type Language struct {
+	gorm.Model
+	Code string
+}
+
+func (language *Language) Validate(db *gorm.DB) {
+	if language.Code == "invalid" {
+		validations.AddErrorForColumn(db, language, "Code", "invalid language")
+	}
+}
+
 func init() {
 	db = utils.TestDB()
 	validations.RegisterCallbacks(db)
-	db.AutoMigrate(&User{}, &Company{}, &CreditCard{}, &Address{})
+	db.AutoMigrate(&User{}, &Company{}, &CreditCard{}, &Address{}, &Language{})
 }
 
 func TestSaveInvalidUesr(t *testing.T) {
@@ -109,5 +121,33 @@ func TestSaveInvalidAddresses(t *testing.T) {
 
 	if result := db.Save(&user); result.Error == nil {
 		t.Errorf("Should get error when save invalid addresses")
+	}
+}
+
+func TestSaveInvalidLanguage(t *testing.T) {
+	user := User{
+		Name:       "valid",
+		Company:    Company{Name: "valid"},
+		CreditCard: CreditCard{Number: "4111111111111111"},
+		Addresses:  []Address{{Address: "valid"}},
+		Languages:  []Language{{Code: "invalid"}},
+	}
+
+	if result := db.Save(&user); result.Error == nil {
+		t.Errorf("Should get error when save invalid language")
+	}
+}
+
+func TestSaveAllValidData(t *testing.T) {
+	user := User{
+		Name:       "valid",
+		Company:    Company{Name: "valid"},
+		CreditCard: CreditCard{Number: "4111111111111111"},
+		Addresses:  []Address{{Address: "valid1"}, {Address: "valid2"}},
+		Languages:  []Language{{Code: "valid1"}, {Code: "valid2"}},
+	}
+
+	if result := db.Save(&user); result.Error != nil {
+		t.Errorf("Should get no error when save valid data, but got: %v", result.Error)
 	}
 }
