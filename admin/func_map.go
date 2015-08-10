@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -478,7 +479,7 @@ func (context *Context) loadThemeJavaScripts() template.HTML {
 	return template.HTML(strings.Join(results, " "))
 }
 
-func (context *Context) loadIndexActions() template.HTML {
+func (context *Context) loadActions(action string) template.HTML {
 	var actions = map[string]string{}
 	var actionKeys = []string{}
 	var viewPaths = context.getViewPaths()
@@ -486,13 +487,14 @@ func (context *Context) loadIndexActions() template.HTML {
 	for j := len(viewPaths); j > 0; j-- {
 		view := viewPaths[j-1]
 		globalfiles, _ := filepath.Glob(path.Join(view, "actions/*.tmpl"))
-		files, _ := filepath.Glob(path.Join(view, "actions/index/*.tmpl"))
+		files, _ := filepath.Glob(path.Join(view, "actions", action, "*.tmpl"))
 
 		for _, file := range append(globalfiles, files...) {
 			if _, ok := actions[path.Base(file)]; !ok {
 				actionKeys = append(actionKeys, path.Base(file))
 			}
-			actions[path.Base(file)] = file
+			base := regexp.MustCompile("^\\d+\\.").ReplaceAllString(path.Base(file), "")
+			actions[base] = file
 		}
 	}
 
@@ -500,7 +502,8 @@ func (context *Context) loadIndexActions() template.HTML {
 
 	var result = bytes.NewBufferString("")
 	for _, key := range actionKeys {
-		file := actions[key]
+		base := regexp.MustCompile("^\\d+\\.").ReplaceAllString(key, "")
+		file := actions[base]
 		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
 			if err := tmpl.Execute(result, context); err != nil {
 				panic(err)
@@ -508,71 +511,20 @@ func (context *Context) loadIndexActions() template.HTML {
 		}
 	}
 	return template.HTML(strings.TrimSpace(result.String()))
+}
+
+func (context *Context) loadIndexActions() template.HTML {
+	return context.loadActions("index")
 }
 
 func (context *Context) loadShowActions() template.HTML {
-	var actions = map[string]string{}
-	var actionKeys = []string{}
-	var viewPaths = context.getViewPaths()
-
-	for j := len(viewPaths); j > 0; j-- {
-		view := viewPaths[j-1]
-		globalfiles, _ := filepath.Glob(path.Join(view, "actions/*.tmpl"))
-		files, _ := filepath.Glob(path.Join(view, "actions/show/*.tmpl"))
-
-		for _, file := range append(globalfiles, files...) {
-			if _, ok := actions[path.Base(file)]; !ok {
-				actionKeys = append(actionKeys, path.Base(file))
-			}
-			actions[path.Base(file)] = file
-		}
-	}
-
-	sort.Strings(actionKeys)
-
-	var result = bytes.NewBufferString("")
-	for _, key := range actionKeys {
-		file := actions[key]
-		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
-			if err := tmpl.Execute(result, context); err != nil {
-				panic(err)
-			}
-		}
-	}
-	return template.HTML(strings.TrimSpace(result.String()))
+	return context.loadActions("show")
 }
 
 func (context *Context) loadNewActions() template.HTML {
-	var actions = map[string]string{}
-	var actionKeys = []string{}
-	var viewPaths = context.getViewPaths()
-
-	for j := len(viewPaths); j > 0; j-- {
-		view := viewPaths[j-1]
-		globalfiles, _ := filepath.Glob(path.Join(view, "actions/*.tmpl"))
-		files, _ := filepath.Glob(path.Join(view, "actions/new/*.tmpl"))
-
-		for _, file := range append(globalfiles, files...) {
-			if _, ok := actions[path.Base(file)]; !ok {
-				actionKeys = append(actionKeys, path.Base(file))
-			}
-			actions[path.Base(file)] = file
-		}
-	}
-
-	sort.Strings(actionKeys)
-
-	var result = bytes.NewBufferString("")
-	for _, key := range actionKeys {
-		file := actions[key]
-		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
-			if err := tmpl.Execute(result, context); err != nil {
-				panic(err)
-			}
-		}
-	}
-	return template.HTML(strings.TrimSpace(result.String()))
+	return context.loadActions("new")
 }
+
 func (context *Context) logoutURL() string {
 	if context.Admin.auth != nil {
 		return context.Admin.auth.LogoutURL(context)
