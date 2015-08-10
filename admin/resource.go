@@ -138,6 +138,9 @@ MetaIncluded:
 func (res *Resource) IndexAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.indexAttrs = columns
+		if len(res.searchAttrs) == 0 {
+			res.SearchAttrs(columns...)
+		}
 	}
 	if len(res.indexAttrs) == 0 {
 		return res.allAttrs()
@@ -230,6 +233,7 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 			}
 		}
 	}
+
 	return res.searchAttrs
 }
 
