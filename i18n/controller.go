@@ -20,13 +20,10 @@ func (controller *i18nController) Update(context *admin.Context) {
 		}
 	}
 
-	if translation.Backend == nil {
-		for _, t := range controller.I18n.Translations[Default] {
-			translation.Backend = t.Backend
-			break
-		}
+	if err := controller.I18n.SaveTranslation(&translation); err == nil {
+		context.Writer.Write([]byte("OK"))
+	} else {
+		context.Writer.WriteHeader(422)
+		context.Writer.Write([]byte(err.Error()))
 	}
-
-	controller.I18n.SaveTranslation(&translation)
-	context.Writer.Write([]byte("OK"))
 }
