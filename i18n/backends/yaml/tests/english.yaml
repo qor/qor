@@ -1,0 +1,5 @@
+en:
+  hello: Hello
+  user:
+    name: "User Name"
+    email: "Email"
