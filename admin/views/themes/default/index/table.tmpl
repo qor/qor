@@ -3,8 +3,8 @@
 <table class="qor-list">
   <thead>
     <tr>
-      {{range $index, $meta := index_metas}}
-        <th>{{dt (printf "%v.attributes.%v" $Resource.ToParam $meta.Label) $meta.Label}}</th>
+      {{range $meta := index_metas}}
+      <th {{if is_sortable_meta $meta}}data-order-by="{{$meta.DBName}}"{{end}}>{{dt (printf "%v.attributes.%v" $Resource.ToParam $meta.Label) $meta.Label}}</th>
       {{end}}
       <th class="qor-list-action">{{t "Actions"}}</th>
     </tr>

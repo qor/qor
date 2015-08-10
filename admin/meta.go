@@ -22,6 +22,7 @@ import (
 type Meta struct {
 	base          *Resource
 	Name          string
+	DBName        string
 	Alias         string
 	Label         string
 	Type          string
@@ -105,6 +106,7 @@ func (meta *Meta) updateMeta() {
 	} else {
 		if field, hasColumn = getField(scope.Fields(), meta.Alias); hasColumn {
 			meta.Alias = field.Name
+			meta.DBName = field.DBName
 		}
 	}
 

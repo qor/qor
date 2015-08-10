@@ -568,6 +568,15 @@ func (context *Context) T(key string, values ...interface{}) string {
 	return context.dt(key, key, values...)
 }
 
+func (context *Context) isSortableMeta(meta *Meta) bool {
+	for _, attr := range context.Resource.SortableAttrs() {
+		if attr == meta.Name && meta.DBName != "" {
+			return true
+		}
+	}
+	return false
+}
+
 func (context *Context) FuncMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
@@ -605,11 +614,12 @@ func (context *Context) FuncMap() template.FuncMap {
 		"load_show_actions":      context.loadShowActions,
 		"pagination":             context.Pagination,
 
-		"all_metas":   context.allMetas,
-		"index_metas": context.indexMetas,
-		"edit_metas":  context.editMetas,
-		"show_metas":  context.showMetas,
-		"new_metas":   context.newMetas,
+		"all_metas":        context.allMetas,
+		"index_metas":      context.indexMetas,
+		"edit_metas":       context.editMetas,
+		"show_metas":       context.showMetas,
+		"new_metas":        context.newMetas,
+		"is_sortable_meta": context.isSortableMeta,
 
 		"has_create_permission": context.hasCreatePermission,
 		"has_read_permission":   context.hasReadPermission,

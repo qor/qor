@@ -25,6 +25,7 @@ type Resource struct {
 	scopes        []*Scope
 	filters       map[string]*Filter
 	searchAttrs   []string
+	sortableAttrs []string
 	indexAttrs    []string
 	newAttrs      []string
 	editAttrs     []string
@@ -138,7 +139,10 @@ MetaIncluded:
 func (res *Resource) IndexAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.indexAttrs = columns
-		if len(res.searchAttrs) == 0 {
+		if len(res.SortableAttrs()) == 0 {
+			res.SortableAttrs(columns...)
+		}
+		if len(res.SearchAttrs()) == 0 {
 			res.SearchAttrs(columns...)
 		}
 	}
@@ -176,6 +180,19 @@ func (res *Resource) ShowAttrs(columns ...string) []string {
 		return res.allAttrs()
 	}
 	return res.showAttrs
+}
+
+func (res *Resource) SortableAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.sortableAttrs = []string{}
+		scope := res.GetAdmin().Config.DB.NewScope(res.Value)
+		for _, column := range columns {
+			if field, ok := scope.FieldByName(column); ok && field.DBName != "" {
+				res.sortableAttrs = append(res.sortableAttrs, column)
+			}
+		}
+	}
+	return res.sortableAttrs
 }
 
 func (res *Resource) SearchAttrs(columns ...string) []string {
