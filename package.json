@@ -1,7 +1,7 @@
 {
   "name": "qor",
   "description": "An enterprise-level open source content management system.",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "main": "admin/views/assets/javascripts/app.js",
   "license": "MIT",
   "repository": {

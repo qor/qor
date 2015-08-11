@@ -93,9 +93,9 @@ tasks.base = function () {
   gulp.task('jslib', function () {
     return gulp.src([
       'bower_components/jquery/dist/jquery.min.js',
-      'bower_components/bootstrap/dist/js/bootstrap.min.js',
-      'bower_components/bootstrap-material-design/dist/js/material.min.js',
-      'bower_components/bootstrap-material-design/dist/js/ripples.min.js',
+      'bower_components/jquery/dist/jquery.min.map',
+      'bower_components/material-design-lite/material.min.js',
+      'bower_components/material-design-lite/material.min.js.map',
       'bower_components/cropper/dist/cropper.min.js',
       'bower_components/chosen/chosen.jquery.min.js'
     ])
@@ -126,19 +126,16 @@ tasks.base = function () {
 
   gulp.task('fonts', function () {
     return gulp.src([
-      'bower_components/bootstrap/fonts/*',
-      'bower_components/bootstrap-material-design/dist/fonts/Material*',
-      'bower_components/bootstrap-material-design/dist/fonts/Roboto*'
+      'bower_components/material-design-icons/iconfont/codepoints',
+      'bower_components/material-design-icons/iconfont/MaterialIcons*'
     ])
     .pipe(gulp.dest(fonts.dest));
   });
 
   gulp.task('csslib', ['fonts'], function () {
     return gulp.src([
-      'bower_components/bootstrap/dist/css/bootstrap.min.css',
-      'bower_components/bootstrap-material-design/dist/css/material.min.css',
-      'bower_components/bootstrap-material-design/dist/css/ripples.min.css',
-      'bower_components/bootstrap-material-design/dist/css/roboto.min.css',
+      'bower_components/material-design-lite/material.min.css',
+      'bower_components/material-design-lite/material.min.css.map',
       'bower_components/cropper/dist/cropper.min.css',
       'bower_components/chosen/chosen-sprite.png',
       'bower_components/chosen/chosen-sprite@2x.png',
@@ -153,6 +150,7 @@ tasks.base = function () {
     gulp.watch(styles.scss, ['sass']);
   });
 
+  gulp.task('lib', ['jslib', 'csslib']);
   gulp.task('release', ['js', 'css']);
 
   gulp.task('default', ['watch']);
