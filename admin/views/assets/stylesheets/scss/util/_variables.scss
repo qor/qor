@@ -42,6 +42,27 @@ $blue-700: #0288D1;
 $blue-800: #0277BD;
 $blue-900: #01579B;
 
+$blue-a100: #82B1FF;
+$blue-a200: #448AFF;
+$blue-a400: #2979FF;
+$blue-a700: #2962FF;
+
+$pink-50:  #FCE4EC;
+$pink-100: #F8BBD0;
+$pink-200: #F48FB1;
+$pink-300: #F06292;
+$pink-400: #EC407A;
+$pink-500: #E91E63;
+$pink-600: #D81B60;
+$pink-700: #C2185B;
+$pink-800: #AD1457;
+$pink-900: #880E4F;
+
+$pink-a100: #FF80AB;
+$pink-a200: #FF4081;
+$pink-a400: #F50057;
+$pink-a700: #C51162;
+
 $grey: $grey-500;
 $grey-light: $grey-100;
 $grey-dark: $grey-700;
@@ -50,9 +71,9 @@ $color-primary: $blue-500;       // 500
 $color-primary-light: $blue-100; // 100
 $color-primary-dark: $blue-700;  // 700
 
-$color-accent: #ff4081;        // A200
-$color-accent-light: #ff80ab;  // A100
-$color-accent-dark: #f50057;   // A400
+$color-accent: $pink-a200;        // A200
+$color-accent-light: $pink-a100;  // A100
+$color-accent-dark: $pink-a400;   // A400
 
 $color-base: #000;
 $color-text: rgba(0,0,0,.87);
