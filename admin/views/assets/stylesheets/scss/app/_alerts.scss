@@ -2,26 +2,35 @@
 // --------------------------------------------------
 
 .qor-alert {
-  margin-bottom: 0;
-  padding: 15px 30px;
-  background-color: $gray-light;
-  color: #fff;
+  margin: 24px;
+  box-shadow: $box-shadow-1;
+  padding: 16px 24px;
+  line-height: 24px;
+  color: $grey-700;
+  background-color: $grey-100;
 
   > button {
     float: right;
     margin: 1px;
     padding: 0;
     background-color: transparent;
-    color: $gray-lighter;
+    color: inherit;
     border: 0;
+    opacity: 0.5;
+
+    &:hover,
+    &:focus {
+      opacity: 0.8;
+    }
   }
 }
 
-.qor-alert-success {
-  background-color: $brand-success;
-
+.qor-alert--success {
+  color: $blue-700;
+  background-color: $blue-100;
 }
 
-.qor-alert-error {
-  background-color: $brand-danger;
+.qor-alert--error {
+  color: $pink-700;
+  background-color: $pink-100;
 }
