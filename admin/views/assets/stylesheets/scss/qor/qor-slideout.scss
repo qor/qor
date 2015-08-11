@@ -63,6 +63,11 @@
 
   .slideout-body {
     padding: 16px 24px;
+
+    .qor-error {
+      margin: 24px 0;
+      box-shadow: none;
+    }
   }
 
   .slideout-footer {

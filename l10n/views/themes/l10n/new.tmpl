@@ -4,12 +4,15 @@
 </header>
 
 <div class="qor-body">
-  {{range $flash := flashes}}
-    <div class="qor-alert qor-alert-{{$flash.Type}}" data-dismissible="true" role="alert">
-      <button type="button" class="material-icons md-18" data-dismiss="alert">close</button>
-      {{$flash.Message}}
-    </div>
+  {{$actions := load_new_actions}}
+  {{if $actions}}
+  <header class="qor-subheader">
+    {{$actions}}
+  </header>
   {{end}}
+
+  {{render "shared/alerts"}}
+  {{render "shared/errors"}}
 
   <div class="qor-form-container">
     <form class="qor-form" action="{{patch_url (url_for .Resource) "locale" (current_locale .)}}" method="POST" enctype="multipart/form-data">

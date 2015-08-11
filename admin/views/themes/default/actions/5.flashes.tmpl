@@ -1,6 +1,0 @@
-{{range $flash := flashes}}
-  <div class="qor-alert qor-alert-{{$flash.Type}}" data-dismissible="true" role="alert">
-    <button type="button" class="material-icons md-18" data-dismiss="alert">close</button>
-    {{$flash.Message}}
-  </div>
-{{end}}

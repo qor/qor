@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/qor/validations"
 	"github.com/theplant/cldr"
 )
 
@@ -147,7 +149,8 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 	if tmpl, err := context.FindTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
 		data := map[string]interface{}{}
 		data["Base"] = meta.base
-		data["InputId"] = strings.Join(prefix, "")
+		scope := context.GetDB().NewScope(value)
+		data["InputId"] = fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name)
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
 		data["Value"] = context.ValueOf(value, meta)
@@ -476,7 +479,7 @@ func (context *Context) loadThemeJavaScripts() template.HTML {
 	return template.HTML(strings.Join(results, " "))
 }
 
-func (context *Context) loadIndexActions() template.HTML {
+func (context *Context) loadActions(action string) template.HTML {
 	var actions = map[string]string{}
 	var actionKeys = []string{}
 	var viewPaths = context.getViewPaths()
@@ -484,13 +487,14 @@ func (context *Context) loadIndexActions() template.HTML {
 	for j := len(viewPaths); j > 0; j-- {
 		view := viewPaths[j-1]
 		globalfiles, _ := filepath.Glob(path.Join(view, "actions/*.tmpl"))
-		files, _ := filepath.Glob(path.Join(view, "actions/index/*.tmpl"))
+		files, _ := filepath.Glob(path.Join(view, "actions", action, "*.tmpl"))
 
 		for _, file := range append(globalfiles, files...) {
 			if _, ok := actions[path.Base(file)]; !ok {
 				actionKeys = append(actionKeys, path.Base(file))
 			}
-			actions[path.Base(file)] = file
+			base := regexp.MustCompile("^\\d+\\.").ReplaceAllString(path.Base(file), "")
+			actions[base] = file
 		}
 	}
 
@@ -498,7 +502,8 @@ func (context *Context) loadIndexActions() template.HTML {
 
 	var result = bytes.NewBufferString("")
 	for _, key := range actionKeys {
-		file := actions[key]
+		base := regexp.MustCompile("^\\d+\\.").ReplaceAllString(key, "")
+		file := actions[base]
 		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
 			if err := tmpl.Execute(result, context); err != nil {
 				panic(err)
@@ -508,36 +513,16 @@ func (context *Context) loadIndexActions() template.HTML {
 	return template.HTML(strings.TrimSpace(result.String()))
 }
 
+func (context *Context) loadIndexActions() template.HTML {
+	return context.loadActions("index")
+}
+
 func (context *Context) loadShowActions() template.HTML {
-	var actions = map[string]string{}
-	var actionKeys = []string{}
-	var viewPaths = context.getViewPaths()
+	return context.loadActions("show")
+}
 
-	for j := len(viewPaths); j > 0; j-- {
-		view := viewPaths[j-1]
-		globalfiles, _ := filepath.Glob(path.Join(view, "actions/*.tmpl"))
-		files, _ := filepath.Glob(path.Join(view, "actions/show/*.tmpl"))
-
-		for _, file := range append(globalfiles, files...) {
-			if _, ok := actions[path.Base(file)]; !ok {
-				actionKeys = append(actionKeys, path.Base(file))
-			}
-			actions[path.Base(file)] = file
-		}
-	}
-
-	sort.Strings(actionKeys)
-
-	var result = bytes.NewBufferString("")
-	for _, key := range actionKeys {
-		file := actions[key]
-		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
-			if err := tmpl.Execute(result, context); err != nil {
-				panic(err)
-			}
-		}
-	}
-	return template.HTML(strings.TrimSpace(result.String()))
+func (context *Context) loadNewActions() template.HTML {
+	return context.loadActions("new")
 }
 
 func (context *Context) logoutURL() string {
@@ -587,8 +572,9 @@ func (context *Context) FuncMap() template.FuncMap {
 		"primary_key_of":       context.primaryKeyOf,
 		"value_of":             context.ValueOf,
 
-		"get_menus":  context.getMenus,
-		"get_scopes": context.GetScopes,
+		"get_menus":             context.getMenus,
+		"get_scopes":            context.GetScopes,
+		"get_validation_errors": func() map[string][]string { return validations.GetErrors(context.GetDB()) },
 
 		"escape":    html.EscapeString,
 		"raw":       func(str string) template.HTML { return template.HTML(str) },
@@ -612,6 +598,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"load_theme_javascripts": context.loadThemeJavaScripts,
 		"load_index_actions":     context.loadIndexActions,
 		"load_show_actions":      context.loadShowActions,
+		"load_new_actions":       context.loadNewActions,
 		"pagination":             context.Pagination,
 
 		"all_metas":        context.allMetas,

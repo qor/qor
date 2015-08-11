@@ -10,12 +10,6 @@ type MetaValue struct {
 
 type MetaValues struct {
 	Values []*MetaValue
-	Errors []error
-}
-
-func (mvs *MetaValues) AddError(mv *MetaValue, err error) {
-	mv.error = err
-	mvs.Errors = append(mvs.Errors, err)
 }
 
 func (mvs MetaValues) Get(name string) *MetaValue {

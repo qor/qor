@@ -141,6 +141,8 @@
     },
 
     submit: function (e) {
+      var $slideout = this.$slideout;
+      var $body = this.$body;
       var form = e.target;
       var $form = $(form);
       var _this = this;
@@ -166,8 +168,34 @@
               _this.refresh();
             }
           },
-          error: function () {
-            window.alert(arguments[1] + (arguments[2] || ''));
+          error: function (xhr, textStatus, errorThrown) {
+            var $error;
+
+            // Custom HTTP status code
+            if (xhr.status === 422) {
+
+              // Clear old errors
+              $body.find('.qor-error').remove();
+              $form.find('.form-group').removeClass('has-error').find('.mdl-textfield__error').remove();
+
+              // Append new errors
+              $error = $(xhr.responseText).find('.qor-error');
+              $form.before($error);
+
+              $error.find('> li > label').each(function () {
+                var $label = $(this);
+                var $input = $form.find('#' + $label.attr('for'));
+
+                if ($input.length) {
+                  $input.closest('.form-group').addClass('has-error').append($label.clone().addClass('mdl-textfield__error'));
+                }
+              });
+
+              // Scroll to top to view the errors
+              $slideout.scrollTop(0);
+            } else {
+              window.alert(textStatus + (errorThrown ? (' (' + (errorThrown || '') + ')') : ''));
+            }
           },
           complete: function () {
             $submit.prop('disabled', false);
