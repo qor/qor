@@ -11,6 +11,9 @@
   </header>
   {{end}}
 
+  {{render "shared/alerts"}}
+  {{render "shared/errors"}}
+
   <div class="qor-form-container">
     <form class="qor-form" action="{{patch_url (url_for .Resource) "locale" (current_locale .)}}" method="POST" enctype="multipart/form-data">
       {{render_form .Result new_metas}}

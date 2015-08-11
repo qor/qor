@@ -11,6 +11,9 @@
   </header>
   {{end}}
 
+  {{render "shared/alerts"}}
+  {{render "shared/errors"}}
+
   <div class="qor-form-container">
     <form class="qor-form" action="{{url_for .Resource}}" method="POST" enctype="multipart/form-data">
       {{render_form .Result new_metas}}
