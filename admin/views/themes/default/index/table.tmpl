@@ -3,8 +3,11 @@
 <table class="qor-list">
   <thead>
     <tr>
+      {{$order_by := .Context.Request.URL.Query.Get "order_by"}}
       {{range $meta := index_metas}}
-      <th {{if is_sortable_meta $meta}}data-order-by="{{$meta.DBName}}"{{end}}>{{dt (printf "%v.attributes.%v" $Resource.ToParam $meta.Label) $meta.Label}}</th>
+        {{$is_sorted := eq $order_by $meta.DBName}}
+        {{$is_desc_sorted := eq $order_by (print $meta.DBName "_desc")}}
+        <th {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}class="is-sorted"{{end}} {{if $is_sorted}}data-order-by="{{$meta.DBName}}_desc"{{else}}data-order-by="{{$meta.DBName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $Resource.ToParam $meta.Label) $meta.Label}}</th>
       {{end}}
       <th class="qor-list-action">{{t "Actions"}}</th>
     </tr>
