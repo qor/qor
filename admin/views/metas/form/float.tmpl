@@ -1,4 +1,5 @@
-<div class="form-group">
-  <label for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
-  <input class="form-control" id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}" type="number" step="any" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
+<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+  <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}"{{if not (has_update_permission .Meta)}} disabled{{end}}>
+  <label class="mdl-textfield__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
+  <span class="mdl-textfield__error">{{t "Input is not a number!"}}</span>
 </div>

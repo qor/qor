@@ -1,11 +1,13 @@
-<div class="qor-collection-group collection-edit form-group">
+<div class="qor-collection-group collection-edit">
   <label for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
   {{$meta := .Meta}}
   {{if .Value}}
     {{range $index, $value := .Value }}
       <fieldset class="qor-collection">
         {{if has_delete_permission $meta}}
-          <a class="material-icons md-18 qor-collection-del" href="javascript:void(0);">delete</a>
+          <button class="mdl-button mdl-js-button mdl-button--accent mdl-button--icon qor-collection-del" type="button">
+            <i class="material-icons">delete</i>
+          </button>
         {{end}}
         {{render_form $value (edit_metas $meta.Resource) $index}}
       </fieldset>
@@ -14,12 +16,14 @@
 
   {{if has_create_permission .Meta}}
     <fieldset class="qor-collection qor-collection-new">
-      <a class="material-icons md-18 qor-collection-del" href="javascript:void(0);">delete</a>
+      <button class="mdl-button mdl-js-button mdl-button--accent mdl-button--icon qor-collection-del" type="button">
+        <i class="material-icons">delete</i>
+      </button>
       {{render_form $meta.Resource.GetResource.Value (new_metas $meta.Resource) (len .Value)}}
     </fieldset>
 
-    <button type="button" class="qor-collection-add btn btn-sm btn-primary">
-      <span class="glyphicon glyphicon-plus"></span>
+    <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored qor-collection-add" type="button">
+      <i class="material-icons">add_circle</i>
     </button>
   {{end}}
 </div>

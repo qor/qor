@@ -100,14 +100,14 @@
       switch (String($target.data('toggle')).replace('.' + NAMESPACE, '')) {
         case 'bulk':
           this.multiple = true;
-          $target.addClass('hide').siblings('button').removeClass('hide');
+          $target.addClass('hidden').siblings('button').removeClass('hidden');
           $items.removeClass('highlight').addClass('active').find('.i18n-translator').trigger(EVENT_KEYUP);
           break;
 
         case 'exit':
           this.multiple = false;
-          $target.addClass('hide');
-          $target.siblings('button').addClass('hide').filter('.i18n-btn-bulk-edit').removeClass('hide');
+          $target.addClass('hidden');
+          $target.siblings('button').addClass('hidden').filter('.i18n-btn-bulk-edit').removeClass('hidden');
           $items.removeClass('active');
           break;
 

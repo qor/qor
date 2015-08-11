@@ -1,5 +1,4 @@
-<div class="form-group">
-  <label for="{{.InputId}}">{{.Label}}</label>
-  <input class="form-control" id="{{.InputId}}" name="{{.InputName}}" {{if .Value}}checked{{end}} value="true" type="checkbox" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
-  <input name="{{.InputName}}" value="false" type="hidden">
-</div>
+<label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="{{.InputId}}">
+  <input type="checkbox" id="{{.InputId}}" name="{{.InputName}}" class="mdl-checkbox__input" value="true" type="checkbox"{{if .Value}} checked{{end}}{{if not (has_update_permission .Meta)}} disabled{{end}}>
+  <span class="mdl-checkbox__label">{{.Label}}</span>
+</label>

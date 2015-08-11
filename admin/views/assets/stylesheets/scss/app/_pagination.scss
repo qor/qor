@@ -2,19 +2,15 @@
 // --------------------------------------------------
 
 .qor-pagination-container {
-  margin-top: 24px;
-  margin-bottom: 24px;
-  padding-left: 24px;
-  padding-right: 24px;
+  margin: 24px;
   @extend .clearfix;
 }
 
 .qor-pagination {
   float: left;
-  margin-bottom: 0;
-  padding-left: 0;
-  border-radius: 2px;
-  box-shadow: $box-shadow-1;
+  margin: 0;
+  padding: 0;
+  @include shadow-2dp();
 
   > li {
     display: inline; // Remove list-style and block-level defaults
@@ -25,9 +21,8 @@
       float: left;
       min-width: 32px;
       height: 32px;
-      padding: 4px;
       font-size: 14px;
-      line-height: 24px;
+      line-height: 32px;
       text-align: center;
       color: #333;
       text-decoration: none;
@@ -43,7 +38,7 @@
   > li > span {
     &:hover,
     &:focus {
-      color: $color-primary;
+      color: unquote("rgb(#{unquote("rgb(#{$color-primary})")})");
       background-color: #eee;
     }
   }
@@ -56,7 +51,7 @@
       z-index: 2;
       color: #fff;
       cursor: default;
-      background-color: $color-primary;
+      background-color: unquote("rgb(#{$color-primary})");
     }
   }
 
@@ -80,9 +75,9 @@
   display: block;
   height: 32px;
   margin-left: 16px;
-  padding: 4px;
   font-size: 12px;
-  line-height: 24px;
+  line-height: 32px;
   text-transform: uppercase;
-  color: $color-primary;
+  text-decoration: none;
+  color: unquote("rgb(#{$color-primary})");
 }

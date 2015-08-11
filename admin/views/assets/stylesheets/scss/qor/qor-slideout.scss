@@ -20,7 +20,7 @@
   background-color: #fff;
   overflow-x: hidden;
   overflow-y: auto;
-  box-shadow: $box-shadow-4;
+  @include shadow-4dp();
 
   -webkit-transition: width 0.35s ease;
        -o-transition: width 0.35s ease;
@@ -37,15 +37,15 @@
   .slideout-header {
     position: relative;
     height: 64px;
-    padding: 16px 24px;
-    background-color: $color-primary;
+    padding: 0 24px;
+    background-color: unquote("rgb(#{$color-primary})");
   }
 
   .slideout-title {
     margin-top: 0;
     margin-bottom: 0;
     font-size: 24px;
-    line-height: 32px;
+    line-height: 64px;
     font-weight: 500;
     color: #fff;
   }

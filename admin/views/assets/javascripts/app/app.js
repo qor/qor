@@ -11,29 +11,16 @@ $(function () {
   });
 
   $('.qor-search').each(function () {
-    var $this = $(this),
-        $label = $this.find('.qor-search-label'),
-        $input = $this.find('.qor-search-input'),
-        $clear = $this.find('.qor-search-clear');
+    var $this = $(this);
+    var $input = $this.find('.qor-search-input');
+    var $clear = $this.find('.qor-search-clear');
 
-    $label.on('click', function () {
-      if (!$input.hasClass('focus')) {
-        $this.addClass('active');
-        $input.addClass('focus');
-      }
-    });
+    $clear.on('click', function (e) {
+      $this.removeClass('is-dirty');
 
-    $clear.on('click', function () {
       if ($input.val()) {
-        $input.val('');
-      } else {
-        $this.removeClass('active');
-        $input.removeClass('focus');
+        $input.focus().val('');
       }
     });
-
   });
-
-  // Init Bootstrap Material Design
-  $.material.init();
 });

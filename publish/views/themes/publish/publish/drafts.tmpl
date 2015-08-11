@@ -1,70 +1,61 @@
 {{$context := .}}
 {{$resource := .Resource}}
 
-<header class="qor-header">
-  <h1 class="qor-title">{{t "{{.Name}}" $resource}}</h1>
-  {{render "navbar"}}
-</header>
-
-<div class="qor-body qor-publish">
-  <form class="qor-form" action="" method="POST">
-  {{$actions := load_index_actions}}
-  {{if $actions}}
-    <header class="qor-subheader">
-      {{$actions}}
-    </header>
-  {{end}}
-
-    {{range $res, $records := .Result}}
-    <h4 class="qor-list-heading">{{rt $res (plural $res.Name)}}</h4>
-    <div class="qor-list-container">
-      <table class="qor-list">
-        <thead>
-          <tr>
-            <th><input class="qor-check-all" type="checkbox" title="{{t "Check All"}}"></th>
-            {{range $meta := (index_metas $res)}}
-              <th>{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</th>
-            {{end}}
-            <th class="qor-list-action">{{t "Actions"}}</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {{range $record := $records}}
-            {{$key := publish_unique_key $res $record $context}}
-            <tr id="{{$key}}" {{if $record.DeletedAt}}class="deleted"{{end}}>
-              <td>
-                <input type="checkbox" name="checked_ids[]" value="{{$key}}"/>
-              </td>
-              {{range $index, $meta := index_metas $res}}
-                <td>
-                  <div class="qor-list-text">{{render_publish_meta $record $meta $context}}</div>
-                </td>
-              {{end}}
-              <td class="qor-list-action"><a class="qor-action-diff" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a></td>
-            </tr>
-          {{end}}
-        </tbody>
-      </table>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header qor-layout">
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <span class="mdl-layout-title">{{t "{{.Name}}" $resource}}</span>
+      {{render "shared/navbar"}}
     </div>
-    {{end}}
-  </form>
-
-  <!-- Modal -->
-  <div class="modal fade qor-publish-modal" id="qorPublishModal" tabindex="-1" role="dialog" aria-labelledby="qorPublishModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="qorPublishModalLabel">{{t "Changes"}}</h4>
-        </div>
-        <div class="modal-body"></div>
-        <!-- <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">{{t "Close"}}</button>
-        </div> -->
-      </div>
-    </div>
+  </header>
+  <div class="mdl-layout__drawer">
+    {{render "shared/sidebar"}}
   </div>
+  <main class="mdl-layout__content qor-page">
+    <form method="POST">
+      {{$actions := load_index_actions}}
+      {{if $actions}}
+        <div class="qor-page__header">
+          {{$actions}}
+        </div>
+      {{end}}
+      <div class="qor-page__body">
+        {{range $res, $records := .Result}}
+        <div class="qor-section">
+          <div class="qor-section__header">
+            <h4 class="qor-section-title">{{rt $res (plural $res.Name)}}</h4>
+          </div>
+          <div class="qor-section__body qor-table-container">
+            <table class="mdl-data-table mdl-data-table--selectable mdl-js-data-table mdl-shadow--2dp qor-table">
+              <thead>
+                <tr>
+                  {{range $meta := (index_metas $res)}}
+                  <th class="mdl-data-table__cell--non-numeric">{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</th>
+                  {{end}}
+                  <th class="mdl-data-table__cell--non-numeric qor-table__action">{{t "Actions"}}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{range $record := $records}}
+                {{$key := publish_unique_key $res $record $context}}
+                <tr id="{{$key}}"{{if $record.DeletedAt}} class="deleted"{{end}}>
+                  {{range $index, $meta := index_metas $res}}
+                  <td class="mdl-data-table__cell--non-numeric">
+                    <div class="qor-table-text">{{render_publish_meta $record $meta $context}}</div>
+                  </td>
+                  {{end}}
+                  <td class="mdl-data-table__cell--non-numeric qor-table__action">
+                    <a class="qor-action-diff" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a>
+                  </td>
+                </tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {{end}}
+      </div>
+      <div class="qor-page__footer"></div>
+    </form>
+  </main>
 </div>
-
-<footer class="qor-footer"></footer>

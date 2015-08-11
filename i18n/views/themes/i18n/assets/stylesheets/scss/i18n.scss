@@ -1,55 +1,48 @@
-.qor-i18n {
-  // Header
-  // --------------------
+.qor-page__header {
+  .qor-button-container {
+    float: left;
+    padding-top: 12px;
+    padding-bottom: 12px;
 
-  .qor-subheader {
-    .i18n-btn-group {
-      display: inline-block;
-      padding-top: 12px;
-      padding-bottom: 12px;
-      text-align: left;
-      vertical-align: middle;
-
-      > button {
-        line-height: 16px;
-        vertical-align: top;
+    > button {
+      + button {
+        margin-left: 8px;
       }
     }
   }
+}
 
-  .i18n-languages-group {
-    display: inline-block;
-    margin-right: 16px;
-    padding-top: 12px;
-    padding-bottom: 12px;
-    overflow: hidden;
-    vertical-align: middle;
+.qor-language-container {
+  float: left;
+  margin-right: 24px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.qor-language {
+  float: left;
+
+  + .qor-language {
+    margin-left: 16px;
   }
+}
 
-  .i18n-languages-label {
-    float: left;
-    display: block;
-    margin-right: 8px;
-    margin-bottom: 0;
-    font-size: 12px;
-    font-weight: normal;
-    line-height: 32px;
-    color: rgba(0,0,0,0.54);
-  }
+.qor-language__label {
+  margin-right: 8px;
+  margin-bottom: 0;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 32px;
+  color: rgba(0,0,0,0.54);
+}
 
-  .i18n-languages {
-    float: left;
-    width: auto;
-    height: 32px;
-  }
+.qor-language__select {
+  height: 32px;
+}
 
+.qor-i18n {
   .i18n-btn-group {
     text-align: right;
-
-    > button {
-      margin-top: 0;
-      margin-bottom: 0;
-    }
   }
 
   .i18n-btn-exit {
@@ -144,6 +137,7 @@
   .i18n-translation-editor {
     position: relative;
     display: none;
+    width: 100%;
 
     > textarea {
       padding-bottom: 8px;
@@ -238,7 +232,6 @@
 
       .i18n-btn-group {
         display: block;
-        padding-top: 15px;
       }
     }
   }

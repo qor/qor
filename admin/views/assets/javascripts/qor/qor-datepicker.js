@@ -123,25 +123,23 @@
   QorDatepicker.DEFAULTS = {};
 
   QorDatepicker.TEMPLATE = (
-    '<div class="modal fade qor-datepicker-modal" id="qorDatepickerModal" tabindex="-1" role="dialog" aria-labelledby="qorDatepickerModalLabel" aria-hidden="true">' +
-      '<div class="modal-dialog qor-datepicker">' +
-        '<div class="modal-content">' +
-          '<div class="modal-header sr-only">' +
-            '<h5 class="modal-title" id="qorDatepickerModalLabel">Pick a date</h5>' +
+     '<div class="qor-modal fade qor-datepicker-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
+      '<div class="mdl-card mdl-shadow--2dp" role="document">' +
+        '<div class="mdl-card__title">' +
+          '<h2 class="mdl-card__title-text">Pick a date</h2>' +
+        '</div>' +
+        '<div class="mdl-card__supporting-text">' +
+          '<div class="qor-datepicker-picked">' +
+            '<div class="qor-datepicker-week"></div>' +
+            '<div class="qor-datepicker-month"></div>' +
+            '<div class="qor-datepicker-day"></div>' +
+            '<div class="qor-datepicker-year"></div>' +
           '</div>' +
-          '<div class="modal-body">' +
-            '<div class="qor-datepicker-picked">' +
-              '<div class="qor-datepicker-week"></div>' +
-              '<div class="qor-datepicker-month"></div>' +
-              '<div class="qor-datepicker-day"></div>' +
-              '<div class="qor-datepicker-year"></div>' +
-            '</div>' +
-            '<div class="qor-datepicker-embedded"></div>' +
-          '</div>' +
-          '<div class="modal-footer">' +
-            '<button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>' +
-            '<button type="button" class="btn btn-link qor-datepicker-save">OK</button>' +
-          '</div>' +
+          '<div class="qor-datepicker-embedded"></div>' +
+        '</div>' +
+        '<div class="mdl-card__actions mdl-card--border">' +
+          '<a class="mdl-button mdl-button-colored mdl-js-button mdl-js-ripple-effect qor-datepicker-save">OK</a>' +
+          '<a class="mdl-button mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Cancel</a>' +
         '</div>' +
       '</div>' +
     '</div>'

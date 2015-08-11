@@ -1,33 +1,21 @@
-.qor-publish {
-  .qor-subheader {
-    padding-right: 24px;
-  }
+.qor-page__header {
+  padding-right: 24px;
+}
 
-  .qor-btn-group {
+.qor-button-container {
+  float: right;
+  padding-top: 12px;
+  padding-bottom: 12px;
+
+  > button {
     float: right;
-    padding-top: 14px;
-    padding-bottom: 14px;
-
-    > .btn {
-      float: right;
-      margin-top: 0;
-      margin-bottom: 0;
-      margin-left: 8px;
-    }
+    margin-left: 8px;
   }
+}
 
-  .qor-list > tbody > .deleted,
-  .qor-list > tbody > tr > .deleted  {
+.qor-table > tbody > tr {
+  &.deleted,
+  > .deleted {
     background-color: #fce4ec;
-  }
-
-  .qor-publish-modal {
-    .modal-body {
-      padding-top: 16px;
-    }
-
-    .qor-list-container {
-      box-shadow: none;
-    }
   }
 }

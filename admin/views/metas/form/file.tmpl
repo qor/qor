@@ -1,15 +1,15 @@
 {{$value := .Value}}
 
-<div class="form-group">
+<div>
   <label for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
   <div class="qor-file-action">
-    <label class="btn btn-sm btn-primary" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
-      <input class="qor-file-input sr-only" id="{{.InputId}}" name="{{.InputName}}" type="file">
+    <label class="mdl-button mdl-js-button mdl-button--colored" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
+      <input class="visuallyhidden qor-file-input" id="{{.InputId}}" name="{{.InputName}}" type="file">
       {{t "Choose File"}}
     </label>
   </div>
 
-  <textarea class="qor-file-options form-control hide" name="{{.InputName}}" aria-hidden="true">
+  <textarea class="qor-file-options hidden" name="{{.InputName}}" aria-hidden="true">
   {{if $value}}
     {{$value.Value}}
   {{end}}

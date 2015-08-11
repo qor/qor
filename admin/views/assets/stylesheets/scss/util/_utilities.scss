@@ -1,7 +1,6 @@
 // Utility classes
 // --------------------------------------------------
 
-
 // Floats
 // -------------------------
 
@@ -20,23 +19,44 @@
   @include text-hide;
 }
 
-// Catchall baseclass
-.glyphicon {
-  position: relative;
-  top: 1px;
-  display: inline-block;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.shown {
+  display: block !important;
 }
 
-.browserupgrade {
-  margin: 0;
-  padding: 5px 10px;
-  color: #8a6d3b;
-  background-color: #fcf8e3;
-  text-align: center;
+.hidden {
+  display: none !important;
+}
+
+.fade {
+  opacity: 0;
+  @include transition(opacity .15s linear);
+
+  &.in {
+    opacity: 1;
+  }
+}
+
+.collapse {
+  display: none;
+
+  &.in {
+    display: block;
+  }
+}
+
+tr.collapse.in    {
+  display: table-row;
+}
+
+tbody.collapse.in {
+  display: table-row-group;
+}
+
+.collapsing {
+  position: relative;
+  height: 0;
+  overflow: hidden;
+  @include transition-property(height, visibility);
+  @include transition-duration(.35s);
+  @include transition-timing-function(ease);
 }

@@ -195,7 +195,7 @@
                       options.complete();
                     }
 
-                    $modal.modal('hide');
+                    $modal.qorModal('hide');
                   }
                 }
               });
@@ -204,12 +204,12 @@
         });
       }).one('hidden.bs.modal', function () {
         $clone.cropper('destroy').remove();
-      }).modal('show').find('.modal-body').append($clone);
+      }).qorModal('show').find('.qor-cropper-container').append($clone);
     },
 
     destroy: function () {
       this.unbind();
-      this.$modal.modal('hide').remove();
+      this.$modal.qorModal('hide').remove();
       this.$element.removeData(NAMESPACE);
     },
   };
@@ -226,17 +226,22 @@
 
   QorRedactor.BUTTON = '<span class="redactor-image-cropper">Crop</span>';
   QorRedactor.MODAL = (
-    '<div class="modal fade qor-cropper-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
-      '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-          '<div class="modal-header">' +
-            '<h5 class="modal-title">Crop the image</h5>' +
-          '</div>' +
-          '<div class="modal-body"></div>' +
-          '<div class="modal-footer">' +
-            '<button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>' +
-            '<button type="button" class="btn btn-link qor-cropper-save">OK</button>' +
-          '</div>' +
+    '<div class="qor-modal fade qor-modal--cropper" tabindex="-1" role="dialog" aria-hidden="true">' +
+      '<div class="mdl-card mdl-shadow--2dp" role="document">' +
+        '<div class="mdl-card__title">' +
+          '<h2 class="mdl-card__title-text">Crop the image</h2>' +
+        '</div>' +
+        '<div class="mdl-card__supporting-text">' +
+          '<div class="qor-cropper-container"></div>' +
+        '</div>' +
+        '<div class="mdl-card__actions mdl-card--border">' +
+          '<a class="mdl-button mdl-button-colored mdl-js-button mdl-js-ripple-effect qor-cropper-save">OK</a>' +
+          '<a class="mdl-button mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Cancel</a>' +
+        '</div>' +
+        '<div class="mdl-card__menu">' +
+          '<button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-dismiss="modal" aria-label="close">' +
+            '<i class="material-icons">close</i>' +
+          '</button>' +
         '</div>' +
       '</div>' +
     '</div>'

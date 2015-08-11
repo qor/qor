@@ -1,8 +1,8 @@
-<div class="form-group">
-  <label for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
+<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
   {{if .Meta.Resource}}
-    <textarea class="form-control qor-textarea" id="{{.InputId}}" data-upload-url="{{url_for .Meta.Resource}}/upload" data-crop-url="{{url_for .Meta.Resource}}/crop" name="{{.InputName}}" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>{{if .Value}}{{.Value}}{{end}}</textarea>
+    <textarea class="form-control qor-textarea" id="{{.InputId}}" data-upload-url="{{url_for .Meta.Resource}}/upload" data-crop-url="{{url_for .Meta.Resource}}/crop" name="{{.InputName}}" {{if not (has_update_permission .Meta)}} disabled{{end}}>{{if .Value}}{{.Value}}{{end}}</textarea>
   {{else}}
-    <textarea class="form-control qor-textarea" id="{{.InputId}}" name="{{.InputName}}" {{if not (has_update_permission .Meta)}}DISABLED{{end}}>{{if .Value}}{{.Value}}{{end}}</textarea>
+    <textarea class="form-control qor-textarea" id="{{.InputId}}" name="{{.InputName}}" {{if not (has_update_permission .Meta)}} disabled{{end}}>{{if .Value}}{{.Value}}{{end}}</textarea>
   {{end}}
+  <label class="mdl-textfield__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
 </div>

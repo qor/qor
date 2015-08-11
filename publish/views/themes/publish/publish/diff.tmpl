@@ -1,7 +1,7 @@
 {{$context := .}}
 
-<div class="qor-list-container">
-  <table class="qor-list">
+<div class="qor-table-container">
+  <table class="mdl-data-table mdl-js-data-table qor-table">
     <thead>
       <tr>
         <th>{{t "Column"}}</th>
@@ -20,17 +20,17 @@
         {{$production_value := render_publish_meta $production $meta $context}}
         {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}
 
-        <tr {{if $diff}}class="danger"{{end}}>
+        <tr class="mdl-data-table__cell--non-numeric" {{if $diff}}class="danger"{{end}}>
           <td>{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</td>
           {{if $has_production}}
-            <td data-heading="{{rt $res $meta.Label}} ({{t "Live"}})">
-              <div class="qor-list-text">{{$production_value}}</div>
+            <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $res $meta.Label}} ({{t "Live"}})">
+              <div class="qor-table-content">{{$production_value}}</div>
             </td>
           {{else}}
             <td></td>
           {{end}}
-          <td data-heading="{{rt $res $meta.Label}} ({{t "Draft"}})">
-            <div class="qor-list-text">{{$draft_value}}</div>
+          <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $res $meta.Label}} ({{t "Draft"}})">
+            <div class="qor-table-content">{{$draft_value}}</div>
           </td>
         </tr>
       {{end}}

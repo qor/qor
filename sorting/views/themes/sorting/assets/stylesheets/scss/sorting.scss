@@ -1,22 +1,15 @@
 .qor-sorting {
-  .qor-action-new,
-  .qor-action-edit,
-  .qor-action-delete {
+  .qor-button--new,
+  .qor-button--edit,
+  .qor-button--delete {
     display: none;
   }
 }
 
-.qor-sorting-action {
+.qor-button-container {
   float: left;
-  margin-right: 8px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-
-  > .qor-sorting-exit,
-  > .qor-sorting-enter {
-    float: left;
-    margin: 6px 4px 6px 0;
-  }
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .qor-sorting-position {

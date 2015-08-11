@@ -1,25 +1,33 @@
-<header class="qor-header">
-  <h1 class="qor-title">{{rt .Resource (plural .Resource.Name)}}</h1>
-  {{render "navbar"}}
-</header>
-
-<div class="qor-body">
-  {{$actions := load_index_actions}}
-  {{if $actions}}
-    <header class="qor-subheader">
-      {{$actions}}
-    </header>
-  {{end}}
-
-  <div class="qor-list-container">
-    {{render "index/table"}}
-
-    {{if has_create_permission .Resource}}
-      <a class="qor-action-new" href="{{new_resource_path .Resource}}">{{t "New"}}</a>
-    {{end}}
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header qor-layout">
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <span class="mdl-layout-title">{{rt .Resource (plural .Resource.Name)}}</span>
+      {{render "shared/navbar"}}
+    </div>
+  </header>
+  <div class="mdl-layout__drawer">
+    {{render "shared/sidebar"}}
   </div>
+  <main class="mdl-layout__content qor-page" id="content">
+    {{$actions := load_index_actions}}
+    {{if $actions}}
+      <div class="qor-page__header">
+        {{$actions}}
+      </div>
+    {{end}}
+    <div class="qor-page__body">
+      <div class="qor-table-container">
+        {{render "index/table"}}
+      </div>
 
-  {{render "index/pagination"}}
+      {{if has_create_permission .Resource}}
+        <a class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored qor-button--new" href="{{new_resource_path .Resource}}">
+          <i class="material-icons">add</i>
+        </a>
+      {{end}}
+
+      {{render "index/pagination"}}
+    </div>
+    <div class="qor-page__footer"></div>
+  </main>
 </div>
-
-<footer class="qor-footer"></footer>

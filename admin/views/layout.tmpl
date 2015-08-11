@@ -18,10 +18,7 @@
     <link type="image/x-icon" rel="icon" href="/img/favicon.ico">
 
     <!-- Stylesheets -->
-    {{stylesheet_tag "bootstrap.min"}}
-    {{stylesheet_tag "roboto.min"}}
     {{stylesheet_tag "material.min"}}
-    {{stylesheet_tag "ripples.min"}}
     {{stylesheet_tag "cropper.min"}}
     {{stylesheet_tag "chosen.min"}}
     {{stylesheet_tag "redactor"}}
@@ -31,21 +28,16 @@
   </head>
   <body {{if qor_theme_class}}class="{{qor_theme_class}}"{{end}}>
     <!--[if lt IE 10]>
-      <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
-    <a class="sr-only" href="#content" tabindex="1">Skip to content</a>
 
-    {{render "sidebar" .}}
+    <a class="visuallyhidden" href="#content" tabindex="1">Skip to content</a>
 
-    <div class="qor-mainbody" id="content">
-      {{.Content}}
-    </div>
+    {{.Content}}
 
     <!-- JavaScripts -->
     {{javascript_tag "jquery.min"}}
-    {{javascript_tag "bootstrap.min"}}
     {{javascript_tag "material.min"}}
-    {{javascript_tag "ripples.min"}}
     {{javascript_tag "redactor.min"}}
     {{javascript_tag "cropper.min"}}
     {{javascript_tag "chosen.jquery.min"}}

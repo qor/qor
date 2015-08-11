@@ -39,7 +39,7 @@
     constructor: QorSlideout,
 
     init: function () {
-      if (!this.$element.find('.qor-list').length) {
+      if (!this.$element.find('.qor-table').length) {
         return;
       }
 
@@ -112,16 +112,16 @@
         } else if ($target.is('tbody > tr')) {
           if (!$target.hasClass('active')) {
             $this.one(EVENT_SHOW, toggleClass);
-            this.load($target.find('.qor-action-edit').attr('href'));
+            this.load($target.find('.qor-button--edit').attr('href'));
           }
 
           break;
-        } else if ($target.is('.qor-action-new')) {
+        } else if ($target.is('.qor-button--new')) {
           e.preventDefault();
           this.load($target.attr('href'));
           break;
         } else {
-          if ($target.is('.qor-action-edit') || $target.is('.qor-action-delete')) {
+          if ($target.is('.qor-button--edit') || $target.is('.qor-button--delete')) {
             e.preventDefault();
           }
 
@@ -176,9 +176,9 @@
       }
     },
 
-    load: function (url, options) {
-      var data = $.isPlainObject(options) ? options : {};
-      var method = data.method ? data.method : 'GET';
+    load: function (url, data) {
+      var options = this.options;
+      var method;
       var load;
 
       if (!url || this.disabled) {
@@ -186,6 +186,8 @@
       }
 
       this.disabled = true;
+      data = $.isPlainObject(data) ? data : {};
+      method = data.method ? data.method : 'GET';
 
       load = $.proxy(function () {
         $.ajax(url, {
@@ -197,16 +199,16 @@
 
             if (method === 'GET') {
               $response = $(response);
+              $content = $response.find(options.content);
 
-              if ($response.is('.qor-form-container')) {
-                $content = $response;
-              } else {
-                $content = $response.find('.qor-form-container');
+              if (!$content.length) {
+                return;
               }
 
-              $content.find('.qor-action-cancel').attr('data-dismiss', 'slideout').removeAttr('href');
-              this.$title.html($response.find('.qor-title').html());
-              this.$body.empty().html($content.html());
+              $content.find('.qor-button--cancel').attr('data-dismiss', 'slideout').removeAttr('href');
+              this.$title.html($response.find(options.title).html());
+              this.$body.html($content.html());
+
               this.$slideout.one(EVENT_SHOWN, function () {
 
                 // Enable all JavaScript components within the slideout
@@ -323,7 +325,10 @@
     },
   };
 
-  QorSlideout.DEFAULTS = {};
+  QorSlideout.DEFAULTS = {
+    title: false,
+    content: false,
+  };
 
   QorSlideout.TEMPLATE = (
     '<div class="qor-slideout">' +
@@ -361,6 +366,10 @@
 
   $(function () {
     var selector = '.qor-theme-slideout';
+    var options = {
+          title: '.qor-form-title, .mdl-layout-title',
+          content: '.qor-form-container',
+        }
 
     $(document)
       .on(EVENT_DISABLE, function (e) {
@@ -372,7 +381,7 @@
       .on(EVENT_ENABLE, function (e) {
 
         if (/slideout/.test(e.namespace)) {
-          QorSlideout.plugin.call($(selector, e.target));
+          QorSlideout.plugin.call($(selector, e.target), options);
         }
       })
       .triggerHandler(EVENT_ENABLE);
