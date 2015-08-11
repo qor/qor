@@ -166,8 +166,24 @@
               _this.refresh();
             }
           },
-          error: function () {
-            window.alert(arguments[1] + (arguments[2] || ''));
+          error: function (xhr, textStatus, errorThrown) {
+            if (xhr.status === 422) {
+              $(xhr.responseText).find('.qor-error > li > label').each(function (i) {
+                var $label = $(this);
+                var $input = $form.find('#' + $label.attr('for'));
+
+                if ($input.length) {
+                  $input.after($label.clone().addClass('mdl-textfield__error'));
+                  $input.closest('.form-group').addClass('has-error');
+
+                  if (i === 0) {
+                    $input.focus();
+                  }
+                }
+              });
+            } else {
+              window.alert(textStatus + (errorThrown ? (' (' + (errorThrown || '') + ')') : ''));
+            }
           },
           complete: function () {
             $submit.prop('disabled', false);
