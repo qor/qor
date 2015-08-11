@@ -44,7 +44,8 @@ type Translation struct {
 
 func New(backends ...Backend) *I18n {
 	i18n := &I18n{Backends: backends, Translations: map[string]map[string]*Translation{}}
-	for _, backend := range backends {
+	for i := len(backends) - 1; i >= 0; i-- {
+		var backend = backends[i]
 		for _, translation := range backend.LoadTranslations() {
 			translation.Backend = backend
 			i18n.AddTranslation(translation)
@@ -61,12 +62,18 @@ func (i18n *I18n) AddTranslation(translation *Translation) {
 }
 
 func (i18n *I18n) SaveTranslation(translation *Translation) error {
+	var backends []Backend
 	if backend := translation.Backend; backend != nil {
+		backends = append(backends, backend)
+	}
+
+	for _, backend := range i18n.Backends {
 		if backend.SaveTranslation(translation) == nil {
 			i18n.AddTranslation(translation)
 			return nil
 		}
 	}
+
 	return errors.New("failed to save translation")
 }
 

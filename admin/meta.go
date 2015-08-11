@@ -22,6 +22,7 @@ import (
 type Meta struct {
 	base          *Resource
 	Name          string
+	DBName        string
 	Alias         string
 	Label         string
 	Type          string
@@ -105,6 +106,7 @@ func (meta *Meta) updateMeta() {
 	} else {
 		if field, hasColumn = getField(scope.Fields(), meta.Alias); hasColumn {
 			meta.Alias = field.Name
+			meta.DBName = field.DBName
 		}
 	}
 
@@ -260,7 +262,9 @@ func (meta *Meta) updateMeta() {
 			if field.IsValid() && field.CanAddr() {
 				// Save relationships
 				if scopeField != nil && scopeField.Relationship != nil {
-					context.GetDB().Where(utils.ToArray(value)).Find(field.Addr().Interface())
+					if primaryKeys := utils.ToArray(value); len(primaryKeys) > 0 {
+						context.GetDB().Where(utils.ToArray(value)).Find(field.Addr().Interface())
+					}
 
 					// Handle many 2 many relations
 					if scopeField.Relationship.Kind == "many_to_many" && !scope.PrimaryKeyZero() {

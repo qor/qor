@@ -25,6 +25,7 @@ type Resource struct {
 	scopes        []*Scope
 	filters       map[string]*Filter
 	searchAttrs   []string
+	sortableAttrs []string
 	indexAttrs    []string
 	newAttrs      []string
 	editAttrs     []string
@@ -135,44 +136,69 @@ MetaIncluded:
 	return attrs
 }
 
+func (res *Resource) getAttrs(attrs []string) []string {
+	if len(attrs) == 0 {
+		return res.allAttrs()
+	} else {
+		var onlyExcludeAttrs = true
+		for _, attr := range attrs {
+			if !strings.HasPrefix(attr, "-") {
+				onlyExcludeAttrs = false
+				break
+			}
+		}
+		if onlyExcludeAttrs {
+			return append(res.allAttrs(), attrs...)
+		}
+		return attrs
+	}
+}
+
 func (res *Resource) IndexAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.indexAttrs = columns
+		if len(res.SortableAttrs()) == 0 {
+			res.SortableAttrs(columns...)
+		}
+		if len(res.SearchAttrs()) == 0 {
+			res.SearchAttrs(columns...)
+		}
 	}
-	if len(res.indexAttrs) == 0 {
-		return res.allAttrs()
-	}
-	return res.indexAttrs
+	return res.getAttrs(res.indexAttrs)
 }
 
 func (res *Resource) NewAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.newAttrs = columns
 	}
-	if len(res.newAttrs) == 0 {
-		return res.allAttrs()
-	}
-	return res.newAttrs
+	return res.getAttrs(res.newAttrs)
 }
 
 func (res *Resource) EditAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.editAttrs = columns
 	}
-	if len(res.editAttrs) == 0 {
-		return res.allAttrs()
-	}
-	return res.editAttrs
+	return res.getAttrs(res.editAttrs)
 }
 
 func (res *Resource) ShowAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.showAttrs = columns
 	}
-	if len(res.showAttrs) == 0 {
-		return res.allAttrs()
+	return res.getAttrs(res.showAttrs)
+}
+
+func (res *Resource) SortableAttrs(columns ...string) []string {
+	if len(columns) > 0 {
+		res.sortableAttrs = []string{}
+		scope := res.GetAdmin().Config.DB.NewScope(res.Value)
+		for _, column := range columns {
+			if field, ok := scope.FieldByName(column); ok && field.DBName != "" {
+				res.sortableAttrs = append(res.sortableAttrs, column)
+			}
+		}
 	}
-	return res.showAttrs
+	return res.sortableAttrs
 }
 
 func (res *Resource) SearchAttrs(columns ...string) []string {
@@ -230,6 +256,7 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 			}
 		}
 	}
+
 	return res.searchAttrs
 }
 
