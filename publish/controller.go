@@ -18,6 +18,10 @@ type publishController struct {
 	*Publish
 }
 
+type visiblePublishResourceInterface interface {
+	VisiblePublishResource() bool
+}
+
 func (db *publishController) Preview(context *admin.Context) {
 	type resource struct {
 		*admin.Resource
@@ -28,15 +32,21 @@ func (db *publishController) Preview(context *admin.Context) {
 
 	draftDB := context.GetDB().Set("publish:draft_mode", true).Unscoped()
 	for _, res := range context.Admin.GetResources() {
-		if !res.Config.Invisible {
-			results := res.NewSlice()
-			if isPublishableModel(res.Value) {
-				if draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
-					drafts = append(drafts, resource{
-						Resource: res,
-						Value:    results,
-					})
-				}
+		if visibleInterface, ok := res.Value.(visiblePublishResourceInterface); ok {
+			if !visibleInterface.VisiblePublishResource() {
+				continue
+			}
+		} else if res.Config.Invisible {
+			continue
+		}
+
+		results := res.NewSlice()
+		if isPublishableModel(res.Value) {
+			if draftDB.Unscoped().Where("publish_status = ?", DIRTY).Find(results).RowsAffected > 0 {
+				drafts = append(drafts, resource{
+					Resource: res,
+					Value:    results,
+				})
 			}
 		}
 	}
