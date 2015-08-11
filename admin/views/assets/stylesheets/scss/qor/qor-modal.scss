@@ -1,3 +1,57 @@
-.modal-content {
-  border-radius: 0;
+// Container that the modal scrolls within
+
+.qor-modal {
+  display: none;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: $zindex-modal;
+  background-color: unquote("rgba(#{$color-black}, 0.26)");
+  outline: 0;
+  -webkit-overflow-scrolling: touch;
+
+  .mdl-card {
+    display: block;
+    width: auto;
+    min-height: 0;
+    margin: 16px;
+
+    .mdl-card__actions {
+      @include clearfix();
+
+      > .mdl-button {
+        float: right;
+      }
+    }
+  }
+
+  @media screen and (min-width: $layout-screen-size-threshold) {
+    .mdl-card {
+      max-width: 600px;
+      margin: 32px auto;
+    }
+  }
+
+  &.fade .mdl-card {
+    @include translate(0, -25%);
+    @include transition-transform(0.3s ease-out);
+  }
+
+  &.in .mdl-card {
+    @include translate(0, 0)
+  }
+}
+
+.qor-modal-open {
+
+  // Kill the scroll on the body
+  overflow: hidden;
+
+  .qor-modal {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
 }
