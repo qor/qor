@@ -79,6 +79,7 @@ func (ac *controller) Create(context *Context) {
 					primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
 					http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path, primaryKey), http.StatusFound)
 				} else {
+					context.Writer.WriteHeader(HTTPUnprocessableEntity)
 					context.Execute("new", result)
 				}
 			}).With("json", func() {
@@ -104,6 +105,8 @@ func (ac *controller) Update(context *Context) {
 				responder.With("html", func() {
 					if err == nil {
 						context.FlashNow(context.dt("resource_successfully_updated", "{{.Name}} was successfully updated", res), "success")
+					} else {
+						context.Writer.WriteHeader(HTTPUnprocessableEntity)
 					}
 					context.Execute("show", result)
 				}).With("json", func() {
