@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/utils"
 )
 
 type resolver struct {
@@ -60,7 +61,7 @@ func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][][]int
 	for _, field := range fromScope.Fields() {
 		if relationship := field.Relationship; relationship != nil {
 			if isPublishableModel(field.Field.Interface()) {
-				toType := modelType(field.Field.Interface())
+				toType := utils.ModelType(field.Field.Interface())
 				toScope := draftDB.NewScope(reflect.New(toType).Interface())
 				draftTable := draftTableName(toScope.TableName())
 				var dependencyKeys [][][]interface{}
@@ -123,7 +124,7 @@ func (resolver *resolver) GenerateDependencies() {
 			for _, field := range scope.PrimaryFields() {
 				primaryValues = append(primaryValues, []interface{}{field.DBName, field.Field.Interface()})
 			}
-			resolver.AddDependency(&dependency{Type: modelType(data), PrimaryValues: [][][]interface{}{primaryValues}})
+			resolver.AddDependency(&dependency{Type: utils.ModelType(data), PrimaryValues: [][][]interface{}{primaryValues}})
 		}
 	}
 

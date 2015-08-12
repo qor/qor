@@ -45,23 +45,9 @@ type Publish struct {
 	DB *gorm.DB
 }
 
-func modelType(value interface{}) reflect.Type {
-	reflectValue := reflect.Indirect(reflect.ValueOf(value))
-
-	if reflectValue.Kind() == reflect.Slice {
-		typ := reflectValue.Type().Elem()
-		if typ.Kind() == reflect.Ptr {
-			typ = typ.Elem()
-		}
-		return typ
-	}
-
-	return reflectValue.Type()
-}
-
 func isPublishableModel(model interface{}) (ok bool) {
 	if model != nil {
-		_, ok = reflect.New(modelType(model)).Interface().(publishInterface)
+		_, ok = reflect.New(utils.ModelType(model)).Interface().(publishInterface)
 	}
 	return
 }
@@ -76,7 +62,7 @@ func New(db *gorm.DB) *Publish {
 		if db != nil {
 			if isPublishableModel(db.Value) {
 				// Set join table handler
-				typ := modelType(db.Value)
+				typ := utils.ModelType(db.Value)
 				if !injectedJoinTableHandler[typ] {
 					injectedJoinTableHandler[typ] = true
 					scope := db.NewScope(db.Value)

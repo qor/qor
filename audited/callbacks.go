@@ -2,35 +2,58 @@ package audited
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/jinzhu/gorm"
 )
 
+type auditableInterface interface {
+	SetCreatedBy(createdBy interface{})
+	GetCreatedBy() string
+	SetUpdatedBy(updatedBy interface{})
+	GetUpdatedBy() string
+}
+
+func isAuditable(scope *gorm.Scope) (isAuditable bool) {
+	if scope.GetModelStruct().ModelType == nil {
+		return false
+	}
+	_, isAuditable = reflect.New(scope.GetModelStruct().ModelType).Interface().(auditableInterface)
+	return
+}
+
 func assignCreatedBy(scope *gorm.Scope) {
-	if user, ok := scope.DB().Get("audited:current_user"); ok {
-		if primaryField := scope.New(user).PrimaryField(); primaryField != nil {
-			scope.SetColumn("CreatedBy", fmt.Sprintf("%v", primaryField.Field.Interface()))
-		} else {
-			scope.SetColumn("CreatedBy", fmt.Sprintf("%v", user))
+	if isAuditable(scope) {
+		if user, ok := scope.DB().Get("audited:current_user"); ok {
+			var currentUser string
+			if primaryField := scope.New(user).PrimaryField(); primaryField != nil {
+				currentUser = fmt.Sprintf("%v", primaryField.Field.Interface())
+			} else {
+				currentUser = fmt.Sprintf("%v", user)
+			}
+
+			scope.SetColumn("CreatedBy", currentUser)
 		}
 	}
 }
 
 func assignUpdatedBy(scope *gorm.Scope) {
-	if user, ok := scope.DB().Get("audited:current_user"); ok {
-		var currentUser string
-		if primaryField := scope.New(user).PrimaryField(); primaryField != nil {
-			currentUser = fmt.Sprintf("%v", primaryField.Field.Interface())
-		} else {
-			currentUser = fmt.Sprintf("%v", user)
-		}
+	if isAuditable(scope) {
+		if user, ok := scope.DB().Get("audited:current_user"); ok {
+			var currentUser string
+			if primaryField := scope.New(user).PrimaryField(); primaryField != nil {
+				currentUser = fmt.Sprintf("%v", primaryField.Field.Interface())
+			} else {
+				currentUser = fmt.Sprintf("%v", user)
+			}
 
-		if attrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
-			updateAttrs := attrs.(map[string]interface{})
-			updateAttrs["updated_by"] = currentUser
-			scope.InstanceSet("gorm:update_attrs", updateAttrs)
-		} else {
-			scope.SetColumn("UpdatedBy", currentUser)
+			if attrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
+				updateAttrs := attrs.(map[string]interface{})
+				updateAttrs["updated_by"] = currentUser
+				scope.InstanceSet("gorm:update_attrs", updateAttrs)
+			} else {
+				scope.SetColumn("UpdatedBy", currentUser)
+			}
 		}
 	}
 }
