@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/audited"
 )
 
 type Transition struct {
@@ -28,6 +29,7 @@ type StateChangeLog struct {
 	From       string
 	To         string
 	Note       string `sql:"size:1024"`
+	audited.AuditedModel
 }
 
 type Stater interface {
