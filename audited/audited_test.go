@@ -42,6 +42,6 @@ func TestCreateUser(t *testing.T) {
 	product.Name = "product_new"
 	db.Save(&product)
 	if product.UpdatedBy != fmt.Sprintf("%v", user.ID) {
-		t.Errorf("created_by is not equal current user")
+		t.Errorf("updated_by is not equal current user")
 	}
 }
