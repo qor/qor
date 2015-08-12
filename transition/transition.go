@@ -26,7 +26,7 @@ type StateChangeLog struct {
 	ReferId    string
 	From       string
 	To         string
-	Note       string
+	Note       string `sql:"size:1024"`
 }
 
 type Stater interface {
