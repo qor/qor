@@ -1,6 +1,10 @@
 package audited
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/qor/qor/admin"
+)
 
 type AuditedModel struct {
 	CreatedBy string
@@ -31,3 +35,11 @@ func (model AuditedModel) GetUpdatedBy() string {
 // 	ChangeDetails string `sql:"size:65532"`
 // 	Comment       string `sql:"size:1024"`
 // }
+
+func (model *AuditedModel) InjectQorAdmin(res *admin.Resource) {
+	// Middleware
+	res.GetAdmin().GetRouter().Use(func(context *admin.Context, middleware *admin.Middleware) {
+		context.SetDB(context.GetDB().Set("audited:current_user", context.CurrentUser))
+		middleware.Next(context)
+	})
+}
