@@ -3,6 +3,7 @@ package transition
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 )
@@ -64,7 +65,7 @@ func (sm *StateMachine) Event(name string) *Event {
 	return event
 }
 
-func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB) error {
+func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB, notes ...string) error {
 	stateWas := value.GetState()
 	if stateWas == "" {
 		stateWas = sm.initialState
@@ -127,7 +128,13 @@ func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB) error {
 
 			scope := newTx.NewScope(value)
 			primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
-			log := StateChangeLog{ReferTable: scope.TableName(), ReferId: primaryKey, From: stateWas, To: transition.to}
+			log := StateChangeLog{
+				ReferTable: scope.TableName(),
+				ReferId:    primaryKey,
+				From:       stateWas,
+				To:         transition.to,
+				Note:       strings.Join(notes, ""),
+			}
 			return newTx.Save(&log).Error
 		}
 	}
