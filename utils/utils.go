@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
 	"regexp"
 	"runtime"
 	"runtime/debug"
@@ -137,6 +138,20 @@ func Stringify(object interface{}) string {
 	} else {
 		return fmt.Sprintf("%v", object)
 	}
+}
+
+func ModelType(value interface{}) reflect.Type {
+	reflectValue := reflect.Indirect(reflect.ValueOf(value))
+
+	if reflectValue.Kind() == reflect.Slice {
+		typ := reflectValue.Type().Elem()
+		if typ.Kind() == reflect.Ptr {
+			typ = typ.Elem()
+		}
+		return typ
+	}
+
+	return reflectValue.Type()
 }
 
 func ParseTagOption(str string) map[string]string {

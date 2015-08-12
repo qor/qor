@@ -3,9 +3,10 @@ package transition
 import (
 	"errors"
 	"fmt"
-	"time"
+	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/audited"
 )
 
 type Transition struct {
@@ -22,15 +23,13 @@ func (transition Transition) GetState() string {
 }
 
 type StateChangeLog struct {
-	Id         uint64
+	gorm.Model
 	ReferTable string
 	ReferId    string
 	From       string
 	To         string
-	Note       string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	DeletedAt  time.Time
+	Note       string `sql:"size:1024"`
+	audited.AuditedModel
 }
 
 type Stater interface {
@@ -68,7 +67,7 @@ func (sm *StateMachine) Event(name string) *Event {
 	return event
 }
 
-func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB) error {
+func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB, notes ...string) error {
 	stateWas := value.GetState()
 	if stateWas == "" {
 		stateWas = sm.initialState
@@ -131,7 +130,13 @@ func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB) error {
 
 			scope := newTx.NewScope(value)
 			primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
-			log := StateChangeLog{ReferTable: scope.TableName(), ReferId: primaryKey, From: stateWas, To: transition.to}
+			log := StateChangeLog{
+				ReferTable: scope.TableName(),
+				ReferId:    primaryKey,
+				From:       stateWas,
+				To:         transition.to,
+				Note:       strings.Join(notes, ""),
+			}
 			return newTx.Save(&log).Error
 		}
 	}
