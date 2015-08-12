@@ -3,7 +3,6 @@ package transition
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/jinzhu/gorm"
 )
@@ -22,15 +21,12 @@ func (transition Transition) GetState() string {
 }
 
 type StateChangeLog struct {
-	Id         uint64
+	gorm.Model
 	ReferTable string
 	ReferId    string
 	From       string
 	To         string
 	Note       string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	DeletedAt  time.Time
 }
 
 type Stater interface {
