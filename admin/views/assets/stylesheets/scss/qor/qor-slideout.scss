@@ -33,6 +33,12 @@
   &.in {
     width: 100%;
   }
+
+  .qor-error {
+    margin-right: 0;
+    margin-left: 0;
+    box-shadow: none;
+  }
 }
 
 .qor-slideout__header {

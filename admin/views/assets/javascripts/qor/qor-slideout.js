@@ -99,6 +99,10 @@
         dismissible = false;
         $target = $(target);
 
+        if ($target.prop('disabled')) {
+          break;
+        }
+
         if (target === slideout) {
           break;
         } else if ($target.data('url')) {
@@ -123,6 +127,8 @@
         } else {
           if ($target.is('.qor-button--edit') || $target.is('.qor-button--delete')) {
             e.preventDefault();
+          } else if ($target.is('a')) {
+            break;
           }
 
           if (target) {
@@ -176,7 +182,7 @@
 
               // Clear old errors
               $body.find('.qor-error').remove();
-              $form.find('.form-group').removeClass('has-error').find('.mdl-textfield__error').remove();
+              $form.find('.mdl-textfield, .qor-field').removeClass('is-error').find('.mdl-textfield__error').remove();
 
               // Append new errors
               $error = $(xhr.responseText).find('.qor-error');
@@ -187,7 +193,12 @@
                 var $input = $form.find('#' + $label.attr('for'));
 
                 if ($input.length) {
-                  $input.closest('.form-group').addClass('has-error').append($label.clone().addClass('mdl-textfield__error'));
+                  $input.
+                    closest('.mdl-textfield, .qor-field').
+                    addClass('is-error').
+                    append('<span class="mdl-textfield__error"></span>').
+                      find('.mdl-textfield__error').
+                      html($label.html());
                 }
               });
 

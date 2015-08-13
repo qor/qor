@@ -5,7 +5,8 @@
     <li>
       <label for="{{$key}}">
         {{range $error := $errors}}
-          <i class="material-icons">error</i><span>{{t $error}}</span>
+          <i class="material-icons">error</i>
+          {{t $error}}
         {{end}}
       </label>
     </li>

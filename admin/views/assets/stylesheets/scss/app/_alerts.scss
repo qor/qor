@@ -3,11 +3,11 @@
 
 .qor-alert {
   margin: 24px;
-  box-shadow: $box-shadow-1;
   padding: 16px 24px;
   line-height: 24px;
-  color: $grey-700;
-  background-color: $grey-100;
+  color: unquote("rgb(#{$palette-grey-700})");
+  background-color: unquote("rgb(#{$palette-grey-100})");
+  @include shadow-2dp();
 
   > button {
     float: right;
@@ -26,11 +26,11 @@
 }
 
 .qor-alert--success {
-  color: $blue-700;
-  background-color: $blue-100;
+  color: unquote("rgb(#{$palette-blue-700})");
+  background-color: unquote("rgb(#{$palette-blue-100})");
 }
 
 .qor-alert--error {
-  color: $pink-700;
-  background-color: $pink-100;
+  color: unquote("rgb(#{$palette-pink-700})");
+  background-color: unquote("rgb(#{$palette-pink-100})");
 }

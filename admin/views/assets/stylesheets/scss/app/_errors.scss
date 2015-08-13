@@ -5,11 +5,11 @@
   margin: 24px;
   padding-left: 0;
   background-color: #fff;
-  box-shadow: $box-shadow-1;
   list-style: none;
+  @include shadow-2dp();
 
   > li {
-    border: 1px solid rgba(0,0,0,0.12);
+    border: 1px solid unquote("rgba(#{$color-black}, 0.12)");
 
     + li {
       margin-top: -1px;
@@ -22,9 +22,9 @@
       padding: 16px 24px 16px 56px;
       line-height: 24px;
       font-weight: normal;
-      color: $color-accent;
+      color: unquote("rgb(#{$color-accent})");
 
-      > .material-icons {
+      > i {
         position: absolute;
         top: 16px;
         left: 24px;

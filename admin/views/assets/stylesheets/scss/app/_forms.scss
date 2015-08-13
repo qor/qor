@@ -17,6 +17,24 @@
     display: block;
     width: 100%;
   }
+
+  .is-error {
+    margin-bottom: 16px;
+
+    .mdl-textfield__label {
+      color: unquote("rgb(#{$color-accent})");
+    }
+
+    .mdl-textfield__error {
+      color: unquote("rgb(#{$color-accent})");
+      visibility: visible;
+
+      > i {
+        font-size: 18px;
+        vertical-align: middle;
+      }
+    }
+  }
 }
 
 .qor-form__actions {
@@ -28,37 +46,6 @@
 
     + .mdl-button {
       margin-left: 8px;
-    }
-  }
-
-  .mdl-textfield__error {
-    position: relative;
-    margin-top: 8px;
-    margin-bottom: 0;
-    padding-left: 32px;
-    line-height: 24px;
-    font-weight: normal;
-    color: $color-accent;
-
-    > .material-icons {
-      position: absolute;
-      top: 0;
-      left: 0;
-      vertical-align: middle;
-    }
-  }
-
-  &.has-error {
-    label {
-      color: $color-accent;
-    }
-
-    .form-control {
-      background-image: linear-gradient($color-accent,$color-accent),linear-gradient($color-accent,$color-accent);
-
-      &:focus {
-        background-image: linear-gradient($color-accent,$color-accent),linear-gradient($color-accent,$color-accent);
-      }
     }
   }
 }
@@ -116,6 +103,16 @@
 
 .qor-field {
   padding: 8px 0;
+
+  &.is-error {
+    .qor-field__label {
+      color: unquote("rgb(#{$color-accent})");
+    }
+
+    .mdl-textfield__error {
+      position: static;
+    }
+  }
 }
 
 .qor-field__label {
