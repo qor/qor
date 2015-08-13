@@ -8,14 +8,12 @@
   color: unquote("rgb(#{$palette-grey-700})");
   background-color: unquote("rgb(#{$palette-grey-100})");
   @include shadow-2dp();
+  @include clearfix();
 
   > button {
     float: right;
-    margin: 1px;
-    padding: 0;
-    background-color: transparent;
+    margin: -4px 0 -4px 4px;
     color: inherit;
-    border: 0;
     opacity: 0.5;
 
     &:hover,
