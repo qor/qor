@@ -1,25 +1,30 @@
-<div class="qor-collection-group collection-edit form-group">
-  <label for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
-  {{$meta := .Meta}}
-  {{if .Value}}
-    {{range $index, $value := .Value }}
-      <fieldset class="qor-collection">
-        {{if has_delete_permission $meta}}
-          <a class="material-icons md-18 qor-collection-del" href="javascript:void(0);">delete</a>
-        {{end}}
-        {{render_form $value (edit_metas $meta.Resource) $index}}
-      </fieldset>
+<div class="collection-edit qor-field qor-fieldset-container">
+  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
+  <div class="qor-field__block">
+    {{$meta := .Meta}}
+    {{if .Value}}
+      {{range $index, $value := .Value }}
+        <fieldset class="qor-fieldset">
+          {{if has_delete_permission $meta}}
+            <button class="mdl-button mdl-js-button mdl-button--accent mdl-button--icon qor-fieldset__delete" type="button">
+              <i class="material-icons">delete</i>
+            </button>
+          {{end}}
+          {{render_form $value (edit_metas $meta.Resource) $index}}
+        </fieldset>
+      {{end}}
     {{end}}
-  {{end}}
 
-  {{if has_create_permission .Meta}}
-    <fieldset class="qor-collection qor-collection-new">
-      <a class="material-icons md-18 qor-collection-del" href="javascript:void(0);">delete</a>
-      {{render_form $meta.Resource.GetResource.Value (new_metas $meta.Resource) (len .Value)}}
-    </fieldset>
-
-    <button type="button" class="qor-collection-add btn btn-sm btn-primary">
-      <span class="glyphicon glyphicon-plus"></span>
-    </button>
-  {{end}}
+    {{if has_create_permission .Meta}}
+      <fieldset class="qor-fieldset qor-fieldset--new">
+        <button class="mdl-button mdl-js-button mdl-button--accent mdl-button--icon qor-fieldset__delete" type="button">
+          <i class="material-icons">delete</i>
+        </button>
+        {{render_form $meta.Resource.GetResource.Value (new_metas $meta.Resource) (len .Value)}}
+      </fieldset>
+      <button class="mdl-button mdl-button--fab mdl-button--mini-fab mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-fieldset__add" type="button">
+        <i class="material-icons">add</i>
+      </button>
+    {{end}}
+  </div>
 </div>

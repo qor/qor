@@ -20,7 +20,7 @@
   background-color: #fff;
   overflow-x: hidden;
   overflow-y: auto;
-  box-shadow: $box-shadow-4;
+  @include shadow-4dp();
 
   -webkit-transition: width 0.35s ease;
        -o-transition: width 0.35s ease;
@@ -33,59 +33,33 @@
   &.in {
     width: 100%;
   }
+}
 
-  .slideout-header {
-    position: relative;
-    height: 64px;
-    padding: 16px 24px;
-    background-color: $color-primary;
-  }
+.qor-slideout__header {
+  position: relative;
+  height: 64px;
+  padding: 0 24px;
+  background-color: unquote("rgb(#{$color-primary})");
+}
 
-  .slideout-title {
-    margin-top: 0;
-    margin-bottom: 0;
-    font-size: 24px;
-    line-height: 32px;
-    font-weight: 500;
-    color: #fff;
-  }
+.qor-slideout__title {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 24px;
+  line-height: 64px;
+  font-weight: 500;
+  color: #fff;
+}
 
-  .slideout-close {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 32px;
-    height: 32px;
-    color: #fff;
-    background-color: transparent;
-    border: 0;
-  }
+.qor-slideout__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: #fff;
+}
 
-  .slideout-body {
-    padding: 16px 24px;
-
-    .qor-error {
-      margin: 24px 0;
-      box-shadow: none;
-    }
-  }
-
-  .slideout-footer {
-    padding: 16px 24px;
-    text-align: right;
-  }
-
-  .slideout-action-cancel {
-    color: rgba(0,0,0,0.54) !important;
-  }
-
-  .qor-btn-group {
-    @extend .clearfix;
-
-    > .btn {
-      float: right;
-    }
-  }
+.qor-slideout__body {
+  padding: 16px 24px;
 }
 
 @media (min-width: 768px) {

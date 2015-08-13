@@ -32,12 +32,7 @@
       var options = this.options;
       var $this = this.$element;
 
-      this.$modal = $this.find(options.modal);
-
-      if ($.fn.tooltip) {
-        $this.find(options.toggleCheck).tooltip();
-      }
-
+      this.$modal = $(Publish.MODAL).appendTo('body');
       this.bind();
     },
 
@@ -69,17 +64,17 @@
         }
 
         this.loading = true;
-        this.$modal.find('.modal-body').empty().load($target.data('url'), $.proxy(this.show, this));
+        this.$modal.find('.mdl-card__supporting-text').empty().load($target.data('url'), $.proxy(this.show, this));
       } else if ($target.is(options.toggleCheck)) {
         if (!$target.prop('disabled')) {
-          $target.closest('table').find(':checkbox').not($target).prop('checked', $target.prop('checked'));
+          $target.closest('table').find(':checkbox').not($target).click();
         }
       }
     },
 
     show: function () {
       this.loading = false;
-      this.$modal.modal('show');
+      this.$modal.qorModal('show');
     },
 
     destroy: function () {
@@ -89,10 +84,28 @@
   };
 
   Publish.DEFAULTS = {
-    modal: '.qor-publish-modal',
-    toggleView: '.qor-action-diff',
-    toggleCheck: '.qor-check-all',
+    toggleView: '.qor-action__view',
+    toggleCheck: '.qor-action__check-all',
   };
+
+  Publish.MODAL = (
+    '<div class="qor-modal fade" tabindex="-1" role="dialog" aria-hidden="true">' +
+      '<div class="mdl-card mdl-shadow--2dp" role="document">' +
+        '<div class="mdl-card__title mdl-card--border">' +
+          '<h2 class="mdl-card__title-text">Changes</h2>' +
+        '</div>' +
+        '<div class="mdl-card__supporting-text"></div>' +
+        '<div class="mdl-card__actions mdl-card--border">' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Close</a>' +
+        '</div>' +
+        '<div class="mdl-card__menu">' +
+          '<button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-dismiss="modal" aria-label="close">' +
+            '<i class="material-icons">close</i>' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
 
   Publish.plugin = function (options) {
     return this.each(function () {
@@ -101,10 +114,6 @@
       var fn;
 
       if (!data) {
-        if (!$.fn.modal) {
-          return;
-        }
-
         $this.data(NAMESPACE, (data = new Publish(this, options)));
       }
 
@@ -115,7 +124,7 @@
   };
 
   $(function () {
-    Publish.plugin.call($('.qor-publish'));
+    Publish.plugin.call($('.qor-table'));
   });
 
 });

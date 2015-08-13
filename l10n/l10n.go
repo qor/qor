@@ -101,11 +101,11 @@ func (l *Locale) InjectQorAdmin(res *admin.Resource) {
 			for _, locale := range availableLocales {
 				for _, localized := range languageCodes {
 					if locale == localized {
-						results += fmt.Sprintf("<span class='qor-list-label active'>%s</span> ", context.T(locale))
+						results += fmt.Sprintf("<span class=\"qor-label is-active\">%s</span> ", context.T(locale))
 						continue OUT
 					}
 				}
-				results += fmt.Sprintf("<span class='qor-list-label'>%s</span> ", context.T(locale))
+				results += fmt.Sprintf("<span class=\"qor-label\">%s</span> ", context.T(locale))
 			}
 			return template.HTML(results)
 		}})

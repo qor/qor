@@ -22,7 +22,11 @@
   var EVENT_BLUR = 'blur.' + NAMESPACE;
   var EVENT_IMAGE_UPLOAD = 'imageupload.' + NAMESPACE;
   var EVENT_IMAGE_DELETE = 'imagedelete.' + NAMESPACE;
+  var EVENT_SHOWN = 'shown.qor.modal';
+  var EVENT_HIDDEN = 'hidden.qor.modal';
   var REGEXP_OPTIONS = /x|y|width|height/;
+  var CLASS_WRAPPER = '.qor-cropper__wrapper';
+  var CLASS_SAVE = '.qor-cropper__save';
 
   function QorRedactor(element, options) {
     this.$element = $(element);
@@ -156,7 +160,7 @@
       }
 
       $clone.attr('src', originalUrl);
-      $modal.one('shown.bs.modal', function () {
+      $modal.one(EVENT_SHOWN, function () {
         $clone.cropper({
           data: decodeCropData($image.attr('data-crop-options')),
           background: false,
@@ -166,7 +170,7 @@
           checkImageOrigin: false,
 
           built: function () {
-            $modal.find(options.save).one('click', function () {
+            $modal.find(CLASS_SAVE).one(EVENT_CLICK, function () {
               var cropData = {};
 
               $.each($clone.cropper('getData'), function (i, n) {
@@ -195,21 +199,21 @@
                       options.complete();
                     }
 
-                    $modal.modal('hide');
+                    $modal.qorModal('hide');
                   }
                 }
               });
             });
           },
         });
-      }).one('hidden.bs.modal', function () {
+      }).one(EVENT_HIDDEN, function () {
         $clone.cropper('destroy').remove();
-      }).modal('show').find('.modal-body').append($clone);
+      }).qorModal('show').find(CLASS_WRAPPER).append($clone);
     },
 
     destroy: function () {
       this.unbind();
-      this.$modal.modal('hide').remove();
+      this.$modal.qorModal('hide').remove();
       this.$element.removeData(NAMESPACE);
     },
   };
@@ -218,25 +222,28 @@
     remote: false,
     toggle: false,
     parent: false,
-    modal: '.qor-cropper-modal',
-    save: '.qor-cropper-save',
     replace: null,
     complete: null,
   };
 
   QorRedactor.BUTTON = '<span class="redactor-image-cropper">Crop</span>';
   QorRedactor.MODAL = (
-    '<div class="modal fade qor-cropper-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
-      '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-          '<div class="modal-header">' +
-            '<h5 class="modal-title">Crop the image</h5>' +
-          '</div>' +
-          '<div class="modal-body"></div>' +
-          '<div class="modal-footer">' +
-            '<button type="button" class="btn btn-link" data-dismiss="modal">Cancel</button>' +
-            '<button type="button" class="btn btn-link qor-cropper-save">OK</button>' +
-          '</div>' +
+    '<div class="qor-modal fade" tabindex="-1" role="dialog" aria-hidden="true">' +
+      '<div class="mdl-card mdl-shadow--2dp" role="document">' +
+        '<div class="mdl-card__title">' +
+          '<h2 class="mdl-card__title-text">Crop the image</h2>' +
+        '</div>' +
+        '<div class="mdl-card__supporting-text">' +
+          '<div class="qor-cropper__wrapper"></div>' +
+        '</div>' +
+        '<div class="mdl-card__actions mdl-card--border">' +
+          '<a class="mdl-button mdl-button-colored mdl-js-button mdl-js-ripple-effect qor-cropper__save">OK</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Cancel</a>' +
+        '</div>' +
+        '<div class="mdl-card__menu">' +
+          '<button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-dismiss="modal" aria-label="close">' +
+            '<i class="material-icons">close</i>' +
+          '</button>' +
         '</div>' +
       '</div>' +
     '</div>'
@@ -310,16 +317,16 @@
   };
 
   $(function () {
-    var selector = '.qor-textarea';
+    var selector = 'textarea[data-toggle="qor.redactor"]';
 
-    $(document)
-      .on(EVENT_DISABLE, function (e) {
+    $(document).
+      on(EVENT_DISABLE, function (e) {
         QorRedactor.plugin.call($(selector, e.target), 'destroy');
-      })
-      .on(EVENT_ENABLE, function (e) {
+      }).
+      on(EVENT_ENABLE, function (e) {
         QorRedactor.plugin.call($(selector, e.target));
-      })
-      .triggerHandler(EVENT_ENABLE);
+      }).
+      triggerHandler(EVENT_ENABLE);
   });
 
   return QorRedactor;

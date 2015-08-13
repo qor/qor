@@ -1,35 +1,28 @@
 .qor-sorting {
-  .qor-action-new,
-  .qor-action-edit,
-  .qor-action-delete {
+  .qor-button--new,
+  .qor-button--edit,
+  .qor-button--delete {
     display: none;
   }
 }
 
-.qor-sorting-action {
+.qor-button-container {
   float: left;
-  margin-right: 8px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-
-  > .qor-sorting-exit,
-  > .qor-sorting-enter {
-    float: left;
-    margin: 6px 4px 6px 0;
-  }
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
-.qor-sorting-position {
-  width: 80px;
-  height: 32px;
+.qor-sorting__position {
+  width: 56px;
+  height: 20px;
   padding: 0 8px;
   text-align: center;
 }
 
-.qor-sorting-toggle {
+.qor-sorting__toggle {
   cursor: move;
 }
 
-.qor-sorting-highlight {
-  background-color: #dff0d8 !important;
+.qor-sorting__highlight {
+  background-color: #FCE4EC !important;
 }

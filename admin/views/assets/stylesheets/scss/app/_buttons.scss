@@ -1,63 +1,22 @@
 // Buttons
 // --------------------------------------------------
 
-.btn {
-  margin-top: 0;
-  margin-bottom: 0;
+.qor-button--small {
+  height: 32px;
+  line-height: 32px;
 }
 
-.btn-default {
-  color: $color-primary !important;
-}
-
-.btn-primary,
-.btn-danger {
-  box-shadow: $box-shadow-1;
-}
-
-.btn-primary {
-  background-color: $color-primary !important;
-}
-
-.qor-action-new {
+.qor-button--new  {
   position: fixed;
   right: 32px;
   bottom: 32px;
   z-index: 1;
-  display: block;
-  width: 56px;
-  height: 56px;
-  border-width: 0;
-  border-radius: 50%;
-  background-color: $color-primary;
-  box-shadow: $box-shadow-2;
-  @extend .text-hide;
-
-  &:hover,
-  &:focus {
-    outline: none;
-    text-decoration: none;
-  }
-
-  &:before,
-  &:after {
-    position: absolute;
-    display: block;
-    background-color: #fff;
-    content: " ";
-  }
-
-  &:before {
-    top: 27px;
-    left: 20px;
-    width: 16px;
-    height: 2px;
-  }
-
-  &:after {
-    top: 20px;
-    left: 27px;
-    width: 2px;
-    height: 16px;
-  }
 }
+
+// .qor-button--outlined {
+//   outline: 1px solid unquote("rgba(#{$color-black}, 0.12)");
+
+//   .material-icons {
+//     vertical-align: middle;
+//   }
+// }

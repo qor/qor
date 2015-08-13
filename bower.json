@@ -1,11 +1,13 @@
 {
   "name": "qor",
   "description": "An enterprise-level open source content management system.",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "license": "MIT",
   "main": [
     "admin/views/assets/javascripts/app.js",
-    "admin/views/assets/stylesheets/app.css"
+    "admin/views/assets/javascripts/qor.js",
+    "admin/views/assets/stylesheets/app.css",
+    "admin/views/assets/stylesheets/qor.css"
   ],
   "keywords": [
     "qor",
@@ -19,13 +21,11 @@
     "bower_components"
   ],
   "devDependencies": {
-    "jquery": "^2.1.4",
-    "bootstrap": "^3.3.5",
-    "bootstrap-sass": "^3.3.5",
-    "cropper": "^0.10.1",
-    "chosen": "^1.4.2",
-    "html5-boilerplate": "^5.2.0",
-    "material-design-icons": "^2.0.0",
-    "bootstrap-material-design": "~0.3.0"
+    "jquery": "~2.1.4",
+    "material-design-icons": "~2.0.0",
+    "material-design-lite": "~1.0.2",
+    "html5-boilerplate": "~5.2.0",
+    "chosen": "~1.4.2",
+    "cropper": "~0.10.1"
   }
 }

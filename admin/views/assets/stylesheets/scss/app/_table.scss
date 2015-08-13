@@ -1,0 +1,25 @@
+.qor-table {
+  width: 100%;
+
+  img {
+    max-height: 24px;
+  }
+}
+
+.qor-table__actions {
+  text-align: center !important;
+
+  .mdl-button {
+    margin: -4px 0;
+
+    + .mdl-button {
+      margin-left: 8px;
+    }
+  }
+}
+
+.qor-table-container {
+  margin: 24px;
+  overflow-x: auto;
+  @include shadow-2dp();
+}

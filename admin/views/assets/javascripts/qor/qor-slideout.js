@@ -39,7 +39,7 @@
     constructor: QorSlideout,
 
     init: function () {
-      if (!this.$element.find('.qor-list').length) {
+      if (!this.$element.find('.qor-table').length) {
         return;
       }
 
@@ -51,8 +51,8 @@
       var $slideout;
 
       this.$slideout = $slideout = $(QorSlideout.TEMPLATE).appendTo('body');
-      this.$title = $slideout.find('.slideout-title');
-      this.$body = $slideout.find('.slideout-body');
+      this.$title = $slideout.find('.qor-slideout__title');
+      this.$body = $slideout.find('.qor-slideout__body');
       this.$documentBody = $('body');
     },
 
@@ -112,16 +112,16 @@
         } else if ($target.is('tbody > tr')) {
           if (!$target.hasClass('active')) {
             $this.one(EVENT_SHOW, toggleClass);
-            this.load($target.find('.qor-action-edit').attr('href'));
+            this.load($target.find('.qor-button--edit').attr('href'));
           }
 
           break;
-        } else if ($target.is('.qor-action-new')) {
+        } else if ($target.is('.qor-button--new')) {
           e.preventDefault();
           this.load($target.attr('href'));
           break;
         } else {
-          if ($target.is('.qor-action-edit') || $target.is('.qor-action-delete')) {
+          if ($target.is('.qor-button--edit') || $target.is('.qor-button--delete')) {
             e.preventDefault();
           }
 
@@ -204,9 +204,9 @@
       }
     },
 
-    load: function (url, options) {
-      var data = $.isPlainObject(options) ? options : {};
-      var method = data.method ? data.method : 'GET';
+    load: function (url, data) {
+      var options = this.options;
+      var method;
       var load;
 
       if (!url || this.disabled) {
@@ -214,6 +214,8 @@
       }
 
       this.disabled = true;
+      data = $.isPlainObject(data) ? data : {};
+      method = data.method ? data.method : 'GET';
 
       load = $.proxy(function () {
         $.ajax(url, {
@@ -226,22 +228,27 @@
             if (method === 'GET') {
               $response = $(response);
 
-              if ($response.is('.qor-form-container')) {
+              if ($response.is(options.content)) {
                 $content = $response;
               } else {
-                $content = $response.find('.qor-form-container');
+                $content = $response.find(options.content);
               }
 
-              $content.find('.qor-action-cancel').attr('data-dismiss', 'slideout').removeAttr('href');
-              this.$title.html($response.find('.qor-title').html());
-              this.$body.empty().html($content.html());
+              if (!$content.length) {
+                return;
+              }
+
+              $content.find('.qor-button--cancel').attr('data-dismiss', 'slideout').removeAttr('href');
+              this.$title.html($response.find(options.title).html());
+              this.$body.html($content.html());
+
               this.$slideout.one(EVENT_SHOWN, function () {
 
-                // Enable all JavaScript components within the slideout
+                // Enable all Qor components within the slideout
                 $(this).trigger('enable');
               }).one(EVENT_HIDDEN, function () {
 
-                // Destroy all JavaScript components within the slideout
+                // Destroy all Qor components within the slideout
                 $(this).trigger('disable');
               });
 
@@ -293,10 +300,11 @@
     shown: function () {
       this.active = true;
       this.animating = false;
-      this.$slideout.trigger(EVENT_SHOWN);
 
       // Disable to scroll body element
       this.$documentBody.addClass(CLASS_OPEN);
+
+      this.$slideout.trigger(EVENT_SHOWN);
     },
 
     hide: function () {
@@ -321,11 +329,11 @@
     hidden: function () {
       this.active = false;
       this.animating = false;
-      this.$element.find('tbody > tr').removeClass('active');
-      this.$slideout.removeClass('active').trigger(EVENT_HIDDEN);
 
       // Enable to scroll body element
       this.$documentBody.removeClass(CLASS_OPEN);
+      this.$element.find('tbody > tr').removeClass('active');
+      this.$slideout.removeClass('active').trigger(EVENT_HIDDEN);
     },
 
     refresh: function () {
@@ -351,19 +359,20 @@
     },
   };
 
-  QorSlideout.DEFAULTS = {};
+  QorSlideout.DEFAULTS = {
+    title: false,
+    content: false,
+  };
 
   QorSlideout.TEMPLATE = (
     '<div class="qor-slideout">' +
-      '<div class="slideout-dialog">' +
-        '<div class="slideout-header">' +
-          '<button type="button" class="slideout-close" data-dismiss="slideout" aria-div="Close">' +
-            '<span class="material-icons">close</span>' +
-          '</button>' +
-          '<h3 class="slideout-title"></h3>' +
-        '</div>' +
-        '<div class="slideout-body"></div>' +
+      '<div class="qor-slideout__header">' +
+        '<button type="button" class="mdl-button mdl-button--icon mdl-js-button mdl-js-repple-effect qor-slideout__close" data-dismiss="slideout">' +
+          '<span class="material-icons">close</span>' +
+        '</button>' +
+        '<h3 class="qor-slideout__title"></h3>' +
       '</div>' +
+      '<div class="qor-slideout__body"></div>' +
     '</div>'
   );
 
@@ -389,21 +398,25 @@
 
   $(function () {
     var selector = '.qor-theme-slideout';
+    var options = {
+          title: '.qor-form-title, .mdl-layout-title',
+          content: '.qor-form-container',
+        };
 
-    $(document)
-      .on(EVENT_DISABLE, function (e) {
+    $(document).
+      on(EVENT_ENABLE, function (e) {
+
+        if (/slideout/.test(e.namespace)) {
+          QorSlideout.plugin.call($(selector, e.target), options);
+        }
+      }).
+      on(EVENT_DISABLE, function (e) {
 
         if (/slideout/.test(e.namespace)) {
           QorSlideout.plugin.call($(selector, e.target), 'destroy');
         }
-      })
-      .on(EVENT_ENABLE, function (e) {
-
-        if (/slideout/.test(e.namespace)) {
-          QorSlideout.plugin.call($(selector, e.target));
-        }
-      })
-      .triggerHandler(EVENT_ENABLE);
+      }).
+      triggerHandler(EVENT_ENABLE);
   });
 
   return QorSlideout;

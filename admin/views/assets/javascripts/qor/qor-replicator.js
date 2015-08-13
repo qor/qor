@@ -172,27 +172,29 @@
   };
 
   $(function () {
-    var selector = '.qor-collection-group';
+    var selector = '.qor-fieldset-container';
     var options = {
-          itemClass: '.qor-collection',
-          newClass: '.qor-collection-new',
-          addClass: '.qor-collection-add',
-          delClass: '.qor-collection-del',
-          undoClass: '.qor-collection-undo',
-          alertTemplate: ('<div class="alert alert-danger"><input type="hidden" name="{{name}}._destroy" value="1"><a href="javascript:void(0);" class="alert-link qor-collection-undo">Undo Delete</a></div>'),
+          itemClass: '.qor-fieldset',
+          newClass: '.qor-fieldset--new',
+          addClass: '.qor-fieldset__add',
+          delClass: '.qor-fieldset__delete',
+          undoClass: '.qor-fieldset__undo',
+          alertTemplate: (
+            '<div class="qor-fieldset__alert">' +
+              '<input type="hidden" name="{{name}}._destroy" value="1">' +
+              '<button class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect qor-fieldset__undo" type="button">Undo delete</button>' +
+            '</div>'
+          ),
         };
 
-    $(document)
-      .on(EVENT_CLICK, selector, function () {
-        QorReplicator.plugin.call($(this), options);
-      })
-      .on(EVENT_DISABLE, function (e) {
+    $(document).
+      on(EVENT_DISABLE, function (e) {
         QorReplicator.plugin.call($(selector, e.target), 'destroy');
-      })
-      .on(EVENT_ENABLE, function (e) {
+      }).
+      on(EVENT_ENABLE, function (e) {
         QorReplicator.plugin.call($(selector, e.target), options);
-      })
-      .triggerHandler(EVENT_ENABLE);
+      }).
+      triggerHandler(EVENT_ENABLE);
   });
 
   return QorReplicator;

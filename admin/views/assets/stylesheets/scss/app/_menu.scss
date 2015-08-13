@@ -5,27 +5,25 @@
   margin-bottom: 0;
   padding-left: 0;
   list-style: none;
-  background-color: #fff;
 
   > li {
     > a {
       display: block;
-      padding: 8px 16px;
-      line-height: 24px;
+      padding: 8px 40px;
       font-weight: 500;
       color: #000;
-      background-color: #fff;
       overflow: hidden;
+      text-decoration: none;
 
       &:hover,
       &:focus {
-        background-color: rgba(0,0,0,0.12);
+        background-color: unquote("rgba(#{$color-black}, 0.12)");
         text-decoration: none;
       }
     }
 
     > ul > li > a {
-      padding: 4px 16px 4px 32px;
+      padding: 4px 16px 4px 40px;
       font-weight: normal;
     }
   }
@@ -35,227 +33,87 @@
     > a,
     > a:hover,
     > a:focus {
-      background-color: #fff;
-      color: #03a9f4;
+      color: unquote("rgb(#{$color-primary})");
       cursor: default;
     }
   }
 }
 
-.collapsable {
-  -webkit-transition: height 0.35s ease;
-     -o-transition: height 0.35s ease;
-        transition: height 0.35s ease;
-}
-
-.collapsed {
-  height: 0;
-  overflow: hidden;
-}
-
-.qor-menu-group {
+.qor-menu-container {
   padding-top: 8px;
   padding-bottom: 8px;
 
-  > ul {
-    > li {
+  > ul  {
+    > li > a {
       position: relative;
 
-      > a {
-        min-height: 40px;
-        font-size: 0;
-        line-height: 0;
-
-        &::before,
-        &::after {
-          display: block;
-          width: 24px;
-          height: 24px;
-          font-size: 18px;
-          line-height: 24px;
-          text-align: center;
-          color: rgba(0,0,0,0.54);
-          @extend .md;
-        }
-
-        &::before {
-          content: "\e5d2";
-        }
-      }
-
-      &[data-menu-item*="Dashboard"] {
-        > a::before {
-          content: "\e871";
-        }
-      }
-
-      &[data-menu-item*="Asset"] {
-        > a::before {
-          content: "\e2c7";
-        }
-      }
-
-      &[data-menu-item*="Product"] {
-        > a::before {
-          content: "\e1db";
-        }
-      }
-
-      &[data-menu-item*="Site"] {
-        > a::before {
-          content: "\e051";
-        }
-      }
-
-      &[data-menu-item*="Order"] {
-        > a::before {
-          content: "\e8cc";
-        }
-      }
-
-      &[data-menu-item*="User"] {
-        > a::before {
-          content: "\e7fd";
-        }
-      }
-
-      &[data-menu-item*="Translation"] {
-        > a::before {
-          content: "\e894";
-        }
-      }
-
-      &[data-menu-item*="Publish"] {
-        > a::before {
-          content: "\e255";
-        }
-      }
-
-      &[data-menu-item*="Setting"] {
-        > a::before {
-          content: "\e8b8";
-        }
-      }
-
-      > ul {
+      &::before,
+      &::after {
         position: absolute;
-        top: 0;
-        left: 100%;
-        display: none;
-        min-height: 40px;
-        margin-left: 1px;
-        box-shadow: 0 0 3px rgba(0,0,0,0.19), 0 6px 10px rgba(0,0,0,0.19);
-
-        &::before {
-          display: block;
-          height: 40px;
-          padding: 8px 16px;
-          line-height: 24px;
-          font-weight: 500;
-          white-space: nowrap;
-          content: attr(data-menu);
-        }
-
-        &::after {
-          position: absolute;
-          top: 12px;
-          left: -8px;
-          display: block;
-          width: 0;
-          height: 0;
-          border: 8px solid transparent;
-          border-left-width: 0;
-          border-right-color: #fff;
-          content: " ";
-        }
-
-        > li {
-          &:first-child {
-            margin-top: -1px;
-            border-top: 1px solid rgba(0,0,0,0.12);
-          }
-
-          > a {
-            padding: 4px 16px;
-          }
-        }
+        top: 8px;
+        width: 24px;
+        height: 24px;
+        font-size: 18px;
+        line-height: 24px;
+        text-align: center;
+        color: inherit;
+        @extend .material-icons;
       }
 
-      &:hover {
-        > a {
-          background-color: rgba(0,0,0,0.12);
-        }
+      &::before {
+        left: 8px;
+        content: "\e5d2";
+      }
 
-        > ul {
-          display: block;
-        }
+      &::after {
+        right: 8px;
       }
     }
-  }
-}
 
-@media (min-width: $grid-float-breakpoint) {
-  .qor-menu-group {
-    > ul {
-      > li {
-        &:hover {
-          > a {
-            background-color: #fff;
-          }
-        }
+    > [data-menu-item*="Dashboard"] > a::before {
+      content: "\e871";
+    }
 
-        > a {
-          position: relative;
-          padding-left: 40px;
-          padding-right: 32px;
-          font-size: 14px;
-          line-height: 24px;
-          font-weight: 500;
+    > [data-menu-item*="Asset"] > a::before {
+      content: "\e2c7";
+    }
 
-          &:hover,
-          &:focus {
-            background-color: rgba(0,0,0,0.12);
-          }
+    > [data-menu-item*="Product"] > a::before {
+      content: "\e1db";
+    }
 
-          &:before,
-          &:after {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-          }
-        }
+    > [data-menu-item*="Site"] > a::before {
+      content: "\e051";
+    }
 
-        > ul {
-          position: static;
-          display: block;
-          min-height: 0;
-          box-shadow: none;
+    > [data-menu-item*="Order"] > a::before {
+      content: "\e8cc";
+    }
 
-          &::before,
-          &::after {
-            display: none;
-          }
+    > [data-menu-item*="User"] > a::before {
+      content: "\e7fd";
+    }
 
-          > li {
-            &:first-child {
-              margin-top: 0;
-              border-top: 0;
-            }
+    > [data-menu-item*="Translation"] > a::before {
+      content: "\e894";
+    }
 
-            > a {
-              padding-left: 40px;
-            }
-          }
-        }
-      }
+    > [data-menu-item*="Publish"] > a::before {
+      content: "\e255";
+    }
 
-      > .expandable > a:after {
-        right: 8px;
-        left: auto;
+    > [data-menu-item*="Setting"] > a::before {
+      content: "\e8b8";
+    }
+
+    > .expandable > a {
+      &::after {
         content: "\e5ce";
       }
+    }
 
-      > .expanded > a:after {
+    > .expanded > a {
+      &::after {
         content: "\e5cf";
       }
     }

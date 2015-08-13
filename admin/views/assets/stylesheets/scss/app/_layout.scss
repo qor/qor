@@ -1,36 +1,23 @@
-// Global
-// --------------------------------------------------
+.qor-layout {
+  width: 100%;
 
-body {
-  background-color: #f5f5f5;
-  color: $color-text;
-}
+  .mdl-layout-text {
+    color: unquote("rgba(#{$color-white}, 0.54)");
+  }
 
-a {
-  color: $color-secondary;
+  .mdl-navigation__link > .material-icons {
+    vertical-align: middle;
+  }
 
-  &:hover,
-  &:focus {
-    color: $color-primary;
-    text-decoration: none;
+  .mdl-layout__header .mdl-layout__header-row {
+    @media screen and (max-width: $layout-screen-size-threshold) {
+      padding-left: 72px;
+    }
   }
 }
 
-// Sidebar
-// --------------------------------------------------
-
-.qor-sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  z-index: $zindex-sidebar;
-  width: 56px;
-  box-shadow: $box-shadow-2;
-  background-color: #fff;
-  -webkit-transition: width 0.35s ease;
-       -o-transition: width 0.35s ease;
-          transition: width 0.35s ease;
+.qor-layout__sidebar {
+  height: 100%;
 
   > .sidebar-header {
     position: absolute;
@@ -38,45 +25,32 @@ a {
     left: 0;
     right: 0;
     height: 64px;
-    border-bottom: 1px solid rgba(0,0,0,0.12);
-    @extend .clearfix;
+    border-bottom: 1px solid unquote("rgba(#{$color-black}, 0.12)");
 
     > a {
+      text-decoration: none;
+
+      &:hover,
+      &:focus {
+        text-decoration: none;
+      }
 
       &:first-child {
         float: left;
         display: block;
-        width: 56px;
+        width: 110px;
         height: 64px;
-        padding: 16px;
-        @extend .text-hide;
-
-        &:hover,
-        &:focus {
-          text-decoration: none;
-        }
-
-        &:before {
-          display: block;
-          height: 32px;
-          background: url(../images/logo.png) no-repeat 0 0;
-          content: " ";
-        }
+        background: url(../images/logo.png) no-repeat center center;
+        color: transparent;
       }
 
       &:last-child {
         float: left;
-        display: none;
-        width: 120px;
+        width: 100px;
         padding: 22px 10px;
         color: #757575;
 
-        &:hover,
-        &:focus {
-          text-decoration: none;
-        }
-
-        > i {
+        > .material-icons {
           position: relative;
           top: -1px;
           margin-left: 3px;
@@ -91,8 +65,10 @@ a {
     position: absolute;
     top: 64px;
     right: 0;
-    bottom: 0;
+    bottom: 40px;
     left: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   > .sidebar-footer {
@@ -100,20 +76,14 @@ a {
     left: 0;
     right: 0;
     bottom: 0;
-    display: none;
     padding: 8px 16px;
-    border-top: 1px solid rgba(0,0,0,0.12);
+    border-top: 1px solid unquote("rgba(#{$color-black}, 0.12)");
     line-height: 24px;
   }
 }
 
-
-// Mainbody
-// --------------------------------------------------
-
-// Inherit body height with absolute position
-.qor-mainbody {
-  position: absolute;
+.qor-layout__content {
+  position: absolute; // Inherit body height with absolute position
   top: 0;
   right: 0;
   left: 56px;
@@ -121,101 +91,25 @@ a {
   -webkit-transition: left 0.35s ease;
        -o-transition: left 0.35s ease;
           transition: left 0.35s ease;
-
-  @extend .clearfix;
 }
 
+.qor-page {
 
-// Responsive
-// --------------------------------------------------
-
-@media (min-width: $grid-float-breakpoint) {
-  .qor-sidebar {
-    width: 240px;
-
-    > .sidebar-header {
-      > a {
-        &:first-child {
-          width: 110px;
-        }
-
-        &:last-child {
-          display: block;
-        }
-      }
-    }
-
-    > .sidebar-body {
-      bottom: 40px;
-      overflow-x: hidden;
-      overflow-y: auto;
-    }
-
-    > .sidebar-footer {
-      display: block;
-    }
-  }
-
-  .qor-mainbody {
-    left: 240px;
-  }
 }
 
-
-// Header
-// --------------------------------------------------
-
-.qor-header {
-  position: relative;
-  z-index: 1;
-  height: 64px;
-  padding: 0 24px;
-  font-size: 24px;
-  line-height: 64px;
-  color: #fff;
-  background-color: $color-primary-dark;
-  box-shadow: $box-shadow-2;
-  @extend .clearfix;
-
-  > .qor-title {
-    float: left;
-    margin: 0;
-    font-size: inherit;
-    line-height: inherit;
-  }
-}
-
-.qor-subheader {
+.qor-page__header {
   position: relative;
   min-height: 56px;
   margin-bottom: 24px;
   padding: 0 80px 0 24px;
   background-color: #fff;
-  box-shadow: $box-shadow-1;
-  @extend .clearfix;
-
-  &:empty {
-    display: none;
-  }
-}
-
-// Body
-// --------------------------------------------------
-
-.qor-body {
+  @include shadow-2dp();
   @extend .clearfix;
 }
 
-.qor-page-header {
-  padding-bottom: 9px;
-  margin: 40px 0 20px;
-  border-bottom: 1px solid #eee;
+.qor-page__body {
 }
 
-
-// Footer
-// --------------------------------------------------
-
-.qor-footer {
+.qor-page__footer {
   height: 40px;
 }

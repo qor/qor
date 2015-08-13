@@ -1,13 +1,15 @@
-<div class="form-group">
-  <label for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
-  <select class="form-control" id="{{.InputId}}" data-toggle="qor.chooser" name="{{.InputName}}" multiple {{if not (has_update_permission .Meta)}}DISABLED{{end}}>
-    {{$current_values := .Value}}
-    {{range $values := .CollectionValue}}
-      {{if (is_included $current_values (index $values 0))}}
-        <option value="{{index $values 0}}" selected>{{index $values 1}}</option>
-      {{else}}
-        <option value="{{index $values 0}}">{{index $values 1}}</option>
+<div class="qor-field">
+  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
+  <div class="qor-field__block">
+    <select class="qor-field__input" id="{{.InputId}}" data-toggle="qor.chooser" name="{{.InputName}}" multiple{{if not (has_update_permission .Meta)}} disabled{{end}}>
+      {{$current_values := .Value}}
+      {{range $values := .CollectionValue}}
+        {{if (is_included $current_values (index $values 0))}}
+          <option value="{{index $values 0}}" selected>{{index $values 1}}</option>
+        {{else}}
+          <option value="{{index $values 0}}">{{index $values 1}}</option>
+        {{end}}
       {{end}}
-    {{end}}
-  </select>
+    </select>
+  </div>
 </div>

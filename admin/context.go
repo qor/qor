@@ -22,6 +22,18 @@ type Context struct {
 	Content  template.HTML
 }
 
+func (context *Context) clone() *Context {
+	return &Context{
+		Context:  context.Context,
+		Searcher: context.Searcher,
+		Flashes:   context.Flashes,
+		Resource: context.Resource,
+		Admin:    context.Admin,
+		Result:   context.Result,
+		Content:  context.Content,
+	}
+}
+
 // Resource
 func (context *Context) resourcePath() string {
 	if context.Resource == nil {
@@ -92,16 +104,19 @@ func (context *Context) FindTemplate(tmpl *template.Template, layout string) (*t
 }
 
 func (context *Context) Render(name string, results ...interface{}) template.HTML {
+	var clone = context.clone()
 	var err error
-	names := strings.Split(name, "/")
-	tmpl := template.New(names[len(names)-1] + ".tmpl").Funcs(context.FuncMap())
+
 	if len(results) > 0 {
-		context.Result = results[0]
+		clone.Result = results[0]
 	}
+	names := strings.Split(name, "/")
+	tmpl := template.New(names[len(names)-1] + ".tmpl").Funcs(clone.FuncMap())
 
 	if tmpl, err = context.FindTemplate(tmpl, name+".tmpl"); err == nil {
+
 		var result = bytes.NewBufferString("")
-		if err := tmpl.Execute(result, context); err != nil {
+		if err := tmpl.Execute(result, clone); err != nil {
 			fmt.Println(err)
 		}
 		return template.HTML(result.String())

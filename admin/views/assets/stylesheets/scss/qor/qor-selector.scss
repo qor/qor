@@ -19,26 +19,26 @@
 .qor-selector-toggle {
   position: relative;
   display: block;
-  height: 32px;
+  height: 28px;
   padding-left: 8px;
   font-size: 14px;
   line-height: 28px;
-  color: $color-secondary;
+  color: unquote("rgba(#{$color-black}, 0.54)");
   background-color: #fff;
-  border: 2px solid $color-divider;
+  border: 2px solid unquote("rgba(#{$color-black}, 0.12)");;
   border-radius: 2px;
   cursor: pointer;
 
   &:hover,
   &:focus {
     text-decoration: none;
-    color: $color-secondary;
+    color: unquote("rgba(#{$color-black}, 0.54)");
   }
 
   &.active {
     padding-right: 0;
     color: $color-text;
-    border-color: $color-primary;
+    border-color: unquote("rgb(#{$color-primary})");
   }
 
   > .material-icons {
@@ -59,7 +59,7 @@
       display: inline-block;
       width: 30px;
       padding-left: 2px;
-      background-color: $color-primary;
+      background-color: unquote("rgb(#{$color-primary})");
       color: #fff;
     }
   }
@@ -110,7 +110,7 @@
     &,
     &:hover,
     &:focus {
-      color: $color-disabled;
+      color: unquote("rgba(#{$color-black}, 0.26)");
       background-color: transparent;
       cursor: auto;
     }

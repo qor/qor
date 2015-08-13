@@ -1,32 +1,33 @@
 // Forms
 // --------------------------------------------------
 
+
+// Form
+// -------------------------
+
 .qor-form-container {
   margin: 24px;
   padding: 24px;
   background-color: #fff;
-  box-shadow: $box-shadow-1;
-  @extend .clearfix;
+  @include shadow-2dp();
+}
 
-  > .qor-page-header {
-    margin-top: 10px;
+.qor-form {
+  .mdl-textfield {
+    display: block;
+    width: 100%;
   }
 }
 
-.form-group {
-  label {
-    color: $color-secondary;
-    font-weight: normal;
-  }
+.qor-form__actions {
+  margin-top: 24px;
+  @include clearfix();
 
-  .form-control {
-    font-size: 16px;
-    color: inherit;
-    background-image: linear-gradient($color-primary,$color-primary),linear-gradient($grey-300,$grey-300);
+  .mdl-button {
+    float: right;
 
-    &:focus {
-      color: inherit;
-      background-image: linear-gradient($color-primary,$color-primary),linear-gradient($grey-300,$grey-300);
+    + .mdl-button {
+      margin-left: 8px;
     }
   }
 
@@ -62,137 +63,155 @@
   }
 }
 
-.qor-search-container {
+
+// Search Form
+// -------------------------
+
+.qor-form--search {
   position: absolute;
   top: 0;
   right: 0;
-  min-height: 32px;
-  padding: 12px 24px;
-  background-color: #fff;
-  @extend .clearfix;
+  padding-left: 24px;
+  padding-right: 24px;
+  background-color: inherit;
 }
 
 .qor-search {
-  position: relative;
-  float: right;
-  display: block;
-  min-width: 32px;
-  max-width: 320px;
-  height: 32px;
+  height: 56px;
+  padding-top: 14px;
+  padding-bottom: 14px;
 
-  > .qor-search-label,
-  > .qor-search-clear {
-    position: absolute;
-    top: 0;
-    display: block;
-    width: 32px;
-    padding: 4px;
-    height: inherit;
-    text-align: center;
-    cursor: pointer;
+  > .mdl-button {
+    bottom: 12px;
   }
 
   > .qor-search-label {
-    left: 0;
-    margin-bottom: 0;
-    color: rgba(0,0,0,0.54);
+    color: unquote("rgba(#{$color-black}, 0.54)");
   }
 
   > .qor-search-clear {
-    right: 0;
-    color: $color-primary;
-    visibility: hidden;
-    background-color: transparent;
-    border: 0;
+    display: none;
   }
 
-  > .qor-search-input {
-    width: 0;
-
-    -webkit-transition: width 0.35s ease;
-         -o-transition: width 0.35s ease;
-            transition: width 0.35s ease;
-  }
-
-  > .qor-search-input:focus,
-  > .qor-search-input.focus {
-    width: 320px;
-    height: 32px;
-    padding-left: 32px;
-    line-height: normal;
-
-    + .qor-search-clear {
-      visibility: visible;
-    }
-  }
-
-  &.active {
+  &.is-dirty,
+  &.is-focused {
     > .qor-search-label {
-      cursor: default;
+      &,
+      &:hover {
+        background-color: transparent;
+        cursor: default;
+      }
+    }
+
+    > .qor-search-clear {
+      right: -7px;
+      display: block;
     }
   }
 }
 
 
-.qor-collection {
-  margin-top: 16px;
-  margin-bottom: 16px;
-  padding: 16px 24px;
-  border: 1px solid #eee;
-  border-radius: 2px;
-  background-color: $grey-50;
-  // box-shadow: $box-shadow-1;
-  @extend .clearfix;
-
-  > .form-group {
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-}
-
-.qor-collection-del {
-  float: right;
-  margin-right: -8px;
-}
-
-
-// Reset Chosen Plugin style
+// Field
 // -------------------------
 
-.chosen-container {
-  .chosen-single {
-    border-color: #ccc;
-    border-radius: 2px;
-    @include box-shadow(none);
-  }
+.qor-field {
+  padding: 8px 0;
 }
 
-.chosen-container-active {
-  .chosen-single {
-    border-color: #009688;
-  }
+.qor-field__label {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: unquote("rgba(#{$color-black}, 0.54)");
+}
 
-  &.chosen-with-drop {
-    .chosen-single {
-      border-color: #009688;
+
+// File input
+// -------------------------
+
+.qor-file {
+  position: relative;
+  display: block;
+}
+
+.qor-file__list {
+  margin-top: 12px;
+  overflow: hidden;
+
+  > ul {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style: none;
+
+    > li {
+      position: relative;
+      float: left;
+      display: block;
+      width: 160px;
+      height: 160px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      border: 1px solid unquote("rgba(#{$color-black}, 0.12)");
+      background-color: unquote("rgb(#{$palette-grey-50})");
+      overflow: hidden;
+
+      > span {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        display: block;
+        padding: 5px;
+        font-size: 12px;
+        line-height: 20px;
+        text-align: center;
+        background-color: unquote("rgba(#{$color-white}, 0.5)");
+
+        &:first-letter {
+          text-transform: uppercase;
+        }
+      }
+
+      img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 100%;
+        max-height: 160px;
+      }
     }
   }
 }
 
-.chosen-container {
-  .chosen-choices {
-    border-color: #ccc;
+
+// Fieldset
+// -------------------------
+
+.qor-fieldset {
+  position: relative;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border-top: 1px solid unquote("rgba(#{$color-black}, 0.12)");
+  border-bottom: 1px solid unquote("rgba(#{$color-black}, 0.12)");
+  // background-color: unquote("rgb(#{$palette-grey-50})");
+
+  + .qor-fieldset {
+    border-top: none;
+    margin-top: -16px;
   }
 }
 
-.chosen-container-active {
-  .chosen-choices {
-    border-color: #009688;
-    @include box-shadow(none);
-  }
+.qor-fieldset__delete {
+  position: absolute;
+  top: 8px;
+  right: 0;
+}
 
-  .chosen-drop {
-    border-color: #009688;
-  }
+.qor-fieldset__alert {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  text-align: center;
 }

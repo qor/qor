@@ -5,3 +5,40 @@
   background-size: auto auto !important;
   background-repeat: no-repeat !important;
 }
+
+.chosen-container {
+  .chosen-single {
+    border-color: #ccc;
+    border-radius: 2px;
+    @include box-shadow(none);
+  }
+}
+
+.chosen-container-active {
+  .chosen-single {
+    border-color: #009688;
+  }
+
+  &.chosen-with-drop {
+    .chosen-single {
+      border-color: #009688;
+    }
+  }
+}
+
+.chosen-container {
+  .chosen-choices {
+    border-color: #ccc;
+  }
+}
+
+.chosen-container-active {
+  .chosen-choices {
+    border-color: #009688;
+    @include box-shadow(none);
+  }
+
+  .chosen-drop {
+    border-color: #009688;
+  }
+}
