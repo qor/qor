@@ -25,6 +25,8 @@
   var EVENT_HIDE = 'hide.' + NAMESPACE;
   var EVENT_HIDDEN = 'hidden.' + NAMESPACE;
   var CLASS_OPEN = 'qor-slideout-open';
+  var CLASS_ACTIVE = 'active';
+  var CLASS_SELECTED = 'is-selected';
 
   function QorSlideout(element, options) {
     this.$element = $(element);
@@ -87,8 +89,8 @@
       var data;
 
       function toggleClass() {
-        $this.find('tbody > tr').removeClass('active');
-        $target.addClass('active');
+        $this.find('tbody > tr').removeClass(CLASS_SELECTED);
+        $target.addClass(CLASS_SELECTED);
       }
 
       if (e.isDefaultPrevented()) {
@@ -114,7 +116,7 @@
           this.hide();
           break;
         } else if ($target.is('tbody > tr')) {
-          if (!$target.hasClass('active')) {
+          if (!$target.hasClass(CLASS_SELECTED)) {
             $this.one(EVENT_SHOW, toggleClass);
             this.load($target.find('.qor-button--edit').attr('href'));
           }
@@ -141,7 +143,7 @@
       }
 
       // if (dismissible) {
-      //   $this.find('tbody > tr').removeClass('active');
+      //   $this.find('tbody > tr').removeClass(CLASS_SELECTED);
       //   this.hide();
       // }
     },
@@ -303,7 +305,7 @@
       }
 
       /*jshint expr:true */
-      $slideout.addClass('active').get(0).offsetWidth;
+      $slideout.addClass(CLASS_ACTIVE).get(0).offsetWidth;
       $slideout.addClass('in');
       this.animating = setTimeout($.proxy(this.shown, this), 350);
     },
@@ -343,8 +345,8 @@
 
       // Enable to scroll body element
       this.$documentBody.removeClass(CLASS_OPEN);
-      this.$element.find('tbody > tr').removeClass('active');
-      this.$slideout.removeClass('active').trigger(EVENT_HIDDEN);
+      this.$element.find('tbody > tr').removeClass(CLASS_SELECTED);
+      this.$slideout.removeClass(CLASS_ACTIVE).trigger(EVENT_HIDDEN);
     },
 
     refresh: function () {
