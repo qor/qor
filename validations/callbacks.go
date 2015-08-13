@@ -5,12 +5,7 @@ import "github.com/jinzhu/gorm"
 var skipValidations = "validations:skip_validations"
 
 func validate(scope *gorm.Scope) {
-	db := scope.DB()
-	if _, ok := db.Get(settingKey); !ok {
-		db.InstantSet(settingKey, map[string][]string{})
-	}
-
-	if result, ok := db.Get(skipValidations); !(ok && result.(bool)) {
+	if result, ok := scope.DB().Get(skipValidations); !(ok && result.(bool)) {
 		scope.CallMethodWithErrorCheck("Validate")
 	}
 }
