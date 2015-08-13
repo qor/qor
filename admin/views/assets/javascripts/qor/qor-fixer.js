@@ -30,6 +30,7 @@
     constructor: QorFixer,
 
     init: function () {
+      var options = this.options;
       var $this = this.$element;
 
       if ($this.is(':hidden') || $this.find('tbody > tr:visible').length <= 1) {
@@ -38,20 +39,21 @@
 
       this.$thead = $this.find('thead:first');
       this.$tbody = $this.find('tbody:first');
-      this.$context = $(this.options.context);
+      this.$header = $(options.header);
+      this.$content = $(options.content);
 
       this.resize();
       this.bind();
     },
 
     bind: function () {
-      this.$context.
+      this.$content.
         on(EVENT_SCROLL, $.proxy(this.toggle, this)).
         on(EVENT_RESIZE, $.proxy(this.resize, this));
     },
 
     unbind: function () {
-      this.$context.
+      this.$content.
         off(EVENT_SCROLL, this.toggle).
         off(EVENT_RESIZE, this.resize);
     },
@@ -66,16 +68,10 @@
         this.$clone = $clone = $thead.clone().prependTo($this);
       }
 
+      this.offsetTop = $this.offset().top - this.$header.outerHeight();
+
       $clone.
-        css({
-          position: 'fixed',
-          top: 64,
-          zIndex: 1,
-          display: 'none',
-          width: $thead.width(),
-          backgroundColor: '#fff',
-          borderBottom: '1px solid rgba(0,0,0,0.12)',
-        }).
+        addClass('is-fixed').
         find('> tr').
           children().
             each(function (i) {
@@ -90,14 +86,12 @@
     toggle: function () {
       var $this = this.$element;
       var $clone = this.$clone;
-      var offset = $this.offset();
-      var top = this.$context.scrollTop() - offset.top;
-      var theadHeight = this.$thead.height();
-      var tbodyHeight = this.$tbody.find('> tr:last').height();
-      var maxTop = $this.outerHeight() - theadHeight - tbodyHeight;
+      var scrollTop = this.$content.scrollTop();
+      var min = this.offsetTop;
+      var max = scrollTop + $this.outerHeight();
 
-      if (top > 0 && top < maxTop) {
-        $clone.show();
+      if (scrollTop > min && scrollTop < max) {
+        $clone.css('top', (scrollTop - min)).show();
       } else {
         $clone.hide();
       }
@@ -116,7 +110,8 @@
   };
 
   QorFixer.DEFAULTS = {
-    context: window
+    header: false,
+    content: false,
   };
 
   QorFixer.plugin = function (options) {
@@ -138,7 +133,8 @@
   $(function () {
     var selector = '.qor-table';
     var options = {
-          context: '.mdl-layout__content',
+          header: '.mdl-layout__header',
+          content: '.mdl-layout__content',
         };
 
     $(document).

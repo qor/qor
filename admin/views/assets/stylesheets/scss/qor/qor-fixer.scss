@@ -1,0 +1,10 @@
+.is-fixed {
+  position: absolute;
+  top: 0;
+  left: 1;
+  z-index: 1;
+  display: none;
+  width: inherit;
+  background-color: #fff;
+  @include shadow-2dp();
+}
