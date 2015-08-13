@@ -4,7 +4,6 @@ $(function () {
 
   var NAMESPACE = 'qor.menu';
   var EVENT_CLICK = 'click.' + NAMESPACE;
-  var EVENT_RESIZE = 'resize.' + NAMESPACE;
   var EVENT_TRANSITION_END = 'transitionend.' + NAMESPACE;
 
   function Menu(element, options) {

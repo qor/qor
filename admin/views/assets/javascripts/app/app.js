@@ -15,7 +15,7 @@ $(function () {
     var $input = $this.find('.qor-search-input');
     var $clear = $this.find('.qor-search-clear');
 
-    $clear.on('click', function (e) {
+    $clear.on('click', function () {
       $this.removeClass('is-dirty');
 
       if ($input.val()) {

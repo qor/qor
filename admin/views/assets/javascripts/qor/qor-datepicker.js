@@ -19,8 +19,8 @@
   var EVENT_CHANGE = 'change.' + NAMESPACE;
   var EVENT_CLICK = 'click.' + NAMESPACE;
 
-  var CLASS_EMBEDDED = '.qor-datepicker-embedded';
-  var CLASS_SAVE = '.qor-datepicker-save';
+  var CLASS_EMBEDDED = '.qor-datepicker__embedded';
+  var CLASS_SAVE = '.qor-datepicker__save';
 
   function QorDatepicker(element, options) {
     this.$element = $(element);
@@ -94,10 +94,12 @@
       this.date = date = $target.datepicker('getDate');
       this.formatDate = $target.datepicker('getDate', true);
 
-      $modal.find('.qor-datepicker-year').text(date.getFullYear());
-      $modal.find('.qor-datepicker-month').text(String($target.datepicker('getMonthByNumber', date.getMonth(), true)).toUpperCase());
-      $modal.find('.qor-datepicker-week').text($target.datepicker('getDayByNumber', date.getDay()));
-      $modal.find('.qor-datepicker-day').text(date.getDate());
+      $modal.find('.qor-datepicker__picked-year').text(date.getFullYear());
+      $modal.find('.qor-datepicker__picked-date').text([
+        $target.datepicker('getDayByNumber', date.getDay(), true) + ',',
+        String($target.datepicker('getMonthByNumber', date.getMonth(), true)),
+        date.getDate()
+      ].join(' '));
     },
 
     show: function () {
@@ -105,12 +107,12 @@
         this.build();
       }
 
-      this.$modal.modal('show');
+      this.$modal.qorModal('show');
     },
 
     pick: function () {
-      this.$element.val(this.formatDate);
-      this.$modal.modal('hide');
+      this.$element.val(this.formatDate).closest('.mdl-js-textfield').trigger('update.qor.material');
+      this.$modal.qorModal('hide');
     },
 
     destroy: function () {
@@ -123,23 +125,21 @@
   QorDatepicker.DEFAULTS = {};
 
   QorDatepicker.TEMPLATE = (
-     '<div class="qor-modal fade qor-datepicker-modal" tabindex="-1" role="dialog" aria-hidden="true">' +
+     '<div class="qor-modal fade qor-datepicker" tabindex="-1" role="dialog" aria-hidden="true">' +
       '<div class="mdl-card mdl-shadow--2dp" role="document">' +
         '<div class="mdl-card__title">' +
           '<h2 class="mdl-card__title-text">Pick a date</h2>' +
         '</div>' +
         '<div class="mdl-card__supporting-text">' +
-          '<div class="qor-datepicker-picked">' +
-            '<div class="qor-datepicker-week"></div>' +
-            '<div class="qor-datepicker-month"></div>' +
-            '<div class="qor-datepicker-day"></div>' +
-            '<div class="qor-datepicker-year"></div>' +
+          '<div class="qor-datepicker__picked">' +
+            '<div class="qor-datepicker__picked-year"></div>' +
+            '<div class="qor-datepicker__picked-date"></div>' +
           '</div>' +
-          '<div class="qor-datepicker-embedded"></div>' +
+          '<div class="qor-datepicker__embedded"></div>' +
         '</div>' +
-        '<div class="mdl-card__actions mdl-card--border">' +
-          '<a class="mdl-button mdl-button-colored mdl-js-button mdl-js-ripple-effect qor-datepicker-save">OK</a>' +
-          '<a class="mdl-button mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Cancel</a>' +
+        '<div class="mdl-card__actions">' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-datepicker__save">OK</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Cancel</a>' +
         '</div>' +
       '</div>' +
     '</div>'
@@ -172,17 +172,14 @@
   $(function () {
     var selector = '[data-toggle="qor.datepicker"]';
 
-    $(document)
-      .on(EVENT_CLICK, selector, function () {
-        QorDatepicker.plugin.call($(this));
-      })
-      .on(EVENT_DISABLE, function (e) {
+    $(document).
+      on(EVENT_DISABLE, function (e) {
         QorDatepicker.plugin.call($(selector, e.target), 'destroy');
-      })
-      .on(EVENT_ENABLE, function (e) {
+      }).
+      on(EVENT_ENABLE, function (e) {
         QorDatepicker.plugin.call($(selector, e.target));
-      })
-      .triggerHandler(EVENT_ENABLE);
+      }).
+      triggerHandler(EVENT_ENABLE);
   });
 
   return QorDatepicker;

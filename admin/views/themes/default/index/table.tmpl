@@ -6,7 +6,7 @@
       {{range $index, $meta := index_metas}}
         <th class="mdl-data-table__cell--non-numeric">{{dt (printf "%v.attributes.%v" $Resource.ToParam $meta.Label) $meta.Label}}</th>
       {{end}}
-      <th class="mdl-data-table__cell--non-numeric qor-table__action">{{t "Actions"}}</th>
+      <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
     </tr>
   </thead>
 
@@ -19,7 +19,7 @@
           </td>
         {{end}}
 
-        <td class="mdl-data-table__cell--non-numeric qor-table__action">
+        <td class="mdl-data-table__cell--non-numeric qor-table__actions">
           {{if has_update_permission $Resource}}
             <a class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored qor-button--edit" href="{{url_for $resource}}">
               <i class="material-icons">edit</i>

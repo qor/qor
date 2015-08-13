@@ -67,19 +67,19 @@
     },
 
     bind: function () {
-      this.$element
-        .on(EVENT_CLICK, $.proxy(this.click, this))
-        .on(EVENT_KEYUP, $.proxy(this.resize, this))
-        .on(EVENT_CHANGE, $.proxy(this.change, this));
+      this.$element.
+        on(EVENT_CLICK, $.proxy(this.click, this)).
+        on(EVENT_KEYUP, $.proxy(this.resize, this)).
+        on(EVENT_CHANGE, $.proxy(this.change, this));
 
       this.$languages.on(EVENT_CHANGE, $.proxy(this.reload, this));
     },
 
     unbind: function () {
-      this.$element
-        .off(EVENT_CLICK, this.click)
-        .off(EVENT_KEYUP, this.resize)
-        .off(EVENT_CHANGE, this.change);
+      this.$element.
+        off(EVENT_CLICK, this.click).
+        off(EVENT_KEYUP, this.resize).
+        off(EVENT_CHANGE, this.change);
 
       this.$languages.off(EVENT_CHANGE, this.reload);
     },

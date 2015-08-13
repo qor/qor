@@ -152,12 +152,11 @@
 /* Shadows */
 /* Animations */
 .clearfix:before,
-.qor-slideout .qor-btn-group:before,
-.clearfix:after, .qor-slideout .qor-btn-group:after {
+.clearfix:after {
   content: " ";
   display: table; }
 
-.clearfix:after, .qor-slideout .qor-btn-group:after {
+.clearfix:after {
   clear: both; }
 
 .center-block {
@@ -225,6 +224,8 @@ tbody.collapse.in {
     width: auto;
     min-height: 0;
     margin: 16px; }
+    .qor-modal .mdl-card .mdl-card__supporting-text {
+      width: auto; }
     .qor-modal .mdl-card .mdl-card__actions:before,
     .qor-modal .mdl-card .mdl-card__actions:after {
       content: " ";
@@ -235,7 +236,7 @@ tbody.collapse.in {
       float: right; }
   @media screen and (min-width: 1024px) {
     .qor-modal .mdl-card {
-      max-width: 600px;
+      max-width: 640px;
       margin: 32px auto; } }
   .qor-modal.fade .mdl-card {
     -webkit-transform: translate(0, -25%);
@@ -258,57 +259,14 @@ tbody.collapse.in {
     overflow-x: hidden;
     overflow-y: auto; }
 
-.qor-file-action {
-  margin-bottom: 10px; }
-
-.qor-file-list {
-  margin-top: 10px;
-  margin-bottom: 10px;
-  overflow: hidden; }
-  .qor-file-list > ul {
-    margin-bottom: 0;
-    padding-left: 0;
-    list-style: none; }
-    .qor-file-list > ul > li {
-      position: relative;
-      float: left;
-      display: block;
-      width: 160px;
-      height: 160px;
-      margin-right: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #eee;
-      background-color: #fcfcfc;
-      overflow: hidden; }
-      .qor-file-list > ul > li > span {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 1;
-        display: block;
-        padding: 5px;
-        font-size: 12px;
-        line-height: 20px;
-        text-align: center;
-        background-color: rgba(255, 255, 255, 0.5); }
-        .qor-file-list > ul > li > span:first-letter {
-          text-transform: uppercase; }
-      .qor-file-list > ul > li img {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        max-width: 100%;
-        max-height: 180px; }
-
-.qor-cropper-canvas {
+.qor-cropper__canvas {
   position: relative;
   width: 100%;
   margin-left: auto;
   margin-right: auto;
   overflow: hidden; }
 
-.qor-cropper-toggle {
+.qor-cropper__toggle {
   display: block;
   position: absolute;
   top: 0;
@@ -320,84 +278,53 @@ tbody.collapse.in {
   background-color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   opacity: 0; }
-  .qor-cropper-toggle:hover {
+  .qor-cropper__toggle:hover {
     opacity: 1; }
-  .qor-cropper-toggle:before,
-  .qor-cropper-toggle:after {
+  .qor-cropper__toggle > i {
     position: absolute;
     top: 50%;
     left: 50%;
-    display: block;
-    background-color: #eee;
-    content: " "; }
-  .qor-cropper-toggle:before {
-    width: 20px;
-    height: 2px;
-    margin-left: -10px;
-    margin-top: -1px; }
-  .qor-cropper-toggle:after {
-    width: 2px;
-    height: 20px;
-    margin-left: -1px;
-    margin-top: -10px; }
+    margin-top: -12px;
+    margin-left: -12px;
+    color: #fff; }
 
-.qor-cropper-modal .modal-content .modal-header {
-  padding-top: 16px;
-  padding-bottom: 16px; }
-
-.qor-cropper-modal .modal-content .modal-body {
-  padding: 0; }
-  .qor-cropper-modal .modal-content .modal-body img {
+.qor-cropper__wrapper {
+  margin: -16px; }
+  .qor-cropper__wrapper > img {
     max-width: 100%; }
 
-.qor-cropper-modal .modal-content .modal-footer {
-  padding-top: 8px;
-  padding-bottom: 8px; }
-
-.qor-cropper-optionbox {
+.qor-cropper__options {
   display: none;
-  margin: 16px 16px 0;
-  overflow: hidden; }
-  .qor-cropper-optionbox > h5 {
+  margin-top: 32px; }
+  .qor-cropper__options:before,
+  .qor-cropper__options:after {
+    content: " ";
+    display: table; }
+  .qor-cropper__options:after {
+    clear: both; }
+  .qor-cropper__options > p {
+    float: left;
+    margin-right: 16px;
+    margin-bottom: 0; }
+  .qor-cropper__options > ul {
     float: left;
     margin-top: 0;
-    margin-right: 16px;
-    margin-bottom: 0;
-    line-height: 20px; }
-  .qor-cropper-optionbox > ul {
-    float: left;
     margin-bottom: 0;
     padding-left: 0;
     list-style: none;
     overflow: hidden; }
-    .qor-cropper-optionbox > ul > li {
+    .qor-cropper__options > ul > li {
       float: left;
       margin-right: 16px; }
-      .qor-cropper-optionbox > ul > li > label {
-        margin-bottom: 0;
-        font-weight: normal; }
-        .qor-cropper-optionbox > ul > li > label > input {
-          margin-right: 2px; }
-        .qor-cropper-optionbox > ul > li > label > span {
-          display: inline-block; }
-          .qor-cropper-optionbox > ul > li > label > span:first-letter {
-            text-transform: uppercase; }
-          .qor-cropper-optionbox > ul > li > label > span > small {
-            margin-left: 4px;
-            color: #999; }
-
-.qor-redactor-cropper {
-  display: block;
-  max-width: 100%;
-  max-height: 320px;
-  overflow: hidden;
-  background-color: #fafafa; }
-  .qor-redactor-cropper > img {
-    display: block;
-    max-width: 100%;
-    max-height: 320px;
-    margin-left: auto;
-    margin-right: auto; }
+      .qor-cropper__options > ul > li > label > input {
+        margin-right: 2px; }
+      .qor-cropper__options > ul > li > label > span {
+        display: inline-block; }
+        .qor-cropper__options > ul > li > label > span:first-letter {
+          text-transform: uppercase; }
+        .qor-cropper__options > ul > li > label > span > small {
+          margin-left: 4px;
+          color: rgba(0,0,0, 0.26); }
 
 #redactor-modal-box input[type="file"] {
   display: inline-block; }
@@ -560,105 +487,67 @@ tbody.collapse.in {
   cursor: default;
   background-color: #fff; }
 
-.qor-datepicker {
-  width: 282px; }
+.qor-datepicker .mdl-card {
+  width: 312px; }
 
-.qor-datepicker .modal-content {
-  border-radius: 0; }
+.qor-datepicker .mdl-card__title {
+  display: none; }
 
-.qor-datepicker .modal-body {
+.qor-datepicker .mdl-card__supporting-text {
   padding: 0; }
 
-.qor-datepicker .modal-footer {
-  padding-top: 0;
-  border-top: 0; }
+.qor-datepicker__picked {
+  padding: 16px 24px;
+  color: #fff;
+  background-color: rgb(3,169,244); }
 
-.qor-datepicker .modal-footer .btn-link {
-  color: #009688;
-  text-decoration: none;
-  text-transform: uppercase; }
+.qor-datepicker__picked-year {
+  margin-bottom: 8px; }
 
-.qor-datepicker-picked {
-  text-align: center;
-  color: #fff; }
+.qor-datepicker__picked-date {
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1; }
 
-.qor-datepicker-week {
-  height: 32px;
-  background-color: #00796b;
-  font-size: 12px;
-  line-height: 32px; }
-
-.qor-datepicker-year,
-.qor-datepicker-month,
-.qor-datepicker-day {
-  background-color: #009688;
-  font-size: 22px;
-  line-height: 24px; }
-
-.qor-datepicker-month {
-  padding-top: 15px; }
-
-.qor-datepicker-day {
-  padding-top: 5px;
-  padding-bottom: 5px;
-  font-size: 58px;
-  line-height: 60px; }
-
-.qor-datepicker-year {
-  padding-bottom: 15px;
-  color: #8acfc8; }
-
-.qor-datepicker-embedded {
-  padding: 15px; }
-
-.qor-datepicker .datepicker-container {
-  float: none;
-  position: static;
-  line-height: 36px; }
-
-.qor-datepicker .datepicker-content {
-  width: 252px;
-  border: none;
-  -webkit-box-shadow: none;
-  box-shadow: none; }
-
-.qor-datepicker .datepicker-content li {
-  width: 36px;
-  height: 36px;
-  border-radius: 18px; }
-
-.qor-datepicker .datepicker-content .col-1 {
-  width: 36px; }
-
-.qor-datepicker .datepicker-content .col-2 {
-  width: 72px; }
-
-.qor-datepicker .datepicker-content .col-3 {
-  width: 108px; }
-
-.qor-datepicker .datepicker-content .col-4 {
-  width: 144px; }
-
-.qor-datepicker .datepicker-content .col-5 {
-  width: 180px; }
-
-.qor-datepicker .datepicker-content .col-6 {
-  width: 216px; }
-
-.qor-datepicker .datepicker-content .col-7 {
-  width: 252px; }
-
-.qor-datepicker .datepicker-content .selected,
-.qor-datepicker .datepicker-content .selected:hover {
-  background-color: #00796b;
-  color: #fff; }
-
-.qor-datepicker .datepicker-years li,
-.qor-datepicker .datepicker-months li {
-  width: 63px;
-  height: 63px;
-  border-radius: 32px;
-  line-height: 63px; }
+.qor-datepicker__embedded {
+  padding: 16px; }
+  .qor-datepicker__embedded .datepicker-container {
+    float: none;
+    position: static; }
+  .qor-datepicker__embedded .datepicker-content {
+    width: 280px;
+    border: none;
+    -webkit-box-shadow: none;
+    box-shadow: none; }
+  .qor-datepicker__embedded .datepicker-content li {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    line-height: 40px; }
+  .qor-datepicker__embedded .datepicker-content .col-1 {
+    width: 40px; }
+  .qor-datepicker__embedded .datepicker-content .col-2 {
+    width: 80px; }
+  .qor-datepicker__embedded .datepicker-content .col-3 {
+    width: 120px; }
+  .qor-datepicker__embedded .datepicker-content .col-4 {
+    width: 160px; }
+  .qor-datepicker__embedded .datepicker-content .col-5 {
+    width: 200px; }
+  .qor-datepicker__embedded .datepicker-content .col-6 {
+    width: 240px; }
+  .qor-datepicker__embedded .datepicker-content .col-7 {
+    width: 280px; }
+  .qor-datepicker__embedded .datepicker-content .selected,
+  .qor-datepicker__embedded .datepicker-content .selected:hover {
+    background-color: rgb(3,169,244);
+    color: #fff; }
+  .qor-datepicker__embedded .datepicker-years li,
+  .qor-datepicker__embedded .datepicker-months li {
+    width: 70px;
+    height: 70px;
+    border-radius: 35px;
+    line-height: 70px; }
 
 .qor-collection-group > label {
   display: block; }
@@ -688,36 +577,29 @@ tbody.collapse.in {
     display: block; }
   .qor-slideout.in {
     width: 100%; }
-  .qor-slideout .slideout-header {
-    position: relative;
-    height: 64px;
-    padding: 0 24px;
-    background-color: rgb(3,169,244); }
-  .qor-slideout .slideout-title {
-    margin-top: 0;
-    margin-bottom: 0;
-    font-size: 24px;
-    line-height: 64px;
-    font-weight: 500;
-    color: #fff; }
-  .qor-slideout .slideout-close {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 32px;
-    height: 32px;
-    color: #fff;
-    background-color: transparent;
-    border: 0; }
-  .qor-slideout .slideout-body {
-    padding: 16px 24px; }
-  .qor-slideout .slideout-footer {
-    padding: 16px 24px;
-    text-align: right; }
-  .qor-slideout .slideout-action-cancel {
-    color: rgba(0, 0, 0, 0.54) !important; }
-  .qor-slideout .qor-btn-group > .btn {
-    float: right; }
+
+.qor-slideout__header {
+  position: relative;
+  height: 64px;
+  padding: 0 24px;
+  background-color: rgb(3,169,244); }
+
+.qor-slideout__title {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 24px;
+  line-height: 64px;
+  font-weight: 500;
+  color: #fff; }
+
+.qor-slideout__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: #fff; }
+
+.qor-slideout__body {
+  padding: 16px 24px; }
 
 @media (min-width: 768px) {
   .qor-slideout.in {

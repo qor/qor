@@ -108,6 +108,8 @@
       }
 
       $document.find('body').addClass(CLASS_OPEN);
+
+      /*jshint expr:true */
       $this.addClass(CLASS_SHOWN).scrollTop(0).get(0).offsetHeight; // reflow for transition
       this.transitioning = true;
 
@@ -205,18 +207,18 @@
   $(function () {
     var selector = '.qor-modal';
 
-    $(document)
-      .on(EVENT_CLICK, '[data-toggle="qor.modal"]', function () {
+    $(document).
+      on(EVENT_CLICK, '[data-toggle="qor.modal"]', function () {
         var $this = $(this);
         var data = $this.data();
         var $target = $(data.target || $this.attr('href'));
 
         QorModal.plugin.call($target, $target.data(NAMESPACE) ? 'toggle' : data);
-      })
-      .on(EVENT_DISABLE, function (e) {
+      }).
+      on(EVENT_DISABLE, function (e) {
         QorModal.plugin.call($(selector, e.target), 'destroy');
-      })
-      .on(EVENT_ENABLE, function (e) {
+      }).
+      on(EVENT_ENABLE, function (e) {
         QorModal.plugin.call($(selector, e.target));
       });
   });

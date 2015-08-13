@@ -19,6 +19,10 @@
     min-height: 0;
     margin: 16px;
 
+    .mdl-card__supporting-text {
+      width: auto;
+    }
+
     .mdl-card__actions {
       @include clearfix();
 
@@ -30,7 +34,7 @@
 
   @media screen and (min-width: $layout-screen-size-threshold) {
     .mdl-card {
-      max-width: 600px;
+      max-width: 640px;
       margin: 32px auto;
     }
   }

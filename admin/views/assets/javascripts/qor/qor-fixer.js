@@ -13,7 +13,6 @@
 
   'use strict';
 
-  var $window = $(window);
   var NAMESPACE = 'qor.fixer';
   var EVENT_ENABLE = 'enable.' + NAMESPACE;
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
@@ -39,22 +38,22 @@
 
       this.$thead = $this.find('thead:first');
       this.$tbody = $this.find('tbody:first');
-      this.$tfoot = $this.find('tfoot:first');
+      this.$context = $(this.options.context);
 
       this.resize();
       this.bind();
     },
 
     bind: function () {
-      $window
-        .on(EVENT_SCROLL, $.proxy(this.toggle, this))
-        .on(EVENT_RESIZE, $.proxy(this.resize, this));
+      this.$context.
+        on(EVENT_SCROLL, $.proxy(this.toggle, this)).
+        on(EVENT_RESIZE, $.proxy(this.resize, this));
     },
 
     unbind: function () {
-      $window
-        .off(EVENT_SCROLL, this.toggle)
-        .off(EVENT_RESIZE, this.resize);
+      this.$context.
+        off(EVENT_SCROLL, this.toggle).
+        off(EVENT_RESIZE, this.resize);
     },
 
     build: function () {
@@ -70,10 +69,12 @@
       $clone.
         css({
           position: 'fixed',
-          top: 0,
+          top: 64,
           zIndex: 1,
           display: 'none',
-          width: $thead.width()
+          width: $thead.width(),
+          backgroundColor: '#fff',
+          borderBottom: '1px solid rgba(0,0,0,0.12)',
         }).
         find('> tr').
           children().
@@ -90,11 +91,10 @@
       var $this = this.$element;
       var $clone = this.$clone;
       var offset = $this.offset();
-      var top = $window.scrollTop() - offset.top;
+      var top = this.$context.scrollTop() - offset.top;
       var theadHeight = this.$thead.height();
       var tbodyHeight = this.$tbody.find('> tr:last').height();
-      var tfootHeight = this.$tfoot.height();
-      var maxTop = $this.outerHeight() - theadHeight - tbodyHeight - tfootHeight;
+      var maxTop = $this.outerHeight() - theadHeight - tbodyHeight;
 
       if (top > 0 && top < maxTop) {
         $clone.show();
@@ -115,7 +115,9 @@
     },
   };
 
-  QorFixer.DEFAULTS = {};
+  QorFixer.DEFAULTS = {
+    context: window
+  };
 
   QorFixer.plugin = function (options) {
     return this.each(function () {
@@ -134,16 +136,19 @@
   };
 
   $(function () {
-    var selector = '.qor-list';
+    var selector = '.qor-table';
+    var options = {
+          context: '.mdl-layout__content',
+        };
 
-    $(document)
-      .on(EVENT_DISABLE, function (e) {
+    $(document).
+      on(EVENT_DISABLE, function (e) {
         QorFixer.plugin.call($(selector, e.target), 'destroy');
-      })
-      .on(EVENT_ENABLE, function (e) {
-        QorFixer.plugin.call($(selector, e.target));
-      })
-      .triggerHandler(EVENT_ENABLE);
+      }).
+      on(EVENT_ENABLE, function (e) {
+        QorFixer.plugin.call($(selector, e.target), options);
+      }).
+      triggerHandler(EVENT_ENABLE);
   });
 
   return QorFixer;

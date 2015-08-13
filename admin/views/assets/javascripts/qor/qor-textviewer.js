@@ -76,14 +76,14 @@
           toggle: '.qor-list-text',
         };
 
-    $(document)
-      .on(EVENT_DISABLE, function (e) {
+    $(document).
+      on(EVENT_DISABLE, function (e) {
         QorTextviewer.plugin.call($(selector, e.target), 'destroy');
-      })
-      .on(EVENT_ENABLE, function (e) {
+      }).
+      on(EVENT_ENABLE, function (e) {
         QorTextviewer.plugin.call($(selector, e.target), options);
-      })
-      .triggerHandler(EVENT_ENABLE);
+      }).
+      triggerHandler(EVENT_ENABLE);
   });
 
 });

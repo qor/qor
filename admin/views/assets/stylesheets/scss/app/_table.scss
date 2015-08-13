@@ -6,7 +6,7 @@
   }
 }
 
-.qor-table__action {
+.qor-table__actions {
   text-align: center !important;
 
   .mdl-button {
@@ -20,4 +20,6 @@
 
 .qor-table-container {
   margin: 24px;
+  overflow-x: auto;
+  @include shadow-2dp();
 }

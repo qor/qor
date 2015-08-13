@@ -67,7 +67,7 @@
         this.$modal.find('.mdl-card__supporting-text').empty().load($target.data('url'), $.proxy(this.show, this));
       } else if ($target.is(options.toggleCheck)) {
         if (!$target.prop('disabled')) {
-          $target.closest('table').find(':checkbox').not($target).prop('checked', $target.prop('checked'));
+          $target.closest('table').find(':checkbox').not($target).click();
         }
       }
     },
@@ -84,20 +84,19 @@
   };
 
   Publish.DEFAULTS = {
-    modal: '.qor-publish-modal',
-    toggleView: '.qor-action-diff',
-    toggleCheck: '.qor-check-all',
+    toggleView: '.qor-action__view',
+    toggleCheck: '.qor-action__check-all',
   };
 
   Publish.MODAL = (
     '<div class="qor-modal fade" tabindex="-1" role="dialog" aria-hidden="true">' +
       '<div class="mdl-card mdl-shadow--2dp" role="document">' +
-        '<div class="mdl-card__title">' +
+        '<div class="mdl-card__title mdl-card--border">' +
           '<h2 class="mdl-card__title-text">Changes</h2>' +
         '</div>' +
         '<div class="mdl-card__supporting-text"></div>' +
         '<div class="mdl-card__actions mdl-card--border">' +
-          '<a class="mdl-button mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Close</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Close</a>' +
         '</div>' +
         '<div class="mdl-card__menu">' +
           '<button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-dismiss="modal" aria-label="close">' +
@@ -125,7 +124,7 @@
   };
 
   $(function () {
-    Publish.plugin.call($('.qor-publish'));
+    Publish.plugin.call($('.qor-table'));
   });
 
 });

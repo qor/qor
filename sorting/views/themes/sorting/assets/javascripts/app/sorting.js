@@ -23,7 +23,7 @@
   var EVENT_DRAG_OVER = 'dragover.' + NAMESPACE;
   var EVENT_DROP = 'drop.' + NAMESPACE;
   var CLASS_SORTING = 'qor-sorting';
-  var CLASS_HIGHLIGHT = 'qor-sorting-highlight';
+  var CLASS_HIGHLIGHT = 'qor-sorting__highlight';
   var SELECTOR_TR = 'tbody> tr';
 
   function QorSorter(element, options) {
@@ -46,7 +46,7 @@
       var lastPosition = $rows.last().find(options.input).data('position');
 
       $('body').addClass(CLASS_SORTING);
-      $this.find('tbody .qor-list-action').append(QorSorter.TEMPLATE);
+      $this.find('tbody .qor-table__actions').append(QorSorter.TEMPLATE);
       this.ascending = firstPosition < lastPosition;
       this.bind();
     },
@@ -257,7 +257,7 @@
     input: false,
   };
 
-  QorSorter.TEMPLATE = '<a class="qor-sorting-toggle"><i class="material-icons">swap_vert</i></a>';
+  QorSorter.TEMPLATE = '<a class="qor-sorting__toggle"><i class="material-icons">swap_vert</i></a>';
 
   QorSorter.plugin = function (options) {
     return this.each(function () {
@@ -284,10 +284,10 @@
       return;
     }
 
-    var selector = '.qor-list';
+    var selector = '.qor-table';
     var options = {
-          toggle: '.qor-sorting-toggle',
-          input: '.qor-sorting-position',
+          toggle: '.qor-sorting__toggle',
+          input: '.qor-sorting__position',
         };
 
     $(document).

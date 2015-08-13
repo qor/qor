@@ -1,39 +1,25 @@
 {{$context := .}}
+<div class="qor-grid-container">
+  <div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--2-col">{{t "Column"}}</div>
+    <div class="mdl-cell mdl-cell--5-col">{{t "Live"}}</div>
+    <div class="mdl-cell mdl-cell--5-col">{{t "Draft"}}</div>
+  </div>
 
-<div class="qor-table-container">
-  <table class="mdl-data-table mdl-js-data-table qor-table">
-    <thead>
-      <tr>
-        <th>{{t "Column"}}</th>
-        <th>{{t "Live"}}</th>
-        <th>{{t "Draft"}}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{$production := .Result.Production}}
-      {{$draft := .Result.Draft}}
-      {{$has_production := not (is_new_record $production)}}
-      {{$res := .Result.Resource}}
+  {{$production := .Result.Production}}
+  {{$draft := .Result.Draft}}
+  {{$has_production := not (is_new_record $production)}}
+  {{$res := .Result.Resource}}
 
-      {{range $meta := show_metas .Result.Resource}}
-        {{$draft_value := render_publish_meta $draft $meta $context}}
-        {{$production_value := render_publish_meta $production $meta $context}}
-        {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}
+  {{range $meta := show_metas .Result.Resource}}
+    {{$draft_value := render_publish_meta $draft $meta $context}}
+    {{$production_value := render_publish_meta $production $meta $context}}
+    {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}
 
-        <tr class="mdl-data-table__cell--non-numeric" {{if $diff}}class="danger"{{end}}>
-          <td>{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</td>
-          {{if $has_production}}
-            <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $res $meta.Label}} ({{t "Live"}})">
-              <div class="qor-table-content">{{$production_value}}</div>
-            </td>
-          {{else}}
-            <td></td>
-          {{end}}
-          <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $res $meta.Label}} ({{t "Draft"}})">
-            <div class="qor-table-content">{{$draft_value}}</div>
-          </td>
-        </tr>
-      {{end}}
-    </tbody>
-  </table>
+    <div class="mdl-grid{{if $diff}} is-changed{{end}}">
+      <div class="mdl-cell mdl-cell--2-col">{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</div>
+      <div class="mdl-cell mdl-cell--5-col">{{if $has_production}}{{$production_value}}{{end}}</div>
+      <div class="mdl-cell mdl-cell--5-col">{{$draft_value}}</div>
+    </div>
+  {{end}}
 </div>

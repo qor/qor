@@ -12,17 +12,17 @@
   padding-bottom: 12px;
 }
 
-.qor-sorting-position {
-  width: 80px;
-  height: 32px;
+.qor-sorting__position {
+  width: 56px;
+  height: 20px;
   padding: 0 8px;
   text-align: center;
 }
 
-.qor-sorting-toggle {
+.qor-sorting__toggle {
   cursor: move;
 }
 
-.qor-sorting-highlight {
-  background-color: #dff0d8 !important;
+.qor-sorting__highlight {
+  background-color: #FCE4EC !important;
 }

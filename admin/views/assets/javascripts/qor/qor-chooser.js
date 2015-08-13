@@ -79,14 +79,14 @@
   $(function () {
     var selector = 'select[data-toggle="qor.chooser"]';
 
-    $(document)
-      .on(EVENT_DISABLE, function (e) {
+    $(document).
+      on(EVENT_DISABLE, function (e) {
         QorChooser.plugin.call($(selector, e.target), 'destroy');
-      })
-      .on(EVENT_ENABLE, function (e) {
+      }).
+      on(EVENT_ENABLE, function (e) {
         QorChooser.plugin.call($(selector, e.target));
-      })
-      .triggerHandler(EVENT_ENABLE);
+      }).
+      triggerHandler(EVENT_ENABLE);
   });
 
   return QorChooser;

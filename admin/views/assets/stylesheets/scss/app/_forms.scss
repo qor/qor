@@ -1,6 +1,10 @@
 // Forms
 // --------------------------------------------------
 
+
+// Form
+// -------------------------
+
 .qor-form-container {
   margin: 24px;
   padding: 24px;
@@ -14,6 +18,23 @@
     width: 100%;
   }
 }
+
+.qor-form__actions {
+  margin-top: 24px;
+  @include clearfix();
+
+  .mdl-button {
+    float: right;
+
+    + .mdl-button {
+      margin-left: 8px;
+    }
+  }
+}
+
+
+// Search Form
+// -------------------------
 
 .qor-form--search {
   position: absolute;
@@ -40,41 +61,126 @@
   > .qor-search-clear {
     display: none;
   }
-}
 
-.is-dirty,
-.is-focused {
-  > .qor-search-label {
-    &,
-    &:hover {
-      background-color: transparent;
-      cursor: default;
+  &.is-dirty,
+  &.is-focused {
+    > .qor-search-label {
+      &,
+      &:hover {
+        background-color: transparent;
+        cursor: default;
+      }
+    }
+
+    > .qor-search-clear {
+      right: -7px;
+      display: block;
     }
   }
+}
 
-  > .qor-search-clear {
-    right: -7px;
-    display: block;
+
+// Field
+// -------------------------
+
+.qor-field {
+  padding: 8px 0;
+}
+
+.qor-field__label {
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: unquote("rgba(#{$color-black}, 0.54)");
+}
+
+
+// File input
+// -------------------------
+
+.qor-file {
+  position: relative;
+  display: block;
+}
+
+.qor-file__list {
+  margin-top: 12px;
+  overflow: hidden;
+
+  > ul {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style: none;
+
+    > li {
+      position: relative;
+      float: left;
+      display: block;
+      width: 160px;
+      height: 160px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      border: 1px solid unquote("rgba(#{$color-black}, 0.12)");
+      background-color: unquote("rgb(#{$palette-grey-50})");
+      overflow: hidden;
+
+      > span {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        display: block;
+        padding: 5px;
+        font-size: 12px;
+        line-height: 20px;
+        text-align: center;
+        background-color: unquote("rgba(#{$color-white}, 0.5)");
+
+        &:first-letter {
+          text-transform: uppercase;
+        }
+      }
+
+      img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 100%;
+        max-height: 160px;
+      }
+    }
   }
 }
 
 
-.qor-collection {
+// Fieldset
+// -------------------------
+
+.qor-fieldset {
+  position: relative;
   margin-top: 16px;
   margin-bottom: 16px;
-  padding: 16px 24px;
-  border: 1px solid #eee;
-  border-radius: 2px;
-  background-color: $grey-50;
+  border-top: 1px solid unquote("rgba(#{$color-black}, 0.12)");
+  border-bottom: 1px solid unquote("rgba(#{$color-black}, 0.12)");
+  // background-color: unquote("rgb(#{$palette-grey-50})");
 
-  > .form-group {
-    &:last-child {
-      margin-bottom: 0;
-    }
+  + .qor-fieldset {
+    border-top: none;
+    margin-top: -16px;
   }
 }
 
-.qor-collection-del {
-  float: right;
-  margin-right: -8px;
+.qor-fieldset__delete {
+  position: absolute;
+  top: 8px;
+  right: 0;
+}
+
+.qor-fieldset__alert {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  text-align: center;
 }
