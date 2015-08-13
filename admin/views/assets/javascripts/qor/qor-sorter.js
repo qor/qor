@@ -50,7 +50,7 @@
           return param;
         });
       } else {
-        search += search.indexOf('&') > -1 ? ('&' + param) : param;
+        search += search.indexOf('?') > -1 ? ('&' + param) : param;
       }
 
       location.search = search;

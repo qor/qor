@@ -6,7 +6,7 @@
       {{range $index, $meta := index_metas}}
         {{$is_sorted := eq $order_by $meta.DBName}}
         {{$is_desc_sorted := eq $order_by (print $meta.DBName "_desc")}}
-        <th class="mdl-data-table__cell--non-numeric" {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}class="is-sorted"{{end}} {{if $is_sorted}}data-order-by="{{$meta.DBName}}_desc"{{else}}data-order-by="{{$meta.DBName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $Resource.ToParam $meta.Label) $meta.Label}}</th>
+        <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$meta.DBName}}_desc"{{else}}data-order-by="{{$meta.DBName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $Resource.ToParam $meta.Label) $meta.Label}}</th>
       {{end}}
       <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
     </tr>
