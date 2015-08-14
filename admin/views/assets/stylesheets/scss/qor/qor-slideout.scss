@@ -20,7 +20,7 @@
   background-color: #fff;
   overflow-x: hidden;
   overflow-y: auto;
-  @include shadow-4dp();
+  @include shadow-16dp();
 
   -webkit-transition: width 0.35s ease;
        -o-transition: width 0.35s ease;
