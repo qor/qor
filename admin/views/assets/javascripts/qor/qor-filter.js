@@ -144,7 +144,7 @@
 
     toggle: function (e) {
       var $target = $(e.currentTarget);
-      var data = {};
+      var data = [];
       var params;
       var param;
       var search;
@@ -165,7 +165,10 @@
         }
 
         param = param.join('=');
-        data = [param];
+
+        if (value) {
+          data.push(param);
+        }
 
         $target.children().each(function () {
           var $this = $(this);
