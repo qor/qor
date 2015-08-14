@@ -43,6 +43,10 @@ $(function () {
       var $li = $(e.currentTarget).closest('li'),
           $ul = $li.find('ul');
 
+      if (!$ul.length) {
+        return;
+      }
+
       if ($ul.hasClass('in')) {
         $li.removeClass('expanded');
         $ul.one(EVENT_TRANSITION_END, function () {
