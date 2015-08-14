@@ -16,7 +16,7 @@
     }
 
     &.is-sorted {
-      color: $color-text;
+      color: unquote("rgba(#{$color-black}, 0.87)");
 
       &[data-order-by]::after {
         margin-left: 8px;

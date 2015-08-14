@@ -64,26 +64,6 @@
     font-size: 48px;
   }
 
-  &.md-primary {
-    color: $brand-primary;
-  }
-
-  &.md-success {
-    color: $brand-success;
-  }
-
-  &.md-info {
-    color: $brand-info;
-  }
-
-  &.md-warning {
-    color: $brand-warning;
-  }
-
-  &.md-danger {
-    color: $brand-danger;
-  }
-
   // Rules for using icons as black on a light background.
   &.md-dark {
     color: rgba(0, 0, 0, 0.54);

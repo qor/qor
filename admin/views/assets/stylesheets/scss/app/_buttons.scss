@@ -11,6 +11,7 @@
   right: 32px;
   bottom: 32px;
   z-index: 1;
+  @include shadow-4dp();
 }
 
 .qor-button--muted {

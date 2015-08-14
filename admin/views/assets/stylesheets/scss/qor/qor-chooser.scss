@@ -10,7 +10,7 @@
   .chosen-single {
     border-color: #ccc;
     border-radius: 2px;
-    @include box-shadow(none);
+    box-shadow: none;
   }
 }
 
@@ -35,7 +35,7 @@
 .chosen-container-active {
   .chosen-choices {
     border-color: #009688;
-    @include box-shadow(none);
+    box-shadow: none;
   }
 
   .chosen-drop {

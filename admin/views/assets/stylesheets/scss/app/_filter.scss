@@ -6,7 +6,7 @@
   margin-right: 8px;
   padding-bottom: 8px;
   padding-top: 8px;
-  @extend .clearfix;
+  @include clearfix();
 
   .qor-locale-selector {
     display: inline-block;
