@@ -5,7 +5,7 @@
 // -------------------------
 
 .clearfix {
-  @include clearfix;
+  @include clearfix();
 }
 
 
@@ -51,5 +51,7 @@ tbody.collapse.in {
   position: relative;
   height: 0;
   overflow: hidden;
-  transition: height, visibility .35s ease;
+  transition-property: height, visibility;
+  transition-duration: .35s;
+  transition-timing-function: ease;
 }
