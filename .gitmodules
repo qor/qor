@@ -1,0 +1,3 @@
+[submodule "admin/views/assets/material-design-lite"]
+	path = admin/views/assets/material-design-lite
+	url = git@github.com:google/material-design-lite.git
