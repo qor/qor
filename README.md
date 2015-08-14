@@ -94,7 +94,11 @@ Main asset directories of Admin and other modules:
 │   ├── javascripts
 │   └── stylesheets
 │
-└── publish/views/themes/publish/assets/
+├── publish/views/themes/publish/assets/
+│   ├── javascripts
+│   └── stylesheets
+│
+└── sorting/views/themes/sorting/assets/
     ├── javascripts
     └── stylesheets
 ```
