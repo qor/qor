@@ -39,7 +39,7 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 
 					if isCreate && !scope.HasError() {
 						if value, err := media.Value(); err == nil {
-							gorm.Update(scope.New(scope.Value).InstanceSet("gorm:update_attrs", map[string]interface{}{field.DBName: value}))
+							scope.NewDB().Model(scope.Value).UpdateColumns(map[string]interface{}{field.DBName: value})
 						}
 					}
 
