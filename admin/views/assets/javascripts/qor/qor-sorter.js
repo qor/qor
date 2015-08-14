@@ -42,8 +42,14 @@
 
     sort: function (e) {
       var $target = $(e.currentTarget);
+      var orderBy = $target.data('orderBy');
       var search = location.search;
-      var param = 'order_by=' + $target.data('orderBy');
+      var param = 'order_by=' + orderBy;
+
+      // Stop when it is not sortable
+      if (!orderBy) {
+        return;
+      }
 
       if (/order_by/.test(search)) {
         search = search.replace(/order_by(=\w+)?/, function () {
