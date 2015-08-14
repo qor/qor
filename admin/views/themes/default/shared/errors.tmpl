@@ -1,12 +1,12 @@
-{{$validation_errors := get_validation_errors}}
-{{if $validation_errors}}
+{{$formatted_errors := get_formatted_errors}}
+{{if $formatted_errors}}
   <ul class="qor-error" id="errors">
-  {{range $key, $errors := $validation_errors}}
+  {{range $formatted_error := $formatted_errors}}
     <li>
-      <label for="{{$key}}">
-        {{range $error := $errors}}
-          <i class="material-icons">error</i>
-          {{t $error}}
+      <label for="{{$formatted_error.Label}}">
+        <i class="material-icons">error</i>
+        {{range $error := $formatted_error.Errors}}
+          <span>{{t $error}}</span>
         {{end}}
       </label>
     </li>

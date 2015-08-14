@@ -1,6 +1,7 @@
 package validations_test
 
 import (
+	"errors"
 	"regexp"
 	"testing"
 
@@ -24,7 +25,7 @@ type User struct {
 
 func (user *User) Validate(db *gorm.DB) {
 	if user.Name == "invalid" {
-		validations.AddErrorForColumn(db, user, "Name", "invalid user name")
+		db.AddError(validations.NewError(user, "Name", "invalid user name"))
 	}
 }
 
@@ -35,7 +36,7 @@ type Company struct {
 
 func (company *Company) Validate(db *gorm.DB) {
 	if company.Name == "invalid" {
-		validations.AddError(db, company, "invalid company name")
+		db.AddError(errors.New("invalid company name"))
 	}
 }
 
@@ -47,7 +48,7 @@ type CreditCard struct {
 
 func (card *CreditCard) Validate(db *gorm.DB) {
 	if !regexp.MustCompile("^(\\d){13,16}$").MatchString(card.Number) {
-		validations.AddErrorForColumn(db, card, "Number", "invalid card number")
+		db.AddError(validations.NewError(card, "Number", "invalid card number"))
 	}
 }
 
@@ -59,7 +60,7 @@ type Address struct {
 
 func (address *Address) Validate(db *gorm.DB) {
 	if address.Address == "invalid" {
-		validations.AddErrorForColumn(db, address, "Address", "invalid address")
+		db.AddError(validations.NewError(address, "Address", "invalid address"))
 	}
 }
 
@@ -68,10 +69,11 @@ type Language struct {
 	Code string
 }
 
-func (language *Language) Validate(db *gorm.DB) {
+func (language *Language) Validate(db *gorm.DB) error {
 	if language.Code == "invalid" {
-		validations.AddErrorForColumn(db, language, "Code", "invalid language")
+		return validations.NewError(language, "Code", "invalid language")
 	}
+	return nil
 }
 
 func init() {

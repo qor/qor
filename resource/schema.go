@@ -124,7 +124,8 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 	return metaValues, nil
 }
 
-func Decode(context *qor.Context, result interface{}, res Resourcer) (errs []error) {
+func Decode(context *qor.Context, result interface{}, res Resourcer) error {
+	var errors qor.Errors
 	var err error
 	var metaValues *MetaValues
 	metaors := res.GetMetas([]string{})
@@ -136,9 +137,7 @@ func Decode(context *qor.Context, result interface{}, res Resourcer) (errs []err
 		context.Request.Body.Close()
 	}).Respond(nil, context.Request)
 
-	if err != nil {
-		errs = append(errs, err)
-	}
-	errs = DecodeToResource(res, result, metaValues, context).Start()
-	return errs
+	errors.AddError(err)
+	errors.AddError(DecodeToResource(res, result, metaValues, context).Start())
+	return errors
 }

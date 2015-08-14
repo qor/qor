@@ -6,32 +6,21 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-var settingKey = "validations:errors"
-
-func AddError(db *gorm.DB, resource interface{}, err string) {
-	var validationErrors = GetErrors(db)
-	var scope = db.NewScope(resource)
-
-	key := fmt.Sprintf("%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue())
-	validationErrors[key] = append(validationErrors[key], err)
-
-	db.InstantSet(settingKey, validationErrors).Error = fmt.Errorf("RecordInvalid: %v", err)
+func NewError(resource interface{}, column, err string) error {
+	return &Error{Resource: resource, Column: column, Message: err}
 }
 
-func AddErrorForColumn(db *gorm.DB, resource interface{}, column, err string) {
-	var validationErrors = GetErrors(db)
-	var scope = db.NewScope(resource)
-
-	key := fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), column)
-	validationErrors[key] = append(validationErrors[key], err)
-
-	db.InstantSet(settingKey, validationErrors).Error = fmt.Errorf("RecordInvalid: %v", err)
+type Error struct {
+	Resource interface{}
+	Column   string
+	Message  string
 }
 
-func GetErrors(db *gorm.DB) map[string][]string {
-	var validationErrors = map[string][]string{}
-	if errors, ok := db.Get(settingKey); ok {
-		validationErrors = errors.(map[string][]string)
-	}
-	return validationErrors
+func (err Error) Label() string {
+	scope := gorm.Scope{Value: err.Resource}
+	return fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), err.Column)
+}
+
+func (err Error) Error() string {
+	return fmt.Sprintf("%v", err.Message)
 }
