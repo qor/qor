@@ -5,31 +5,26 @@
 // -------------------------
 
 .clearfix {
-  @include clearfix;
-}
-.center-block {
-  @include center-block;
+  @include clearfix();
 }
 
 
 // Toggling content
 // -------------------------
 
-.text-hide {
-  @include text-hide;
-}
-
-.shown {
+.shown,
+.is-shown {
   display: block !important;
 }
 
-.hidden {
+.hidden,
+.is-hidden {
   display: none !important;
 }
 
 .fade {
   opacity: 0;
-  @include transition(opacity .15s linear);
+  transition: opacity .15s linear;
 
   &.in {
     opacity: 1;
@@ -56,7 +51,7 @@ tbody.collapse.in {
   position: relative;
   height: 0;
   overflow: hidden;
-  @include transition-property(height, visibility);
-  @include transition-duration(.35s);
-  @include transition-timing-function(ease);
+  transition-property: height, visibility;
+  transition-duration: .35s;
+  transition-timing-function: ease;
 }

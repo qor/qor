@@ -76,7 +76,6 @@ We are planning to update the godoc documentation for all modules after the API 
 
 Requires [Node.js](https://nodejs.org/) [Gulp](http://gulpjs.com/) for building frontend files
 
-
 ```bash
 npm install && npm install -g gulp
 

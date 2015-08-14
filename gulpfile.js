@@ -1,52 +1,52 @@
 'use strict';
 
-var gulp = require('gulp'),
-    plugins = require('gulp-load-plugins')(),
-    task = (function (args) {
-      var length = args.length,
-          i = 0,
-          n;
+var gulp = require('gulp');
+var plugins = require('gulp-load-plugins')();
+var moduleName = (function () {
+      var args = process.argv;
+      var length = args.length;
+      var i = 0;
+      var matched;
+      var name;
 
       while (i++ < length) {
-        n = String(args[i]).match(/^-+(\w+)$/i);
+        matched = String(args[i]).match(/^--+(\w+)$/i);
 
-        if (n) {
-          n = n[1];
+        if (matched) {
+          name = matched[1];
           break;
         }
       }
 
-      return n;
-    })(process.argv),
-    tasks = {};
+      return name;
+    })();
 
 
-// Default
+// Admin
 // Command: gulp [task]
 // -----------------------------------------------------------------------------
 
-tasks.base = function () {
+function adminTasks() {
   var pathto = function (file) {
         return ('admin/views/assets/' + file);
-      },
-      scripts = {
+      };
+  var scripts = {
         src: pathto('javascripts/app/*.js'),
         dest: pathto('javascripts'),
         qor: pathto('javascripts/qor/*.js'),
         all: [
           'gulpfile.js',
-          pathto('javascripts/qor/*.js'),
-          pathto('javascripts/app/*.js')
+          pathto('javascripts/qor/*.js')
         ]
-      },
-      styles = {
-        src: pathto('stylesheets/scss/{qor,app}.scss'),
+      };
+  var styles = {
+        src: pathto('stylesheets/scss/{app,qor}.scss'),
         dest: pathto('stylesheets'),
         main: pathto('stylesheets/{qor,app}.css'),
         scss: pathto('stylesheets/scss/**/*.scss')
-      },
-      fonts = {
-        dest: pathto('fonts')
+      };
+  var fonts = {
+        dest: pathto('fonts'),
       };
 
   gulp.task('jshint', function () {
@@ -154,26 +154,25 @@ tasks.base = function () {
   gulp.task('release', ['js', 'css']);
 
   gulp.task('default', ['watch']);
-};
+}
 
 
-// I18n (Internationalization)
-// Command: gulp [task] --i18n
+// Modules
+// Command: gulp [task] --moduleName
 // -----------------------------------------------------------------------------
 
-tasks.i18n = function () {
-  var namespace = 'i18n',
-      pathto = function (file) {
-        return (namespace + '/views/themes/' + namespace + '/assets/' + file);
-      },
-      scripts = {
+function moduleTasks(moduleName) {
+  var pathto = function (file) {
+        return (moduleName + '/views/themes/' + moduleName + '/assets/' + file);
+      };
+  var scripts = {
         src: pathto('javascripts/app/*.js'),
         dest: pathto('javascripts/')
-      },
-      styles = {
+      };
+  var styles = {
         src: pathto('stylesheets/scss/*.scss'),
         dest: pathto('stylesheets/'),
-        main: pathto('stylesheets/' + namespace + '.css'),
+        main: pathto('stylesheets/' + moduleName + '.css'),
         scss: pathto('stylesheets/scss/**/*.scss')
       };
 
@@ -190,7 +189,7 @@ tasks.i18n = function () {
 
   gulp.task('js', function () {
     return gulp.src(scripts.src)
-    .pipe(plugins.concat(namespace + '.js'))
+    .pipe(plugins.concat(moduleName + '.js'))
     .pipe(plugins.uglify())
     .pipe(gulp.dest(scripts.dest));
   });
@@ -198,7 +197,7 @@ tasks.i18n = function () {
   gulp.task('concat', function () {
     return gulp.src(scripts.src)
     .pipe(plugins.sourcemaps.init())
-    .pipe(plugins.concat(namespace + '.js'))
+    .pipe(plugins.concat(moduleName + '.js'))
     .pipe(plugins.sourcemaps.write('./'))
     .pipe(gulp.dest(scripts.dest));
   });
@@ -231,247 +230,16 @@ tasks.i18n = function () {
   gulp.task('release', ['js', 'css']);
 
   gulp.task('default', ['watch']);
-};
-
-
-// L10n (Localization)
-// Command: gulp [task] --l10n
-// -----------------------------------------------------------------------------
-
-tasks.l10n = function () {
-  var namespace = 'l10n',
-      pathto = function (file) {
-        return (namespace + '/views/themes/' + namespace + '/assets/' + file);
-      },
-      scripts = {
-        src: pathto('javascripts/app/*.js'),
-        dest: pathto('javascripts/')
-      },
-      styles = {
-        src: pathto('stylesheets/scss/*.scss'),
-        dest: pathto('stylesheets/'),
-        main: pathto('stylesheets/' + namespace + '.css'),
-        scss: pathto('stylesheets/scss/**/*.scss')
-      };
-
-  gulp.task('jshint', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.jshint())
-    .pipe(plugins.jshint.reporter('default'));
-  });
-
-  gulp.task('jscs', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.jscs());
-  });
-
-  gulp.task('js', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.concat(namespace + '.js'))
-    .pipe(plugins.uglify())
-    .pipe(gulp.dest(scripts.dest));
-  });
-
-  gulp.task('concat', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.sourcemaps.init())
-    .pipe(plugins.concat(namespace + '.js'))
-    .pipe(plugins.sourcemaps.write('./'))
-    .pipe(gulp.dest(scripts.dest));
-  });
-
-  gulp.task('sass', function () {
-    return gulp.src(styles.src)
-    .pipe(plugins.sass())
-    .pipe(gulp.dest(styles.dest));
-  });
-
-  gulp.task('csslint', ['sass'], function () {
-    return gulp.src(styles.main)
-    .pipe(plugins.csslint('.csslintrc'))
-    .pipe(plugins.csslint.reporter());
-  });
-
-  gulp.task('css', ['csslint'], function () {
-    return gulp.src(styles.main)
-    .pipe(plugins.autoprefixer())
-    .pipe(plugins.csscomb())
-    .pipe(plugins.minifyCss())
-    .pipe(gulp.dest(styles.dest));
-  });
-
-  gulp.task('watch', function () {
-    gulp.watch(scripts.src, ['concat']);
-    gulp.watch(styles.scss, ['sass']);
-  });
-
-  gulp.task('release', ['js', 'css']);
-
-  gulp.task('default', ['watch']);
-};
-
-
-// Publish
-// Command: gulp [task] --publish
-// -----------------------------------------------------------------------------
-
-tasks.publish = function () {
-  var namespace = 'publish',
-      pathto = function (file) {
-        return (namespace + '/views/themes/' + namespace + '/assets/' + file);
-      },
-      scripts = {
-        src: pathto('javascripts/app/*.js'),
-        dest: pathto('javascripts/')
-      },
-      styles = {
-        src: pathto('stylesheets/scss/*.scss'),
-        dest: pathto('stylesheets/'),
-        main: pathto('stylesheets/' + namespace + '.css'),
-        scss: pathto('stylesheets/scss/**/*.scss')
-      };
-
-  gulp.task('jshint', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.jshint())
-    .pipe(plugins.jshint.reporter('default'));
-  });
-
-  gulp.task('jscs', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.jscs());
-  });
-
-  gulp.task('js', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.concat(namespace + '.js'))
-    .pipe(plugins.uglify())
-    .pipe(gulp.dest(scripts.dest));
-  });
-
-  gulp.task('concat', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.sourcemaps.init())
-    .pipe(plugins.concat(namespace + '.js'))
-    .pipe(plugins.sourcemaps.write('./'))
-    .pipe(gulp.dest(scripts.dest));
-  });
-
-  gulp.task('sass', function () {
-    return gulp.src(styles.src)
-    .pipe(plugins.sass())
-    .pipe(gulp.dest(styles.dest));
-  });
-
-  gulp.task('csslint', ['sass'], function () {
-    return gulp.src(styles.main)
-    .pipe(plugins.csslint('.csslintrc'))
-    .pipe(plugins.csslint.reporter());
-  });
-
-  gulp.task('css', ['csslint'], function () {
-    return gulp.src(styles.main)
-    .pipe(plugins.autoprefixer())
-    .pipe(plugins.csscomb())
-    .pipe(plugins.minifyCss())
-    .pipe(gulp.dest(styles.dest));
-  });
-
-  gulp.task('watch', function () {
-    gulp.watch(scripts.src, ['concat']);
-    gulp.watch(styles.scss, ['sass']);
-  });
-
-  gulp.task('release', ['js', 'css']);
-
-  gulp.task('default', ['watch']);
-};
-
-
-// Sorting
-// Command: gulp [task] --sorting
-// -----------------------------------------------------------------------------
-
-tasks.sorting = function () {
-  var namespace = 'sorting',
-      pathto = function (file) {
-        return (namespace + '/views/themes/' + namespace + '/assets/' + file);
-      },
-      scripts = {
-        src: pathto('javascripts/app/*.js'),
-        dest: pathto('javascripts/')
-      },
-      styles = {
-        src: pathto('stylesheets/scss/*.scss'),
-        dest: pathto('stylesheets/'),
-        main: pathto('stylesheets/' + namespace + '.css'),
-        scss: pathto('stylesheets/scss/**/*.scss')
-      };
-
-  gulp.task('jshint', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.jshint())
-    .pipe(plugins.jshint.reporter('default'));
-  });
-
-  gulp.task('jscs', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.jscs());
-  });
-
-  gulp.task('js', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.concat(namespace + '.js'))
-    .pipe(plugins.uglify())
-    .pipe(gulp.dest(scripts.dest));
-  });
-
-  gulp.task('concat', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.sourcemaps.init())
-    .pipe(plugins.concat(namespace + '.js'))
-    .pipe(plugins.sourcemaps.write('./'))
-    .pipe(gulp.dest(scripts.dest));
-  });
-
-  gulp.task('sass', function () {
-    return gulp.src(styles.src)
-    .pipe(plugins.sass())
-    .pipe(gulp.dest(styles.dest));
-  });
-
-  gulp.task('csslint', ['sass'], function () {
-    return gulp.src(styles.main)
-    .pipe(plugins.csslint('.csslintrc'))
-    .pipe(plugins.csslint.reporter());
-  });
-
-  gulp.task('css', ['csslint'], function () {
-    return gulp.src(styles.main)
-    .pipe(plugins.autoprefixer())
-    .pipe(plugins.csscomb())
-    .pipe(plugins.minifyCss())
-    .pipe(gulp.dest(styles.dest));
-  });
-
-  gulp.task('watch', function () {
-    gulp.watch(scripts.src, ['concat']);
-    gulp.watch(styles.scss, ['sass']);
-  });
-
-  gulp.task('release', ['js', 'css']);
-
-  gulp.task('default', ['watch']);
-};
+}
 
 
 // Init
 // -----------------------------------------------------------------------------
 
-if (task && typeof tasks[task] === 'function') {
-  console.log('Running "' + task + '" task...');
-  tasks[task]();
+if (moduleName) {
+  console.log('Running "' + moduleName + '" task...');
+  moduleTasks(moduleName);
 } else {
   console.log('Running "admin" task...');
-  tasks.base();
+  adminTasks();
 }

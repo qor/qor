@@ -67,7 +67,7 @@
         this.$modal.find('.mdl-card__supporting-text').empty().load($target.data('url'), $.proxy(this.show, this));
       } else if ($target.is(options.toggleCheck)) {
         if (!$target.prop('disabled')) {
-          $target.closest('table').find(':checkbox').not($target).click();
+          $target.closest('table').find('tbody :checkbox').click();
         }
       }
     },

@@ -37,7 +37,7 @@
 
   &.active {
     padding-right: 0;
-    color: $color-text;
+    color: unquote("rgba(#{$color-black}, 0.87)");
     border-color: unquote("rgb(#{$color-primary})");
   }
 
@@ -86,7 +86,7 @@
     display: block;
     height: 48px;
     padding: 0 16px;
-    color: $color-text;
+    color: unquote("rgba(#{$color-black}, 0.87)");
     font-weight: normal;
     line-height: 48px;
     white-space: nowrap;
