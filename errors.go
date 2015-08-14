@@ -15,14 +15,14 @@ func (errs Errors) Error() string {
 }
 
 type errorsInterface interface {
-	Errors() []error
+	GetErrors() []error
 }
 
 func (errs *Errors) AddError(errors ...error) {
 	for _, err := range errors {
 		if err != nil {
 			if e, ok := err.(errorsInterface); ok {
-				errs.errors = append(errs.errors, e.Errors()...)
+				errs.errors = append(errs.errors, e.GetErrors()...)
 			} else {
 				errs.errors = append(errs.errors, err)
 			}
@@ -34,6 +34,6 @@ func (errs Errors) HasError() bool {
 	return len(errs.errors) != 0
 }
 
-func (errs Errors) Errors() []error {
+func (errs Errors) GetErrors() []error {
 	return errs.errors
 }

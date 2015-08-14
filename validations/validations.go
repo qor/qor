@@ -7,7 +7,7 @@ import (
 )
 
 func NewError(resource interface{}, column, err string) Error {
-	return Error{Column: column, Message: err}
+	return Error{Resource: resource, Column: column, Message: err}
 }
 
 type Error struct {
@@ -22,5 +22,5 @@ func (err Error) Locale() string {
 }
 
 func (err Error) Error() string {
-	return fmt.Sprintf("%v: %v", err.Column, err.Message)
+	return fmt.Sprintf("%v", err.Message)
 }

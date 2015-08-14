@@ -56,7 +56,7 @@ func (processor *processor) Validate() error {
 
 	for _, fc := range processor.Resource.GetResource().validators {
 		if errors.AddError(fc(processor.Result, processor.MetaValues, processor.Context)); errors.HasError() {
-			if processor.checkSkipLeft(errors.Errors()...) {
+			if processor.checkSkipLeft(errors.GetErrors()...) {
 				break
 			}
 		}
@@ -115,7 +115,7 @@ func (processor *processor) decode() (errors []error) {
 func (processor *processor) Commit() error {
 	var errors qor.Errors
 	errors.AddError(processor.decode()...)
-	if processor.checkSkipLeft(errors.Errors()...) {
+	if processor.checkSkipLeft(errors.GetErrors()...) {
 		return nil
 	}
 

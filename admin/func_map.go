@@ -561,6 +561,35 @@ func (context *Context) isSortableMeta(meta *Meta) bool {
 	return false
 }
 
+type formatedError struct {
+	Label  string
+	Errors []string
+}
+
+func (context *Context) getFormattedErrors() (formatedErrors []formatedError) {
+	type labelInterface interface {
+		Label() string
+	}
+
+	for _, err := range context.GetErrors() {
+		if labelErr, ok := err.(labelInterface); ok {
+			var found bool
+			label := labelErr.Label()
+			for _, formatedError := range formatedErrors {
+				if formatedError.Label == label {
+					formatedError.Errors = append(formatedError.Errors, err.Error())
+				}
+			}
+			if !found {
+				formatedErrors = append(formatedErrors, formatedError{Label: label, Errors: []string{err.Error()}})
+			}
+		} else {
+			formatedErrors = append(formatedErrors, formatedError{Errors: []string{err.Error()}})
+		}
+	}
+	return
+}
+
 func (context *Context) FuncMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
@@ -571,9 +600,9 @@ func (context *Context) FuncMap() template.FuncMap {
 		"primary_key_of":       context.primaryKeyOf,
 		"value_of":             context.ValueOf,
 
-		"get_menus":  context.getMenus,
-		"get_scopes": context.GetScopes,
-		// "get_validation_errors": func() map[string][]string { return context.GetDB().Errors() },
+		"get_menus":            context.getMenus,
+		"get_scopes":           context.GetScopes,
+		"get_formatted_errors": context.getFormattedErrors,
 
 		"escape":    html.EscapeString,
 		"raw":       func(str string) template.HTML { return template.HTML(str) },
