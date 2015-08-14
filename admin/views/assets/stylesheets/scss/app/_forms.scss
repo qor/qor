@@ -68,21 +68,21 @@
   padding-top: 14px;
   padding-bottom: 14px;
 
-  > .mdl-button {
+  .mdl-button {
     bottom: 12px;
   }
 
-  > .qor-search-label {
+  .qor-search__label {
     color: unquote("rgba(#{$color-black}, 0.54)");
   }
 
-  > .qor-search-clear {
+  .qor-search__clear {
     display: none;
   }
 
   &.is-dirty,
   &.is-focused {
-    > .qor-search-label {
+    .qor-search__label {
       &,
       &:hover {
         background-color: transparent;
@@ -90,7 +90,7 @@
       }
     }
 
-    > .qor-search-clear {
+    .qor-search__clear {
       right: -7px;
       display: block;
     }
