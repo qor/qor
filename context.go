@@ -18,6 +18,7 @@ type Context struct {
 	Roles       []string
 	DB          *gorm.DB
 	CurrentUser CurrentUser
+	Errors
 }
 
 func (context *Context) GetDB() *gorm.DB {
