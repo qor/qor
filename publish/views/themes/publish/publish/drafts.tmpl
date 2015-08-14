@@ -20,7 +20,9 @@
         </div>
       {{end}}
       <div class="qor-page__body">
-        {{range $res, $records := .Result}}
+        {{range $result := .Result}}
+        {{$res := $result.Resource}}
+        {{$records := $result.Value}}
         <div class="qor-section">
           <div class="qor-section__header">
             <h4 class="qor-section-title">{{rt $res (plural $res.Name)}}</h4>
