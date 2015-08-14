@@ -191,14 +191,9 @@
   position: relative;
   margin-top: 16px;
   margin-bottom: 16px;
-  border-top: 1px solid unquote("rgba(#{$color-black}, 0.12)");
-  border-bottom: 1px solid unquote("rgba(#{$color-black}, 0.12)");
-  // background-color: unquote("rgb(#{$palette-grey-50})");
-
-  + .qor-fieldset {
-    border-top: none;
-    margin-top: -16px;
-  }
+  padding: 8px 24px;
+  border: 1px solid unquote("rgba(#{$color-black}, 0.12)");
+  background-color: unquote("rgb(#{$palette-grey-50})");
 }
 
 .qor-fieldset__delete {
