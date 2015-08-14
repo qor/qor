@@ -46,8 +46,10 @@
 
   .i18n-body {
     position: relative;
-    margin-left: 24px;
-    margin-right: 24px;
+  }
+
+  .i18n-btn-group {
+    text-align: right;
   }
 
   .i18n-translation-source,
@@ -166,7 +168,7 @@
   }
 
   .i18n-list {
-    margin-bottom: 0;
+    margin: 0 24px;
     padding-left: 0;
     list-style: none;
 
