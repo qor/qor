@@ -167,6 +167,13 @@ func (resolver *resolver) Publish() error {
 		}
 
 		if len(dep.PrimaryValues) > 0 {
+			// set status to published
+			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v IN (%v)", draftTable, draftPrimaryKey, toQueryMarks(dep.PrimaryValues))
+
+			var params = []interface{}{bool(PUBLISHED)}
+			params = append(params, toQueryValues(dep.PrimaryValues)...)
+			tx.Exec(updateStateSql, params...)
+
 			// delete old records
 			deleteSql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", productionTable, productionPrimaryKey, toQueryMarks(dep.PrimaryValues))
 			tx.Exec(deleteSql, toQueryValues(dep.PrimaryValues)...)
@@ -217,13 +224,6 @@ func (resolver *resolver) Publish() error {
 					draftTable, draftCondition, toQueryMarks(dep.PrimaryValues, relationship.ForeignFieldNames...))
 				tx.Exec(publishSql, toQueryValues(dep.PrimaryValues, relationship.ForeignFieldNames...)...)
 			}
-
-			// set status to published
-			updateStateSql := fmt.Sprintf("UPDATE %v SET publish_status = ? WHERE %v IN (%v)", draftTable, draftPrimaryKey, toQueryMarks(dep.PrimaryValues))
-
-			var params = []interface{}{bool(PUBLISHED)}
-			params = append(params, toQueryValues(dep.PrimaryValues)...)
-			tx.Exec(updateStateSql, params...)
 		}
 	}
 
@@ -269,6 +269,7 @@ func (resolver *resolver) Discard() error {
 		for _, relationship := range dep.ManyToManyRelations {
 			productionTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", false))
 			draftTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", true))
+
 			var productionJoinKeys, draftJoinKeys []string
 			var productionCondition, draftCondition string
 			for _, foreignKey := range relationship.JoinTableHandler.SourceForeignKeys() {
@@ -284,8 +285,8 @@ func (resolver *resolver) Discard() error {
 				draftCondition = strings.Join(draftJoinKeys, ",")
 			}
 
-			sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftCondition, toQueryMarks(dep.PrimaryValues))
-			tx.Exec(sql, toQueryValues(dep.PrimaryValues)...)
+			sql := fmt.Sprintf("DELETE FROM %v WHERE %v IN (%v)", draftTable, draftCondition, toQueryMarks(dep.PrimaryValues, relationship.ForeignFieldNames...))
+			tx.Exec(sql, toQueryValues(dep.PrimaryValues, relationship.ForeignFieldNames...)...)
 
 			rows, _ := tx.Raw(fmt.Sprintf("select * from %v", draftTable)).Rows()
 			joinColumns, _ := rows.Columns()
@@ -301,8 +302,8 @@ func (resolver *resolver) Discard() error {
 
 			publishSql := fmt.Sprintf("INSERT INTO %v (%v) SELECT %v FROM %v WHERE %v IN (%v)",
 				draftTable, strings.Join(draftJoinTableColumns, " ,"), strings.Join(productionJoinTableColumns, " ,"),
-				productionTable, productionCondition, toQueryMarks(dep.PrimaryValues))
-			tx.Exec(publishSql, toQueryValues(dep.PrimaryValues)...)
+				productionTable, productionCondition, toQueryMarks(dep.PrimaryValues, relationship.ForeignFieldNames...))
+			tx.Exec(publishSql, toQueryValues(dep.PrimaryValues, relationship.ForeignFieldNames...)...)
 		}
 
 		// copy data from production to draft
