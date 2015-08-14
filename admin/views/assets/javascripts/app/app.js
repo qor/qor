@@ -19,7 +19,7 @@ $(function () {
     var $clear = $this.find('.qor-search__clear');
     var isSearched = !!$input.val();
 
-    $clear.on('click', function (e) {
+    $clear.on('click', function () {
       if ($input.val()) {
         $input.focus().val('');
       } else if (isSearched) {
