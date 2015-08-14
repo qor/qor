@@ -1,13 +1,6 @@
-// Material Design Lite, get with `git submodule update --init --recursive`
-@import '../../material-design-lite/src/_color-definitions.scss';
-
-$color-primary: $palette-light-blue-500 !default;
-$color-primary-dark: $palette-light-blue-700 !default;
-
+// Material Design Lite
+@import 'material.scss';
 @import "../../material-design-lite/src/material-design-lite";
-
-// Variables and mixins
-@import "mixins";
 
 // Utilities
 @import "util/variables";

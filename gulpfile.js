@@ -40,7 +40,7 @@ tasks.base = function () {
         ]
       },
       styles = {
-        src: pathto('stylesheets/scss/*.scss'),
+        src: pathto('stylesheets/scss/{qor,app}.scss'),
         dest: pathto('stylesheets'),
         main: pathto('stylesheets/{qor,app}.css'),
         scss: pathto('stylesheets/scss/**/*.scss')
