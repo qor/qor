@@ -26,7 +26,7 @@ func (context *Context) clone() *Context {
 	return &Context{
 		Context:  context.Context,
 		Searcher: context.Searcher,
-		Flashes:   context.Flashes,
+		Flashes:  context.Flashes,
 		Resource: context.Resource,
 		Admin:    context.Admin,
 		Result:   context.Result,

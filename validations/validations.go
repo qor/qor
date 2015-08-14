@@ -16,7 +16,7 @@ type Error struct {
 	Message  string
 }
 
-func (err Error) LocaleFor() string {
+func (err Error) Locale() string {
 	scope := gorm.Scope{Value: err.Resource}
 	return fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), err.Column)
 }

@@ -93,7 +93,7 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 	}
 }
 
-func (res *Resource) Decode(context *qor.Context, value interface{}) (errs []error) {
+func (res *Resource) Decode(context *qor.Context, value interface{}) error {
 	return resource.Decode(context, value, res)
 }
 
