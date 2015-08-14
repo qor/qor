@@ -21,12 +21,12 @@
         {{end}}
         <td class="mdl-data-table__cell--non-numeric qor-table__actions">
           {{if has_update_permission $Resource}}
-            <a class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored qor-button--edit" href="{{url_for $resource}}">
+            <a class="mdl-button mdl-js-button mdl-button--icon qor-button--muted qor-button--edit" href="{{url_for $resource}}">
               <i class="material-icons">edit</i>
             </a>
           {{end}}
           {{if has_delete_permission $Resource}}
-            <a class="mdl-button mdl-js-button mdl-button--icon mdl-button--accent qor-button--delete" href="{{url_for $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
+            <a class="mdl-button mdl-js-button mdl-button--icon qor-button--muted qor-button--delete" href="{{url_for $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
               <i class="material-icons">delete</i>
             </a>
           {{end}}

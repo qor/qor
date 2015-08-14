@@ -13,10 +13,6 @@
   z-index: 1;
 }
 
-// .qor-button--outlined {
-//   outline: 1px solid unquote("rgba(#{$color-black}, 0.12)");
-
-//   .material-icons {
-//     vertical-align: middle;
-//   }
-// }
+.qor-button--muted {
+  color: unquote("rgba(#{$color-black}, 0.54)");
+}
