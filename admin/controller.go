@@ -83,7 +83,7 @@ func (ac *controller) Create(context *Context) {
 				context.Execute("new", result)
 			}).With("json", func() {
 				context.Writer.WriteHeader(HTTPUnprocessableEntity)
-				data, _ := json.Marshal(map[string]interface{}{"errors": context.GetDB().Error})
+				data, _ := json.Marshal(map[string]interface{}{"errors": context.GetErrors()})
 				context.Writer.Write(data)
 			}).Respond(context.Writer, context.Request)
 		} else {
@@ -115,7 +115,7 @@ func (ac *controller) Update(context *Context) {
 			responder.With("html", func() {
 				context.Execute("show", result)
 			}).With("json", func() {
-				data, _ := json.Marshal(map[string]interface{}{"errors": context.GetDB().Errors()})
+				data, _ := json.Marshal(map[string]interface{}{"errors": context.GetErrors()})
 				context.Writer.Write(data)
 			}).Respond(context.Writer, context.Request)
 		} else {
