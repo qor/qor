@@ -55,7 +55,7 @@ func (processor *processor) Validate() error {
 	}
 
 	for _, fc := range processor.Resource.GetResource().validators {
-		if errors.AddError(fc(processor.Result, processor.MetaValues, processor.Context)); errors.HasError() {
+		if errors.AddError(fc(processor.Result, processor.MetaValues, processor.Context)); !errors.HasError() {
 			if processor.checkSkipLeft(errors.GetErrors()...) {
 				break
 			}
@@ -133,7 +133,7 @@ func (processor *processor) Commit() error {
 func (processor *processor) Start() error {
 	var errors qor.Errors
 	processor.Initialize()
-	if errors.AddError(processor.Validate()); errors.HasError() {
+	if errors.AddError(processor.Validate()); !errors.HasError() {
 		errors.AddError(processor.Commit())
 	}
 	return errors
