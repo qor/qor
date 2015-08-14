@@ -61,7 +61,7 @@
     init: function () {
       var $this = this.$element;
 
-      this.$languages = $this.find('.i18n-languages');
+      this.$languages = $this.find('.qor-language');
       this.$items = $this.find('.i18n-list > li');
       this.bind();
     },
