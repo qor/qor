@@ -9,6 +9,7 @@
     vertical-align: middle;
   }
 
+  // Fix the position error on small screen
   .mdl-layout__header .mdl-layout__header-row {
     @media screen and (max-width: $layout-screen-size-threshold) {
       padding-left: 72px;

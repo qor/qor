@@ -92,7 +92,7 @@
 
 .qor-field__block {
   display: block;
-  padding-bottom: 16px;
+  padding-bottom: 20px;
 }
 
 .qor-field {
@@ -133,11 +133,18 @@
 
       > i {
         font-size: 18px;
-        vertical-align: middle;
+        vertical-align: top;
+      }
+
+      > span {
+        + span {
+          margin-left: 8px;
+        }
       }
     }
 
-    .mdl-textfield {
+    .mdl-textfield,
+    .qor-field__block {
       + .qor-field__error {
         margin-top: -16px;
       }

@@ -2,19 +2,17 @@ $(function () {
 
   'use strict';
 
-  var $form = $('.qor-form-container > form');
+  var $form = $('.qor-page__body > .qor-form-container > form');
 
   $('.qor-error > li > label').each(function () {
     var $label = $(this);
-    var $input = $form.find('#' + $label.attr('for'));
+    var id = $label.attr('for');
 
-    if ($input.length) {
-      $input.
-        closest('.mdl-textfield, .qor-field').
+    if (id) {
+      $form.find('#' + id).
+        closest('.qor-field').
         addClass('is-error').
-        append('<span class="mdl-textfield__error"></span>').
-          find('.mdl-textfield__error').
-          html($label.html());
+        append($label.clone().addClass('qor-field__error'));
     }
   });
 

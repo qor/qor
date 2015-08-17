@@ -28,7 +28,13 @@
         position: absolute;
         top: 16px;
         left: 24px;
-        vertical-align: middle;
+        vertical-align: top;
+      }
+
+      > span {
+        + span {
+          margin-left: 8px;
+        }
       }
     }
   }
