@@ -123,6 +123,14 @@
   color: unquote("rgba(#{$color-black}, 0.87)");
 }
 
+.qor-field__input {
+  width: 100%;
+}
+
+.qor-field__block {
+  display: block;
+}
+
 
 // File input
 // -------------------------
