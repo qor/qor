@@ -1,11 +1,6 @@
-// Material Design Lite
-@import 'material.scss';
-@import "../../material-design-lite/src/material-design-lite";
-
-// Utilities
-@import "util/variables";
-@import "util/mixins";
-@import "util/utilities";
+// Common
+@import "variables";
+@import "mixins";
 
 // Components
 @import "app/fonts";
@@ -22,3 +17,4 @@
 @import "app/filter";
 @import "app/section";
 @import "app/pagination";
+@import "app/utilities";

@@ -1,9 +1,6 @@
-// Material Design Lite variables
-@import 'material.scss';
-
-// Utilities
-@import "util/variables";
-@import "util/mixins";
+// Common
+@import "variables";
+@import "mixins";
 
 // Components
 @import "qor/qor-cropper";

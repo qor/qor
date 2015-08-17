@@ -1,0 +1,20 @@
+// Variables
+// --------------------------------------------------
+
+
+// Material Design Lite's variables
+@import "mdl/variables";
+
+
+// Customize palette
+$color-primary: $palette-light-blue-500;
+$color-primary-dark: $palette-light-blue-700;
+
+
+// Z-index master list
+//
+// Warning: Avoid customizing these values. They're used for a bird's eye view
+// of components dependent on the z-axis and are designed to all work together.
+
+$zindex-slideout: 1000;
+$zindex-modal: 1010;
