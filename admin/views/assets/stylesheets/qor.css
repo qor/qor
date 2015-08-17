@@ -383,7 +383,7 @@
   background-color: #fff; }
 
 .qor-datepicker .mdl-card {
-  width: 312px; }
+  width: 312px !important; }
 
 .qor-datepicker .mdl-card__title {
   display: none; }
