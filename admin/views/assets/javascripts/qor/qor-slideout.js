@@ -184,7 +184,7 @@
 
               // Clear old errors
               $body.find('.qor-error').remove();
-              $form.find('.mdl-textfield, .qor-field').removeClass('is-error').find('.mdl-textfield__error').remove();
+              $form.find('.qor-field').removeClass('is-error').find('.qor-field__error').remove();
 
               // Append new errors
               $error = $(xhr.responseText).find('.qor-error');
@@ -192,15 +192,13 @@
 
               $error.find('> li > label').each(function () {
                 var $label = $(this);
-                var $input = $form.find('#' + $label.attr('for'));
+                var id = $label.attr('for');
 
-                if ($input.length) {
-                  $input.
-                    closest('.mdl-textfield, .qor-field').
+                if (id) {
+                  $form.find('#' + id).
+                    closest('.qor-field').
                     addClass('is-error').
-                    append('<span class="mdl-textfield__error"></span>').
-                      find('.mdl-textfield__error').
-                      html($label.html());
+                    append($label.clone().addClass('qor-field__error'));
                 }
               });
 

@@ -12,30 +12,7 @@
   @include shadow-2dp();
 }
 
-.qor-form {
-  .mdl-textfield {
-    display: block;
-    width: 100%;
-  }
-
-  .is-error {
-    margin-bottom: 16px;
-
-    .mdl-textfield__label {
-      color: unquote("rgb(#{$color-accent})");
-    }
-
-    .mdl-textfield__error {
-      color: unquote("rgb(#{$color-accent})");
-      visibility: visible;
-
-      > i {
-        font-size: 18px;
-        vertical-align: middle;
-      }
-    }
-  }
-}
+.qor-form {}
 
 .qor-form__actions {
   margin-top: 24px;
@@ -101,26 +78,12 @@
 // Field
 // -------------------------
 
-.qor-field {
-  padding: 8px 0;
-
-  &.is-error {
-    .qor-field__label {
-      color: unquote("rgb(#{$color-accent})");
-    }
-
-    .mdl-textfield__error {
-      position: static;
-    }
-  }
-}
-
 .qor-field__label {
   display: inline-block;
   max-width: 100%;
   margin-bottom: 8px;
   font-size: 12px;
-  color: unquote("rgba(#{$color-black}, 0.87)");
+  color: unquote("rgba(#{$color-black}, 0.54)");
 }
 
 .qor-field__input {
@@ -129,6 +92,64 @@
 
 .qor-field__block {
   display: block;
+  padding-bottom: 20px;
+}
+
+.qor-field {
+  padding-top: 4px;
+  padding-bottom: 4px;
+
+  .mdl-textfield__input {
+    font-size: 14px;
+  }
+
+  // Fix the position error of bottom border
+  textarea.mdl-textfield__input {
+    vertical-align: middle;
+  }
+
+  // Disable floating label
+  .mdl-textfield--floating-label {
+    .mdl-textfield__label {
+      color: unquote("rgba(#{$color-black}, 0.54)");
+      font-size: 12px;
+      top: 4px;
+      visibility: visible;
+    }
+  }
+
+  &.is-error {
+    margin-bottom: 16px;
+
+    .qor-field__label,
+    .qor-field__error,
+    .mdl-textfield__label {
+      color: unquote("rgb(#{$color-accent})");
+    }
+
+    .qor-field__error {
+      display: block;
+      font-size: 12px;
+
+      > i {
+        font-size: 18px;
+        vertical-align: top;
+      }
+
+      > span {
+        + span {
+          margin-left: 8px;
+        }
+      }
+    }
+
+    .mdl-textfield,
+    .qor-field__block {
+      + .qor-field__error {
+        margin-top: -16px;
+      }
+    }
+  }
 }
 
 
@@ -141,11 +162,10 @@
 }
 
 .qor-file__list {
-  margin-top: 12px;
   overflow: hidden;
 
   > ul {
-    margin-top: 0;
+    margin-top: 12px;
     margin-bottom: 0;
     padding-left: 0;
     list-style: none;
