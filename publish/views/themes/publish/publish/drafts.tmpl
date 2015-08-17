@@ -39,7 +39,7 @@
                   {{range $meta := (index_metas $res)}}
                   <th class="mdl-data-table__cell--non-numeric">{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</th>
                   {{end}}
-                  <th class="mdl-data-table__cell--non-numeric qor-table__action">{{t "Actions"}}</th>
+                  <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
                 </tr>
               </thead>
               <tbody>
@@ -53,10 +53,10 @@
                   </td>
                   {{range $index, $meta := index_metas $res}}
                   <td class="mdl-data-table__cell--non-numeric">
-                    <div class="qor-table-text">{{render_publish_meta $record $meta $context}}</div>
+                    <div class="qor-table__content">{{render_publish_meta $record $meta $context}}</div>
                   </td>
                   {{end}}
-                  <td class="mdl-data-table__cell--non-numeric qor-table__action">
+                  <td class="mdl-data-table__cell--non-numeric qor-table__actions">
                     <a class="qor-action__view" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a>
                   </td>
                 </tr>

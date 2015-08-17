@@ -1,8 +1,8 @@
 .qor-table {
   width: 100%;
 
-  a:not([class]) {
-    color: unquote("rgba(#{$color-black}, 0.87)");
+  a:not([class*="mdl-button"]) {
+    color: unquote("rgba(#{$color-black}, 0.54)");
   }
 
   img {
@@ -31,6 +31,11 @@
       }
     }
   }
+}
+
+.qor-table__content {
+  max-width: 160px;
+  @include text-overflow();
 }
 
 .qor-table__actions {
