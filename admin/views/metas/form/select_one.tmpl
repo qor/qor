@@ -1,7 +1,7 @@
 <div class="qor-field">
   <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
   <div class="qor-field__block">
-    <select class="qor-field__input" id="{{.InputId}}" data-toggle="qor.chooser" name="{{.InputName}}"{{if not (has_update_permission .Meta)}} disabled{{end}}>
+    <select class="qor-field__input" id="{{.InputId}}" data-toggle="qor.chooser" name="{{.InputName}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
       {{$current_values := .Value}}
       {{range $values := .CollectionValue}}
         {{if (is_included $current_values (index $values 0))}}

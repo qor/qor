@@ -1,4 +1,6 @@
-<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-  <input class="mdl-textfield__input" type="number" id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}"{{if not (has_update_permission .Meta)}} disabled{{end}}>
-  <label class="mdl-textfield__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
+<div class="qor-field">
+  <div class="mdl-textfield mdl-textfield--full-width mdl-textfield--floating-label mdl-js-textfield">
+    <input class="mdl-textfield__input" type="number" id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
+    <label class="mdl-textfield__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
+  </div>
 </div>
