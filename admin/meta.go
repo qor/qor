@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -131,7 +132,17 @@ func (meta *Meta) updateMeta() {
 		} else {
 			switch fieldType.Kind().String() {
 			case "string":
-				meta.Type = "string"
+				if size, ok := utils.ParseTagOption(field.Tag.Get("sql"))["SIZE"]; ok {
+					if i, _ := strconv.Atoi(size); i > 255 {
+						meta.Type = "text"
+					} else {
+						meta.Type = "string"
+					}
+				} else if text, ok := utils.ParseTagOption(field.Tag.Get("sql"))["TYPE"]; ok && text == "text" {
+					meta.Type = "text"
+				} else {
+					meta.Type = "string"
+				}
 			case "bool":
 				meta.Type = "checkbox"
 			default:

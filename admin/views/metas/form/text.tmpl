@@ -1,0 +1,4 @@
+<div class="qor-field">
+  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
+  <textarea id="{{.InputId}}" class="mdl-textfield__input" name="{{.InputName}}" {{if not (has_update_permission .Meta)}} disabled{{end}}>{{if .Value}}{{.Value}}{{end}}</textarea>
+</div>
