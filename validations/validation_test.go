@@ -82,7 +82,7 @@ func init() {
 	db.AutoMigrate(&User{}, &Company{}, &CreditCard{}, &Address{}, &Language{})
 }
 
-func TestSaveInvalidUesr(t *testing.T) {
+func TestSaveInvalidUser(t *testing.T) {
 	user := User{Name: "invalid"}
 
 	if result := db.Save(&user); result.Error == nil {
