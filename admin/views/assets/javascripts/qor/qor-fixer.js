@@ -106,12 +106,16 @@
     toggle: function () {
       var $this = this.$element;
       var $clone = this.$clone;
+      var theadHeight = this.$thead.outerHeight();
+      var tbodyLastRowHeight = this.$tbody.find('tr:last').outerHeight();
       var scrollTop = this.$content.scrollTop();
       var min = this.offsetTop;
-      var max = scrollTop + $this.outerHeight();
+      var max = min + ($this.outerHeight() - theadHeight - tbodyLastRowHeight);
 
-      if (scrollTop > min && scrollTop < max) {
-        $clone.css('top', (scrollTop - min)).show();
+      if (scrollTop >= min) {
+        if (scrollTop <= max) {
+          $clone.css('top', (scrollTop - min)).show();
+        }
       } else {
         $clone.hide();
       }
@@ -151,7 +155,7 @@
   };
 
   $(function () {
-    var selector = '.qor-table';
+    var selector = '.qor-js-table';
     var options = {
           header: '.mdl-layout__header',
           content: '.mdl-layout__content',
