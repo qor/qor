@@ -16,6 +16,7 @@
   var NAMESPACE = 'qor.fixer';
   var EVENT_ENABLE = 'enable.' + NAMESPACE;
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
+  var EVENT_CLICK = 'click.' + NAMESPACE;
   var EVENT_RESIZE = 'resize.' + NAMESPACE;
   var EVENT_SCROLL = 'scroll.' + NAMESPACE;
 
@@ -47,12 +48,16 @@
     },
 
     bind: function () {
+      this.$element.on(EVENT_CLICK, $.proxy(this.check, this));
+
       this.$content.
         on(EVENT_SCROLL, $.proxy(this.toggle, this)).
         on(EVENT_RESIZE, $.proxy(this.resize, this));
     },
 
     unbind: function () {
+      this.$element.off(EVENT_CLICK, this.check);
+
       this.$content.
         off(EVENT_SCROLL, this.toggle).
         off(EVENT_RESIZE, this.resize);
@@ -81,6 +86,21 @@
 
     unbuild: function () {
       this.$clone.remove();
+    },
+
+    check: function (e) {
+      var $target = $(e.target);
+      var checked;
+
+      if ($target.is('.qor-action__check-all')) {
+        checked = $target.prop('checked');
+
+        $target.
+          closest('thead').
+          siblings('thead').
+            find('.qor-action__check-all').prop('checked', checked).
+            closest('.mdl-checkbox').toggleClass('is-checked', checked);
+      }
     },
 
     toggle: function () {
