@@ -45,8 +45,8 @@
         $template = $all.last();
       }
 
-      // Should downgrade material components here
-      $template.trigger('disable.qor.material');
+      // Should destroy all components here
+      $template.trigger('disable');
 
       this.$template = $template;
       this.template = $template.prop('outerHTML');
