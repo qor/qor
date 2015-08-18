@@ -49,7 +49,7 @@
         <li>
           <header>
             <button class="mdl-button mdl-js-button mdl-button--icon i18n-btn-edit" data-toggle="edit.qor.i18n" type="button">
-              <i class="material-icons">edit</i>
+              <i class="material-icons md-18">edit</i>
             </button>
           </header>
 
@@ -69,8 +69,9 @@
               <form class="qor-form i18n-translation-editor">
                 <input type="hidden" name="Locale" value="{{$editing_locale}}">
                 <textarea class="hidden" name="Key">{{ $key }}</textarea>
-                <div class="mdl-textfield mdl-js-textfield">
+                <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--condensed">
                   <textarea class="mdl-textfield__input i18n-translator" id="targetTranslation" name="Value" rows="1">{{lt $editing_locale $key false}}</textarea>
+                  <label for="targetTranslation" class="mdl-textfield__label"></label>
                 </div>
                 <p class="i18n-help-block"><span class="material-icons md-14">check_circle</span> {{t "Saved"}}</p>
               </form>
