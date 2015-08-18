@@ -18,7 +18,9 @@
   var NAMESPACE = 'qor.i18n';
   var EVENT_CLICK = 'click.' + NAMESPACE;
   var EVENT_CHANGE = 'change.' + NAMESPACE;
-  var EVENT_KEYUP = 'keyup.' + NAMESPACE;
+
+  // For Qor Autoheight plugin
+  var EVENT_INPUT = 'input';
 
   function I18n(element, options) {
     this.$element = $(element);
@@ -61,7 +63,7 @@
     init: function () {
       var $this = this.$element;
 
-      this.$languages = $this.find('.qor-language');
+      this.$languages = $this.find('.qor-js-language');
       this.$items = $this.find('.i18n-list > li');
       this.bind();
     },
@@ -69,7 +71,6 @@
     bind: function () {
       this.$element.
         on(EVENT_CLICK, $.proxy(this.click, this)).
-        on(EVENT_KEYUP, $.proxy(this.resize, this)).
         on(EVENT_CHANGE, $.proxy(this.change, this));
 
       this.$languages.on(EVENT_CHANGE, $.proxy(this.reload, this));
@@ -78,7 +79,6 @@
     unbind: function () {
       this.$element.
         off(EVENT_CLICK, this.click).
-        off(EVENT_KEYUP, this.resize).
         off(EVENT_CHANGE, this.change);
 
       this.$languages.off(EVENT_CHANGE, this.reload);
@@ -101,7 +101,7 @@
         case 'bulk':
           this.multiple = true;
           $target.addClass('hidden').siblings('button').removeClass('hidden');
-          $items.removeClass('highlight').addClass('active').find('.i18n-translator').trigger(EVENT_KEYUP);
+          $items.removeClass('highlight').addClass('active').find('.qor-js-translator').trigger(EVENT_INPUT);
           break;
 
         case 'exit':
@@ -113,7 +113,7 @@
 
         case 'edit':
           $items.removeClass('active highlight');
-          $target.closest('li').addClass('active highlight').find('.i18n-translator').trigger(EVENT_KEYUP);
+          $target.closest('li').addClass('active highlight').find('.qor-js-translator').trigger(EVENT_INPUT);
           break;
 
         case 'save':
@@ -130,7 +130,7 @@
 
         case 'copy':
           $item = $target.closest('li');
-          $item.find('.i18n-translator').val($item.find('.i18n-translation-source').text()).trigger(EVENT_KEYUP);
+          $item.find('.qor-js-translator').val($item.find('.i18n-translation-source').text()).trigger(EVENT_INPUT);
           break;
 
         case 'copyall':
@@ -139,18 +139,10 @@
       }
     },
 
-    resize: function (e) {
-      var $target = $(e.target);
-
-      if ($target.is('.i18n-translator')) {
-        $target.height('auto').height($target.prop('scrollHeight') - 8); // 8 is the padding height
-      }
-    },
-
     change: function (e) {
       var $target = $(e.target);
 
-      if ($target.is('.i18n-translator')) {
+      if ($target.is('.qor-js-translator')) {
         if (this.multiple) {
           this.submit($target.closest('form'), function ($form) {
             var $help = $form.find('.i18n-help-block');
@@ -164,7 +156,7 @@
         }
 
         // Resize textarea height
-        $target.trigger(EVENT_KEYUP);
+        $target.trigger(EVENT_INPUT);
       }
     },
 
@@ -182,7 +174,7 @@
           method: 'POST',
           data: $form.serialize(),
           success: function () {
-            $form.siblings('.i18n-translation-target').text($form.find('.i18n-translator').val());
+            $form.siblings('.i18n-translation-target').text($form.find('.qor-js-translator').val());
 
             if ($.isFunction(callback)) {
               callback($form);
