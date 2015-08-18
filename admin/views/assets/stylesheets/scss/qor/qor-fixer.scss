@@ -1,14 +1,19 @@
 // Fixed table header
 
-.qor-table .is-fixed {
-  position: absolute;
-  top: 0;
-  left: 1px;
-  z-index: $zindex-fixer;
-  display: none;
-  width: inherit;
-  height: 48px;
-  padding-bottom: 0;
-  background-color: #fff;
-  @include shadow-2dp();
+.qor-table {
+  .is-fixed {
+    position: absolute;
+    top: 0;
+    left: 1px;
+    z-index: $zindex-fixer;
+    width: inherit;
+    height: 48px;
+    padding-bottom: 0;
+    background-color: #fff;
+    @include shadow-2dp();
+  }
+
+  .is-hidden {
+    display: none;
+  }
 }

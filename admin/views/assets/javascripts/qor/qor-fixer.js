@@ -19,6 +19,8 @@
   var EVENT_CLICK = 'click.' + NAMESPACE;
   var EVENT_RESIZE = 'resize.' + NAMESPACE;
   var EVENT_SCROLL = 'scroll.' + NAMESPACE;
+  var CLASS_IS_HIDDEN = 'is-hidden';
+  var CLASS_IS_FIXED = 'is-fixed';
 
   function QorFixer(element, options) {
     this.$element = $(element);
@@ -76,7 +78,7 @@
       this.offsetTop = $this.offset().top - this.$header.outerHeight();
 
       $clone.
-        addClass('is-fixed').
+        addClass([CLASS_IS_FIXED, CLASS_IS_HIDDEN].join(' ')).
         find('> tr').
           children().
             each(function (i) {
@@ -109,15 +111,14 @@
       var theadHeight = this.$thead.outerHeight();
       var tbodyLastRowHeight = this.$tbody.find('tr:last').outerHeight();
       var scrollTop = this.$content.scrollTop();
-      var min = this.offsetTop;
-      var max = min + ($this.outerHeight() - theadHeight - tbodyLastRowHeight);
+      var minTop = 0;
+      var maxTop = $this.outerHeight() - theadHeight - tbodyLastRowHeight;
+      var offsetTop = this.offsetTop;
 
-      if (scrollTop >= min) {
-        if (scrollTop <= max) {
-          $clone.css('top', (scrollTop - min)).show();
-        }
+      if (scrollTop > offsetTop) {
+        $clone.css('top', Math.min(scrollTop - offsetTop, maxTop)).removeClass(CLASS_IS_HIDDEN);
       } else {
-        $clone.hide();
+        $clone.css('top', minTop).addClass(CLASS_IS_HIDDEN);
       }
     },
 
