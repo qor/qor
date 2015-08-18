@@ -99,25 +99,6 @@
   padding-top: 4px;
   padding-bottom: 4px;
 
-  .mdl-textfield__input {
-    font-size: 14px;
-  }
-
-  // Fix the position error of bottom border
-  textarea.mdl-textfield__input {
-    vertical-align: middle;
-  }
-
-  // Disable floating label
-  .mdl-textfield--floating-label {
-    .mdl-textfield__label {
-      color: unquote("rgba(#{$color-black}, 0.54)");
-      font-size: 12px;
-      top: 4px;
-      visibility: visible;
-    }
-  }
-
   &.is-error {
     margin-bottom: 16px;
 
@@ -148,6 +129,42 @@
       + .qor-field__error {
         margin-top: -16px;
       }
+    }
+  }
+}
+
+// Fix the position error of bottom border
+textarea.mdl-textfield__input {
+  vertical-align: middle;
+}
+
+// Custom modifier for .mdl-textfield
+.qor-textfield--static-label {
+  .mdl-textfield__label {
+    color: unquote("rgba(#{$color-black}, 0.54)");
+    font-size: 12px;
+    top: 4px;
+  }
+
+  .mdl-textfield__input {
+    font-size: 14px;
+  }
+
+  &.is-dirty .mdl-textfield__label {
+    visibility: visible;
+  }
+}
+
+.qor-textfield--condensed {
+  padding-top: 0;
+  padding-bottom: 0;
+
+  .mdl-textfield__label {
+    top: 0;
+    font-size: 14px;
+
+    &:after {
+      bottom: 0;
     }
   }
 }
