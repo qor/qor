@@ -194,7 +194,7 @@ function moduleTasks(moduleName) {
     .pipe(plugins.jscs());
   });
 
-  gulp.task('js', function () {
+  gulp.task('js', ['jshint', 'jscs'], function () {
     return gulp.src(scripts.src)
     .pipe(plugins.concat(moduleName + '.js'))
     .pipe(plugins.uglify())
