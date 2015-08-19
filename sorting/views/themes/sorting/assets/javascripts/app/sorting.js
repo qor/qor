@@ -247,13 +247,17 @@
             from: data.from,
             to: data.to,
           },
-          success: function (actualPosition, textStatus, jqXHR) {
-            if (jqXHR.status === 200) {
+          success: function (actualPosition, textStatus, xhr) {
+            if (xhr.status === 200) {
               $row.find(options.input).data('position', actualPosition).val(actualPosition);
             }
           },
-          error:function () {
-            if (windwo.alert('Fail to sort!')) {
+          error: function (xhr, textStatus, errorThrown) {
+            if (xhr.status === 422) {
+              if (window.alert(xhr.responseText)) {
+                window.location.reload();
+              }
+            } if (window.alert([textStatus, errorThrown].join(': '))) {
               window.location.reload();
             }
           }
