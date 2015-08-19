@@ -18,22 +18,24 @@
   var NAMESPACE = 'qor.slideout';
   var EVENT_ENABLE = 'enable.' + NAMESPACE;
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
+  var EVENT_KEYUP = 'keyup.' + NAMESPACE;
   var EVENT_CLICK = 'click.' + NAMESPACE;
   var EVENT_SUBMIT = 'submit.' + NAMESPACE;
   var EVENT_SHOW = 'show.' + NAMESPACE;
   var EVENT_SHOWN = 'shown.' + NAMESPACE;
   var EVENT_HIDE = 'hide.' + NAMESPACE;
   var EVENT_HIDDEN = 'hidden.' + NAMESPACE;
+  var EVENT_TRANSITIONEND = 'transitionend';
   var CLASS_OPEN = 'qor-slideout-open';
-  var CLASS_ACTIVE = 'active';
-  var CLASS_SELECTED = 'is-selected';
+  var CLASS_IS_SHOWN = 'is-shown';
+  var CLASS_IS_SLIDED = 'is-slided';
+  var CLASS_IS_SELECTED = 'is-selected';
 
   function QorSlideout(element, options) {
     this.$element = $(element);
     this.options = $.extend({}, QorSlideout.DEFAULTS, $.isPlainObject(options) && options);
-    this.active = false;
+    this.slided = false;
     this.disabled = false;
-    this.animating = false;
     this.init();
   }
 
@@ -41,10 +43,6 @@
     constructor: QorSlideout,
 
     init: function () {
-      if (!this.$element.find('.qor-table').length) {
-        return;
-      }
-
       this.build();
       this.bind();
     },
@@ -55,7 +53,6 @@
       this.$slideout = $slideout = $(QorSlideout.TEMPLATE).appendTo('body');
       this.$title = $slideout.find('.qor-slideout__title');
       this.$body = $slideout.find('.qor-slideout__body');
-      this.$documentBody = $('body');
     },
 
     unbuild: function () {
@@ -69,6 +66,7 @@
         on(EVENT_SUBMIT, 'form', $.proxy(this.submit, this));
 
       $document.
+        on(EVENT_KEYUP, $.proxy(this.keyup, this)).
         on(EVENT_CLICK, $.proxy(this.click, this));
     },
 
@@ -77,7 +75,14 @@
         off(EVENT_SUBMIT, this.submit);
 
       $document.
+        off(EVENT_KEYUP, this.keyup).
         off(EVENT_CLICK, this.click);
+    },
+
+    keyup: function (e) {
+      if (e.which === 27) {
+        this.hide();
+      }
     },
 
     click: function (e) {
@@ -89,8 +94,8 @@
       var data;
 
       function toggleClass() {
-        $this.find('tbody > tr').removeClass(CLASS_SELECTED);
-        $target.addClass(CLASS_SELECTED);
+        $this.find('tbody > tr').removeClass(CLASS_IS_SELECTED);
+        $target.addClass(CLASS_IS_SELECTED);
       }
 
       if (e.isDefaultPrevented()) {
@@ -116,7 +121,7 @@
           this.hide();
           break;
         } else if ($target.is('tbody > tr')) {
-          if (!$target.hasClass(CLASS_SELECTED)) {
+          if (!this.disabled && !$target.hasClass(CLASS_IS_SELECTED)) {
             $this.one(EVENT_SHOW, toggleClass);
             this.load($target.find('.qor-button--edit').attr('href'));
           }
@@ -134,18 +139,12 @@
           }
 
           if (target) {
-            // dismissible = true;
             target = target.parentNode;
           } else {
             break;
           }
         }
       }
-
-      // if (dismissible) {
-      //   $this.find('tbody > tr').removeClass(CLASS_SELECTED);
-      //   this.hide();
-      // }
     },
 
     submit: function (e) {
@@ -205,7 +204,7 @@
               // Scroll to top to view the errors
               $slideout.scrollTop(0);
             } else {
-              window.alert(textStatus + (errorThrown ? (' (' + (errorThrown || '') + ')') : ''));
+              window.alert([textStatus, errorThrown].join(': '));
             }
           },
           complete: function () {
@@ -279,7 +278,7 @@
         });
       }, this);
 
-      if (this.active) {
+      if (this.slided) {
         this.hide();
         this.$slideout.one(EVENT_HIDDEN, load);
       } else {
@@ -291,7 +290,7 @@
       var $slideout = this.$slideout;
       var showEvent;
 
-      if (this.active || this.animating) {
+      if (this.slided) {
         return;
       }
 
@@ -303,17 +302,18 @@
       }
 
       /*jshint expr:true */
-      $slideout.addClass(CLASS_ACTIVE).get(0).offsetWidth;
-      $slideout.addClass('in');
-      this.animating = setTimeout($.proxy(this.shown, this), 350);
+      $slideout.addClass(CLASS_IS_SHOWN).get(0).offsetWidth;
+      $slideout.
+        one(EVENT_TRANSITIONEND, $.proxy(this.shown, this)).
+        addClass(CLASS_IS_SLIDED).
+        scrollTop(0);
     },
 
     shown: function () {
-      this.active = true;
-      this.animating = false;
+      this.slided = true;
 
       // Disable to scroll body element
-      this.$documentBody.addClass(CLASS_OPEN);
+      $('body').addClass(CLASS_OPEN);
 
       this.$slideout.trigger(EVENT_SHOWN);
     },
@@ -322,7 +322,7 @@
       var $slideout = this.$slideout;
       var hideEvent;
 
-      if (!this.active || this.animating) {
+      if (!this.slided) {
         return;
       }
 
@@ -333,18 +333,19 @@
         return;
       }
 
-      $slideout.removeClass('in');
-      this.animating = setTimeout($.proxy(this.hidden, this), 350);
+      $slideout.
+        one(EVENT_TRANSITIONEND, $.proxy(this.hidden, this)).
+        removeClass(CLASS_IS_SLIDED);
     },
 
     hidden: function () {
-      this.active = false;
-      this.animating = false;
+      this.slided = false;
 
       // Enable to scroll body element
-      this.$documentBody.removeClass(CLASS_OPEN);
-      this.$element.find('tbody > tr').removeClass(CLASS_SELECTED);
-      this.$slideout.removeClass(CLASS_ACTIVE).trigger(EVENT_HIDDEN);
+      $('body').removeClass(CLASS_OPEN);
+
+      this.$element.find('tbody > tr').removeClass(CLASS_IS_SELECTED);
+      this.$slideout.removeClass(CLASS_IS_SHOWN).trigger(EVENT_HIDDEN);
     },
 
     refresh: function () {
@@ -356,7 +357,7 @@
     },
 
     toggle: function () {
-      if (this.active) {
+      if (this.slided) {
         this.hide();
       } else {
         this.show();

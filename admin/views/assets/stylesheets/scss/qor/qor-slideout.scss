@@ -1,13 +1,11 @@
-// Popper
+// Slideout
 // --------------------------------------------------
 
 
 // Class for body element to prevent scroll
-
 .qor-slideout-open {
   overflow: hidden;
 }
-
 
 .qor-slideout {
   position: fixed;
@@ -16,19 +14,23 @@
   bottom: 0;
   z-index: $zindex-slideout;
   display: none;
-  width: 0;
   background-color: #fff;
-  overflow-x: hidden;
+  overflow: hidden;
   overflow-y: auto;
   @include shadow-16dp();
-  transition: width 0.35s ease;
 
-  &.active {
+  &.is-shown {
     display: block;
+    width: 0;
+    transition: width 0.3s ease;
   }
 
-  &.in {
+  &.is-slided {
     width: 100%;
+
+    @media (min-width: $layout-screen-size-threshold) {
+      width: 50%;
+    }
   }
 
   .qor-error {
@@ -63,13 +65,4 @@
 
 .qor-slideout__body {
   padding: 16px 24px;
-}
-
-@media (min-width: 768px) {
-  .qor-slideout {
-    &.in {
-      max-width: 640px;
-      width: 50%;
-    }
-  }
 }
