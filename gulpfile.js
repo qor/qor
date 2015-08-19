@@ -124,6 +124,13 @@ function adminTasks() {
     .pipe(gulp.dest(styles.dest));
   });
 
+  gulp.task('mdl', function () {
+    return gulp.src([
+      'bower_components/material-design-lite/src/_*',
+    ])
+    .pipe(gulp.dest(pathto('stylesheets/scss/mdl')));
+  });
+
   gulp.task('fonts', function () {
     return gulp.src([
       'bower_components/material-design-icons/iconfont/codepoints',
@@ -132,7 +139,7 @@ function adminTasks() {
     .pipe(gulp.dest(fonts.dest));
   });
 
-  gulp.task('csslib', ['fonts'], function () {
+  gulp.task('csslib', ['mdl', 'fonts'], function () {
     return gulp.src([
       'bower_components/material-design-lite/material.min.css',
       'bower_components/material-design-lite/material.min.css.map',
