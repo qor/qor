@@ -247,10 +247,10 @@
           };
 
           emulateCropData = {
-            x: (naturalWidth - width) / 2,
-            y: (naturalHeight - height) / 2,
-            width: width,
-            height: height,
+            x: Math.round((naturalWidth - width) / 2),
+            y: Math.round((naturalHeight - height) / 2),
+            width: Math.round(width),
+            height: Math.round(height),
           };
 
           _this.preview($image, emulateImageData, emulateCropData);
