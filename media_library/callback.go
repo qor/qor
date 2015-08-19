@@ -13,6 +13,7 @@ import (
 func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 	return func(scope *gorm.Scope) {
 		if !scope.HasError() {
+			var updateColumns = map[string]interface{}{}
 			for _, field := range scope.Fields() {
 				if media, ok := field.Field.Addr().Interface().(MediaLibrary); ok && !media.Cropped() {
 
@@ -38,9 +39,9 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 							media.Scan(string(result))
 						}
 
-						if isCreate && !scope.HasError() {
+						if isCreate {
 							if value, err := media.Value(); err == nil {
-								scope.NewDB().Model(scope.Value).UpdateColumns(map[string]interface{}{field.DBName: value})
+								updateColumns[field.DBName] = value
 							}
 						}
 
@@ -85,6 +86,10 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 						}
 					}
 				}
+			}
+
+			if isCreate && !scope.HasError() && len(updateColumns) != 0 {
+				scope.NewDB().Model(scope.Value).UpdateColumns(updateColumns)
 			}
 		}
 	}
