@@ -13,6 +13,7 @@
 
   'use strict';
 
+  var location = window.location;
   var NAMESPACE = 'qor.sorting';
   var EVENT_ENABLE = 'enable.' + NAMESPACE;
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
@@ -254,11 +255,13 @@
           },
           error: function (xhr, textStatus, errorThrown) {
             if (xhr.status === 422) {
-              if (window.alert(xhr.responseText)) {
-                window.location.reload();
+              if (window.confirm(xhr.responseText)) {
+                location.reload();
               }
-            } if (window.alert([textStatus, errorThrown].join(': '))) {
-              window.location.reload();
+            } else {
+              if (window.confirm([textStatus, errorThrown].join(': '))) {
+                location.reload();
+              }
             }
           }
         });
