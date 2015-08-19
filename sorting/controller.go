@@ -38,8 +38,8 @@ func updatePosition(context *admin.Context) {
 			}
 		}
 	}
-	context.Writer.Write([]byte("Error"))
 	context.Writer.WriteHeader(admin.HTTPUnprocessableEntity)
+	context.Writer.Write([]byte("Error"))
 }
 
 var injected bool
