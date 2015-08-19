@@ -62,35 +62,37 @@ func beforeUpdate(scope *gorm.Scope) {
 }
 
 func afterUpdate(scope *gorm.Scope) {
-	if isLocalizable(scope) {
-		if locale, ok := getLocale(scope); ok {
-			if scope.DB().RowsAffected == 0 { //is locale and nothing updated
-				var count int
-				var query = fmt.Sprintf("%v.language_code = ? AND %v.%v = ?", scope.QuotedTableName(), scope.QuotedTableName(), scope.PrimaryKey())
-				if scope.NewDB().Table(scope.TableName()).Where(query, locale, scope.PrimaryKeyValue()).Count(&count); count == 0 {
-					scope.DB().Create(scope.Value)
+	if !scope.HasError() {
+		if isLocalizable(scope) {
+			if locale, ok := getLocale(scope); ok {
+				if scope.DB().RowsAffected == 0 { //is locale and nothing updated
+					var count int
+					var query = fmt.Sprintf("%v.language_code = ? AND %v.%v = ?", scope.QuotedTableName(), scope.QuotedTableName(), scope.PrimaryKey())
+					if scope.NewDB().Table(scope.TableName()).Where(query, locale, scope.PrimaryKeyValue()).Count(&count); count == 0 {
+						scope.DB().Create(scope.Value)
+					}
 				}
-			}
-		} else if syncColumns := syncColumns(scope); len(syncColumns) > 0 { // is global
-			if mode, _ := scope.DB().Get("l10n:mode"); mode != "unscoped" {
-				if scope.DB().RowsAffected > 0 {
-					primaryKey := scope.PrimaryKeyValue()
+			} else if syncColumns := syncColumns(scope); len(syncColumns) > 0 { // is global
+				if mode, _ := scope.DB().Get("l10n:mode"); mode != "unscoped" {
+					if scope.DB().RowsAffected > 0 {
+						primaryKey := scope.PrimaryKeyValue()
 
-					if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
-						var syncAttrs = map[string]interface{}{}
-						for key, value := range updateAttrs.(map[string]interface{}) {
-							for _, syncColumn := range syncColumns {
-								if syncColumn == key {
-									syncAttrs[syncColumn] = value
-									break
+						if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
+							var syncAttrs = map[string]interface{}{}
+							for key, value := range updateAttrs.(map[string]interface{}) {
+								for _, syncColumn := range syncColumns {
+									if syncColumn == key {
+										syncAttrs[syncColumn] = value
+										break
+									}
 								}
 							}
+							if len(syncAttrs) > 0 {
+								scope.DB().Model(scope.Value).Set("l10n:mode", "unscoped").Where("language_code <> ?", Global).UpdateColumns(syncAttrs)
+							}
+						} else {
+							scope.NewDB().Set("l10n:mode", "unscoped").Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), primaryKey).Select(syncColumns).Save(scope.Value)
 						}
-						if len(syncAttrs) > 0 {
-							scope.DB().Model(scope.Value).Set("l10n:mode", "unscoped").Where("language_code <> ?", Global).UpdateColumns(syncAttrs)
-						}
-					} else {
-						scope.NewDB().Set("l10n:mode", "unscoped").Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), primaryKey).Select(syncColumns).Save(scope.Value)
 					}
 				}
 			}

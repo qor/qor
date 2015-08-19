@@ -9,10 +9,12 @@ import (
 )
 
 func initalizePosition(scope *gorm.Scope) {
-	if position, ok := scope.Value.(sortingInterface); ok {
-		if pos, err := strconv.Atoi(fmt.Sprintf("%v", scope.PrimaryKeyValue())); err == nil {
-			if scope.DB().UpdateColumn("position", pos).Error == nil {
-				position.SetPosition(pos)
+	if !scope.HasError() {
+		if position, ok := scope.Value.(sortingInterface); ok {
+			if pos, err := strconv.Atoi(fmt.Sprintf("%v", scope.PrimaryKeyValue())); err == nil {
+				if scope.DB().UpdateColumn("position", pos).Error == nil {
+					position.SetPosition(pos)
+				}
 			}
 		}
 	}

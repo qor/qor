@@ -56,26 +56,32 @@ func getModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope
 }
 
 func syncToProductionAfterCreate(scope *gorm.Scope) {
-	if ok, clone := getModeAndNewScope(scope); ok {
-		gorm.Create(clone)
+	if !scope.HasError() {
+		if ok, clone := getModeAndNewScope(scope); ok {
+			gorm.Create(clone)
+		}
 	}
 }
 
 func syncToProductionAfterUpdate(scope *gorm.Scope) {
-	if ok, clone := getModeAndNewScope(scope); ok {
-		if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
-			table := originalTableName(scope.TableName())
-			clone.Search = scope.Search
-			clone.Search.Table(table)
-			clone.InstanceSet("gorm:update_attrs", updateAttrs)
+	if !scope.HasError() {
+		if ok, clone := getModeAndNewScope(scope); ok {
+			if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
+				table := originalTableName(scope.TableName())
+				clone.Search = scope.Search
+				clone.Search.Table(table)
+				clone.InstanceSet("gorm:update_attrs", updateAttrs)
+			}
+			gorm.Update(clone)
 		}
-		gorm.Update(clone)
 	}
 }
 
 func syncToProductionAfterDelete(scope *gorm.Scope) {
-	if ok, clone := getModeAndNewScope(scope); ok {
-		gorm.Delete(clone)
+	if !scope.HasError() {
+		if ok, clone := getModeAndNewScope(scope); ok {
+			gorm.Delete(clone)
+		}
 	}
 }
 
