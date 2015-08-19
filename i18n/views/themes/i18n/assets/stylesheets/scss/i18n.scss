@@ -86,9 +86,6 @@
     top: 0;
     right: 0;
     z-index: 1;
-    width: 20px;
-    height: 20px;
-    color: rgba(0,0,0,0.54);
 
     &:hover,
     &:focus {
@@ -173,7 +170,7 @@
     list-style: none;
 
     > li {
-      padding: 15px;
+      padding: 16px;
       border: 1px solid #eee;
       background-color: #fff;
       box-shadow: 0 1px 2px rgba(0,0,0,0.12), 0 2px 2px rgba(0,0,0,0.24);
@@ -184,6 +181,10 @@
 
       > header {
         position: relative;
+      }
+
+      .mdl-grid {
+        padding: 0;
       }
 
       .i18n-btn-group {
