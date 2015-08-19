@@ -7,7 +7,7 @@
         <fieldset class="qor-fieldset">
           {{if has_delete_permission $meta}}
             <button class="mdl-button mdl-js-button mdl-button--accent mdl-button--icon qor-fieldset__delete" type="button">
-              <i class="material-icons">delete</i>
+              <i class="material-icons md-18">delete</i>
             </button>
           {{end}}
           {{render_form $value (edit_metas $meta.Resource) $index}}
@@ -18,7 +18,7 @@
     {{if has_create_permission .Meta}}
       <fieldset class="qor-fieldset qor-fieldset--new">
         <button class="mdl-button mdl-js-button mdl-button--accent mdl-button--icon qor-fieldset__delete" type="button">
-          <i class="material-icons">delete</i>
+          <i class="material-icons md-18">delete</i>
         </button>
         {{render_form $meta.Resource.GetResource.Value (new_metas $meta.Resource) (len .Value)}}
       </fieldset>
