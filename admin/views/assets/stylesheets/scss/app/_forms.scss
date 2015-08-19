@@ -133,9 +133,9 @@
   }
 }
 
-// Fix the position error of bottom border
-textarea.mdl-textfield__input {
-  vertical-align: middle;
+// Remove white background
+.mdl-textfield__input {
+  background-color: transparent;
 }
 
 // Custom modifier for .mdl-textfield
