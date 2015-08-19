@@ -5,8 +5,10 @@ import "github.com/jinzhu/gorm"
 var skipValidations = "validations:skip_validations"
 
 func validate(scope *gorm.Scope) {
-	if result, ok := scope.DB().Get(skipValidations); !(ok && result.(bool)) {
-		scope.CallMethodWithErrorCheck("Validate")
+	if _, ok := scope.Get("gorm:update_column"); !ok {
+		if result, ok := scope.DB().Get(skipValidations); !(ok && result.(bool)) {
+			scope.CallMethodWithErrorCheck("Validate")
+		}
 	}
 }
 
