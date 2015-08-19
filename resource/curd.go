@@ -23,13 +23,11 @@ var DefaultSaver = func(result interface{}, context *qor.Context) error {
 }
 
 var DefaultDeleter = func(result interface{}, context *qor.Context) error {
-	db := context.GetDB().Delete(result, context.ResourceID)
-	if db.Error != nil {
-		return db.Error
-	} else if db.RowsAffected == 0 {
+	if !context.GetDB().First(result, context.ResourceID).RecordNotFound() {
+		return context.GetDB().Delete(result).Error
+	} else {
 		return gorm.RecordNotFound
 	}
-	return nil
 }
 
 func (res *Resource) CallFindOne(result interface{}, metaValues *MetaValues, context *qor.Context) error {
