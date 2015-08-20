@@ -141,7 +141,10 @@
     },
 
     addButton: function ($image) {
-      this.$button.insertBefore($image).off(EVENT_CLICK).one(EVENT_CLICK, $.proxy(this.crop, this, $image));
+      this.$button.
+        prependTo($image.parent()).
+        off(EVENT_CLICK).
+        one(EVENT_CLICK, $.proxy(this.crop, this, $image));
     },
 
     removeButton: function () {
@@ -220,13 +223,13 @@
 
   QorRedactor.DEFAULTS = {
     remote: false,
-    toggle: false,
     parent: false,
+    toggle: false,
     replace: null,
     complete: null,
   };
 
-  QorRedactor.BUTTON = '<span class="redactor-image-cropper">Crop</span>';
+  QorRedactor.BUTTON = '<span class="qor-cropper__toggle--redactor" contenteditable="false">Crop</span>';
   QorRedactor.MODAL = (
     '<div class="qor-modal fade" tabindex="-1" role="dialog" aria-hidden="true">' +
       '<div class="mdl-card mdl-shadow--2dp" role="document">' +
@@ -237,7 +240,7 @@
           '<div class="qor-cropper__wrapper"></div>' +
         '</div>' +
         '<div class="mdl-card__actions mdl-card--border">' +
-          '<a class="mdl-button mdl-button-colored mdl-js-button mdl-js-ripple-effect qor-cropper__save">OK</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-cropper__save">OK</a>' +
           '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Cancel</a>' +
         '</div>' +
         '<div class="mdl-card__menu">' +
@@ -273,10 +276,14 @@
           fileUpload: config.uploadUrl,
 
           initCallback: function () {
+            if (!config.cropUrl) {
+              return;
+            }
+
             $this.data(NAMESPACE, (data = new QorRedactor($this, {
               remote: config.cropUrl,
-              toggle: '.redactor-image-cropper',
-              parent: '.form-group',
+              parent: '.qor-field',
+              toggle: '.qor-cropper__toggle--redactor',
               replace: function (url) {
                 return url.replace(/\.\w+$/, function (extension) {
                   return '.original' + extension;
