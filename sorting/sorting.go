@@ -57,8 +57,8 @@ func move(db *gorm.DB, value sortingInterface, pos int) error {
 			UpdateColumn("position", gorm.Expr("position - ?", 1)).Error
 	} else {
 		err = clone.Model(newModel(value)).
-			Where("position > ? AND position <= ?", currentPos, currentPos+pos).
-			UpdateColumn("position", gorm.Expr("position - ?", 1)).Error
+			Where("position < ? AND position >= ?", currentPos, currentPos+pos).
+			UpdateColumn("position", gorm.Expr("position + ?", 1)).Error
 	}
 
 	if err == nil {
