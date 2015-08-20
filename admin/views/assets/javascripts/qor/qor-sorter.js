@@ -91,7 +91,11 @@
   };
 
   $(function () {
-    var selector = 'table';
+    if (/sorting\=true/.test(location.search)) {
+      return;
+    }
+
+    var selector = '.qor-js-table';
 
     $(document)
       .on(EVENT_DISABLE, function (e) {
