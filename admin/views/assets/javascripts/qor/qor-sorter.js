@@ -18,6 +18,7 @@
   var EVENT_ENABLE = 'enable.' + NAMESPACE;
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
   var EVENT_CLICK = 'click.' + NAMESPACE;
+  var CLASS_IS_SORTABLE = 'is-sortable';
 
   function QorSorter(element, options) {
     this.$element = $(element);
@@ -29,6 +30,7 @@
     constructor: QorSorter,
 
     init: function () {
+      this.$element.addClass(CLASS_IS_SORTABLE);
       this.bind();
     },
 
@@ -64,7 +66,7 @@
 
     destroy: function () {
       this.unbind();
-      this.$element.chosen('destroy');
+      this.$element.removeClass(CLASS_IS_SORTABLE).removeData(NAMESPACE);
     },
   };
 

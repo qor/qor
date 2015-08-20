@@ -1,0 +1,22 @@
+.qor-table.is-sortable > thead > tr > th {
+  &[data-order-by] {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  &.is-sorted {
+    color: unquote("rgba(#{$color-black}, 0.87)");
+
+    &[data-order-by]::after {
+      margin-left: 8px;
+      font-size: 14px;
+      content: "\e164";
+      vertical-align: middle;
+      @extend .material-icons;
+    }
+
+    &[data-order-by*="desc"]::after {
+      transform: scaleY(-1);
+    }
+  }
+}
