@@ -132,6 +132,10 @@
       }
     }
   }
+
+  .mdl-checkbox__label {
+    font-size: 14px;
+  }
 }
 
 // Remove white background
@@ -167,6 +171,10 @@
     &:after {
       bottom: 0;
     }
+  }
+
+  .mdl-textfield__input {
+    font-size: 14px;
   }
 }
 
