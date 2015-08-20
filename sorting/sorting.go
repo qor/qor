@@ -50,22 +50,26 @@ func move(db *gorm.DB, value sortingInterface, pos int) error {
 
 	currentPos := value.GetPosition()
 
-	var err error
+	var results *gorm.DB
 	if pos > 0 {
-		err = clone.Model(newModel(value)).
+		results = clone.Model(newModel(value)).
 			Where("position > ? AND position <= ?", currentPos, currentPos+pos).
-			UpdateColumn("position", gorm.Expr("position - ?", 1)).Error
+			UpdateColumn("position", gorm.Expr("position - ?", 1))
 	} else {
-		err = clone.Model(newModel(value)).
-			Where("position > ? AND position <= ?", currentPos, currentPos+pos).
-			UpdateColumn("position", gorm.Expr("position - ?", 1)).Error
+		results = clone.Model(newModel(value)).
+			Where("position < ? AND position >= ?", currentPos, currentPos+pos).
+			UpdateColumn("position", gorm.Expr("position + ?", 1))
 	}
 
-	if err == nil {
-		value.SetPosition(currentPos + pos)
-		return clone.Model(value).UpdateColumn("position", gorm.Expr("position + ?", pos)).Error
+	if results.Error == nil {
+		var rowsAffected = int(results.RowsAffected)
+		if pos < 0 {
+			rowsAffected = -rowsAffected
+		}
+		value.SetPosition(currentPos + rowsAffected)
+		return clone.Model(value).UpdateColumn("position", gorm.Expr("position + ?", rowsAffected)).Error
 	} else {
-		return err
+		return results.Error
 	}
 }
 
