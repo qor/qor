@@ -6,7 +6,8 @@
   }
 
   img {
-    max-height: 24px;
+    width: auto !important;
+    height: 24px !important;
   }
 
   > thead > tr > th {
@@ -35,6 +36,7 @@
 
 .qor-table__content {
   max-width: 160px;
+  max-height: 24px;
   @include text-overflow();
 }
 
