@@ -31,8 +31,9 @@
     this.$element = $(element);
     this.options = $.extend({}, QorSorter.DEFAULTS, $.isPlainObject(options) && options);
     this.$source = null;
-    this.ascending = true;
-    // this.descending = false;
+    this.ascending = false;
+    this.orderType = 0; // 0 -> mix, 1 -> ascending order, -1 -> descending order
+    this.startY = 0;
     this.init();
   }
 
@@ -43,12 +44,37 @@
       var options = this.options;
       var $this = this.$element;
       var $rows = $this.find(SELECTOR_TR);
-      var firstPosition = $rows.first().find(options.input).data('position');
-      var lastPosition = $rows.last().find(options.input).data('position');
+      var orderType = 0;
+      var count = 0;
+      var index = 0;
+      var previousPosition;
 
       $('body').addClass(CLASS_SORTING);
       $this.find('tbody .qor-table__actions').append(QorSorter.TEMPLATE);
-      this.ascending = firstPosition < lastPosition;
+
+      $rows.each(function (i) {
+        var position = $(this).find(options.input).data('position');
+
+        if (i > 0) {
+          if (position > previousPosition) {
+            count++;
+          } else {
+            count--;
+          }
+        }
+
+        previousPosition = position;
+        index = i;
+      });
+
+      if (count === index) {
+        orderType = 1;
+      } else if (-count === index) {
+        orderType = -1;
+      }
+
+      this.$rows = $rows;
+      this.orderType = orderType;
       this.bind();
     },
 
@@ -72,7 +98,8 @@
 
     change: function (e) {
       var options = this.options;
-      var $rows = this.$element.find(SELECTOR_TR);
+      var orderType = this.orderType;
+      var $rows = this.$rows;
       var $sourceInput = $(e.currentTarget);
       var $source = $sourceInput.closest('tr');
       var $tbody = $source.parent();
@@ -80,17 +107,29 @@
       var sourcePosition = source.position;
       var targetPosition = parseInt($sourceInput.val(), 10);
       var largethan = targetPosition > sourcePosition;
-      var ascending = this.ascending;
-      var targetIndex;
       var $target;
 
-      $rows.each(function (i) {
+      $rows.each(function () {
         var $this = $(this);
         var $input = $this.find(options.input);
         var position = $input.data('position');
 
         if (position === targetPosition) {
-          targetIndex = i;
+          $target = $this;
+
+          if (largethan) {
+            if (orderType === 1) {
+              $target.after($source);
+            } else if (orderType === -1) {
+              $target.before($source);
+            }
+          } else {
+            if (orderType === 1) {
+              $target.before($source);
+            } else if (orderType === -1) {
+              $target.after($source);
+            }
+          }
         }
 
         if (largethan) {
@@ -106,33 +145,17 @@
 
       $sourceInput.data('position', targetPosition);
 
-      if (typeof targetIndex === 'number') {
-        $target = $rows.eq(targetIndex);
-
+      if (!$target) {
         if (largethan) {
-          if (ascending) {
-            $target.after($source);
-          } else {
-            $target.before($source);
-          }
-        } else {
-          if (ascending) {
-            $target.before($source);
-          } else {
-            $target.after($source);
-          }
-        }
-      } else {
-        if (largethan) {
-          if (ascending) {
+          if (orderType === 1) {
             $tbody.append($source);
-          } else {
+          } else if (orderType === -1) {
             $tbody.prepend($source);
           }
         } else {
-          if (ascending) {
+          if (orderType === 1) {
             $tbody.prepend($source);
-          } else {
+          } else if (orderType === -1) {
             $tbody.append($source);
           }
         }
@@ -146,6 +169,7 @@
     },
 
     mousedown: function (e) {
+      this.startY = e.pageY;
       $(e.currentTarget).closest('tr').prop('draggable', true);
     },
 
@@ -175,7 +199,8 @@
 
     drop: function (e) {
       var options = this.options;
-      var ascending = this.ascending;
+      var orderType = this.orderType;
+      var movedown = e.pageY > this.startY;
       var $source = this.$source;
       var $sourceInput;
       var $target;
@@ -216,16 +241,28 @@
       $sourceInput.data('position', targetPosition).val(targetPosition);
 
       if (largethan) {
-        if (ascending) {
+        if (orderType === 1) {
           $target.after($source);
-        } else {
+        } else if (orderType === -1) {
           $target.before($source);
+        } else {
+          if (movedown) {
+            $target.after($source);
+          } else {
+            $target.before($source);
+          }
         }
       } else {
-        if (ascending) {
+        if (orderType === 1) {
           $target.before($source);
-        } else {
+        } else if (orderType === -1) {
           $target.after($source);
+        } else {
+          if (movedown) {
+            $target.before($source);
+          } else {
+            $target.after($source);
+          }
         }
       }
 
