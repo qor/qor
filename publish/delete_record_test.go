@@ -59,32 +59,3 @@ func TestDeleteStructFromProduction(t *testing.T) {
 		t.Errorf("Product's publish status should be PUBLISHED when deleted from production db")
 	}
 }
-
-func TestDeleteStructFromDraftWithPublishImmediately(t *testing.T) {
-	name := "delete_product_from_draft_with_publish_immediately"
-	product := Product{Name: name, Color: Color{Name: name}}
-	pbprod.Create(&product)
-	pbdraft.Set("publish:publish_immediately", true).Delete(&product)
-
-	pbdraft.Unscoped().First(&product, product.ID)
-
-	if product.PublishStatus {
-		t.Errorf("Product's publish status should be PUBLISHED when deleted with publish immediately")
-	}
-
-	if !pbprod.First(&Product{}, "name = ?", name).RecordNotFound() {
-		t.Errorf("record should be deleted in production db")
-	}
-
-	if !pbdraft.First(&Product{}, "name = ?", name).RecordNotFound() {
-		t.Errorf("record should be deleted in draft db")
-	}
-
-	if pbprod.Unscoped().First(&Product{}, "name = ?", name).RecordNotFound() {
-		t.Errorf("record should be soft deleted in production db")
-	}
-
-	if pbdraft.Unscoped().First(&Product{}, "name = ?", name).RecordNotFound() {
-		t.Errorf("record should be soft deleted in draft db")
-	}
-}

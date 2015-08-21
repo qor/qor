@@ -8,8 +8,8 @@ import (
 )
 
 type EventInterface interface {
-	Publish(event PublishEvent) error
-	Discard(event PublishEvent) error
+	Publish(event *PublishEvent) error
+	Discard(event *PublishEvent) error
 }
 
 var events = map[string]EventInterface{}
@@ -28,14 +28,14 @@ type PublishEvent struct {
 	audited.AuditedModel
 }
 
-func (publishEvent PublishEvent) Publish() error {
+func (publishEvent *PublishEvent) Publish() error {
 	if event, ok := events[publishEvent.Name]; ok {
 		return event.Publish(publishEvent)
 	}
 	return errors.New("event not found")
 }
 
-func (publishEvent PublishEvent) Discard() error {
+func (publishEvent *PublishEvent) Discard() error {
 	if event, ok := events[publishEvent.Name]; ok {
 		return event.Discard(publishEvent)
 	}

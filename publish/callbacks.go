@@ -7,20 +7,8 @@ import (
 )
 
 func isDraftMode(db *gorm.DB) bool {
-	if draftMode, ok := db.Get(publishForceDraftMode); ok {
-		if isDraft, ok := draftMode.(bool); ok && isDraft {
-			return true
-		}
-	}
-
 	if event, ok := db.Get(publishNewEvent); ok && event != nil {
 		return false
-	}
-
-	if publishImmediately, ok := db.Get(publishImmediately); ok {
-		if isPublishImmediately, ok := publishImmediately.(bool); ok && isPublishImmediately {
-			return false
-		}
 	}
 
 	if draftMode, ok := db.Get(publishDraftMode); ok {
@@ -116,12 +104,5 @@ func deleteScope(scope *gorm.Scope) {
 		} else {
 			gorm.Delete(scope)
 		}
-	}
-}
-
-func createPublishEvent(scope *gorm.Scope) {
-	if event, ok := scope.Get(publishNewEvent); ok {
-		event = event.(PublishEvent)
-		scope.Err(scope.NewDB().Save(&event).Error)
 	}
 }

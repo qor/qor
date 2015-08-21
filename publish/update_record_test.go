@@ -65,29 +65,3 @@ func TestUpdateStructFromProduction(t *testing.T) {
 		t.Errorf("Sync update columns during production & draft db")
 	}
 }
-
-func TestUpdateStructFromDraftWithPublishImmediately(t *testing.T) {
-	name := "update_product_from_draft_with_publish_immediately"
-	newName := name + "_v2"
-	product := Product{Name: name, Color: Color{Name: name}}
-	pbprod.Create(&product)
-
-	pbdraft.Set("publish:publish_immediately", true).Model(&product).Update("name", newName)
-
-	pbdraft.First(&product, product.ID)
-	if product.PublishStatus {
-		t.Errorf("Product's publish status should be PUBLISHED when update with publish immediately")
-	}
-
-	if pbprod.First(&Product{}, "name = ?", newName).RecordNotFound() {
-		t.Errorf("record should be changed in production db")
-	}
-
-	if pbdraft.First(&Product{}, "name = ?", newName).RecordNotFound() {
-		t.Errorf("record should be changed in draft db")
-	}
-
-	if pbdraft.Model(&product).Related(&product.Color); product.Color.Name != name {
-		t.Errorf("should be able to find related struct")
-	}
-}
