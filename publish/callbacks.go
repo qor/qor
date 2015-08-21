@@ -11,8 +11,10 @@ func isDraftMode(db *gorm.DB) bool {
 		return false
 	}
 
-	if event, ok := db.Get(publishImmediately); ok && event != nil {
-		return false
+	if publishImmediately, ok := db.Get(publishImmediately); ok {
+		if isPublishImmediately, ok := publishImmediately.(bool); ok && isPublishImmediately {
+			return false
+		}
 	}
 
 	if draftMode, ok := db.Get(publishDraftMode); ok {
