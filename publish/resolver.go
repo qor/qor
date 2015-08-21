@@ -57,7 +57,7 @@ func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][][]int
 	value := reflect.New(dep.Type)
 	fromScope := resolver.DB.NewScope(value.Interface())
 
-	draftDB := resolver.DB.Set("publish:draft_mode", true).Unscoped()
+	draftDB := resolver.DB.Set(publishDraftMode, true).Unscoped()
 	for _, field := range fromScope.Fields() {
 		if relationship := field.Relationship; relationship != nil {
 			if isPublishableModel(field.Field.Interface()) {
@@ -147,7 +147,7 @@ func (resolver *resolver) Publish() error {
 	for _, dep := range resolver.Dependencies {
 
 		value := reflect.New(dep.Type).Elem()
-		productionScope := resolver.DB.Set("publish:draft_mode", false).NewScope(value.Addr().Interface())
+		productionScope := resolver.DB.Set(publishDraftMode, false).NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
 		draftTable := draftTableName(productionTable)
 		productionPrimaryKey := scopePrimaryKeys(productionScope, productionTable)
@@ -186,8 +186,8 @@ func (resolver *resolver) Publish() error {
 
 			// publish join table data
 			for _, relationship := range dep.ManyToManyRelations {
-				productionTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", false))
-				draftTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", true))
+				productionTable := relationship.JoinTableHandler.Table(tx.Set(publishDraftMode, false))
+				draftTable := relationship.JoinTableHandler.Table(tx.Set(publishDraftMode, true))
 				var productionJoinKeys, draftJoinKeys []string
 				var productionCondition, draftCondition string
 				for _, foreignKey := range relationship.JoinTableHandler.SourceForeignKeys() {
@@ -241,7 +241,7 @@ func (resolver *resolver) Discard() error {
 
 	for _, dep := range resolver.Dependencies {
 		value := reflect.New(dep.Type).Elem()
-		productionScope := resolver.DB.Set("publish:draft_mode", false).NewScope(value.Addr().Interface())
+		productionScope := resolver.DB.Set(publishDraftMode, false).NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
 		draftTable := draftTableName(productionTable)
 
@@ -267,8 +267,8 @@ func (resolver *resolver) Discard() error {
 
 		// delete join table
 		for _, relationship := range dep.ManyToManyRelations {
-			productionTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", false))
-			draftTable := relationship.JoinTableHandler.Table(tx.Set("publish:draft_mode", true))
+			productionTable := relationship.JoinTableHandler.Table(tx.Set(publishDraftMode, false))
+			draftTable := relationship.JoinTableHandler.Table(tx.Set(publishDraftMode, true))
 
 			var productionJoinKeys, draftJoinKeys []string
 			var productionCondition, draftCondition string

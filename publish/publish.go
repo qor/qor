@@ -13,6 +13,8 @@ import (
 const (
 	PUBLISHED = false
 	DIRTY     = true
+
+	publishDraftMode = "publish:draft_mode"
 )
 
 type publishInterface interface {
@@ -81,7 +83,7 @@ func New(db *gorm.DB) *Publish {
 					}
 				}
 
-				if draftMode, ok := db.Get("publish:draft_mode"); ok {
+				if draftMode, ok := db.Get(publishDraftMode); ok {
 					if isDraft, ok := draftMode.(bool); ok && isDraft || forceDraftMode {
 						return draftTableName(tableName)
 					}
@@ -125,11 +127,11 @@ func (db *Publish) AutoMigrate(values ...interface{}) {
 }
 
 func (db Publish) ProductionDB() *gorm.DB {
-	return db.DB.Set("publish:draft_mode", false)
+	return db.DB.Set(publishDraftMode, false)
 }
 
 func (db Publish) DraftDB() *gorm.DB {
-	return db.DB.Set("publish:draft_mode", true)
+	return db.DB.Set(publishDraftMode, true)
 }
 
 func (db Publish) newResolver(records ...interface{}) *resolver {
