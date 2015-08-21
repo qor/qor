@@ -24,8 +24,8 @@ type Resource struct {
 	actions       []*Action
 	scopes        []*Scope
 	filters       map[string]*Filter
-	searchAttrs   []string
-	sortableAttrs []string
+	searchAttrs   *[]string
+	sortableAttrs *[]string
 	indexAttrs    []string
 	newAttrs      []string
 	editAttrs     []string
@@ -157,12 +157,6 @@ func (res *Resource) getAttrs(attrs []string) []string {
 func (res *Resource) IndexAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.indexAttrs = columns
-		if len(res.SortableAttrs()) == 0 {
-			res.SortableAttrs(columns...)
-		}
-		if len(res.SearchAttrs()) == 0 {
-			res.SearchAttrs(columns...)
-		}
 	}
 	return res.getAttrs(res.indexAttrs)
 }
@@ -189,21 +183,29 @@ func (res *Resource) ShowAttrs(columns ...string) []string {
 }
 
 func (res *Resource) SortableAttrs(columns ...string) []string {
-	if len(columns) > 0 {
-		res.sortableAttrs = []string{}
+	if len(columns) != 0 || res.sortableAttrs == nil {
+		if len(columns) == 0 {
+			columns = res.indexAttrs
+		}
+		res.sortableAttrs = &[]string{}
 		scope := res.GetAdmin().Config.DB.NewScope(res.Value)
 		for _, column := range columns {
 			if field, ok := scope.FieldByName(column); ok && field.DBName != "" {
-				res.sortableAttrs = append(res.sortableAttrs, column)
+				attrs := append(*res.sortableAttrs, column)
+				res.sortableAttrs = &attrs
 			}
 		}
 	}
-	return res.sortableAttrs
+	return *res.sortableAttrs
 }
 
 func (res *Resource) SearchAttrs(columns ...string) []string {
-	if len(columns) > 0 {
-		res.searchAttrs = columns
+	if len(columns) != 0 || res.searchAttrs == nil {
+		if len(columns) == 0 {
+			columns = res.indexAttrs
+		}
+
+		res.searchAttrs = &columns
 		res.SearchHandler = func(keyword string, context *qor.Context) *gorm.DB {
 			db := context.GetDB()
 			var conditions []string
@@ -257,7 +259,7 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 		}
 	}
 
-	return res.searchAttrs
+	return *res.searchAttrs
 }
 
 func (res *Resource) getCachedMetas(cacheKey string, fc func() []resource.Metaor) []*Meta {
