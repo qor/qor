@@ -7,6 +7,14 @@ import (
 )
 
 func isDraftMode(db *gorm.DB) bool {
+	if event, ok := db.Get(publishNewEvent); ok && event != nil {
+		return false
+	}
+
+	if event, ok := db.Get(publishImmediately); ok && event != nil {
+		return false
+	}
+
 	if draftMode, ok := db.Get(publishDraftMode); ok {
 		if isDraft, ok := draftMode.(bool); ok && isDraft {
 			return true
