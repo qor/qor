@@ -55,7 +55,7 @@ func isProductionModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *g
 	return false, nil
 }
 
-func syncToProductionAfterCreate(scope *gorm.Scope) {
+func syncCreateFromProductionToDraft(scope *gorm.Scope) {
 	if !scope.HasError() {
 		if ok, clone := isProductionModeAndNewScope(scope); ok {
 			gorm.Create(clone)
@@ -63,7 +63,7 @@ func syncToProductionAfterCreate(scope *gorm.Scope) {
 	}
 }
 
-func syncToProductionAfterUpdate(scope *gorm.Scope) {
+func syncUpdateFromProductionToDraft(scope *gorm.Scope) {
 	if !scope.HasError() {
 		if ok, clone := isProductionModeAndNewScope(scope); ok {
 			if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
@@ -77,7 +77,7 @@ func syncToProductionAfterUpdate(scope *gorm.Scope) {
 	}
 }
 
-func syncToProductionAfterDelete(scope *gorm.Scope) {
+func syncDeleteFromProductionToDraft(scope *gorm.Scope) {
 	if !scope.HasError() {
 		if ok, clone := isProductionModeAndNewScope(scope); ok {
 			gorm.Delete(clone)
