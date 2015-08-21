@@ -93,10 +93,6 @@
   };
 
   $(function () {
-    if (/sorting\=true/.test(location.search)) {
-      return;
-    }
-
     var selector = '.qor-js-table';
 
     $(document)
