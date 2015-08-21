@@ -43,7 +43,7 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(*gorm.Scope) {
 	}
 }
 
-func getModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
+func isProductionModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
 	if draftMode, ok := scope.Get("publish:draft_mode"); !ok || !draftMode.(bool) {
 		if _, ok := scope.InstanceGet("publish:supported_model"); ok {
 			table := originalTableName(scope.TableName())
@@ -57,7 +57,7 @@ func getModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope
 
 func syncToProductionAfterCreate(scope *gorm.Scope) {
 	if !scope.HasError() {
-		if ok, clone := getModeAndNewScope(scope); ok {
+		if ok, clone := isProductionModeAndNewScope(scope); ok {
 			gorm.Create(clone)
 		}
 	}
@@ -65,7 +65,7 @@ func syncToProductionAfterCreate(scope *gorm.Scope) {
 
 func syncToProductionAfterUpdate(scope *gorm.Scope) {
 	if !scope.HasError() {
-		if ok, clone := getModeAndNewScope(scope); ok {
+		if ok, clone := isProductionModeAndNewScope(scope); ok {
 			if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
 				table := originalTableName(scope.TableName())
 				clone.Search = scope.Search
@@ -79,7 +79,7 @@ func syncToProductionAfterUpdate(scope *gorm.Scope) {
 
 func syncToProductionAfterDelete(scope *gorm.Scope) {
 	if !scope.HasError() {
-		if ok, clone := getModeAndNewScope(scope); ok {
+		if ok, clone := isProductionModeAndNewScope(scope); ok {
 			gorm.Delete(clone)
 		}
 	}
