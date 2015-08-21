@@ -86,7 +86,7 @@ func TestCreateStructFromDraftWithPublishImmediately(t *testing.T) {
 	pbdraft.First(&product, "name = ?", name)
 
 	if product.PublishStatus {
-		t.Errorf("Product's publish status should be PUBLISHED when using publish immediately")
+		t.Errorf("Product's publish status should be PUBLISHED when create with publish immediately")
 	}
 
 	if pbdraft.Model(&product).Related(&product.Color); product.Color.Name != name {

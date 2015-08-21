@@ -14,9 +14,10 @@ const (
 	PUBLISHED = false
 	DIRTY     = true
 
-	publishDraftMode   = "publish:draft_mode"
-	publishNewEvent    = "publish:new_event"
-	publishImmediately = "publish:publish_immediately"
+	publishForceDraftMode = "publish:force_draft_mode"
+	publishDraftMode      = "publish:draft_mode"
+	publishNewEvent       = "publish:new_event"
+	publishImmediately    = "publish:publish_immediately"
 )
 
 type publishInterface interface {
@@ -78,14 +79,14 @@ func New(db *gorm.DB) *Publish {
 					}
 				}
 
-				var forceDraftMode = false
-				if forceMode, ok := db.Get("publish:force_draft_mode"); ok {
-					if forceMode, ok := forceMode.(bool); ok && forceMode {
-						forceDraftMode = true
+				var forceDraftTable bool
+				if forceDraftTable, ok := db.Get("publish:force_draft_table"); ok {
+					if forceMode, ok := forceDraftTable.(bool); ok && forceMode {
+						forceDraftTable = true
 					}
 				}
 
-				if isDraftMode(db) || forceDraftMode {
+				if isDraftMode(db) || forceDraftTable {
 					return draftTableName(tableName)
 				}
 			}

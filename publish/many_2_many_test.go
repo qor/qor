@@ -81,3 +81,22 @@ func TestDiscardManyToManyFromDraft(t *testing.T) {
 		t.Errorf("categories count should be 0 in draft db after discard")
 	}
 }
+
+func TestPublishManyToManyFromDraftWithPublishImmediately(t *testing.T) {
+	name := "create_product_with_multi_categories_from_draft_with_publish_immediately"
+	pbdraft.Set("publish:publish_immediately", true).Create(&Product{
+		Name:       name,
+		Categories: []Category{{Name: "category1"}, {Name: "category2"}},
+	})
+
+	var product Product
+	pbdraft.First(&product, "name = ?", name)
+
+	if pbprod.Model(&product).Association("Categories").Count() != 2 {
+		t.Errorf("categories count should be 2 in production db")
+	}
+
+	if pbdraft.Model(&product).Association("Categories").Count() != 2 {
+		t.Errorf("categories count should be 2 in draft db")
+	}
+}

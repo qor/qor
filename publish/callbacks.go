@@ -7,6 +7,12 @@ import (
 )
 
 func isDraftMode(db *gorm.DB) bool {
+	if draftMode, ok := db.Get(publishForceDraftMode); ok {
+		if isDraft, ok := draftMode.(bool); ok && isDraft {
+			return true
+		}
+	}
+
 	if event, ok := db.Get(publishNewEvent); ok && event != nil {
 		return false
 	}
@@ -47,7 +53,7 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(*gorm.Scope) {
 			scope.InstanceSet("publish:supported_model", true)
 
 			if ensureDraftMode {
-				scope.Set("publish:force_draft_mode", true)
+				scope.Set("publish:force_draft_table", true)
 				scope.Search.Table(draftTableName(scope.TableName()))
 
 				// Only set publish status when updating data from draft tables
