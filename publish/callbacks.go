@@ -6,8 +6,8 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func isDraftMode(scope *gorm.Scope) bool {
-	if draftMode, ok := scope.Get(publishDraftMode); ok {
+func isDraftMode(db *gorm.DB) bool {
+	if draftMode, ok := db.Get(publishDraftMode); ok {
 		if isDraft, ok := draftMode.(bool); ok && isDraft {
 			return true
 		}
@@ -16,7 +16,7 @@ func isDraftMode(scope *gorm.Scope) bool {
 }
 
 func isProductionModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
-	if !isDraftMode(scope) {
+	if !isDraftMode(scope.DB()) {
 		if _, ok := scope.InstanceGet("publish:supported_model"); ok {
 			table := originalTableName(scope.TableName())
 			clone := scope.New(scope.Value)
@@ -41,7 +41,7 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(*gorm.Scope) {
 				scope.Search.Table(draftTableName(scope.TableName()))
 
 				// Only set publish status when updating data from draft tables
-				if isDraftMode(scope) {
+				if isDraftMode(scope.DB()) {
 					if attrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
 						updateAttrs := attrs.(map[string]interface{})
 						updateAttrs["publish_status"] = DIRTY
@@ -88,7 +88,7 @@ func syncDeleteFromProductionToDraft(scope *gorm.Scope) {
 func deleteScope(scope *gorm.Scope) {
 	if !scope.HasError() {
 		_, supportedModel := scope.InstanceGet("publish:supported_model")
-		if supportedModel && isDraftMode(scope) {
+		if supportedModel && isDraftMode(scope.DB()) {
 			scope.Raw(
 				fmt.Sprintf("UPDATE %v SET deleted_at=%v, publish_status=%v %v",
 					scope.QuotedTableName(),
@@ -104,9 +104,8 @@ func deleteScope(scope *gorm.Scope) {
 }
 
 func createPublishEvent(scope *gorm.Scope) {
-	if event, ok := scope.Get("publish:new_event"); ok {
+	if event, ok := scope.Get(publishNewEvent); ok {
 		event = event.(PublishEvent)
 		scope.Err(scope.NewDB().Save(&event).Error)
 	}
-	// skip set publish status for draft if has publish:new_event
 }
