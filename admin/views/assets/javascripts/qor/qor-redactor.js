@@ -24,7 +24,7 @@
   var EVENT_IMAGE_DELETE = 'imagedelete.' + NAMESPACE;
   var EVENT_SHOWN = 'shown.qor.modal';
   var EVENT_HIDDEN = 'hidden.qor.modal';
-  var REGEXP_OPTIONS = /x|y|width|height/;
+
   var CLASS_WRAPPER = '.qor-cropper__wrapper';
   var CLASS_SAVE = '.qor-cropper__save';
 
@@ -169,18 +169,13 @@
           background: false,
           movable: false,
           zoomable: false,
+          scalable: false,
           rotatable: false,
           checkImageOrigin: false,
 
           built: function () {
             $modal.find(CLASS_SAVE).one(EVENT_CLICK, function () {
-              var cropData = {};
-
-              $.each($clone.cropper('getData'), function (i, n) {
-                if (REGEXP_OPTIONS.test(i)) {
-                  cropData[i] = Math.round(n);
-                }
-              });
+              var cropData = $clone.cropper('getData', true);
 
               $.ajax(options.remote, {
                 type: 'POST',

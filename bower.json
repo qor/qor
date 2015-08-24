@@ -26,6 +26,6 @@
     "material-design-lite": "~1.0.3",
     "html5-boilerplate": "~5.2.0",
     "chosen": "~1.4.2",
-    "cropper": "~0.10.1"
+    "cropper": "~0.11.1"
   }
 }

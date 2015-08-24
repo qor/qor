@@ -31,9 +31,6 @@
   var CLASS_OPTIONS = '.qor-cropper__options';
   var CLASS_SAVE = '.qor-cropper__save';
 
-  // RegExps
-  var REGEXP_OPTIONS = /x|y|width|height/;
-
   function capitalize (str) {
     if (typeof str === 'string') {
       str = str.charAt(0).toUpperCase() + str.substr(1);
@@ -311,20 +308,15 @@
         background: false,
         movable: false,
         zoomable: false,
+        scalable: false,
         rotatable: false,
         checkImageOrigin: false,
 
         built: function () {
           $modal.find(CLASS_SAVE).one(EVENT_CLICK, function () {
-            var cropData = {};
+            var cropData = $clone.cropper('getData', true);
             var syncData = [];
             var url;
-
-            $.each($clone.cropper('getData'), function (i, n) {
-              if (REGEXP_OPTIONS.test(i)) {
-                cropData[i] = Math.round(n);
-              }
-            });
 
             data.crop = true;
             data[options.key][sizeName] = cropData;
