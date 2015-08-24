@@ -8,16 +8,10 @@
   background-color: #fff;
   color: unquote("rgba(#{$color-black}, 0.26)");
   text-align: center;
+  text-decoration: none;
   white-space: nowrap;
   vertical-align: baseline;
   border-radius: .25em;
-
-  // &:hover,
-  // &:focus {
-  //   border-color: unquote("rgba(#{$color-black}, 0.26)");
-  //   color: unquote("rgba(#{$color-black}, 0.54)");
-  //   text-decoration: none;
-  // }
 
   &.is-active {
     border-color: unquote("rgba(#{$color-primary}, 0.87)");

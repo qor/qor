@@ -19,6 +19,7 @@
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
   var EVENT_CLICK = 'click.' + NAMESPACE;
   var EVENT_CHANGE = 'change.' + NAMESPACE;
+  var CLASS_IS_ACTIVE = 'is-active';
 
   function QorFilter(element, options) {
     this.$element = $(element);
@@ -107,41 +108,6 @@
         off(EVENT_CHANGE, this.toggle);
     },
 
-    /*parse: function () {
-      var options = this.options;
-      var $this = this.$element;
-      var params = decodeSearch(location.search);
-
-      $this.find(options.label).each(function () {
-        var $this = $(this);
-
-        $.each(decodeSearch($this.attr('href')), function (i, param) {
-          var matched = $.inArray(param, params) > -1;
-
-          $this.toggleClass('active', matched);
-
-          if (matched) {
-            return false;
-          }
-        });
-      });
-
-      $this.find(options.group).each(function () {
-        var $this = $(this);
-        var name = $this.attr('name');
-
-        $this.find('option').each(function () {
-          var $this = $(this),
-              param = [name, $this.prop('value')].join('=');
-
-          if ($.inArray(param, params) > -1) {
-            $this.attr('selected', true);
-            return false;
-          }
-        });
-      });
-    },*/
-
     toggle: function (e) {
       var $target = $(e.currentTarget);
       var data = [];
@@ -198,7 +164,7 @@
         e.preventDefault();
         data = decodeSearch($target.attr('href'));
 
-        if ($target.hasClass('active')) {
+        if ($target.hasClass(CLASS_IS_ACTIVE)) {
           search = encodeSearch(data, true); // set `true` to detach
         } else {
           search = encodeSearch(data);
@@ -242,8 +208,8 @@
   $(function () {
     var selector = '[data-toggle="qor.filter"]';
     var options = {
-          label: '.qor-label',
-          group: '.qor-label-group',
+          label: '.qor-scope',
+          group: '.qor-scope-group',
         };
 
     $(document).

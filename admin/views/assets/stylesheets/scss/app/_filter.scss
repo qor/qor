@@ -14,8 +14,61 @@
     vertical-align: middle;
   }
 
-  .qor-label,
+  .qor-scope,
   .qor-selector {
     margin: 4px 4px 4px 0;
   }
+}
+
+.qor-scope {
+  display: inline-block;
+  height: 28px;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-size: 14px;
+  line-height: 28px;
+  color: unquote("rgba(#{$color-black}, 0.54)");
+  background-color: #fff;
+  border: 2px solid unquote("rgba(#{$color-black}, 0.12)");;
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+    color: unquote("rgba(#{$color-black}, 0.54)");
+  }
+
+  > .qor-scope__clear {
+    display: none;
+  }
+
+  &.is-active {
+    padding-right: 0;
+    color: unquote("rgba(#{$color-black}, 0.87)");
+    border-color: unquote("rgb(#{$color-primary})");
+
+    > .qor-scope__clear {
+      display: inline-block;
+      width: 30px;
+      margin-left: 6px;
+      padding-left: 2px;
+      background-color: unquote("rgb(#{$color-primary})");
+      color: #fff;
+    }
+  }
+
+  > .material-icons {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+    line-height: 28px;
+    text-align: center;
+    vertical-align: top;
+  }
+}
+
+.qor-scope__clear {
+  display: none;
 }
