@@ -188,7 +188,7 @@ func (meta *Meta) updateMeta() {
 
 				if f, ok := scope.FieldByName(alias); ok {
 					if field.Relationship != nil {
-						if f.Field.CanAddr() {
+						if f.Field.CanAddr() && !scope.PrimaryKeyZero() {
 							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
 						}
 					}
