@@ -54,16 +54,16 @@
           </header>
 
           <div class="mdl-grid">
-            <div class="mdl-cell mdl-cell--5-col">
+            <div class="mdl-cell mdl-cell--5-col mdl-cell--12-col-tablet">
               <p class="i18n-label-source">{{ $key }}</p>
               <p class="i18n-translation-source">{{lt $primary_locale $key true}}</p>
             </div>
 
-            <div class="mdl-cell mdl-cell--1-col">
+            <div class="mdl-cell mdl-cell--1-col mdl-cell--12-col-tablet">
               <button class="i18n-btn-copy" data-toggle="copy.qor.i18n" type="button">{{t "Copy"}}</button>
             </div>
 
-            <div class="mdl-cell mdl-cell--6-col">
+            <div class="mdl-cell mdl-cell--6-col mdl-cell--12-col-tablet">
               <p class="i18n-label-target">{{t "Translation"}}</p>
               <p class="i18n-translation-target">{{lt $editing_locale $key false}}</p>
               <form class="qor-form i18n-translation-editor">
