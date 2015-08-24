@@ -205,15 +205,14 @@
         this.wrap();
       }
 
-      if ($ul.is(':hidden')) {
-        $ul.show();
-      }
+      $ul.show(); // show ul when it is hidden
 
       $image = $list.find('img');
       $image.one('load', function () {
+        var $this = $(this);
         var naturalWidth = this.naturalWidth;
         var naturalHeight = this.naturalHeight;
-        var sizeData = $(this).data();
+        var sizeData = $this.data();
         var sizeResolution = sizeData.sizeResolution;
         var sizeName = sizeData.sizeName;
         var emulateImageData = {};
@@ -250,7 +249,7 @@
             height: Math.round(height),
           };
 
-          _this.preview($image, emulateImageData, emulateCropData);
+          _this.preview($this, emulateImageData, emulateCropData);
 
           if (sizeName) {
             data.crop = true;
@@ -262,7 +261,7 @@
             data[options.key][sizeName] = emulateCropData;
           }
         } else {
-          _this.center($image);
+          _this.center($this);
         }
 
         _this.$output.val(JSON.stringify(data));
@@ -407,38 +406,32 @@
       var containerWidth = $container.width();
       var containerHeight = $container.height();
       var imageData = emulateImageData || this.imageData;
+      var cropData = $.extend({}, emulateCropData || this.cropData); // Clone one to avoid changing it
+      var aspectRatio = cropData.width / cropData.height;
+      var canvasWidth = containerWidth;
+      var canvasHeight = containerHeight;
+      var scaledRatio;
 
-      // Clone one to avoid changing it
-      var cropData = $.extend({}, emulateCropData || this.cropData);
-      var cropAspectRatio = cropData.width / cropData.height;
-      var newWidth = containerWidth;
-      var newHeight = containerHeight;
-      var newRatio;
-
-      if (containerHeight * cropAspectRatio > containerWidth) {
-        newHeight = newWidth / cropAspectRatio;
+      if (containerHeight * aspectRatio > containerWidth) {
+        canvasHeight = containerWidth / aspectRatio;
       } else {
-        newWidth = newHeight * cropAspectRatio;
+        canvasWidth = containerHeight * aspectRatio;
       }
 
-      newRatio = cropData.width / newWidth;
-
-      $.each(cropData, function (i, n) {
-        cropData[i] = n / newRatio;
-      });
+      scaledRatio = cropData.width / canvasWidth;
 
       $canvas.css({
-        width: cropData.width,
-        height: cropData.height,
+        width: canvasWidth,
+        height: canvasHeight,
       });
 
       $target.css({
-        width: imageData.naturalWidth / newRatio,
-        height: imageData.naturalHeight / newRatio,
         maxWidth: 'none',
         maxHeight: 'none',
-        marginLeft: -cropData.x,
-        marginTop: -cropData.y,
+        width: imageData.naturalWidth / scaledRatio,
+        height: imageData.naturalHeight / scaledRatio,
+        marginLeft: -cropData.x / scaledRatio,
+        marginTop: -cropData.y / scaledRatio,
       });
 
       this.center($target);
