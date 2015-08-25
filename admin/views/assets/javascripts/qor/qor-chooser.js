@@ -46,7 +46,7 @@
     },
 
     destroy: function () {
-      this.$element.chosen('destroy');
+      this.$element.chosen('destroy').removeData(NAMESPACE);
     },
   };
 
