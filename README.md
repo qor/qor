@@ -74,13 +74,10 @@ We are planning to update the godoc documentation for all modules after the API 
 
 ## Frontend Development
 
-Requires [Node.js](https://nodejs.org/) [Gulp](http://gulpjs.com/) for building frontend files
+Requires [Node.js](https://nodejs.org/) and [Gulp](http://gulpjs.com/) for building frontend files
 
 ```bash
 npm install && npm install -g gulp
-
-# init or update material-design-lite
-git submodule update --init --recursive
 ```
 
 - Watch SCSS/JavaScript changes: `gulp`
