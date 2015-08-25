@@ -1,7 +1,7 @@
 <div class="qor-button-container">
   {{if (eq (.Context.Request.URL.Query.Get "sorting") "true")}}
-    <a class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect qor-button--small qor-sorting-exit" href="{{patch_current_url "sorting" ""}}">{{t "Exit Sorting Mode"}}</a>
+    <a class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect qor-button--small" href="{{patch_current_url "sorting" ""}}">{{t "Exit Sorting Mode"}}</a>
   {{else}}
-    <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-button--small qor-sorting-enter" href="{{patch_current_url "sorting" "true"}}">{{t "Sorting Mode"}}</a>
+    <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-button--small" href="{{patch_current_url "sorting" "true"}}">{{t "Sorting Mode"}}</a>
   {{end}}
 </div>
