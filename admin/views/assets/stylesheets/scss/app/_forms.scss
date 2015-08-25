@@ -31,14 +31,20 @@
 // Search Form
 // -------------------------
 
-.qor-form--search {
+.qor-search-container {
   position: absolute;
   top: 0;
   right: 0;
+  bottom: 0;
   z-index: 1;
   padding-left: 24px;
   padding-right: 24px;
   background-color: inherit;
+}
+
+// Add to .qor-page__header
+.hasSearch {
+  padding-right: 80px;
 }
 
 .qor-search {
@@ -52,6 +58,10 @@
 
   .qor-search__label {
     color: unquote("rgba(#{$color-black}, 0.54)");
+  }
+
+  .qor-search__input {
+    font-size: 14px;
   }
 
   .qor-search__clear {

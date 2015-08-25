@@ -97,12 +97,12 @@
 
 .qor-page__header {
   position: relative;
-  min-height: 56px;
+  min-height: 40px;
   margin-bottom: 24px;
-  padding: 0 80px 0 24px;
+  padding: 8px 24px;
   background-color: #fff;
   @include shadow-2dp();
-  @extend .clearfix;
+  @include clearfix();
 }
 
 .qor-page__body {

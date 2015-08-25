@@ -1,0 +1,93 @@
+// Filter
+// --------------------------------------------------
+
+.qor-actions {
+  float: left;
+  min-height: 32px;
+  margin: 4px 8px 4px 0;
+  @include clearfix();
+
+  &:first-child {
+    .qor-selector {
+      margin-left: 0;
+    }
+  }
+
+  &:last-child {
+    margin-right: 0;
+  }
+
+  .qor-selector,
+  .qor-action--text,
+  .qor-action--label,
+  .qor-action--select,
+  .qor-action--button {
+    float: left;
+  }
+}
+
+.qor-action--select {
+  height: 32px;
+  border: 2px solid unquote("rgb(#{$color-primary})");
+
+  + .qor-selector,
+  + .qor-action--label,
+  + .qor-action--select {
+    margin-left: 8px;
+  }
+}
+
+.qor-action--label {
+  display: inline-block;
+  height: 28px;
+  padding-left: 8px;
+  padding-right: 8px;
+  font-size: 14px;
+  line-height: 28px;
+  color: unquote("rgba(#{$color-black}, 0.54)");
+  background-color: #fff;
+  border: 2px solid unquote("rgba(#{$color-black}, 0.12)");
+  border-radius: 2px;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+    color: unquote("rgba(#{$color-black}, 0.54)");
+  }
+
+  &.is-active {
+    padding-right: 0;
+    color: unquote("rgba(#{$color-black}, 0.87)");
+    border-color: unquote("rgb(#{$color-primary})");
+  }
+
+  > i {
+    display: inline-block;
+    width: 30px;
+    height: 28px;
+    margin-left: 6px;
+    padding-left: 2px;
+    font-size: 16px;
+    line-height: 28px;
+    background-color: unquote("rgb(#{$color-primary})");
+    color: #fff;
+    text-align: center;
+    vertical-align: top;
+  }
+
+  + .qor-action--select,
+  + .qor-action--label {
+    margin-left: 8px;
+  }
+}
+
+.qor-action--button {
+  height: 32px;
+  line-height: 32px;
+
+  + .qor-action--button {
+    margin-left: 8px;
+  }
+}

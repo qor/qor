@@ -12,32 +12,18 @@
   }
 }
 
-.qor-language-container {
-  float: left;
-  margin-right: 24px;
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-
-.qor-language {
-  float: left;
-
-  + .qor-language {
-    margin-left: 16px;
-  }
-}
-
-.qor-language__label {
+.qor-action--text {
   margin-right: 8px;
   margin-bottom: 0;
   font-size: 12px;
   font-weight: normal;
   line-height: 32px;
   color: rgba(0,0,0,0.54);
-}
 
-.qor-language__select {
-  height: 32px;
+  ~ .qor-selector,
+  ~ .qor-action--select {
+    margin-right: 16px;
+  }
 }
 
 .qor-i18n {

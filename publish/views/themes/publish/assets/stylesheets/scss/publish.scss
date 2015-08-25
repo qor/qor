@@ -2,20 +2,7 @@
   padding-right: 24px;
 }
 
-.qor-button-container {
-  float: right;
-  padding-top: 12px;
-  padding-bottom: 12px;
-
-  > button {
-    float: right;
-    margin-left: 8px;
-  }
-}
-
 .qor-grid-container {
-  // margin: -16px;
-
   .mdl-grid + .mdl-grid{
     border-top: 1px solid #eee;
   }

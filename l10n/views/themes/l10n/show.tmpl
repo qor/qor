@@ -16,10 +16,8 @@
       </div>
     {{end}}
     <div class="qor-page__body">
-
       {{render "shared/flashes"}}
       {{render "shared/errors"}}
-
       <div class="qor-form-container">
         <form class="qor-form" action="{{patch_current_url "locale" (current_locale .)}}" method="POST" enctype="multipart/form-data">
           {{render_form .Result edit_metas}}

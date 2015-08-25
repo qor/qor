@@ -29,9 +29,6 @@
     constructor: Publish,
 
     init: function () {
-      var options = this.options;
-      var $this = this.$element;
-
       this.$modal = $(Publish.MODAL).appendTo('body');
       this.bind();
     },

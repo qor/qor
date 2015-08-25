@@ -208,8 +208,8 @@
   $(function () {
     var selector = '[data-toggle="qor.filter"]';
     var options = {
-          label: '.qor-scope',
-          group: '.qor-scope-group',
+          label: 'a',
+          group: 'select',
         };
 
     $(document).

@@ -107,7 +107,7 @@
         case 'exit':
           this.multiple = false;
           $target.addClass('hidden');
-          $target.siblings('button').addClass('hidden').filter('.i18n-btn-bulk-edit').removeClass('hidden');
+          $target.siblings('button').addClass('hidden').filter('.qor-js-bulk').removeClass('hidden');
           $items.removeClass('active');
           break;
 
@@ -130,11 +130,11 @@
 
         case 'copy':
           $item = $target.closest('li');
-          $item.find('.qor-js-translator').val($item.find('.i18n-translation-source').text()).trigger(EVENT_INPUT);
+          $item.find('.qor-js-translator').val($item.find('.qor-js-translation-source').text()).trigger(EVENT_INPUT);
           break;
 
         case 'copyall':
-          $items.find('.i18n-btn-copy').click();
+          $items.find('.qor-js-copy').click();
           break;
       }
     },
@@ -145,7 +145,7 @@
       if ($target.is('.qor-js-translator')) {
         if (this.multiple) {
           this.submit($target.closest('form'), function ($form) {
-            var $help = $form.find('.i18n-help-block');
+            var $help = $form.find('.qor-js-help');
 
             $help.addClass('in');
 
@@ -174,7 +174,7 @@
           method: 'POST',
           data: $form.serialize(),
           success: function () {
-            $form.siblings('.i18n-translation-target').text($form.find('.qor-js-translator').val());
+            $form.siblings('.qor-js-translation-target').text($form.find('.qor-js-translator').val());
 
             if ($.isFunction(callback)) {
               callback($form);
