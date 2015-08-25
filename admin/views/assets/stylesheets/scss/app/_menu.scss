@@ -106,13 +106,13 @@
       content: "\e8b8";
     }
 
-    > .expandable > a {
+    > .hasSubmenu > a {
       &::after {
         content: "\e5ce";
       }
     }
 
-    > .expanded > a {
+    > .is-expanded > a {
       &::after {
         content: "\e5cf";
       }
