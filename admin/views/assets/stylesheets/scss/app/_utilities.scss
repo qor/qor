@@ -24,7 +24,7 @@
 
 .fade {
   opacity: 0;
-  transition: opacity .15s linear;
+  transition: opacity .2s linear;
 
   &.in {
     opacity: 1;
@@ -39,19 +39,9 @@
   }
 }
 
-tr.collapse.in    {
-  display: table-row;
-}
-
-tbody.collapse.in {
-  display: table-row-group;
-}
-
 .collapsing {
   position: relative;
   height: 0;
   overflow: hidden;
-  transition-property: height, visibility;
-  transition-duration: .35s;
-  transition-timing-function: ease;
+  transition: height .3s ease;
 }
