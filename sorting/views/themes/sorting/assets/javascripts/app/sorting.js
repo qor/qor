@@ -25,7 +25,7 @@
   var EVENT_DROP = 'drop.' + NAMESPACE;
   var CLASS_SORTING = 'qor-sorting';
   var CLASS_HIGHLIGHT = 'qor-sorting__highlight';
-  var SELECTOR_TR = 'tbody> tr';
+  var SELECTOR_TR = 'tbody > tr';
 
   function QorSorter(element, options) {
     this.$element = $(element);
@@ -347,11 +347,11 @@
   };
 
   $(function () {
-    if (!/sorting\=true/.test(window.location.search)) {
+    if (!/sorting\=true/.test(location.search)) {
       return;
     }
 
-    var selector = '.qor-table';
+    var selector = '.qor-js-table';
     var options = {
           toggle: '.qor-sorting__toggle',
           input: '.qor-sorting__position',
