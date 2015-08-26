@@ -10,7 +10,7 @@ $(function () {
     var $clear = $this.find('.qor-search__clear');
     var isSearched = !!$input.val();
 
-    $this.closest('.qor-page__header').addClass('hasSearch');
+    $this.closest('.qor-page__header').addClass('has-search');
 
     $clear.on('click', function () {
       if ($input.val()) {

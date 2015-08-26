@@ -31,7 +31,7 @@ $(function () {
       return;
     }
 
-    $li.addClass('hasSubmenu is-expanded');
+    $li.addClass('has-menu is-expanded');
     $ul.addClass('collapse in').height($ul.prop('scrollHeight'));
   });
 
