@@ -15,8 +15,6 @@
 
   var NAMESPACE = 'qor.publish';
   var EVENT_CLICK = 'click.' + NAMESPACE;
-  var EVENT_SHOWN = 'shown.bs.modal';
-  var EVENT_HIDDEN = 'hidden.bs.modal';
 
   function Publish(element, options) {
     this.$element = $(element);
@@ -35,18 +33,10 @@
 
     bind: function () {
       this.$element.on(EVENT_CLICK, $.proxy(this.click, this));
-      this.$modal.
-        on(EVENT_SHOWN, function () {
-          $(this).trigger('enable.qor.textviewer');
-        }).
-        on(EVENT_HIDDEN, function () {
-          $(this).trigger('disable.qor.textviewer');
-        });
     },
 
     unbind: function () {
       this.$element.off(EVENT_CLICK, this.click);
-      this.$modal.off(EVENT_SHOWN).off(EVENT_HIDDEN);
     },
 
     click: function (e) {
@@ -62,10 +52,6 @@
 
         this.loading = true;
         this.$modal.find('.mdl-card__supporting-text').empty().load($target.data('url'), $.proxy(this.show, this));
-      } else if ($target.is(options.toggleCheck)) {
-        if (!$target.prop('disabled')) {
-          $target.closest('table').find('tbody :checkbox').click();
-        }
       }
     },
 
@@ -82,7 +68,6 @@
 
   Publish.DEFAULTS = {
     toggleView: '.qor-action__view',
-    toggleCheck: '.qor-action__check-all',
   };
 
   Publish.MODAL = (
@@ -114,14 +99,14 @@
         $this.data(NAMESPACE, (data = new Publish(this, options)));
       }
 
-      if (typeof options === 'string' && $.isFunction((fn = data[options]))) {
+      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
         fn.apply(data);
       }
     });
   };
 
   $(function () {
-    Publish.plugin.call($('.qor-table'));
+    Publish.plugin.call($('.qor-js-table'));
   });
 
 });
