@@ -92,6 +92,8 @@ func New(db *gorm.DB) *Publish {
 		return tableName
 	}
 
+	db.AutoMigrate(&PublishEvent{})
+
 	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production_after_create", syncCreateFromProductionToDraft)
