@@ -30,7 +30,7 @@ func (db *publishController) Preview(context *admin.Context) {
 
 	var drafts = []resource{}
 
-	draftDB := context.GetDB().Set("publish:draft_mode", true).Unscoped()
+	draftDB := context.GetDB().Set(publishDraftMode, true).Unscoped()
 	for _, res := range context.Admin.GetResources() {
 		if visibleInterface, ok := res.Value.(visiblePublishResourceInterface); ok {
 			if !visibleInterface.VisiblePublishResource() {
@@ -60,10 +60,10 @@ func (db *publishController) Diff(context *admin.Context) {
 	res := context.Admin.GetResource(name)
 
 	draft := res.NewStruct()
-	context.GetDB().Set("publish:draft_mode", true).Unscoped().First(draft, id)
+	context.GetDB().Set(publishDraftMode, true).Unscoped().First(draft, id)
 
 	production := res.NewStruct()
-	context.GetDB().Set("publish:draft_mode", false).Unscoped().First(production, id)
+	context.GetDB().Set(publishDraftMode, false).Unscoped().First(production, id)
 
 	results := map[string]interface{}{"Production": production, "Draft": draft, "Resource": res}
 
@@ -83,7 +83,7 @@ func (db *publishController) PublishOrDiscard(context *admin.Context) {
 		}
 	}
 
-	draftDB := context.GetDB().Set("publish:draft_mode", true).Unscoped()
+	draftDB := context.GetDB().Set(publishDraftMode, true).Unscoped()
 	for name, value := range values {
 		res := context.Admin.GetResource(name)
 		results := res.NewSlice()

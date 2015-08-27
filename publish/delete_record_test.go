@@ -58,5 +58,4 @@ func TestDeleteStructFromProduction(t *testing.T) {
 	if product.PublishStatus {
 		t.Errorf("Product's publish status should be PUBLISHED when deleted from production db")
 	}
-
 }
