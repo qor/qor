@@ -7,10 +7,6 @@ import (
 )
 
 func isDraftMode(db *gorm.DB) bool {
-	if event, ok := db.Get(publishNewEvent); ok && event != nil {
-		return false
-	}
-
 	if draftMode, ok := db.Get(publishDraftMode); ok {
 		if isDraft, ok := draftMode.(bool); ok && isDraft {
 			return true
@@ -46,12 +42,14 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(*gorm.Scope) {
 
 				// Only set publish status when updating data from draft tables
 				if isDraftMode(scope.DB()) {
-					if attrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
-						updateAttrs := attrs.(map[string]interface{})
-						updateAttrs["publish_status"] = DIRTY
-						scope.InstanceSet("gorm:update_attrs", updateAttrs)
-					} else {
-						scope.SetColumn("PublishStatus", DIRTY)
+					if _, ok := scope.DB().Get(publishEventMode); !ok {
+						if attrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
+							updateAttrs := attrs.(map[string]interface{})
+							updateAttrs["publish_status"] = DIRTY
+							scope.InstanceSet("gorm:update_attrs", updateAttrs)
+						} else {
+							scope.SetColumn("PublishStatus", DIRTY)
+						}
 					}
 				}
 			}

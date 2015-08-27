@@ -15,7 +15,7 @@ const (
 	DIRTY     = true
 
 	publishDraftMode = "publish:draft_mode"
-	publishNewEvent  = "publish:new_event"
+	publishEventMode = "publish:publish_event"
 )
 
 type publishInterface interface {
