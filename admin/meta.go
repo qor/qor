@@ -249,39 +249,54 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
-	if meta.Setter == nil {
-		meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-			if metaValue == nil {
-				return
-			}
+	if meta.Setter == nil && hasColumn {
+		if relationship := field.Relationship; relationship != nil {
+			if relationship.Kind == "many_to_many" {
+				meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
+					scope := &gorm.Scope{Value: resource}
+					field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Alias)
 
-			value := metaValue.Value
-			scope := &gorm.Scope{Value: resource}
-			alias := meta.Alias
-			if nestedField {
-				fields := strings.Split(alias, ".")
-				alias = fields[len(fields)-1]
-			}
-			field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(alias)
-			if field.Kind() == reflect.Ptr && field.IsNil() {
-				field.Set(utils.NewValue(field.Type()).Elem())
-			}
-			for field.Kind() == reflect.Ptr {
-				field = field.Elem()
-			}
-
-			if field.IsValid() && field.CanAddr() {
-				// Save relationships
-				if scopeField != nil && scopeField.Relationship != nil {
-					if primaryKeys := utils.ToArray(value); len(primaryKeys) > 0 {
-						context.GetDB().Where(utils.ToArray(value)).Find(field.Addr().Interface())
+					if field.Kind() == reflect.Ptr && field.IsNil() {
+						field.Set(utils.NewValue(field.Type()).Elem())
 					}
 
-					// Handle many 2 many relations
-					if scopeField.Relationship.Kind == "many_to_many" && !scope.PrimaryKeyZero() {
+					for field.Kind() == reflect.Ptr {
+						field = field.Elem()
+					}
+
+					if primaryKeys := utils.ToArray(metaValue.Value); len(primaryKeys) > 0 {
+						context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
+					}
+
+					// Replace many 2 many relations
+					if !scope.PrimaryKeyZero() {
 						context.GetDB().Model(resource).Association(meta.Alias).Replace(field.Interface())
 					}
-				} else {
+				}
+			}
+		} else {
+			meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
+				if metaValue == nil {
+					return
+				}
+
+				value := metaValue.Value
+				alias := meta.Alias
+				if nestedField {
+					fields := strings.Split(alias, ".")
+					alias = fields[len(fields)-1]
+				}
+
+				field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(alias)
+				if field.Kind() == reflect.Ptr && field.IsNil() {
+					field.Set(utils.NewValue(field.Type()).Elem())
+				}
+
+				for field.Kind() == reflect.Ptr {
+					field = field.Elem()
+				}
+
+				if field.IsValid() && field.CanAddr() {
 					switch field.Kind() {
 					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 						field.SetInt(utils.ToInt(value))

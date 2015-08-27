@@ -81,10 +81,8 @@ func (processor *processor) decode() (errors []error) {
 			continue
 		}
 
-		if metaValue.MetaValues == nil {
-			if setter := meta.GetSetter(); setter != nil {
-				setter(processor.Result, metaValue, processor.Context)
-			}
+		if setter := meta.GetSetter(); setter != nil {
+			setter(processor.Result, metaValue, processor.Context)
 			continue
 		}
 
