@@ -38,14 +38,14 @@ func (permission *Permission) HasPermission(mode PermissionMode, roles ...string
 		}
 	}
 
-	if len(permission.allowRoles) != 0 {
+	if len(permission.allowRoles) == 0 {
+		return true
+	} else {
 		if allowRoles := permission.allowRoles[mode]; allowRoles != nil {
 			if hasSameElem(allowRoles, roles) {
 				return true
 			}
 		}
-	} else if len(permission.denyRoles) != 0 {
-		return true
 	}
 
 	return false
