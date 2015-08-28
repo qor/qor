@@ -80,7 +80,7 @@ func move(db *gorm.DB, value sortingInterface, pos int) (err error) {
 
 	// Create Publish Event in Draft Mode
 	if publish.IsDraftMode(tx) && publish.IsPublishableModel(value) {
-		err = tx.Where("published_at is null").Where(map[string]interface{}{
+		err = tx.Where("published_at IS NULL AND discarded_at IS NULL").Where(map[string]interface{}{
 			"name":     "changed_sorting",
 			"argument": scope.TableName(),
 		}).Assign(map[string]interface{}{

@@ -86,7 +86,7 @@ func TestSortingWithPublishStatus(t *testing.T) {
 	}
 
 	var publishEvents []publish.PublishEvent
-	db.Where("published_at IS NULL AND name = ?", "changed_sorting").Find(&publishEvents)
+	db.Where("published_at IS NULL AND discarded_at IS NULL AND name = ?", "changed_sorting").Find(&publishEvents)
 	for _, publishEvent := range publishEvents {
 		publishEvent.Publish(pb.ProductionDB())
 	}
@@ -106,7 +106,7 @@ func TestSortingWithPublishStatus(t *testing.T) {
 	}
 
 	var publishDiscardEvents []publish.PublishEvent
-	db.Where("published_at IS NULL AND name = ?", "changed_sorting").Find(&publishDiscardEvents)
+	db.Where("published_at IS NULL AND discarded_at IS NULL AND name = ?", "changed_sorting").Find(&publishDiscardEvents)
 	if len(publishDiscardEvents) > 1 {
 		t.Errorf("Should only found one publish event for changed_sorting, but got %v", len(publishDiscardEvents))
 	}
