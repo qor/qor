@@ -23,6 +23,11 @@ type publishInterface interface {
 	SetPublishStatus(bool)
 }
 
+type PublishEventInterface interface {
+	Publish(*gorm.DB) error
+	Discard(*gorm.DB) error
+}
+
 type Status struct {
 	PublishStatus bool
 }
@@ -42,6 +47,11 @@ func (s Status) InjectQorAdmin(res *admin.Resource) {
 		res.EditAttrs(append(res.EditAttrs(), "-PublishStatus")...)
 		res.NewAttrs(append(res.NewAttrs(), "-PublishStatus")...)
 	}
+
+	if event := res.GetAdmin().GetResource("PublishEvent"); event == nil {
+		eventResource := res.GetAdmin().AddResource(&PublishEvent{}, &admin.Config{Invisible: true})
+		eventResource.IndexAttrs("Name", "Description")
+	}
 }
 
 type Publish struct {
@@ -55,6 +65,13 @@ func IsDraftMode(db *gorm.DB) bool {
 		}
 	}
 	return false
+}
+
+func IsPublishEvent(model interface{}) (ok bool) {
+	if model != nil {
+		_, ok = reflect.New(utils.ModelType(model)).Interface().(PublishEventInterface)
+	}
+	return
 }
 
 func IsPublishableModel(model interface{}) (ok bool) {

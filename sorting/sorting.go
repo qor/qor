@@ -1,6 +1,7 @@
 package sorting
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 
@@ -80,12 +81,23 @@ func move(db *gorm.DB, value sortingInterface, pos int) (err error) {
 
 	// Create Publish Event in Draft Mode
 	if publish.IsDraftMode(tx) && publish.IsPublishableModel(value) {
-		err = tx.Where("published_at IS NULL AND discarded_at IS NULL").Where(map[string]interface{}{
-			"name":     "changed_sorting",
-			"argument": scope.TableName(),
-		}).Assign(map[string]interface{}{
-			"Description": "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
-		}).FirstOrCreate(&publish.PublishEvent{}).Error
+		var sortingPublishEvent = changedSortingPublishEvent{
+			Table: scope.TableName(),
+		}
+		for _, field := range scope.PrimaryFields() {
+			sortingPublishEvent.PrimaryKeys = append(sortingPublishEvent.PrimaryKeys, field.DBName)
+		}
+
+		var result []byte
+		if result, err = json.Marshal(sortingPublishEvent); err == nil {
+			err = tx.New().Where("publish_status = ?", publish.DIRTY).Where(map[string]interface{}{
+				"Name":     "changed_sorting",
+				"Argument": string(result),
+			}).Attrs(map[string]interface{}{
+				"PublishStatus": publish.DIRTY,
+				"Description":   "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
+			}).FirstOrCreate(&publish.PublishEvent{}).Error
+		}
 	}
 
 	if startedTransaction {

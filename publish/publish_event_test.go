@@ -11,28 +11,32 @@ import (
 type createResourcePublishInterface struct {
 }
 
-func (createResourcePublishInterface) Publish(db *gorm.DB, event *publish.PublishEvent) error {
-	var product Product
-	db.Set("publish:draft_mode", true).First(&product, event.Argument)
-	pb.Publish(&product)
+func (createResourcePublishInterface) Publish(db *gorm.DB, event publish.PublishEventInterface) error {
+	if event, ok := event.(*publish.PublishEvent); ok {
+		var product Product
+		db.Set("publish:draft_mode", true).First(&product, event.Argument)
+		pb.Publish(&product)
+	}
 	return nil
 }
 
-func (createResourcePublishInterface) Discard(db *gorm.DB, event *publish.PublishEvent) error {
-	var product Product
-	db.Set("publish:draft_mode", true).First(&product, event.Argument)
-	pb.Discard(&product)
+func (createResourcePublishInterface) Discard(db *gorm.DB, event publish.PublishEventInterface) error {
+	if event, ok := event.(*publish.PublishEvent); ok {
+		var product Product
+		db.Set("publish:draft_mode", true).First(&product, event.Argument)
+		pb.Discard(&product)
+	}
 	return nil
 }
 
 type publishAllResourcesInterface struct {
 }
 
-func (publishAllResourcesInterface) Publish(db *gorm.DB, event *publish.PublishEvent) error {
+func (publishAllResourcesInterface) Publish(db *gorm.DB, event publish.PublishEventInterface) error {
 	return nil
 }
 
-func (publishAllResourcesInterface) Discard(db *gorm.DB, event *publish.PublishEvent) error {
+func (publishAllResourcesInterface) Discard(db *gorm.DB, event publish.PublishEventInterface) error {
 	return nil
 }
 
