@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/publish"
 )
 
 type sortingInterface interface {
@@ -40,11 +41,18 @@ func newModel(value interface{}) interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(value)).Type()).Interface()
 }
 
-func move(db *gorm.DB, value sortingInterface, pos int) error {
-	clone := db
-	for _, field := range db.NewScope(value).PrimaryFields() {
+func move(db *gorm.DB, value sortingInterface, pos int) (err error) {
+	var startedTransaction bool
+	var tx = db.Set("publish:publish_event", true)
+	if t := tx.Begin(); t.Error == nil {
+		startedTransaction = true
+		tx = t
+	}
+
+	scope := db.NewScope(value)
+	for _, field := range scope.PrimaryFields() {
 		if field.DBName != "id" {
-			clone = clone.Where(fmt.Sprintf("%s = ?", field.DBName), field.Field.Interface())
+			tx = tx.Where(fmt.Sprintf("%s = ?", field.DBName), field.Field.Interface())
 		}
 	}
 
@@ -52,25 +60,43 @@ func move(db *gorm.DB, value sortingInterface, pos int) error {
 
 	var results *gorm.DB
 	if pos > 0 {
-		results = clone.Model(newModel(value)).
+		results = tx.Model(newModel(value)).
 			Where("position > ? AND position <= ?", currentPos, currentPos+pos).
 			UpdateColumn("position", gorm.Expr("position - ?", 1))
 	} else {
-		results = clone.Model(newModel(value)).
+		results = tx.Model(newModel(value)).
 			Where("position < ? AND position >= ?", currentPos, currentPos+pos).
 			UpdateColumn("position", gorm.Expr("position + ?", 1))
 	}
 
-	if results.Error == nil {
+	if err = results.Error; err == nil {
 		var rowsAffected = int(results.RowsAffected)
 		if pos < 0 {
 			rowsAffected = -rowsAffected
 		}
 		value.SetPosition(currentPos + rowsAffected)
-		return clone.Model(value).UpdateColumn("position", gorm.Expr("position + ?", rowsAffected)).Error
-	} else {
-		return results.Error
+		err = tx.Model(value).UpdateColumn("position", gorm.Expr("position + ?", rowsAffected)).Error
 	}
+
+	// Create Publish Event in Draft Mode
+	if publish.IsDraftMode(tx) && publish.IsPublishableModel(value) {
+		err = tx.Where("published_at IS NULL AND discarded_at IS NULL").Where(map[string]interface{}{
+			"name":     "changed_sorting",
+			"argument": scope.TableName(),
+		}).Assign(map[string]interface{}{
+			"Description": "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
+		}).FirstOrCreate(&publish.PublishEvent{}).Error
+	}
+
+	if startedTransaction {
+		if err == nil {
+			tx.Commit()
+		} else {
+			tx.Rollback()
+		}
+	}
+
+	return err
 }
 
 func MoveUp(db *gorm.DB, value sortingInterface, pos int) error {

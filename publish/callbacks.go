@@ -6,19 +6,10 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func isDraftMode(db *gorm.DB) bool {
-	if draftMode, ok := db.Get(publishDraftMode); ok {
-		if isDraft, ok := draftMode.(bool); ok && isDraft {
-			return true
-		}
-	}
-	return false
-}
-
 func isProductionModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
-	if !isDraftMode(scope.DB()) {
+	if !IsDraftMode(scope.DB()) {
 		if _, ok := scope.InstanceGet("publish:supported_model"); ok {
-			table := originalTableName(scope.TableName())
+			table := OriginalTableName(scope.TableName())
 			clone := scope.New(scope.Value)
 			clone.Search.Table(table)
 			return true, clone
@@ -33,16 +24,18 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(*gorm.Scope) {
 			return
 		}
 
-		if isPublishableModel(scope.Value) {
+		if IsPublishableModel(scope.Value) {
 			scope.InstanceSet("publish:supported_model", true)
 
 			if ensureDraftMode {
 				scope.Set("publish:force_draft_table", true)
-				scope.Search.Table(draftTableName(scope.TableName()))
+				scope.Search.Table(DraftTableName(scope.TableName()))
 
 				// Only set publish status when updating data from draft tables
-				if isDraftMode(scope.DB()) {
-					if _, ok := scope.DB().Get(publishEventMode); !ok {
+				if IsDraftMode(scope.DB()) {
+					if _, ok := scope.DB().Get(publishEvent); ok {
+						scope.InstanceSet("publish:creating_publish_event", true)
+					} else {
 						if attrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
 							updateAttrs := attrs.(map[string]interface{})
 							updateAttrs["publish_status"] = DIRTY
@@ -69,7 +62,7 @@ func syncUpdateFromProductionToDraft(scope *gorm.Scope) {
 	if !scope.HasError() {
 		if ok, clone := isProductionModeAndNewScope(scope); ok {
 			if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
-				table := originalTableName(scope.TableName())
+				table := OriginalTableName(scope.TableName())
 				clone.Search = scope.Search
 				clone.Search.Table(table)
 				clone.InstanceSet("gorm:update_attrs", updateAttrs)
@@ -90,7 +83,7 @@ func syncDeleteFromProductionToDraft(scope *gorm.Scope) {
 func deleteScope(scope *gorm.Scope) {
 	if !scope.HasError() {
 		_, supportedModel := scope.InstanceGet("publish:supported_model")
-		if supportedModel && isDraftMode(scope.DB()) {
+		if supportedModel && IsDraftMode(scope.DB()) {
 			scope.Raw(
 				fmt.Sprintf("UPDATE %v SET deleted_at=%v, publish_status=%v %v",
 					scope.QuotedTableName(),
@@ -101,6 +94,16 @@ func deleteScope(scope *gorm.Scope) {
 			scope.Exec()
 		} else {
 			gorm.Delete(scope)
+		}
+	}
+}
+
+func createPublishEvent(scope *gorm.Scope) {
+	if _, ok := scope.InstanceGet("publish:creating_publish_event"); ok {
+		if event, ok := scope.Get(publishEvent); ok {
+			if event, ok := event.(*PublishEvent); ok {
+				scope.Err(scope.NewDB().Save(&event).Error)
+			}
 		}
 	}
 }

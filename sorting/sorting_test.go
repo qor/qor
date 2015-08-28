@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/publish"
 	"github.com/qor/qor/sorting"
 	"github.com/qor/qor/test/utils"
 )
@@ -17,12 +18,17 @@ type User struct {
 }
 
 var db *gorm.DB
+var pb *publish.Publish
 
 func init() {
 	db = utils.TestDB()
 	sorting.RegisterCallbacks(db)
-	db.DropTable(&User{})
-	db.AutoMigrate(&User{})
+
+	pb = publish.New(db)
+	pb.ProductionDB().DropTable(&User{}, &Product{})
+	pb.DraftDB().DropTable(&Product{})
+	db.AutoMigrate(&User{}, &Product{})
+	pb.AutoMigrate(&Product{})
 }
 
 func prepareUsers() {
