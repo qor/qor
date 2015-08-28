@@ -42,7 +42,6 @@ func (publishEvent *PublishEvent) Publish(db *gorm.DB) error {
 					updateAttrs["PublishedBy"] = fmt.Sprintf("%v", user)
 				}
 			}
-			fmt.Println(updateAttrs)
 			err = db.Model(publishEvent).Update(updateAttrs).Error
 		}
 		return err
