@@ -24,7 +24,7 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(*gorm.Scope) {
 			return
 		}
 
-		if isPublishableModel(scope.Value) {
+		if IsPublishableModel(scope.Value) {
 			scope.InstanceSet("publish:supported_model", true)
 
 			if ensureDraftMode {

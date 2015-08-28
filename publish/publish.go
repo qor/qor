@@ -57,7 +57,7 @@ func IsDraftMode(db *gorm.DB) bool {
 	return false
 }
 
-func isPublishableModel(model interface{}) (ok bool) {
+func IsPublishableModel(model interface{}) (ok bool) {
 	if model != nil {
 		_, ok = reflect.New(utils.ModelType(model)).Interface().(publishInterface)
 	}
@@ -72,7 +72,7 @@ func New(db *gorm.DB) *Publish {
 		tableName := tableHandler(db, defaultTableName)
 
 		if db != nil {
-			if isPublishableModel(db.Value) {
+			if IsPublishableModel(db.Value) {
 				// Set join table handler
 				typ := utils.ModelType(db.Value)
 				if !injectedJoinTableHandler[typ] {

@@ -60,7 +60,7 @@ func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][][]int
 	draftDB := resolver.DB.Set(publishDraftMode, true).Unscoped()
 	for _, field := range fromScope.Fields() {
 		if relationship := field.Relationship; relationship != nil {
-			if isPublishableModel(field.Field.Interface()) {
+			if IsPublishableModel(field.Field.Interface()) {
 				toType := utils.ModelType(field.Field.Interface())
 				toScope := draftDB.NewScope(reflect.New(toType).Interface())
 				draftTable := draftTableName(toScope.TableName())
@@ -118,7 +118,7 @@ func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][][]int
 
 func (resolver *resolver) GenerateDependencies() {
 	var addToDependencies = func(data interface{}) {
-		if isPublishableModel(data) {
+		if IsPublishableModel(data) {
 			scope := resolver.DB.NewScope(data)
 			var primaryValues [][]interface{}
 			for _, field := range scope.PrimaryFields() {

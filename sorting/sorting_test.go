@@ -21,8 +21,8 @@ var db *gorm.DB
 func init() {
 	db = utils.TestDB()
 	sorting.RegisterCallbacks(db)
-	db.DropTable(&User{})
-	db.AutoMigrate(&User{})
+	db.DropTable(&User{}, &Product{})
+	db.AutoMigrate(&User{}, &Product{})
 }
 
 func prepareUsers() {
