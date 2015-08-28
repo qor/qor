@@ -3,14 +3,13 @@ package publish
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/jinzhu/gorm"
 )
 
 type EventInterface interface {
-	Publish(db *gorm.DB, event *PublishEvent) error
-	Discard(db *gorm.DB, event *PublishEvent) error
+	Publish(db *gorm.DB, event PublishEventInterface) error
+	Discard(db *gorm.DB, event PublishEventInterface) error
 }
 
 var events = map[string]EventInterface{}
@@ -21,26 +20,35 @@ func RegisterEvent(name string, event EventInterface) {
 
 type PublishEvent struct {
 	gorm.Model
-	Name        string
-	Description string
-	Argument    string `sql:"size:65532"`
-	PublishedAt *time.Time
-	DiscardedAt *time.Time
-	PublishedBy string
+	Name          string
+	Description   string
+	Argument      string `sql:"size:65532"`
+	PublishStatus bool
+	PublishedBy   string
+}
+
+func getCurrentUser(db *gorm.DB) (string, bool) {
+	if user, hasUser := db.Get("qor:current_user"); hasUser {
+		var currentUser string
+		if primaryField := db.NewScope(user).PrimaryField(); primaryField != nil {
+			currentUser = fmt.Sprintf("%v", primaryField.Field.Interface())
+		} else {
+			currentUser = fmt.Sprintf("%v", user)
+		}
+
+		return currentUser, true
+	}
+
+	return "", false
 }
 
 func (publishEvent *PublishEvent) Publish(db *gorm.DB) error {
 	if event, ok := events[publishEvent.Name]; ok {
 		err := event.Publish(db, publishEvent)
 		if err == nil {
-			now := time.Now()
-			var updateAttrs = map[string]interface{}{"PublishedAt": &now}
-			if user, ok := db.Get("qor:current_user"); ok {
-				if primaryField := db.NewScope(user).PrimaryField(); primaryField != nil {
-					updateAttrs["PublishedBy"] = fmt.Sprintf("%v", primaryField.Field.Interface())
-				} else {
-					updateAttrs["PublishedBy"] = fmt.Sprintf("%v", user)
-				}
+			var updateAttrs = map[string]interface{}{"PublishStatus": PUBLISHED}
+			if user, hasUser := getCurrentUser(db); hasUser {
+				updateAttrs["PublishedBy"] = user
 			}
 			err = db.Model(publishEvent).Update(updateAttrs).Error
 		}
@@ -53,18 +61,17 @@ func (publishEvent *PublishEvent) Discard(db *gorm.DB) error {
 	if event, ok := events[publishEvent.Name]; ok {
 		err := event.Discard(db, publishEvent)
 		if err == nil {
-			now := time.Now()
-			var updateAttrs = map[string]interface{}{"DiscardedAt": &now}
-			if user, ok := db.Get("qor:current_user"); ok {
-				if primaryField := db.NewScope(user).PrimaryField(); primaryField != nil {
-					updateAttrs["PublishedBy"] = fmt.Sprintf("%v", primaryField.Field.Interface())
-				} else {
-					updateAttrs["PublishedBy"] = fmt.Sprintf("%v", user)
-				}
+			var updateAttrs = map[string]interface{}{"PublishStatus": PUBLISHED}
+			if user, hasUser := getCurrentUser(db); hasUser {
+				updateAttrs["PublishedBy"] = user
 			}
 			err = db.Model(publishEvent).Update(updateAttrs).Error
 		}
 		return err
 	}
 	return errors.New("event not found")
+}
+
+func (PublishEvent) VisiblePublishResource() bool {
+	return true
 }

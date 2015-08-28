@@ -189,6 +189,7 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		} else {
 			context.CurrentUser = currentUser
+			context.SetDB(context.GetDB().Set("qor:current_user", context.CurrentUser))
 		}
 	}
 	context.Roles = roles.MatchedRoles(req, currentUser)

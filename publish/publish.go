@@ -23,6 +23,11 @@ type publishInterface interface {
 	SetPublishStatus(bool)
 }
 
+type PublishEventInterface interface {
+	Publish(*gorm.DB) error
+	Discard(*gorm.DB) error
+}
+
 type Status struct {
 	PublishStatus bool
 }
@@ -55,6 +60,13 @@ func IsDraftMode(db *gorm.DB) bool {
 		}
 	}
 	return false
+}
+
+func IsPublishEvent(model interface{}) (ok bool) {
+	if model != nil {
+		_, ok = reflect.New(utils.ModelType(model)).Interface().(PublishEventInterface)
+	}
+	return
 }
 
 func IsPublishableModel(model interface{}) (ok bool) {
