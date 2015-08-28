@@ -25,8 +25,20 @@ func (createResourcePublishInterface) Discard(db *gorm.DB, event *publish.Publis
 	return nil
 }
 
+type publishAllResourcesInterface struct {
+}
+
+func (publishAllResourcesInterface) Publish(db *gorm.DB, event *publish.PublishEvent) error {
+	return nil
+}
+
+func (publishAllResourcesInterface) Discard(db *gorm.DB, event *publish.PublishEvent) error {
+	return nil
+}
+
 func init() {
 	publish.RegisterEvent("create_product", createResourcePublishInterface{})
+	publish.RegisterEvent("publish_all_resources", publishAllResourcesInterface{})
 }
 
 func TestCreateNewEvent(t *testing.T) {
@@ -62,4 +74,10 @@ func TestCreateNewEvent(t *testing.T) {
 	if pbprod.First(&Product{}, "name = ?", product1.Name).RecordNotFound() {
 		t.Errorf("product should be published to production db after publish event")
 	}
+}
+
+func TestCreateProductWithPublishAllEvent(t *testing.T) {
+	product1 := Product{Name: "event_1"}
+	event := &publish.PublishEvent{Name: "publish_all_resources", Argument: "products"}
+	pbdraft.Set("publish:publish_event", event).Save(&product1)
 }
