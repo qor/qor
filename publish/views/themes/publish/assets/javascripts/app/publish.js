@@ -16,9 +16,21 @@
   var NAMESPACE = 'qor.publish';
   var EVENT_CLICK = 'click.' + NAMESPACE;
 
+  function replaceText(str, data) {
+    if (typeof str === 'string') {
+      if (typeof data === 'object') {
+        $.each(data, function (key, val) {
+          str = str.replace('${' + String(key).toLowerCase() + '}', val);
+        });
+      }
+    }
+
+    return str;
+  }
+
   function Publish(element, options) {
     this.$element = $(element);
-    this.options = $.extend({}, Publish.DEFAULTS, $.isPlainObject(options) && options);
+    this.options = $.extend(true, {}, Publish.DEFAULTS, $.isPlainObject(options) && options);
     this.loading = false;
     this.init();
   }
@@ -27,7 +39,7 @@
     constructor: Publish,
 
     init: function () {
-      this.$modal = $(Publish.MODAL).appendTo('body');
+      this.$modal = $(replaceText(Publish.MODAL, this.options.text)).appendTo('body');
       this.bind();
     },
 
@@ -68,17 +80,21 @@
 
   Publish.DEFAULTS = {
     toggleView: '.qor-action__view',
+    text: {
+      title: 'Changes',
+      close: 'Close',
+    },
   };
 
   Publish.MODAL = (
     '<div class="qor-modal fade" tabindex="-1" role="dialog" aria-hidden="true">' +
       '<div class="mdl-card mdl-shadow--2dp" role="document">' +
         '<div class="mdl-card__title mdl-card--border">' +
-          '<h2 class="mdl-card__title-text">Changes</h2>' +
+          '<h2 class="mdl-card__title-text">${title}</h2>' +
         '</div>' +
         '<div class="mdl-card__supporting-text"></div>' +
         '<div class="mdl-card__actions mdl-card--border">' +
-          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Close</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">${close}</a>' +
         '</div>' +
         '<div class="mdl-card__menu">' +
           '<button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-dismiss="modal" aria-label="close">' +
@@ -89,17 +105,26 @@
     '</div>'
   );
 
-  Publish.plugin = function (options) {
+  Publish.plugin = function (option) {
     return this.each(function () {
       var $this = $(this);
       var data = $this.data(NAMESPACE);
+      var options;
       var fn;
 
       if (!data) {
+        if (/destroy/.test(option)) {
+          return;
+        }
+
+        options = $.extend(true, {
+          text: $this.data('text'),
+        }, typeof option === 'object' && option);
+
         $this.data(NAMESPACE, (data = new Publish(this, options)));
       }
 
-      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+      if (typeof option === 'string' && $.isFunction(fn = data[option])) {
         fn.apply(data);
       }
     });

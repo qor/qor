@@ -28,12 +28,6 @@
   var CLASS_WRAPPER = '.qor-cropper__wrapper';
   var CLASS_SAVE = '.qor-cropper__save';
 
-  function QorRedactor(element, options) {
-    this.$element = $(element);
-    this.options = $.extend(true, {}, QorRedactor.DEFAULTS, $.isPlainObject(options) && options);
-    this.init();
-  }
-
   function encodeCropData(data) {
     var nums = [];
 
@@ -86,6 +80,24 @@
     return newObj;
   }
 
+  function replaceText(str, data) {
+    if (typeof str === 'string') {
+      if (typeof data === 'object') {
+        $.each(data, function (key, val) {
+          str = str.replace('${' + String(key).toLowerCase() + '}', val);
+        });
+      }
+    }
+
+    return str;
+  }
+
+  function QorRedactor(element, options) {
+    this.$element = $(element);
+    this.options = $.extend(true, {}, QorRedactor.DEFAULTS, $.isPlainObject(options) && options);
+    this.init();
+  }
+
   QorRedactor.prototype = {
     constructor: QorRedactor,
 
@@ -100,7 +112,7 @@
 
       this.$parent = $parent;
       this.$button = $(QorRedactor.BUTTON);
-      this.$modal = $(QorRedactor.MODAL).appendTo('body');
+      this.$modal = $(replaceText(QorRedactor.MODAL, options.text)).appendTo('body');
       this.bind();
     },
 
@@ -222,6 +234,11 @@
     toggle: false,
     replace: null,
     complete: null,
+    text: {
+      title: 'Crop the image',
+      ok: 'OK',
+      cancel: 'Cancel',
+    },
   };
 
   QorRedactor.BUTTON = '<span class="qor-cropper__toggle--redactor" contenteditable="false">Crop</span>';
@@ -229,14 +246,14 @@
     '<div class="qor-modal fade" tabindex="-1" role="dialog" aria-hidden="true">' +
       '<div class="mdl-card mdl-shadow--2dp" role="document">' +
         '<div class="mdl-card__title">' +
-          '<h2 class="mdl-card__title-text">Crop the image</h2>' +
+          '<h2 class="mdl-card__title-text">${title}</h2>' +
         '</div>' +
         '<div class="mdl-card__supporting-text">' +
           '<div class="qor-cropper__wrapper"></div>' +
         '</div>' +
         '<div class="mdl-card__actions mdl-card--border">' +
-          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-cropper__save">OK</a>' +
-          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Cancel</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-cropper__save">${ok}</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">${cancel}</a>' +
         '</div>' +
         '<div class="mdl-card__menu">' +
           '<button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-dismiss="modal" aria-label="close">' +
@@ -247,7 +264,7 @@
     '</div>'
   );
 
-  QorRedactor.plugin = function (options) {
+  QorRedactor.plugin = function (option) {
     return this.each(function () {
       var $this = $(this);
       var data = $this.data(NAMESPACE);
@@ -259,7 +276,7 @@
           return;
         }
 
-        if (/destroy/.test(options)) {
+        if (/destroy/.test(option)) {
           return;
         }
 
@@ -277,6 +294,7 @@
 
             $this.data(NAMESPACE, (data = new QorRedactor($this, {
               remote: config.cropUrl,
+              text: config.text,
               parent: '.qor-field',
               toggle: '.qor-cropper__toggle--redactor',
               replace: function (url) {
@@ -307,12 +325,12 @@
           }
         });
       } else {
-        if (/destroy/.test(options)) {
+        if (/destroy/.test(option)) {
           $this.redactor('core.destroy');
         }
       }
 
-      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+      if (typeof option === 'string' && $.isFunction(fn = data[option])) {
         fn.apply(data);
       }
     });

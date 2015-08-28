@@ -31,7 +31,7 @@
   var CLASS_OPTIONS = '.qor-cropper__options';
   var CLASS_SAVE = '.qor-cropper__save';
 
-  function capitalize (str) {
+  function capitalize(str) {
     if (typeof str === 'string') {
       str = str.charAt(0).toUpperCase() + str.substr(1);
     }
@@ -39,7 +39,7 @@
     return str;
   }
 
-  function getLowerCaseKeyObject (obj) {
+  function getLowerCaseKeyObject(obj) {
     var newObj = {};
     var key;
 
@@ -54,7 +54,7 @@
     return newObj;
   }
 
-  function getValueByNoCaseKey (obj, key) {
+  function getValueByNoCaseKey(obj, key) {
     var originalKey = String(key);
     var lowerCaseKey = originalKey.toLowerCase();
     var upperCaseKey = originalKey.toUpperCase();
@@ -65,11 +65,24 @@
     }
   }
 
+  function replaceText(str, data) {
+    if (typeof str === 'string') {
+      if (typeof data === 'object') {
+        $.each(data, function (key, val) {
+          str = str.replace('${' + String(key).toLowerCase() + '}', val);
+        });
+      }
+    }
+
+    return str;
+  }
+
   function QorCropper(element, options) {
     this.$element = $(element);
     this.options = $.extend(true, {}, QorCropper.DEFAULTS, $.isPlainObject(options) && options);
     this.data = null;
     this.init();
+    console.log(this);
   }
 
   QorCropper.prototype = {
@@ -105,7 +118,7 @@
 
     build: function () {
       this.wrap();
-      this.$modal = $(QorCropper.MODAL).appendTo('body');
+      this.$modal = $(replaceText(QorCropper.MODAL, this.options.text)).appendTo('body');
     },
 
     unbuild: function () {
@@ -501,6 +514,11 @@
     list: false,
     key: 'data',
     data: null,
+    text: {
+      title: 'Crop the image',
+      ok: 'OK',
+      cancel: 'Cancel',
+    },
   };
 
   QorCropper.TOGGLE = '<div class="qor-cropper__toggle"><i class="material-icons">crop</i></div>';
@@ -510,7 +528,7 @@
     '<div class="qor-modal fade" tabindex="-1" role="dialog" aria-hidden="true">' +
       '<div class="mdl-card mdl-shadow--2dp" role="document">' +
         '<div class="mdl-card__title">' +
-          '<h2 class="mdl-card__title-text">Crop the image</h2>' +
+          '<h2 class="mdl-card__title-text">${title}</h2>' +
         '</div>' +
         '<div class="mdl-card__supporting-text">' +
           '<div class="qor-cropper__wrapper"></div>' +
@@ -519,8 +537,8 @@
           '</div>' +
         '</div>' +
         '<div class="mdl-card__actions mdl-card--border">' +
-          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-cropper__save">OK</a>' +
-          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Cancel</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-cropper__save">${ok}</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">${cancel}</a>' +
         '</div>' +
         '<div class="mdl-card__menu">' +
           '<button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect" data-dismiss="modal" aria-label="close">' +
@@ -531,10 +549,11 @@
     '</div>'
   );
 
-  QorCropper.plugin = function (options) {
+  QorCropper.plugin = function (option) {
     return this.each(function () {
       var $this = $(this);
       var data = $this.data(NAMESPACE);
+      var options;
       var fn;
 
       if (!data) {
@@ -542,14 +561,15 @@
           return;
         }
 
-        if (/destroy/.test(options)) {
+        if (/destroy/.test(option)) {
           return;
         }
 
+        options = $.extend(true, {}, $this.data(), typeof option === 'object' && option);
         $this.data(NAMESPACE, (data = new QorCropper(this, options)));
       }
 
-      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+      if (typeof option === 'string' && $.isFunction(fn = data[option])) {
         fn.apply(data);
       }
     });

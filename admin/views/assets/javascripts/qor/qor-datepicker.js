@@ -22,9 +22,21 @@
   var CLASS_EMBEDDED = '.qor-datepicker__embedded';
   var CLASS_SAVE = '.qor-datepicker__save';
 
+  function replaceText(str, data) {
+    if (typeof str === 'string') {
+      if (typeof data === 'object') {
+        $.each(data, function (key, val) {
+          str = str.replace('${' + String(key).toLowerCase() + '}', val);
+        });
+      }
+    }
+
+    return str;
+  }
+
   function QorDatepicker(element, options) {
     this.$element = $(element);
-    this.options = $.extend({}, QorDatepicker.DEFAULTS, $.isPlainObject(options) && options);
+    this.options = $.extend(true, {}, QorDatepicker.DEFAULTS, $.isPlainObject(options) && options);
     this.date = null;
     this.formatDate = null;
     this.built = false;
@@ -51,7 +63,7 @@
         return;
       }
 
-      this.$modal = $modal = $(QorDatepicker.TEMPLATE).appendTo('body');
+      this.$modal = $modal = $(replaceText(QorDatepicker.TEMPLATE, this.options.text)).appendTo('body');
 
       $modal.
         find(CLASS_EMBEDDED).
@@ -122,13 +134,19 @@
     },
   };
 
-  QorDatepicker.DEFAULTS = {};
+  QorDatepicker.DEFAULTS = {
+    text: {
+      title: 'Pick a date',
+      ok: 'OK',
+      cancel: 'Cancel',
+    }
+  };
 
   QorDatepicker.TEMPLATE = (
      '<div class="qor-modal fade qor-datepicker" tabindex="-1" role="dialog" aria-hidden="true">' +
       '<div class="mdl-card mdl-shadow--2dp" role="document">' +
         '<div class="mdl-card__title">' +
-          '<h2 class="mdl-card__title-text">Pick a date</h2>' +
+          '<h2 class="mdl-card__title-text">${title}</h2>' +
         '</div>' +
         '<div class="mdl-card__supporting-text">' +
           '<div class="qor-datepicker__picked">' +
@@ -138,17 +156,18 @@
           '<div class="qor-datepicker__embedded"></div>' +
         '</div>' +
         '<div class="mdl-card__actions">' +
-          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-datepicker__save">OK</a>' +
-          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">Cancel</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-datepicker__save">${ok}</a>' +
+          '<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" data-dismiss="modal">${cancel}</a>' +
         '</div>' +
       '</div>' +
     '</div>'
   );
 
-  QorDatepicker.plugin = function (options) {
+  QorDatepicker.plugin = function (option) {
     return this.each(function () {
       var $this = $(this);
       var data = $this.data(NAMESPACE);
+      var options;
       var fn;
 
       if (!data) {
@@ -156,14 +175,15 @@
           return;
         }
 
-        if (/destroy/.test(options)) {
+        if (/destroy/.test(option)) {
           return;
         }
 
+        options = $.extend(true, {}, $this.data(), typeof option === 'object' && option);
         $this.data(NAMESPACE, (data = new QorDatepicker(this, options)));
       }
 
-      if (typeof options === 'string' && $.isFunction(fn = data[options])) {
+      if (typeof option === 'string' && $.isFunction(fn = data[option])) {
         fn.apply(data);
       }
     });
