@@ -114,6 +114,11 @@ func (publish *Publish) InjectQorAdmin(res *admin.Resource) {
 	}
 	res.UseTheme("publish")
 
+	if event := res.GetAdmin().GetResource("PublishEvent"); event == nil {
+		eventResource := res.GetAdmin().AddResource(&PublishEvent{}, &admin.Config{Invisible: true})
+		eventResource.IndexAttrs("Name", "Description", "CreatedAt")
+	}
+
 	controller := publishController{publish}
 	router := res.GetAdmin().GetRouter()
 	router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
@@ -140,5 +145,9 @@ func (publish *Publish) InjectQorAdmin(res *admin.Resource) {
 
 	res.GetAdmin().RegisterFuncMap("publish_unique_key", func(res *admin.Resource, record interface{}, context *admin.Context) string {
 		return fmt.Sprintf("%s__%v", res.ToParam(), context.GetDB().NewScope(record).PrimaryKeyValue())
+	})
+
+	res.GetAdmin().RegisterFuncMap("is_publish_event_resource", func(res *admin.Resource) bool {
+		return IsPublishEvent(res.Value)
 	})
 }

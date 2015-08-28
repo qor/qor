@@ -47,11 +47,6 @@ func (s Status) InjectQorAdmin(res *admin.Resource) {
 		res.EditAttrs(append(res.EditAttrs(), "-PublishStatus")...)
 		res.NewAttrs(append(res.NewAttrs(), "-PublishStatus")...)
 	}
-
-	if event := res.GetAdmin().GetResource("PublishEvent"); event == nil {
-		eventResource := res.GetAdmin().AddResource(&PublishEvent{}, &admin.Config{Invisible: true})
-		eventResource.IndexAttrs("Name", "Description")
-	}
 }
 
 type Publish struct {
