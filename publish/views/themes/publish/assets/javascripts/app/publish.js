@@ -64,6 +64,10 @@
 
         this.loading = true;
         this.$modal.find('.mdl-card__supporting-text').empty().load($target.data('url'), $.proxy(this.show, this));
+      } else if ($target.is(options.toggleCheck)) {
+        if (!$target.prop('disabled')) {
+          $target.closest('table').find('tbody :checkbox').click();
+        }
       }
     },
 
@@ -79,7 +83,8 @@
   };
 
   Publish.DEFAULTS = {
-    toggleView: '.qor-action__view',
+    toggleView: '.qor-js-view',
+    toggleCheck: '.qor-js-check-all',
     text: {
       title: 'Changes',
       close: 'Close',

@@ -94,13 +94,13 @@
       var $target = $(e.target);
       var checked;
 
-      if ($target.is('.qor-action__check-all')) {
+      if ($target.is('.qor-js-check-all')) {
         checked = $target.prop('checked');
 
         $target.
           closest('thead').
           siblings('thead').
-            find('.qor-action__check-all').prop('checked', checked).
+            find('.qor-js-check-all').prop('checked', checked).
             closest('.mdl-checkbox').toggleClass('is-checked', checked);
       }
     },

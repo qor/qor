@@ -33,7 +33,7 @@
                 <tr>
                   <th>
                     <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" title="{{t "Check All"}}">
-                      <input type="checkbox" class="mdl-checkbox__input">
+                      <input type="checkbox" class="mdl-checkbox__input qor-js-check-all">
                     </label>
                   </th>
                   {{range $meta := (index_metas $res)}}
@@ -57,7 +57,7 @@
                   </td>
                   {{end}}
                   <td class="mdl-data-table__cell--non-numeric qor-table__actions">
-                    <a class="qor-action__view" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a>
+                    <a class="qor-action__view qor-js-view" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a>
                   </td>
                 </tr>
                 {{end}}
