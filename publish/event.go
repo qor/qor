@@ -8,8 +8,8 @@ import (
 )
 
 type EventInterface interface {
-	Publish(db *gorm.DB, event *PublishEvent) error
-	Discard(db *gorm.DB, event *PublishEvent) error
+	Publish(db *gorm.DB, event PublishEventInterface) error
+	Discard(db *gorm.DB, event PublishEventInterface) error
 }
 
 var events = map[string]EventInterface{}

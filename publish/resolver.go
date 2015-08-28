@@ -12,6 +12,7 @@ import (
 
 type resolver struct {
 	Records      []interface{}
+	Events       []PublishEventInterface
 	Dependencies map[string]*dependency
 	DB           *gorm.DB
 }
@@ -126,6 +127,10 @@ func (resolver *resolver) GenerateDependencies() {
 			}
 			resolver.AddDependency(&dependency{Type: utils.ModelType(data), PrimaryValues: [][][]interface{}{primaryValues}})
 		}
+
+		if event, ok := data.(PublishEventInterface); ok {
+			resolver.Events = append(resolver.Events, event)
+		}
 	}
 
 	for _, record := range resolver.Records {
@@ -144,8 +149,13 @@ func (resolver *resolver) Publish() error {
 	resolver.GenerateDependencies()
 	tx := resolver.DB.Begin()
 
-	for _, dep := range resolver.Dependencies {
+	// Publish Events
+	for _, event := range resolver.Events {
+		event.Publish(tx)
+	}
 
+	// Publish dependencies
+	for _, dep := range resolver.Dependencies {
 		value := reflect.New(dep.Type).Elem()
 		productionScope := resolver.DB.Set(publishDraftMode, false).NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
@@ -239,6 +249,12 @@ func (resolver *resolver) Discard() error {
 	resolver.GenerateDependencies()
 	tx := resolver.DB.Begin()
 
+	// Discard Events
+	for _, event := range resolver.Events {
+		event.Discard(tx)
+	}
+
+	// Discard dependencies
 	for _, dep := range resolver.Dependencies {
 		value := reflect.New(dep.Type).Elem()
 		productionScope := resolver.DB.Set(publishDraftMode, false).NewScope(value.Addr().Interface())
