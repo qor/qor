@@ -33,7 +33,7 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(*gorm.Scope) {
 
 				// Only set publish status when updating data from draft tables
 				if IsDraftMode(scope.DB()) {
-					if _, ok := scope.DB().Get(publishEventMode); !ok {
+					if _, ok := scope.DB().Get(publishEvent); !ok {
 						if attrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
 							updateAttrs := attrs.(map[string]interface{})
 							updateAttrs["publish_status"] = DIRTY
@@ -92,6 +92,14 @@ func deleteScope(scope *gorm.Scope) {
 			scope.Exec()
 		} else {
 			gorm.Delete(scope)
+		}
+	}
+}
+
+func createPublishEvent(scope *gorm.Scope) {
+	if event, ok := scope.Get(publishEvent); ok {
+		if event, ok := event.(PublishEvent); ok {
+			scope.Err(scope.NewDB().Save(&event).Error)
 		}
 	}
 }

@@ -15,7 +15,7 @@ const (
 	DIRTY     = true
 
 	publishDraftMode = "publish:draft_mode"
-	publishEventMode = "publish:publish_event"
+	publishEvent     = "publish:publish_event"
 )
 
 type publishInterface interface {
@@ -106,15 +106,18 @@ func New(db *gorm.DB) *Publish {
 	db.Callback().Create().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
 	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production_after_create", syncCreateFromProductionToDraft)
+	db.Callback().Create().Before("gorm:commit_or_rollback_transaction").Register("gorm:create_publish_event", createPublishEvent)
 
 	db.Callback().Delete().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
 	db.Callback().Delete().Replace("gorm:delete", deleteScope)
 	db.Callback().Delete().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production_after_delete", syncDeleteFromProductionToDraft)
+	db.Callback().Delete().Before("gorm:commit_or_rollback_transaction").Register("gorm:create_publish_event", createPublishEvent)
 
 	db.Callback().Update().Before("gorm:begin_transaction").Register("publish:set_table_to_draft", setTableAndPublishStatus(true))
 	db.Callback().Update().Before("gorm:commit_or_rollback_transaction").
 		Register("publish:sync_to_production", syncUpdateFromProductionToDraft)
+	db.Callback().Update().Before("gorm:commit_or_rollback_transaction").Register("gorm:create_publish_event", createPublishEvent)
 
 	db.Callback().RowQuery().Register("publish:set_table_in_draft_mode", setTableAndPublishStatus(false))
 	db.Callback().Query().Before("gorm:query").Register("publish:set_table_in_draft_mode", setTableAndPublishStatus(false))
