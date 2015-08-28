@@ -22,37 +22,47 @@ func isAuditable(scope *gorm.Scope) (isAuditable bool) {
 	return
 }
 
+func getCurrentUser(scope *gorm.Scope) (string, bool) {
+	var user interface{}
+	var hasUser bool
+
+	user, hasUser = scope.DB().Get("qor:current_user")
+
+	if !hasUser {
+		user, hasUser = scope.DB().Get("audited:current_user")
+	}
+
+	if hasUser {
+		var currentUser string
+		if primaryField := scope.New(user).PrimaryField(); primaryField != nil {
+			currentUser = fmt.Sprintf("%v", primaryField.Field.Interface())
+		} else {
+			currentUser = fmt.Sprintf("%v", user)
+		}
+
+		return currentUser, true
+	}
+
+	return "", false
+}
+
 func assignCreatedBy(scope *gorm.Scope) {
 	if isAuditable(scope) {
-		if user, ok := scope.DB().Get("audited:current_user"); ok {
-			var currentUser string
-			if primaryField := scope.New(user).PrimaryField(); primaryField != nil {
-				currentUser = fmt.Sprintf("%v", primaryField.Field.Interface())
-			} else {
-				currentUser = fmt.Sprintf("%v", user)
-			}
-
-			scope.SetColumn("CreatedBy", currentUser)
+		if user, ok := getCurrentUser(scope); ok {
+			scope.SetColumn("CreatedBy", user)
 		}
 	}
 }
 
 func assignUpdatedBy(scope *gorm.Scope) {
 	if isAuditable(scope) {
-		if user, ok := scope.DB().Get("audited:current_user"); ok {
-			var currentUser string
-			if primaryField := scope.New(user).PrimaryField(); primaryField != nil {
-				currentUser = fmt.Sprintf("%v", primaryField.Field.Interface())
-			} else {
-				currentUser = fmt.Sprintf("%v", user)
-			}
-
+		if user, ok := getCurrentUser(scope); ok {
 			if attrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
 				updateAttrs := attrs.(map[string]interface{})
-				updateAttrs["updated_by"] = currentUser
+				updateAttrs["updated_by"] = user
 				scope.InstanceSet("gorm:update_attrs", updateAttrs)
 			} else {
-				scope.SetColumn("UpdatedBy", currentUser)
+				scope.SetColumn("UpdatedBy", user)
 			}
 		}
 	}
