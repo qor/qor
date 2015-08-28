@@ -65,7 +65,7 @@ func (processor *processor) Validate() error {
 }
 
 func (processor *processor) decode() (errors []error) {
-	if processor.checkSkipLeft() {
+	if processor.checkSkipLeft() || processor.MetaValues == nil {
 		return
 	}
 
