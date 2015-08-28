@@ -80,11 +80,13 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 		values := map[string]interface{}{}
 		for _, meta := range metas {
 			if meta.HasPermission(roles.Read, context.Context) {
-				value := meta.GetValuer()(value, context.Context)
-				if meta.Resource != nil {
-					value = meta.Resource.(*Resource).convertObjectToMap(context, value, kind)
+				if valuer := meta.GetValuer(); valuer != nil {
+					value := valuer(value, context.Context)
+					if meta.Resource != nil {
+						value = meta.Resource.(*Resource).convertObjectToMap(context, value, kind)
+					}
+					values[meta.GetName()] = value
 				}
-				values[meta.GetName()] = value
 			}
 		}
 		return values
@@ -120,7 +122,9 @@ Fields:
 			}
 		}
 
-		attrs = append(attrs, field.Name)
+		if (field.IsNormal || field.Relationship != nil) && !field.IsIgnored {
+			attrs = append(attrs, field.Name)
+		}
 	}
 
 MetaIncluded:
