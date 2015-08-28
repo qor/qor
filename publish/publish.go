@@ -48,6 +48,15 @@ type Publish struct {
 	DB *gorm.DB
 }
 
+func isDraftMode(db *gorm.DB) bool {
+	if draftMode, ok := db.Get(publishDraftMode); ok {
+		if isDraft, ok := draftMode.(bool); ok && isDraft {
+			return true
+		}
+	}
+	return false
+}
+
 func isPublishableModel(model interface{}) (ok bool) {
 	if model != nil {
 		_, ok = reflect.New(utils.ModelType(model)).Interface().(publishInterface)

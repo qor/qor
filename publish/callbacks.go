@@ -6,15 +6,6 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func isDraftMode(db *gorm.DB) bool {
-	if draftMode, ok := db.Get(publishDraftMode); ok {
-		if isDraft, ok := draftMode.(bool); ok && isDraft {
-			return true
-		}
-	}
-	return false
-}
-
 func isProductionModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
 	if !isDraftMode(scope.DB()) {
 		if _, ok := scope.InstanceGet("publish:supported_model"); ok {
