@@ -78,19 +78,18 @@ func move(db *gorm.DB, value sortingInterface, pos int) (err error) {
 		err = tx.Model(value).UpdateColumn("position", gorm.Expr("position + ?", rowsAffected)).Error
 	}
 
+	// Create Publish Event in Draft Mode
+	if publish.IsDraftMode(tx) && publish.IsPublishableModel(value) {
+		err = tx.Where("published_at is null").Where(map[string]interface{}{
+			"name":     "changed_sorting",
+			"argument": scope.TableName(),
+		}).Assign(map[string]interface{}{
+			"Description": "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
+		}).FirstOrCreate(&publish.PublishEvent{}).Error
+	}
+
 	if startedTransaction {
 		if err == nil {
-			// Create Publish Event in Draft Mode
-			if publish.IsDraftMode(tx) && publish.IsPublishableModel(value) {
-				tx.FirstOrCreate(map[string]interface{}{
-					"Name":        "changed_sorting",
-					"Argument":    scope.TableName(),
-					"PublishedBy": nil,
-				}).Assign(map[string]interface{}{
-					"Description": "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
-				}).FirstOrCreate(&publish.PublishEvent{})
-			}
-
 			tx.Commit()
 		} else {
 			tx.Rollback()

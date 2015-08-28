@@ -2,6 +2,7 @@ package publish
 
 import (
 	"errors"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/audited"
@@ -23,7 +24,7 @@ type PublishEvent struct {
 	Name        string
 	Description string
 	Argument    string `sql:"size:65532"`
-	PublishedAt string
+	PublishedAt *time.Time
 	PublishedBy string
 	audited.AuditedModel
 }

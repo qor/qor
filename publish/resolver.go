@@ -63,7 +63,7 @@ func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][][]int
 			if IsPublishableModel(field.Field.Interface()) {
 				toType := utils.ModelType(field.Field.Interface())
 				toScope := draftDB.NewScope(reflect.New(toType).Interface())
-				draftTable := draftTableName(toScope.TableName())
+				draftTable := DraftTableName(toScope.TableName())
 				var dependencyKeys [][][]interface{}
 				var rows *sql.Rows
 				var err error
@@ -77,7 +77,7 @@ func (resolver *resolver) GetDependencies(dep *dependency, primaryKeys [][][]int
 					sql := fmt.Sprintf("%v IN (%v)", toQueryCondition(toScope, relationship.ForeignDBNames), toQueryMarks(primaryKeys, relationship.AssociationForeignDBNames...))
 					rows, err = draftDB.Table(draftTable).Select(selectPrimaryKeys).Where("publish_status = ?", DIRTY).Where(sql, toQueryValues(primaryKeys, relationship.AssociationForeignDBNames...)...).Rows()
 				} else if relationship.Kind == "belongs_to" {
-					fromTable := draftTableName(fromScope.TableName())
+					fromTable := DraftTableName(fromScope.TableName())
 					// toTable := toScope.TableName()
 
 					sql := fmt.Sprintf("%v IN (SELECT %v FROM %v WHERE %v IN (%v))",
@@ -149,7 +149,7 @@ func (resolver *resolver) Publish() error {
 		value := reflect.New(dep.Type).Elem()
 		productionScope := resolver.DB.Set(publishDraftMode, false).NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
-		draftTable := draftTableName(productionTable)
+		draftTable := DraftTableName(productionTable)
 		productionPrimaryKey := scopePrimaryKeys(productionScope, productionTable)
 		draftPrimaryKey := scopePrimaryKeys(productionScope, draftTable)
 
@@ -243,7 +243,7 @@ func (resolver *resolver) Discard() error {
 		value := reflect.New(dep.Type).Elem()
 		productionScope := resolver.DB.Set(publishDraftMode, false).NewScope(value.Addr().Interface())
 		productionTable := productionScope.TableName()
-		draftTable := draftTableName(productionTable)
+		draftTable := DraftTableName(productionTable)
 
 		productionPrimaryKey := scopePrimaryKeys(productionScope, productionTable)
 		draftPrimaryKey := scopePrimaryKeys(productionScope, draftTable)

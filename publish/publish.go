@@ -94,7 +94,7 @@ func New(db *gorm.DB) *Publish {
 				}
 
 				if IsDraftMode(db) || forceDraftTable {
-					return draftTableName(tableName)
+					return DraftTableName(tableName)
 				}
 			}
 		}
@@ -121,18 +121,18 @@ func New(db *gorm.DB) *Publish {
 	return &Publish{DB: db}
 }
 
-func draftTableName(table string) string {
-	return originalTableName(table) + "_draft"
+func DraftTableName(table string) string {
+	return OriginalTableName(table) + "_draft"
 }
 
-func originalTableName(table string) string {
+func OriginalTableName(table string) string {
 	return strings.TrimSuffix(table, "_draft")
 }
 
 func (db *Publish) AutoMigrate(values ...interface{}) {
 	for _, value := range values {
 		tableName := db.DB.NewScope(value).TableName()
-		db.DraftDB().Table(draftTableName(tableName)).AutoMigrate(value)
+		db.DraftDB().Table(DraftTableName(tableName)).AutoMigrate(value)
 	}
 }
 

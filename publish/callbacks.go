@@ -9,7 +9,7 @@ import (
 func isProductionModeAndNewScope(scope *gorm.Scope) (isProduction bool, clone *gorm.Scope) {
 	if !IsDraftMode(scope.DB()) {
 		if _, ok := scope.InstanceGet("publish:supported_model"); ok {
-			table := originalTableName(scope.TableName())
+			table := OriginalTableName(scope.TableName())
 			clone := scope.New(scope.Value)
 			clone.Search.Table(table)
 			return true, clone
@@ -29,7 +29,7 @@ func setTableAndPublishStatus(ensureDraftMode bool) func(*gorm.Scope) {
 
 			if ensureDraftMode {
 				scope.Set("publish:force_draft_table", true)
-				scope.Search.Table(draftTableName(scope.TableName()))
+				scope.Search.Table(DraftTableName(scope.TableName()))
 
 				// Only set publish status when updating data from draft tables
 				if IsDraftMode(scope.DB()) {
@@ -60,7 +60,7 @@ func syncUpdateFromProductionToDraft(scope *gorm.Scope) {
 	if !scope.HasError() {
 		if ok, clone := isProductionModeAndNewScope(scope); ok {
 			if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
-				table := originalTableName(scope.TableName())
+				table := OriginalTableName(scope.TableName())
 				clone.Search = scope.Search
 				clone.Search.Table(table)
 				clone.InstanceSet("gorm:update_attrs", updateAttrs)
