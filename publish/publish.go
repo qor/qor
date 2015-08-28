@@ -49,7 +49,8 @@ func (s Status) InjectQorAdmin(res *admin.Resource) {
 	}
 
 	if event := res.GetAdmin().GetResource("PublishEvent"); event == nil {
-		res.GetAdmin().AddResource(&PublishEvent{}, &admin.Config{Invisible: true})
+		eventResource := res.GetAdmin().AddResource(&PublishEvent{}, &admin.Config{Invisible: true})
+		eventResource.IndexAttrs("Name", "Description")
 	}
 }
 
