@@ -90,11 +90,12 @@ func move(db *gorm.DB, value sortingInterface, pos int) (err error) {
 
 		var result []byte
 		if result, err = json.Marshal(sortingPublishEvent); err == nil {
-			err = tx.Where("published_at IS NULL AND discarded_at IS NULL").Where(map[string]interface{}{
-				"name":     "changed_sorting",
-				"argument": string(result),
-			}).Assign(map[string]interface{}{
-				"Description": "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
+			err = tx.New().Where("publish_status = ?", publish.DIRTY).Where(map[string]interface{}{
+				"Name":     "changed_sorting",
+				"Argument": string(result),
+			}).Attrs(map[string]interface{}{
+				"PublishStatus": publish.DIRTY,
+				"Description":   "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
 			}).FirstOrCreate(&publish.PublishEvent{}).Error
 		}
 	}

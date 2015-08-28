@@ -3,7 +3,6 @@ package publish
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/jinzhu/gorm"
 )
@@ -21,12 +20,11 @@ func RegisterEvent(name string, event EventInterface) {
 
 type PublishEvent struct {
 	gorm.Model
-	Name        string
-	Description string
-	Argument    string `sql:"size:65532"`
-	PublishedAt *time.Time
-	DiscardedAt *time.Time
-	PublishedBy string
+	Name          string
+	Description   string
+	Argument      string `sql:"size:65532"`
+	PublishStatus bool
+	PublishedBy   string
 }
 
 func getCurrentUser(db *gorm.DB) (string, bool) {
@@ -48,8 +46,7 @@ func (publishEvent *PublishEvent) Publish(db *gorm.DB) error {
 	if event, ok := events[publishEvent.Name]; ok {
 		err := event.Publish(db, publishEvent)
 		if err == nil {
-			now := time.Now()
-			var updateAttrs = map[string]interface{}{"PublishedAt": &now}
+			var updateAttrs = map[string]interface{}{"PublishStatus": PUBLISHED}
 			if user, hasUser := getCurrentUser(db); hasUser {
 				updateAttrs["PublishedBy"] = user
 			}
@@ -64,8 +61,7 @@ func (publishEvent *PublishEvent) Discard(db *gorm.DB) error {
 	if event, ok := events[publishEvent.Name]; ok {
 		err := event.Discard(db, publishEvent)
 		if err == nil {
-			now := time.Now()
-			var updateAttrs = map[string]interface{}{"DiscardedAt": &now}
+			var updateAttrs = map[string]interface{}{"PublishStatus": PUBLISHED}
 			if user, hasUser := getCurrentUser(db); hasUser {
 				updateAttrs["PublishedBy"] = user
 			}
@@ -74,4 +70,8 @@ func (publishEvent *PublishEvent) Discard(db *gorm.DB) error {
 		return err
 	}
 	return errors.New("event not found")
+}
+
+func (PublishEvent) VisiblePublishResource() bool {
+	return true
 }

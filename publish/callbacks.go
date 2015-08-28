@@ -102,6 +102,7 @@ func createPublishEvent(scope *gorm.Scope) {
 	if _, ok := scope.InstanceGet("publish:creating_publish_event"); ok {
 		if event, ok := scope.Get(publishEvent); ok {
 			if event, ok := event.(*PublishEvent); ok {
+				event.PublishStatus = DIRTY
 				scope.Err(scope.NewDB().Save(&event).Error)
 			}
 		}
