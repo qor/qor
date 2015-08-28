@@ -48,7 +48,7 @@ type Publish struct {
 	DB *gorm.DB
 }
 
-func isDraftMode(db *gorm.DB) bool {
+func IsDraftMode(db *gorm.DB) bool {
 	if draftMode, ok := db.Get(publishDraftMode); ok {
 		if isDraft, ok := draftMode.(bool); ok && isDraft {
 			return true
@@ -93,7 +93,7 @@ func New(db *gorm.DB) *Publish {
 					}
 				}
 
-				if isDraftMode(db) || forceDraftTable {
+				if IsDraftMode(db) || forceDraftTable {
 					return draftTableName(tableName)
 				}
 			}

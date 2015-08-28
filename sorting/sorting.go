@@ -80,14 +80,16 @@ func move(db *gorm.DB, value sortingInterface, pos int) (err error) {
 
 	if startedTransaction {
 		if err == nil {
-			// Create Publish Event
-			tx.FirstOrCreate(map[string]interface{}{
-				"Name":        "changed_sorting",
-				"Argument":    scope.TableName(),
-				"PublishedBy": nil,
-			}).Assign(map[string]interface{}{
-				"Description": "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
-			}).FirstOrCreate(&publish.PublishEvent{})
+			// Create Publish Event in Draft Mode
+			if publish.IsDraftMode(tx) {
+				tx.FirstOrCreate(map[string]interface{}{
+					"Name":        "changed_sorting",
+					"Argument":    scope.TableName(),
+					"PublishedBy": nil,
+				}).Assign(map[string]interface{}{
+					"Description": "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
+				}).FirstOrCreate(&publish.PublishEvent{})
+			}
 
 			tx.Commit()
 		} else {
