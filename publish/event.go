@@ -29,18 +29,29 @@ type PublishEvent struct {
 	PublishedBy string
 }
 
+func getCurrentUser(db *gorm.DB) (string, bool) {
+	if user, hasUser := db.Get("qor:current_user"); hasUser {
+		var currentUser string
+		if primaryField := db.NewScope(user).PrimaryField(); primaryField != nil {
+			currentUser = fmt.Sprintf("%v", primaryField.Field.Interface())
+		} else {
+			currentUser = fmt.Sprintf("%v", user)
+		}
+
+		return currentUser, true
+	}
+
+	return "", false
+}
+
 func (publishEvent *PublishEvent) Publish(db *gorm.DB) error {
 	if event, ok := events[publishEvent.Name]; ok {
 		err := event.Publish(db, publishEvent)
 		if err == nil {
 			now := time.Now()
 			var updateAttrs = map[string]interface{}{"PublishedAt": &now}
-			if user, ok := db.Get("qor:current_user"); ok {
-				if primaryField := db.NewScope(user).PrimaryField(); primaryField != nil {
-					updateAttrs["PublishedBy"] = fmt.Sprintf("%v", primaryField.Field.Interface())
-				} else {
-					updateAttrs["PublishedBy"] = fmt.Sprintf("%v", user)
-				}
+			if user, hasUser := getCurrentUser(db); hasUser {
+				updateAttrs["PublishedBy"] = user
 			}
 			err = db.Model(publishEvent).Update(updateAttrs).Error
 		}
@@ -55,12 +66,8 @@ func (publishEvent *PublishEvent) Discard(db *gorm.DB) error {
 		if err == nil {
 			now := time.Now()
 			var updateAttrs = map[string]interface{}{"DiscardedAt": &now}
-			if user, ok := db.Get("qor:current_user"); ok {
-				if primaryField := db.NewScope(user).PrimaryField(); primaryField != nil {
-					updateAttrs["PublishedBy"] = fmt.Sprintf("%v", primaryField.Field.Interface())
-				} else {
-					updateAttrs["PublishedBy"] = fmt.Sprintf("%v", user)
-				}
+			if user, hasUser := getCurrentUser(db); hasUser {
+				updateAttrs["PublishedBy"] = user
 			}
 			err = db.Model(publishEvent).Update(updateAttrs).Error
 		}
