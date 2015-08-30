@@ -82,3 +82,19 @@ npm install && npm install -g gulp
 
 - Watch SCSS/JavaScript changes: `gulp`
 - Build Release files: `gulp release`
+
+
+## Q&A
+
+1. How to integrate with [beego](https://github.com/astaxie/beego)
+
+```
+	adm := admin.New(&qor.Config{DB: &db.DB})
+	adm.AddResource(&db.User{}, &admin.Config{Menu: []string{"管理"}})
+
+	mux := http.NewServeMux()
+	adm.MountTo("/admin", mux)
+
+	beego.Handler("/admin/*", mux)
+	beego.Run()
+```
