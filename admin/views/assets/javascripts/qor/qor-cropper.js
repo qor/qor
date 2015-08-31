@@ -82,7 +82,6 @@
     this.options = $.extend(true, {}, QorCropper.DEFAULTS, $.isPlainObject(options) && options);
     this.data = null;
     this.init();
-    console.log(this);
   }
 
   QorCropper.prototype = {
