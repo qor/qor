@@ -293,26 +293,28 @@ func (meta *Meta) updateMeta() {
 
 	if meta.Setter == nil && hasColumn {
 		if relationship := field.Relationship; relationship != nil {
-			meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-				scope := &gorm.Scope{Value: resource}
-				field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Alias)
+			if meta.Type == "select_one" || meta.Type == "select_many" {
+				meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
+					scope := &gorm.Scope{Value: resource}
+					field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Alias)
 
-				if field.Kind() == reflect.Ptr && field.IsNil() {
-					field.Set(utils.NewValue(field.Type()).Elem())
-				}
+					if field.Kind() == reflect.Ptr && field.IsNil() {
+						field.Set(utils.NewValue(field.Type()).Elem())
+					}
 
-				for field.Kind() == reflect.Ptr {
-					field = field.Elem()
-				}
+					for field.Kind() == reflect.Ptr {
+						field = field.Elem()
+					}
 
-				if primaryKeys := utils.ToArray(metaValue.Value); len(primaryKeys) > 0 {
-					context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
-				}
+					if primaryKeys := utils.ToArray(metaValue.Value); len(primaryKeys) > 0 {
+						context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
+					}
 
-				if relationship.Kind == "many_to_many" {
 					// Replace many 2 many relations
-					if !scope.PrimaryKeyZero() {
-						context.GetDB().Model(resource).Association(meta.Alias).Replace(field.Interface())
+					if relationship.Kind == "many_to_many" {
+						if !scope.PrimaryKeyZero() {
+							context.GetDB().Model(resource).Association(meta.Alias).Replace(field.Interface())
+						}
 					}
 				}
 			}
