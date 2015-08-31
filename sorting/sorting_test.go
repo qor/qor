@@ -123,3 +123,22 @@ func TestMoveToPosition(t *testing.T) {
 		t.Errorf("user5 should be moved to position 1")
 	}
 }
+
+func TestDeleteToReorder(t *testing.T) {
+	prepareUsers()
+
+	if !(getUser("user1").GetPosition() == 1 && getUser("user2").GetPosition() == 2 && getUser("user3").GetPosition() == 3 && getUser("user4").GetPosition() == 4 && getUser("user5").GetPosition() == 5) {
+		t.Errorf("user's order should be correct after create")
+	}
+
+	user := getUser("user2")
+	db.Delete(user)
+
+	if !checkPosition("user1", "user3", "user4", "user5") {
+		t.Errorf("user2 is deleted, order should be correct")
+	}
+
+	if !(getUser("user1").GetPosition() == 1 && getUser("user3").GetPosition() == 2 && getUser("user4").GetPosition() == 3 && getUser("user5").GetPosition() == 4) {
+		t.Errorf("user's order should be correct after delete some resources")
+	}
+}

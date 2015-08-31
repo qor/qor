@@ -79,8 +79,23 @@ func move(db *gorm.DB, value sortingInterface, pos int) (err error) {
 		err = tx.Model(value).UpdateColumn("position", gorm.Expr("position + ?", rowsAffected)).Error
 	}
 
+	// Create Publish Event
+	createPublishEvent(tx, value)
+
+	if startedTransaction {
+		if err == nil {
+			tx.Commit()
+		} else {
+			tx.Rollback()
+		}
+	}
+	return err
+}
+
+func createPublishEvent(db *gorm.DB, value interface{}) (err error) {
 	// Create Publish Event in Draft Mode
-	if publish.IsDraftMode(tx) && publish.IsPublishableModel(value) {
+	if publish.IsDraftMode(db) && publish.IsPublishableModel(value) {
+		scope := db.NewScope(value)
 		var sortingPublishEvent = changedSortingPublishEvent{
 			Table: scope.TableName(),
 		}
@@ -90,25 +105,16 @@ func move(db *gorm.DB, value sortingInterface, pos int) (err error) {
 
 		var result []byte
 		if result, err = json.Marshal(sortingPublishEvent); err == nil {
-			err = tx.New().Where("publish_status = ?", publish.DIRTY).Where(map[string]interface{}{
-				"Name":     "changed_sorting",
-				"Argument": string(result),
+			err = db.New().Where("publish_status = ?", publish.DIRTY).Where(map[string]interface{}{
+				"name":     "changed_sorting",
+				"argument": string(result),
 			}).Attrs(map[string]interface{}{
-				"PublishStatus": publish.DIRTY,
-				"Description":   "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
+				"publish_status": publish.DIRTY,
+				"description":    "Changed sort order for " + scope.GetModelStruct().ModelType.Name(),
 			}).FirstOrCreate(&publish.PublishEvent{}).Error
 		}
 	}
-
-	if startedTransaction {
-		if err == nil {
-			tx.Commit()
-		} else {
-			tx.Rollback()
-		}
-	}
-
-	return err
+	return
 }
 
 func MoveUp(db *gorm.DB, value sortingInterface, pos int) error {
