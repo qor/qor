@@ -27,7 +27,10 @@ func reorderPositions(scope *gorm.Scope) {
 			} else {
 				sql = fmt.Sprintf("UPDATE %v SET position = (SELECT COUNT(pos) + 1 FROM (SELECT DISTINCT(position) AS pos FROM %v) AS t2 WHERE t2.pos < %v.position)", table, table, table)
 			}
-			scope.NewDB().Exec(sql)
+			if scope.NewDB().Exec(sql).Error == nil {
+				// Create Publish Event
+				createPublishEvent(scope.DB(), scope.Value)
+			}
 		}
 	}
 }
