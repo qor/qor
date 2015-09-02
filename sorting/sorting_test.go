@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/l10n"
 	"github.com/qor/qor/publish"
 	"github.com/qor/qor/sorting"
 	"github.com/qor/qor/test/utils"
@@ -23,11 +24,12 @@ var pb *publish.Publish
 func init() {
 	db = utils.TestDB()
 	sorting.RegisterCallbacks(db)
+	l10n.RegisterCallbacks(db)
 
 	pb = publish.New(db)
-	pb.ProductionDB().DropTable(&User{}, &Product{})
+	pb.ProductionDB().DropTable(&User{}, &Product{}, &Brand{})
 	pb.DraftDB().DropTable(&Product{})
-	db.AutoMigrate(&User{}, &Product{})
+	db.AutoMigrate(&User{}, &Product{}, &Brand{})
 	pb.AutoMigrate(&Product{})
 }
 
