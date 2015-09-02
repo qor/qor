@@ -65,7 +65,7 @@ func afterUpdate(scope *gorm.Scope) {
 	if !scope.HasError() {
 		if isLocalizable(scope) {
 			if locale, ok := getLocale(scope); ok {
-				if scope.DB().RowsAffected == 0 { //is locale and nothing updated
+				if scope.DB().RowsAffected == 0 && !scope.PrimaryKeyZero() { //is locale and nothing updated
 					var count int
 					var query = fmt.Sprintf("%v.language_code = ? AND %v.%v = ?", scope.QuotedTableName(), scope.QuotedTableName(), scope.PrimaryKey())
 					if scope.NewDB().Table(scope.TableName()).Where(query, locale, scope.PrimaryKeyValue()).Count(&count); count == 0 {
