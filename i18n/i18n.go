@@ -152,7 +152,7 @@ func getAvailableLocales(req *http.Request, currentUser qor.CurrentUser) []strin
 	if user, ok := currentUser.(availableLocalesInterface); ok {
 		return user.AvailableLocales()
 	}
-	return []string{}
+	return []string{Default}
 }
 
 func getEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
@@ -163,7 +163,7 @@ func getEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 	if user, ok := currentUser.(availableLocalesInterface); ok {
 		return user.AvailableLocales()
 	}
-	return []string{}
+	return []string{Default}
 }
 
 func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
