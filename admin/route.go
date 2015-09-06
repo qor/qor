@@ -98,10 +98,9 @@ func (res *Resource) compile() {
 	admin := res.GetAdmin()
 	modelType := admin.Config.DB.NewScope(res.Value).GetModelStruct().ModelType
 	for i := 0; i < modelType.NumField(); i++ {
-		if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
-			if injector, ok := reflect.New(fieldStruct.Type).Interface().(Injector); ok {
-				injector.InjectQorAdmin(res)
-			}
+		fieldStruct := modelType.Field(i)
+		if injector, ok := reflect.New(fieldStruct.Type).Interface().(Injector); ok {
+			injector.InjectQorAdmin(res)
 		}
 	}
 
