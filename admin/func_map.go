@@ -152,6 +152,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 		data["InputId"] = fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name)
 		data["Label"] = meta.Label
 		data["InputName"] = strings.Join(prefix, ".")
+		data["Result"] = value
 		data["Value"] = context.ValueOf(value, meta)
 
 		if meta.GetCollection != nil {
