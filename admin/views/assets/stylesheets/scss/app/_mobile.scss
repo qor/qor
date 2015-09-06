@@ -1,0 +1,46 @@
+@media only screen 
+and (min-device-width : 320px) 
+and (max-device-width : 736px) {
+  .qor-section{
+    margin: 24px 0;
+    .qor-section__header{
+      margin-left: 24px;
+    }
+  }
+  .qor-page--dashboard .qor-table-container{
+    @include shadow-2dp();
+    th{
+      background-color: transparent;
+    }
+  }
+  .qor-table-container{
+    margin: -22px 0 24px 0;
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14);
+    th{
+      background-color: #f5f5f5;
+    }
+    .mdl-data-table{
+      border-top: 0;
+    }
+  }
+  .qor-action--select + .qor-selector, .qor-action--select + .qor-action--label, .qor-action--select + .qor-action--select{
+    margin-left: 0;
+    margin-right: 8px;
+    margin-bottom: 8px;
+  }
+  .qor-search{
+    &.is-focused{
+      width: 360px;
+    }
+    .mdl-textfield__expandable-holder{
+      width: calc(100% - 64px);
+    }
+  }
+  .qor-modal .mdl-card{
+    margin: 24px auto;
+  }
+  .qor-form-container{
+    margin: 0;
+    padding: 16px;
+  }
+}
