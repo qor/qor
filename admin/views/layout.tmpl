@@ -25,6 +25,7 @@
     {{stylesheet_tag "qor"}}
     {{stylesheet_tag "app"}}
     {{load_theme_stylesheets}}
+    {{javascript_tag "jquery.min"}}
   </head>
   <body class="{{if qor_theme_class}}{{qor_theme_class}}{{end}} qor-theme-slideout">
     <!--[if lt IE 10]>
@@ -36,7 +37,6 @@
     {{.Content}}
 
     <!-- JavaScripts -->
-    {{javascript_tag "jquery.min"}}
     {{javascript_tag "material.min"}}
     {{javascript_tag "redactor.min"}}
     {{javascript_tag "cropper.min"}}
