@@ -122,10 +122,12 @@ func (meta *Meta) updateMeta() {
 	// Set Meta Type
 	if meta.Type == "" && hasColumn {
 		if relationship := field.Relationship; relationship != nil {
-			if relationship.Kind == "belongs_to" || relationship.Kind == "has_one" {
+			if relationship.Kind == "has_one" {
 				meta.Type = "single_edit"
 			} else if relationship.Kind == "has_many" {
 				meta.Type = "collection_edit"
+			} else if relationship.Kind == "belongs_to" {
+				meta.Type = "select_one"
 			} else if relationship.Kind == "many_to_many" {
 				meta.Type = "select_many"
 			}
