@@ -96,13 +96,17 @@
       var $target;
 
       if ($template && $template.is(':hidden')) {
-        $template.show();
+        if ($template.size() > 1) {
+          $template.first().show();
+        } else {
+          $template.show();
+        }
       } else {
         $target = $(e.target).closest(this.options.addClass);
 
         if ($target.length) {
           $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
-          $target.before($item);
+          $target.before($item.show());
         }
       }
 
@@ -111,6 +115,7 @@
         // Enable all JavaScript components within the fieldset
         $item.trigger('enable');
       }
+      e.stopPropagation();
     },
 
     del: function (e) {
