@@ -32,8 +32,11 @@
     init: function () {
       var $this = this.$element;
       var options = this.options;
+      // var $all = $this.find(options.itemClass);
       var $all = $this.find(options.itemClass);
       var $template;
+
+      // console.log($all);
 
       if (!$all.length) {
         return;
@@ -45,11 +48,12 @@
         $template = $all.last();
       }
 
+      console.log($template);
       // Should destroy all components here
       $template.trigger('disable');
 
       this.$template = $template;
-      this.template = $template.prop('outerHTML');
+      this.template = $template.filter($this.children(options.childrenClass).children(options.newClass)).prop('outerHTML');
       $template.data(IS_TEMPLATE, true).hide();
 
       this.parse();
@@ -91,20 +95,21 @@
     },
 
     add: function (e) {
-      var $template = this.$template;
+      var options = this.options;
+      var $target = $(e.target).closest(this.options.addClass);
+      var $template = this.$template.filter($target.closest(this.$element).children(options.childrenClass).children(options.newClass));
       var $item = $template;
-      var $target;
+
+      // console.log($template);
 
       if ($template && $template.is(':hidden')) {
-        if ($template.size() > 1) {
-          $template.first().show();
-        } else {
-          $template.show();
-        }
+        // console.log($template);
+        console.log(1);
+        $template.show();
       } else {
-        $target = $(e.target).closest(this.options.addClass);
-
         if ($target.length) {
+          console.log(4);
+          console.log(this.template);
           $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
           $target.before($item.show());
         }
@@ -160,6 +165,7 @@
     newClass: false,
     addClass: false,
     delClass: false,
+    childrenClass: false,
     alertTemplate: '',
   };
 
@@ -186,6 +192,7 @@
           newClass: '.qor-fieldset--new',
           addClass: '.qor-fieldset__add',
           delClass: '.qor-fieldset__delete',
+          childrenClass: '.qor-field__block',
           undoClass: '.qor-fieldset__undo',
           alertTemplate: (
             '<div class="qor-fieldset__alert">' +
