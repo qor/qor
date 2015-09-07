@@ -32,11 +32,8 @@
     init: function () {
       var $this = this.$element;
       var options = this.options;
-      // var $all = $this.find(options.itemClass);
       var $all = $this.find(options.itemClass);
       var $template;
-
-      // console.log($all);
 
       if (!$all.length) {
         return;
@@ -48,7 +45,6 @@
         $template = $all.last();
       }
 
-      console.log($template);
       // Should destroy all components here
       $template.trigger('disable');
 
@@ -100,16 +96,10 @@
       var $template = this.$template.filter($target.closest(this.$element).children(options.childrenClass).children(options.newClass));
       var $item = $template;
 
-      // console.log($template);
-
       if ($template && $template.is(':hidden')) {
-        // console.log($template);
-        console.log(1);
         $template.show();
       } else {
         if ($target.length) {
-          console.log(4);
-          console.log(this.template);
           $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
           $target.before($item.show());
         }
