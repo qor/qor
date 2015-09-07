@@ -41,6 +41,13 @@ func (context *Context) isNewRecord(value interface{}) bool {
 }
 
 func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
+	reflectValue := reflect.ValueOf(value)
+	if reflectValue.Kind() != reflect.Ptr {
+		reflectPtr := reflect.New(reflectValue.Type())
+		reflectPtr.Elem().Set(reflectValue)
+		value = reflectPtr.Interface()
+	}
+
 	result := meta.Valuer(value, context.Context)
 
 	if reflectValue := reflect.ValueOf(result); reflectValue.IsValid() {
