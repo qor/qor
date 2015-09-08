@@ -40,7 +40,7 @@ func (s *Status) SetPublishStatus(status bool) {
 	s.PublishStatus = status
 }
 
-func (s Status) InjectQorAdmin(res *admin.Resource) {
+func (s Status) ConfigureQorResource(res *admin.Resource) {
 	if res.GetMeta("PublishStatus") == nil {
 		res.IndexAttrs(append(res.IndexAttrs(), "-PublishStatus")...)
 		res.ShowAttrs(append(res.ShowAttrs(), "-PublishStatus")...)

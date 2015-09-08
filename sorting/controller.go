@@ -44,7 +44,7 @@ func updatePosition(context *admin.Context) {
 
 var injected bool
 
-func (s *Sorting) InjectQorAdmin(res *admin.Resource) {
+func (s *Sorting) ConfigureQorResource(res *admin.Resource) {
 	Admin := res.GetAdmin()
 	res.UseTheme("sorting")
 

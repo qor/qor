@@ -77,7 +77,7 @@ func getLocaleFromContext(context *qor.Context) string {
 
 var injected bool
 
-func (l *Locale) InjectQorAdmin(res *admin.Resource) {
+func (l *Locale) ConfigureQorResource(res *admin.Resource) {
 	Admin := res.GetAdmin()
 	res.UseTheme("l10n")
 

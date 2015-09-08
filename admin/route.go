@@ -91,7 +91,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 }
 
 type Injector interface {
-	InjectQorAdmin(*Resource)
+	ConfigureQorResource(*Resource)
 }
 
 func (res *Resource) compile() {
@@ -100,12 +100,12 @@ func (res *Resource) compile() {
 	for i := 0; i < modelType.NumField(); i++ {
 		fieldStruct := modelType.Field(i)
 		if injector, ok := reflect.New(fieldStruct.Type).Interface().(Injector); ok {
-			injector.InjectQorAdmin(res)
+			injector.ConfigureQorResource(res)
 		}
 	}
 
 	if injector, ok := res.Value.(Injector); ok {
-		injector.InjectQorAdmin(res)
+		injector.ConfigureQorResource(res)
 	}
 }
 

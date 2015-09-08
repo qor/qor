@@ -166,7 +166,7 @@ func getEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 	return []string{Default}
 }
 
-func (i18n *I18n) InjectQorAdmin(res *admin.Resource) {
+func (i18n *I18n) ConfigureQorResource(res *admin.Resource) {
 	res.UseTheme("i18n")
 	res.GetAdmin().I18n = i18n
 	res.SearchAttrs("value") // generate search handler for i18n

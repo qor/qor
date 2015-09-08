@@ -15,7 +15,7 @@ type AssetManager struct {
 	File media_library.FileSystem `media_library:"URL:/system/assets/{{primary_key}}/{{filename_with_hash}}"`
 }
 
-func (*AssetManager) InjectQorAdmin(res *Resource) {
+func (*AssetManager) ConfigureQorResource(res *Resource) {
 	router := res.GetAdmin().GetRouter()
 	router.Post(fmt.Sprintf("^/%v/upload", res.ToParam()), func(context *Context) {
 		result := AssetManager{}

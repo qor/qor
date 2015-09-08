@@ -105,7 +105,7 @@ func (db *publishController) PublishOrDiscard(context *admin.Context) {
 
 var injected bool
 
-func (publish *Publish) InjectQorAdmin(res *admin.Resource) {
+func (publish *Publish) ConfigureQorResource(res *admin.Resource) {
 	if !injected {
 		injected = true
 		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
