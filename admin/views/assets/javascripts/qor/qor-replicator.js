@@ -50,6 +50,7 @@
 
       this.$template = $template;
       this.template = $template.filter($this.children(options.childrenClass).children(options.newClass)).prop('outerHTML');
+      this.multipleTemplates = {};
       $template.data(IS_TEMPLATE, true).hide();
 
       this.parse();
@@ -92,16 +93,47 @@
 
     add: function (e) {
       var options = this.options;
+      var self = this;
       var $target = $(e.target).closest(this.options.addClass);
-      var $template = this.$template.filter($target.closest(this.$element).children(options.childrenClass).children(options.newClass));
-      var $item = $template;
+      var targetRuleData = $target.data().ruleTarget;
+      var parents = $target.closest(this.$element);
+      var parentsChildren = parents.children(options.childrenClass);
+      this.forAddTemplate = this.$template.filter(parentsChildren.children(options.newClass));
+      var $item = this.forAddTemplate;
+      var newTemplateHtml;
 
-      if ($template && $template.is(':hidden')) {
-        $template.show();
+      // For multiple fieldset template
+      if (targetRuleData) {
+        this.forAddTemplate.each (function () {
+          self.multipleTemplates[$(this).data().fieldsetName] = $(this);
+        });
+      }
+      var $muptipleTargetTempalte = this.multipleTemplates[targetRuleData];
+      if (targetRuleData){
+        // For multiple template
+        if ($muptipleTargetTempalte && $muptipleTargetTempalte.is(':hidden') && parentsChildren.find(options.newClass + '[data-fieldset-name="' + targetRuleData + '"]').is(':hidden') && parents.find(options.newClass).size()) {
+          $muptipleTargetTempalte.show();
+        } else {
+          if ($target.length) {
+            newTemplateHtml = this.multipleTemplates[targetRuleData].prop('outerHTML');
+            $item = $(newTemplateHtml.replace(/\{\{index\}\}/g, ++this.index));
+            if ($target.closest(options.childrenClass).children('fieldset').size()) {
+              $target.closest(options.childrenClass).children('fieldset').last().after($item.show());
+            } else {
+              // If user delete all template
+              parentsChildren.prepend($item.show());
+            }
+          }
+        }
       } else {
-        if ($target.length) {
-          $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
-          $target.before($item.show());
+        // For single fieldset template
+        if (this.forAddTemplate && this.forAddTemplate.is(':hidden')) {
+          this.forAddTemplate.show();
+        } else {
+          if ($target.length) {
+            $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
+            $target.before($item.show());
+          }
         }
       }
 
@@ -119,10 +151,6 @@
       var $alert;
 
       if ($item.is(options.newClass)) {
-        if ($item.data(IS_TEMPLATE)) {
-          this.$template = null;
-        }
-
         // Destroy all JavaScript components within the fieldset
         $item.trigger('disable').remove();
       } else {
