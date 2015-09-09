@@ -34,6 +34,7 @@
       var options = this.options;
       var $all = $this.find(options.itemClass);
       var $template;
+      this.isMultipleTemplate = $this.data().isMultiple;
 
       if (!$all.length) {
         return;
@@ -49,11 +50,16 @@
       $template.trigger('disable');
 
       this.$template = $template;
-      this.template = $template.filter($this.children(options.childrenClass).children(options.newClass)).prop('outerHTML');
       this.multipleTemplates = {};
-      $template.data(IS_TEMPLATE, true).hide();
 
-      this.parse();
+      if (this.isMultipleTemplate) {
+        this.$template = $template.filter($this.children(options.childrenClass).children(options.newClass));
+        $template.remove();
+      } else {
+        this.template = $template.filter($this.children(options.childrenClass).children(options.newClass)).prop('outerHTML');
+        $template.data(IS_TEMPLATE, true).hide();
+        this.parse();
+      }
       this.bind();
     },
 
@@ -104,36 +110,30 @@
       var $item = this.forAddTemplate;
 
       // For multiple fieldset template
-      if (targetRuleData) {
-        this.forAddTemplate.each (function () {
+      if (this.isMultipleTemplate) {
+        this.$template.each (function () {
           self.multipleTemplates[$(this).data().fieldsetName] = $(this);
         });
       }
       var $muptipleTargetTempalte = this.multipleTemplates[targetRuleData];
-      if (targetRuleData){
+      if (this.isMultipleTemplate){
         // For multiple template
-        if ($muptipleTargetTempalte && $muptipleTargetTempalte.is(':hidden') && parentsChildren.find(options.newClass + '[data-fieldset-name="' + targetRuleData + '"]').is(':hidden') && parents.find(options.newClass).size()) {
-          $muptipleTargetTempalte.show().children('input[type="hidden"]').val(targetRuleData);
-        } else {
-
-          if ($target.length) {
-            this.template = $muptipleTargetTempalte.prop('outerHTML');
-            this.parse(true);
-
-            $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
-            $item.children('input[type="hidden"]').val(targetRuleData);
-            if ($target.closest(options.childrenClass).children('fieldset').size()) {
-              $target.closest(options.childrenClass).children('fieldset').last().after($item.show());
-            } else {
-              // If user delete all template
-              parentsChildren.prepend($item.show());
-            }
+        if ($target.length) {
+          this.template = $muptipleTargetTempalte.prop('outerHTML');
+          this.parse(true);
+          $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
+          $item.children('input[type="hidden"]').val(targetRuleData);
+          if ($target.closest(options.childrenClass).children('fieldset').size()) {
+            $target.closest(options.childrenClass).children('fieldset').last().after($item.show());
+          } else {
+            // If user delete all template
+            parentsChildren.prepend($item.show());
           }
         }
       } else {
         // For single fieldset template
-        if (this.forAddTemplate && this.forAddTemplate.is(':hidden')) {
-          this.forAddTemplate.show();
+        if (this.$template && this.$template.filter(parentsChildren.children(options.newClass)).is(':hidden')) {
+          this.$template.filter(parentsChildren.children(options.newClass)).show();
         } else {
           if ($target.length) {
             $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
