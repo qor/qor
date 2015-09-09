@@ -217,7 +217,7 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 			scope := db.NewScope(res.Value)
 
 			for _, column := range columns {
-				if field, ok := scope.FieldByName(column); ok {
+				if field, ok := scope.FieldByName(column); ok && field.IsNormal {
 					switch field.Field.Kind() {
 					case reflect.String:
 						conditions = append(conditions, fmt.Sprintf("upper(%v) like upper(?)", scope.Quote(field.DBName)))

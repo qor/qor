@@ -107,7 +107,9 @@ func (meta *Meta) updateMeta() {
 	} else {
 		if field, hasColumn = getField(scope.Fields(), meta.Alias); hasColumn {
 			meta.Alias = field.Name
-			meta.DBName = field.DBName
+			if field.IsNormal {
+				meta.DBName = field.DBName
+			}
 		}
 	}
 
