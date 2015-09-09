@@ -113,7 +113,7 @@
       if (targetRuleData){
         // For multiple template
         if ($muptipleTargetTempalte && $muptipleTargetTempalte.is(':hidden') && parentsChildren.find(options.newClass + '[data-fieldset-name="' + targetRuleData + '"]').is(':hidden') && parents.find(options.newClass).size()) {
-          $muptipleTargetTempalte.show();
+          $muptipleTargetTempalte.show().children('input[type="hidden"]').val(targetRuleData);
         } else {
 
           if ($target.length) {
@@ -121,6 +121,7 @@
             this.parse(true);
 
             $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
+            $item.children('input[type="hidden"]').val(targetRuleData);
             if ($target.closest(options.childrenClass).children('fieldset').size()) {
               $target.closest(options.childrenClass).children('fieldset').last().after($item.show());
             } else {
