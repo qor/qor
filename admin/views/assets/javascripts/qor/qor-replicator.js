@@ -51,10 +51,15 @@
 
       this.$template = $template;
       this.multipleTemplates = {};
+      var $filteredTemplateHtml = $template.filter($this.children(options.childrenClass).children(options.newClass));
 
       if (this.isMultipleTemplate) {
-        this.$template = $template.filter($this.children(options.childrenClass).children(options.newClass));
+        this.$template = $filteredTemplateHtml;
         $template.remove();
+        if ($this.children(options.childrenClass).children(options.itemClass).size()){
+          this.template = $filteredTemplateHtml.prop('outerHTML');
+          this.parse();
+        }
       } else {
         this.template = $template.filter($this.children(options.childrenClass).children(options.newClass)).prop('outerHTML');
         $template.data(IS_TEMPLATE, true).hide();
@@ -106,8 +111,7 @@
       var targetRuleData = $target.data().ruleTarget;
       var parents = $target.closest(this.$element);
       var parentsChildren = parents.children(options.childrenClass);
-      this.forAddTemplate = this.$template.filter(parentsChildren.children(options.newClass));
-      var $item = this.forAddTemplate;
+      var $item = this.$template;
 
       // For multiple fieldset template
       if (this.isMultipleTemplate) {
@@ -143,7 +147,6 @@
       }
 
       if ($item) {
-
         // Enable all JavaScript components within the fieldset
         $item.trigger('enable');
       }
