@@ -18,7 +18,6 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/jinzhu/gorm"
-	"github.com/qor/inflection"
 )
 
 var ErrNotImplemented = errors.New("not implemented")
@@ -119,9 +118,9 @@ func (b Base) GetURLTemplate(option *Option) (path string) {
 func getFuncMap(scope *gorm.Scope, field *gorm.Field, filename string) template.FuncMap {
 	hash := func() string { return strings.Replace(time.Now().Format("20060102150506.000000000"), ".", "", -1) }
 	return template.FuncMap{
-		"class":       func() string { return strings.ToLower(inflection.Plural(scope.GetModelStruct().ModelType.Name())) },
+		"class":       func() string { return scope.TableName() },
 		"primary_key": func() string { return fmt.Sprintf("%v", scope.PrimaryKeyValue()) },
-		"column":      func() string { return field.Name },
+		"column":      func() string { return strings.ToLower(field.Name) },
 		"filename":    func() string { return filename },
 		"basename":    func() string { return strings.TrimSuffix(path.Base(filename), path.Ext(filename)) },
 		"hash":        hash,
