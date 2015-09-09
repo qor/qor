@@ -497,10 +497,10 @@ func (context *Context) loadActions(action string) template.HTML {
 		files, _ := filepath.Glob(path.Join(view, "actions", action, "*.tmpl"))
 
 		for _, file := range append(globalfiles, files...) {
-			if _, ok := actions[path.Base(file)]; !ok {
+			base := regexp.MustCompile("^\\d+\\.").ReplaceAllString(path.Base(file), "")
+			if _, ok := actions[base]; !ok {
 				actionKeys = append(actionKeys, path.Base(file))
 			}
-			base := regexp.MustCompile("^\\d+\\.").ReplaceAllString(path.Base(file), "")
 			actions[base] = file
 		}
 	}
