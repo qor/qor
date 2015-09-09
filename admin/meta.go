@@ -168,7 +168,11 @@ func (meta *Meta) updateMeta() {
 			if fieldType.Kind().String() == "struct" {
 				result = reflect.New(field.Field.Type()).Interface()
 			} else if fieldType.Kind().String() == "slice" {
-				result = reflect.New(field.Field.Type().Elem()).Interface()
+				refelectType := field.Field.Type().Elem()
+				for refelectType.Kind() == reflect.Ptr {
+					refelectType = refelectType.Elem()
+				}
+				result = reflect.New(refelectType).Interface()
 			}
 
 			res := meta.base.GetAdmin().NewResource(result)
