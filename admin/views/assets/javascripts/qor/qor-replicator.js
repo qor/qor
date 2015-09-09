@@ -57,7 +57,7 @@
       this.bind();
     },
 
-    parse: function () {
+    parse: function (hasIndex) {
       var i = 0;
 
       this.template = this.template.replace(/(\w+)\="(\S*\[\d+\]\S*)"/g, function (attribute, name, value) {
@@ -73,7 +73,9 @@
 
         return (name + '="' + value + '"');
       });
-
+      if (hasIndex) {
+        return;
+      }
       this.index = parseFloat(i);
     },
 
@@ -100,7 +102,6 @@
       var parentsChildren = parents.children(options.childrenClass);
       this.forAddTemplate = this.$template.filter(parentsChildren.children(options.newClass));
       var $item = this.forAddTemplate;
-      var newTemplateHtml;
 
       // For multiple fieldset template
       if (targetRuleData) {
@@ -114,9 +115,12 @@
         if ($muptipleTargetTempalte && $muptipleTargetTempalte.is(':hidden') && parentsChildren.find(options.newClass + '[data-fieldset-name="' + targetRuleData + '"]').is(':hidden') && parents.find(options.newClass).size()) {
           $muptipleTargetTempalte.show();
         } else {
+
           if ($target.length) {
-            newTemplateHtml = this.multipleTemplates[targetRuleData].prop('outerHTML');
-            $item = $(newTemplateHtml.replace(/\{\{index\}\}/g, ++this.index));
+            this.template = $muptipleTargetTempalte.prop('outerHTML');
+            this.parse(true);
+
+            $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
             if ($target.closest(options.childrenClass).children('fieldset').size()) {
               $target.closest(options.childrenClass).children('fieldset').last().after($item.show());
             } else {
