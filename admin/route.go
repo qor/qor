@@ -96,11 +96,11 @@ type ConfigureInjector interface {
 
 func (res *Resource) compile() {
 	admin := res.GetAdmin()
-	modelType := admin.Config.DB.NewScope(res.Value).GetModelStruct().ModelType
-	for i := 0; i < modelType.NumField(); i++ {
-		fieldStruct := modelType.Field(i)
-		if injector, ok := reflect.New(fieldStruct.Type).Interface().(ConfigureInjector); ok {
-			injector.ConfigureQorResource(res)
+	for _, field := range admin.Config.DB.NewScope(res.Value).Fields() {
+		if field.IsNormal {
+			if injector, ok := reflect.New(field.Struct.Type).Interface().(ConfigureInjector); ok {
+				injector.ConfigureQorResource(res)
+			}
 		}
 	}
 
