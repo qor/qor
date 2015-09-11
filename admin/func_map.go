@@ -48,25 +48,28 @@ func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
 		value = reflectPtr.Interface()
 	}
 
-	result := meta.Valuer(value, context.Context)
+	if valuer := meta.GetValuer(); valuer != nil {
+		result := valuer(value, context.Context)
 
-	if reflectValue := reflect.ValueOf(result); reflectValue.IsValid() {
-		if reflectValue.Kind() == reflect.Ptr {
-			if reflectValue.IsNil() || !reflectValue.Elem().IsValid() {
-				return nil
+		if reflectValue := reflect.ValueOf(result); reflectValue.IsValid() {
+			if reflectValue.Kind() == reflect.Ptr {
+				if reflectValue.IsNil() || !reflectValue.Elem().IsValid() {
+					return nil
+				}
+
+				result = reflectValue.Elem().Interface()
 			}
 
-			result = reflectValue.Elem().Interface()
-		}
-
-		if meta.Type == "number" || meta.Type == "float" {
-			if context.isNewRecord(value) && reflect.DeepEqual(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
-				return nil
+			if meta.Type == "number" || meta.Type == "float" {
+				if context.isNewRecord(value) && reflect.DeepEqual(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
+					return nil
+				}
 			}
+			return result
 		}
-		return result
 	}
 
+	utils.ExitWithMsg(fmt.Sprintf("No valuer found for meta %v of resource %v", meta.Name, meta.base.Name))
 	return nil
 }
 
@@ -169,7 +172,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 		data["Meta"] = meta
 
 		if err := tmpl.Execute(writer, data); err != nil {
-			panic(err)
+			utils.ExitWithMsg(fmt.Sprintf("got error when parse template for %v(%v):%v", meta.Name, meta.Type, err))
 		}
 	} else {
 		utils.ExitWithMsg(fmt.Sprintf("%v: form type %v not supported: got error %v", meta.Name, meta.Type, err))
