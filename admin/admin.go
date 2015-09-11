@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+	"reflect"
 	"text/template"
 
 	"github.com/qor/inflection"
@@ -105,7 +106,26 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 	} else if namer, ok := value.(ResourceNamer); ok {
 		res.Name = namer.ResourceName()
 	}
+
+	scope := admin.Config.DB.NewScope(res.Value)
+	modelType := scope.GetModelStruct().ModelType
+	for i := 0; i < modelType.NumField(); i++ {
+		fieldStruct := modelType.Field(i)
+		if field, ok := scope.FieldByName(fieldStruct.Name); !ok || field.Relationship == nil {
+			if injector, ok := reflect.New(fieldStruct.Type).Interface().(configureAfterNewInjector); ok {
+				injector.ConfigureQorResourceAfterNew(res)
+			}
+		}
+	}
+
+	if injector, ok := res.Value.(configureAfterNewInjector); ok {
+		injector.ConfigureQorResourceAfterNew(res)
+	}
 	return res
+}
+
+type configureAfterNewInjector interface {
+	ConfigureQorResourceAfterNew(*Resource)
 }
 
 func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource {

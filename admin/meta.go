@@ -183,48 +183,6 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
-	if meta.Type == "serialize_argument" {
-		type SerializeArgumentInterface interface {
-			GetSerializeArgumentResource() *Resource
-			GetSerializeArgument() interface{}
-			SetSerializeArgument(value interface{})
-		}
-
-		if meta.Valuer == nil {
-			meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
-				if serializeArgument, ok := value.(SerializeArgumentInterface); ok {
-					return struct {
-						Value    interface{}
-						Resource *Resource
-					}{
-						Value:    serializeArgument.GetSerializeArgument(),
-						Resource: serializeArgument.GetSerializeArgumentResource(),
-					}
-				}
-				return nil
-			}
-		}
-
-		if meta.Setter == nil {
-			meta.Setter = func(result interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-				if serializeArgument, ok := result.(SerializeArgumentInterface); ok {
-					if res := serializeArgument.GetSerializeArgumentResource(); res != nil {
-						value := res.NewStruct()
-
-						for _, meta := range res.GetMetas([]string{}) {
-							metaValue := metaValue.MetaValues.Get(meta.GetName())
-							if setter := meta.GetSetter(); setter != nil {
-								setter(value, metaValue, context)
-							}
-						}
-
-						serializeArgument.SetSerializeArgument(value)
-					}
-				}
-			}
-		}
-	}
-
 	// Set Meta Valuer
 	if meta.Valuer == nil {
 		if hasColumn {

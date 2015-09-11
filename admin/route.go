@@ -90,7 +90,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
 }
 
-type ConfigureInjector interface {
+type configureInjector interface {
 	ConfigureQorResource(*Resource)
 }
 
@@ -101,13 +101,13 @@ func (res *Resource) compile() {
 	for i := 0; i < modelType.NumField(); i++ {
 		fieldStruct := modelType.Field(i)
 		if field, ok := scope.FieldByName(fieldStruct.Name); !ok || field.Relationship == nil {
-			if injector, ok := reflect.New(fieldStruct.Type).Interface().(ConfigureInjector); ok {
+			if injector, ok := reflect.New(fieldStruct.Type).Interface().(configureInjector); ok {
 				injector.ConfigureQorResource(res)
 			}
 		}
 	}
 
-	if injector, ok := res.Value.(ConfigureInjector); ok {
+	if injector, ok := res.Value.(configureInjector); ok {
 		injector.ConfigureQorResource(res)
 	}
 }
