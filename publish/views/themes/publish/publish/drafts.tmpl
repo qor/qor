@@ -38,11 +38,13 @@
                         <input type="checkbox" class="mdl-checkbox__input qor-js-check-all">
                       </label>
                     </th>
+
                     {{range $meta := (index_metas $res)}}
-                    <th class="mdl-data-table__cell--non-numeric">{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</th>
+                      <th class="mdl-data-table__cell--non-numeric">{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</th>
                     {{end}}
+
                     {{if not $isPublishEvent}}
-                    <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
+                      <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
                     {{end}}
                   </tr>
                 </thead>
@@ -58,7 +60,12 @@
 
                     {{range $index, $meta := index_metas $res}}
                       <td class="mdl-data-table__cell--non-numeric">
-                        <div class="qor-table__content">{{rt $res (printf "%v" (render_publish_meta $record $meta $context))}}</div>
+                        {{if $isPublishEvent}}
+                          <div class="qor-table__content">{{rt $res (printf "%v" (render_publish_meta $record $meta $context))}}</div>
+                        {{else}}
+                          <div class="qor-table__content">{{render_publish_meta $record $meta $context}}</div>
+                        {{end}}
+
                       </td>
                     {{end}}
 
