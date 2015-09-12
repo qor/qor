@@ -9,7 +9,7 @@
     {{render "shared/sidebar"}}
   </div>
   <main class="mdl-layout__content qor-page" id="content">
-    {{$actions := load_index_actions}}
+    {{$actions := load_show_actions}}
     {{if $actions}}
       <div class="qor-page__header">
         {{$actions}}
