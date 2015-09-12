@@ -21,7 +21,7 @@ func updatePosition(context *admin.Context) {
 				var count int
 				if _, ok := result.(sortingDescInterface); ok {
 					var result = context.Resource.NewStruct()
-					context.GetDB().Order("position DESC", true).First(result)
+					context.GetDB().Set("l10n:mode", "locale").Order("position DESC", true).First(result)
 					count = result.(sortingInterface).GetPosition()
 					pos = count - pos + 1
 				}
