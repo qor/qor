@@ -188,7 +188,14 @@ func (l *Locale) ConfigureQorResource(res *admin.Resource) {
 
 		// Middleware
 		Admin.GetRouter().Use(func(context *admin.Context, middleware *admin.Middleware) {
-			context.SetDB(context.GetDB().Set("l10n:locale", getLocaleFromContext(context.Context)))
+			db := context.GetDB().Set("l10n:locale", getLocaleFromContext(context.Context))
+			if mode := context.Request.URL.Query().Get("locale_mode"); mode != "" {
+				db = db.Set("l10n:mode", mode)
+			}
+			if context.Request.URL.Query().Get("sorting") != "" {
+				db = db.Set("l10n:mode", "locale")
+			}
+			context.SetDB(db)
 
 			middleware.Next(context)
 		})
@@ -196,6 +203,10 @@ func (l *Locale) ConfigureQorResource(res *admin.Resource) {
 		// FunMap
 		Admin.RegisterFuncMap("current_locale", func(context admin.Context) string {
 			return getLocaleFromContext(context.Context)
+		})
+
+		Admin.RegisterFuncMap("global_locale", func() string {
+			return Global
 		})
 
 		Admin.RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
