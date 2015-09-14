@@ -49,6 +49,9 @@ func (res Resource) GetAdmin() *Admin {
 }
 
 func (res Resource) ToParam() string {
+	if res.Config.Singleton == true {
+		return utils.ToParamString(inflection.Singular(res.Name))
+	}
 	return utils.ToParamString(inflection.Plural(res.Name))
 }
 

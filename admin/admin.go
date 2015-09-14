@@ -132,8 +132,14 @@ func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource 
 	res := admin.NewResource(value, config...)
 
 	if !res.Config.Invisible {
-		// TODO: move Menu out of res.Config, make the API looks better
-		menu := &Menu{rawPath: res.ToParam(), Name: inflection.Plural(res.Name)}
+		var menuName string
+		if res.Config.Singleton {
+			menuName = inflection.Singular(res.Name)
+		} else {
+			menuName = inflection.Plural(res.Name)
+		}
+
+		menu := &Menu{rawPath: res.ToParam(), Name: menuName}
 		admin.menus = appendMenu(admin.menus, res.Config.Menu, menu)
 	}
 
