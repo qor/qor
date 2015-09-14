@@ -1,9 +1,9 @@
 package admin_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -16,32 +16,33 @@ import (
 )
 
 type CreditCard struct {
-	Id     int
+	gorm.Model
+	UserID uint
 	Number string
 	Issuer string
 }
 
 type Address struct {
-	Id       int
-	UserId   int64
+	gorm.Model
+	UserID   uint
 	Address1 string
 	Address2 string
 }
 
 type Language struct {
-	Id   int
+	gorm.Model
 	Name string
 }
 
 type User struct {
-	Id           int
+	gorm.Model
 	Name         string
+	Age          uint
 	Role         string
 	Active       bool
 	RegisteredAt time.Time
 	Avatar       media_library.FileSystem
 	CreditCard   CreditCard
-	CreditCardId int64
 	Addresses    []Address
 	Languages    []Language `gorm:"many2many:user_languages;"`
 
@@ -49,12 +50,8 @@ type User struct {
 }
 
 type Profile struct {
-	Id        uint64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
-
-	UserId uint64
+	gorm.Model
+	UserID uint
 	Name   string
 	Sex    string
 
@@ -62,12 +59,9 @@ type Profile struct {
 }
 
 type Phone struct {
-	Id        uint64
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt time.Time
+	gorm.Model
 
-	ProfileId uint64
+	ProfileID uint64
 	Num       string
 }
 
@@ -92,7 +86,7 @@ func init() {
 		Collection: func(resource interface{}, context *qor.Context) (results [][]string) {
 			if languages := []Language{}; !context.GetDB().Find(&languages).RecordNotFound() {
 				for _, language := range languages {
-					results = append(results, []string{strconv.Itoa(language.Id), language.Name})
+					results = append(results, []string{fmt.Sprint(language.ID), language.Name})
 				}
 			}
 			return

@@ -9,4 +9,5 @@ type Config struct {
 	Permission *roles.Permission
 	Themes     []string
 	PageCount  int
+	Singleton  bool
 }
