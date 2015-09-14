@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -88,7 +87,7 @@ func TestCreateHasManyRecord(t *testing.T) {
 		"QorResource.Role":                  {"admin"},
 		"QorResource.Addresses[0].Address1": {"address_1"},
 		"QorResource.Addresses[1].Address1": {"address_2"},
-		"QorResource.Addresses[2].Id":       {"0"},
+		"QorResource.Addresses[2].ID":       {"0"},
 		"QorResource.Addresses[2].Address1": {""},
 	}
 
@@ -102,16 +101,16 @@ func TestCreateHasManyRecord(t *testing.T) {
 			t.Errorf("User should be created successfully")
 		}
 
-		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address_1").RecordNotFound() {
+		if db.First(&Address{}, "user_id = ? and address1 = ?", user.ID, "address_1").RecordNotFound() {
 			t.Errorf("Address 1 should be created successfully")
 		}
 
-		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address_2").RecordNotFound() {
+		if db.First(&Address{}, "user_id = ? and address1 = ?", user.ID, "address_2").RecordNotFound() {
 			t.Errorf("Address 2 should be created successfully")
 		}
 
 		var addresses []Address
-		if db.Find(&addresses, "user_id = ?", user.Id); len(addresses) != 2 {
+		if db.Find(&addresses, "user_id = ?", user.ID); len(addresses) != 2 {
 			t.Errorf("Blank address should not be created")
 		}
 	} else {
@@ -129,7 +128,7 @@ func TestCreateManyToManyRecord(t *testing.T) {
 	form := url.Values{
 		"QorResource.Name":      {name},
 		"QorResource.Role":      {"admin"},
-		"QorResource.Languages": {strconv.Itoa(languageCN.Id), strconv.Itoa(languageEN.Id)},
+		"QorResource.Languages": {fmt.Sprintf("%d", languageCN.ID), fmt.Sprintf("%d", languageEN.ID)},
 	}
 
 	if req, err := http.PostForm(server.URL+"/admin/users", form); err == nil {
@@ -204,7 +203,7 @@ func TestCreateRecordWithJSON(t *testing.T) {
                           "CreditCard": {"Number": "987654321", "Issuer": "Visa"},
                           "Addresses": [{"Address1": "address_1"}, {"Address1": "address_2"}, {"_id": "0"}],
                           "Languages": [%v, %v]
-                       }`, languageCN.Id, languageEN.Id)
+                       }`, languageCN.ID, languageEN.ID)
 
 	buf := strings.NewReader(json)
 
@@ -222,16 +221,16 @@ func TestCreateRecordWithJSON(t *testing.T) {
 			t.Errorf("Embedded struct should be created successfully")
 		}
 
-		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address_1").RecordNotFound() {
+		if db.First(&Address{}, "user_id = ? and address1 = ?", user.ID, "address_1").RecordNotFound() {
 			t.Errorf("Address 1 should be created successfully")
 		}
 
-		if db.First(&Address{}, "user_id = ? and address1 = ?", user.Id, "address_2").RecordNotFound() {
+		if db.First(&Address{}, "user_id = ? and address1 = ?", user.ID, "address_2").RecordNotFound() {
 			t.Errorf("Address 2 should be created successfully")
 		}
 
 		var addresses []Address
-		if db.Find(&addresses, "user_id = ?", user.Id); len(addresses) != 2 {
+		if db.Find(&addresses, "user_id = ?", user.ID); len(addresses) != 2 {
 			t.Errorf("Blank address should not be created")
 		}
 

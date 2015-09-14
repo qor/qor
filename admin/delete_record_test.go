@@ -1,9 +1,9 @@
 package admin_test
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"testing"
 )
 
@@ -14,7 +14,7 @@ func TestDeleteRecord(t *testing.T) {
 		"_method": {"delete"},
 	}
 
-	if req, err := http.PostForm(server.URL+"/admin/users/"+strconv.Itoa(user.Id), form); err == nil {
+	if req, err := http.PostForm(server.URL+"/admin/users/"+fmt.Sprint(user.ID), form); err == nil {
 		if req.StatusCode != 200 {
 			t.Errorf("Delete request should be processed successfully")
 		}

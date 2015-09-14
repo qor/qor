@@ -32,7 +32,7 @@ func TestDefaultMetaType(t *testing.T) {
 	user := Admin.AddResource(&User{})
 	booleanMeta := &admin.Meta{Name: "Active"}
 	timeMeta := &admin.Meta{Name: "RegisteredAt"}
-	numberMeta := &admin.Meta{Name: "CreditCardId"}
+	numberMeta := &admin.Meta{Name: "Age"}
 	fileMeta := &admin.Meta{Name: "Avatar"}
 	user.Meta(booleanMeta)
 	user.Meta(timeMeta)
