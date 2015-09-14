@@ -31,6 +31,17 @@ func (ac *controller) Dashboard(context *Context) {
 
 func (ac *controller) Index(context *Context) {
 	if context.checkResourcePermission(roles.Read) {
+		// Singleton Resource
+		if context.Resource.Config.Singleton {
+			var result = context.Resource.NewStruct()
+			if err := context.Resource.CallFindMany(result, context.Context); err == nil {
+				context.Execute("show", result)
+			} else {
+				context.Execute("new", result)
+			}
+			return
+		}
+
 		result, err := context.FindMany()
 		context.AddError(err)
 
@@ -89,8 +100,12 @@ func (ac *controller) Create(context *Context) {
 		} else {
 			responder.With("html", func() {
 				context.Flash(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res), "success")
-				primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
-				http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path, primaryKey), http.StatusFound)
+				if res.Config.Singleton {
+					http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path), http.StatusFound)
+				} else {
+					primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
+					http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path, primaryKey), http.StatusFound)
+				}
 			}).With("json", func() {
 				js, _ := json.Marshal(context.Resource.convertObjectToMap(context, result, "show"))
 				context.Writer.Write(js)

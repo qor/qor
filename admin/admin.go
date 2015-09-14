@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"text/template"
@@ -75,7 +76,7 @@ func (res *Resource) finder(result interface{}, metaValues *resource.MetaValues,
 		}
 		return context.GetDB().First(result, primaryKey).Error
 	}
-	return nil
+	return errors.New("failed to find")
 }
 
 func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource {
