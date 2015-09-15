@@ -81,6 +81,11 @@ func (context *Context) newResourcePath(value interface{}) string {
 	}
 }
 
+func (context *Context) editResourcePath(value interface{}, res *Resource) string {
+	primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
+	return path.Join(context.Admin.router.Prefix, res.ToParam(), primaryKey)
+}
+
 func (context *Context) UrlFor(value interface{}, resources ...*Resource) string {
 	var url string
 	if admin, ok := value.(*Admin); ok {
@@ -630,6 +635,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"patch_current_url":      context.patchCurrentURL,
 		"patch_url":              context.patchURL,
 		"new_resource_path":      context.newResourcePath,
+		"edit_resource_path":     context.editResourcePath,
 		"qor_theme_class":        context.themesClass,
 		"javascript_tag":         context.javaScriptTag,
 		"stylesheet_tag":         context.styleSheetTag,

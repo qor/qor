@@ -103,8 +103,7 @@ func (ac *controller) Create(context *Context) {
 				if res.Config.Singleton {
 					http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path), http.StatusFound)
 				} else {
-					primaryKey := fmt.Sprintf("%v", context.GetDB().NewScope(result).PrimaryKeyValue())
-					http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path, primaryKey), http.StatusFound)
+					http.Redirect(context.Writer, context.Request, context.editResourcePath(result, res), http.StatusFound)
 				}
 			}).With("json", func() {
 				js, _ := json.Marshal(context.Resource.convertObjectToMap(context, result, "show"))
@@ -136,7 +135,11 @@ func (ac *controller) Update(context *Context) {
 		} else {
 			responder.With("html", func() {
 				context.FlashNow(context.dt("resource_successfully_updated", "{{.Name}} was successfully updated", res), "success")
-				context.Execute("show", result)
+				if res.Config.Singleton {
+					http.Redirect(context.Writer, context.Request, context.UrlFor(res), http.StatusFound)
+				} else {
+					context.Execute("show", result)
+				}
 			}).With("json", func() {
 				js, _ := json.Marshal(context.Resource.convertObjectToMap(context, result, "show"))
 				context.Writer.Write(js)
