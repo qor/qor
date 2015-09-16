@@ -480,6 +480,36 @@ func (context *Context) loadThemeJavaScripts() template.HTML {
 	return template.HTML(strings.Join(results, " "))
 }
 
+func (context *Context) loadAdminJavaScripts() template.HTML {
+	var siteName = context.Admin.SiteName
+	if siteName == "" {
+		siteName = "application"
+	}
+
+	var file = path.Join("assets", "javascripts", strings.ToLower(strings.Replace(siteName, " ", "_", -1))+".js")
+	for _, view := range context.getViewPaths() {
+		if _, err := os.Stat(path.Join(view, file)); err == nil {
+			return template.HTML(fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file)))
+		}
+	}
+	return ""
+}
+
+func (context *Context) loadAdminStyleSheets() template.HTML {
+	var siteName = context.Admin.SiteName
+	if siteName == "" {
+		siteName = "application"
+	}
+
+	var file = path.Join("assets", "stylesheets", strings.ToLower(strings.Replace(siteName, " ", "_", -1))+".css")
+	for _, view := range context.getViewPaths() {
+		if _, err := os.Stat(path.Join(view, file)); err == nil {
+			return template.HTML(fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, path.Join(context.Admin.GetRouter().Prefix, file)))
+		}
+	}
+	return ""
+}
+
 func (context *Context) loadActions(action string) template.HTML {
 	var actions = map[string]string{}
 	var actionKeys = []string{}
@@ -627,6 +657,8 @@ func (context *Context) FuncMap() template.FuncMap {
 		"stylesheet_tag":         context.styleSheetTag,
 		"load_theme_stylesheets": context.loadThemeStyleSheets,
 		"load_theme_javascripts": context.loadThemeJavaScripts,
+		"load_admin_stylesheets": context.loadAdminStyleSheets,
+		"load_admin_javascripts": context.loadAdminJavaScripts,
 		"load_index_actions":     context.loadIndexActions,
 		"load_show_actions":      context.loadShowActions,
 		"load_new_actions":       context.loadNewActions,
