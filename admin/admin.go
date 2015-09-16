@@ -24,6 +24,7 @@ type I18n interface {
 
 type Admin struct {
 	Config    *qor.Config
+	SiteName  string
 	I18n      I18n
 	menus     []*Menu
 	resources []*Resource
@@ -43,6 +44,10 @@ func New(config *qor.Config) *Admin {
 		router:   newRouter(),
 	}
 	return &admin
+}
+
+func (admin *Admin) SetSiteName(siteName string) {
+	admin.SiteName = siteName
 }
 
 func (admin *Admin) SetAuth(auth Auth) {
