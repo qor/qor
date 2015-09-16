@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="">
+<html lang="en-US">
   <!--
   ,-----.    ,-----.  ,------.
   '  .-.  '  '  .-.  ' |  .--. '
@@ -18,26 +18,21 @@
     <link type="image/x-icon" rel="icon" href="/img/favicon.ico">
 
     <!-- Stylesheets -->
-    {{stylesheet_tag "material.min"}}
-    {{stylesheet_tag "cropper.min"}}
-    {{stylesheet_tag "chosen.min"}}
-    {{stylesheet_tag "redactor"}}
-    {{stylesheet_tag "qor"}}
-    {{stylesheet_tag "app"}}
+    {{stylesheet_tag "material.min" "cropper.min" "chosen.min" "redactor" "qor" "app" "jquery.min"}}
     {{load_theme_stylesheets}}
     {{javascript_tag "jquery.min"}}
   </head>
+
   <body class="{{if qor_theme_class}}{{qor_theme_class}}{{end}} qor-theme-slideout">
     <!--[if lt IE 10]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
-
-    <a class="visuallyhidden" href="#content" tabindex="1">Skip to content</a>
+    <a class="visuallyhidden" href="#content" tabindex="1">{{t "Skip to content"}}</a>
 
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header qor-layout">
       <header class="mdl-layout__header">
         <div class="mdl-layout__header-row">
-          <span class="mdl-layout-title">title</span>
+          <span class="mdl-layout-title">{{render "title"}}</span>
           {{render "shared/navbar"}}
         </div>
       </header>
@@ -52,12 +47,7 @@
     </div>
 
     <!-- JavaScripts -->
-    {{javascript_tag "material.min"}}
-    {{javascript_tag "redactor.min"}}
-    {{javascript_tag "cropper.min"}}
-    {{javascript_tag "chosen.jquery.min"}}
-    {{javascript_tag "qor"}}
-    {{javascript_tag "app"}}
+    {{javascript_tag "material.min" "redactor.min" "cropper.min" "chosen.jquery.min" "qor" "app"}}
     {{load_theme_javascripts}}
   </body>
 </html>

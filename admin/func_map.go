@@ -248,14 +248,22 @@ func (context *Context) newMetas(resources ...*Resource) []*Meta {
 	return res.allowedMetas(res.newMetas(), context, roles.Create)
 }
 
-func (context *Context) javaScriptTag(name string) template.HTML {
-	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "javascripts", name+".js")
-	return template.HTML(fmt.Sprintf(`<script src="%s"></script>`, name))
+func (context *Context) javaScriptTag(names ...string) template.HTML {
+	var results []string
+	for _, name := range names {
+		name = path.Join(context.Admin.GetRouter().Prefix, "assets", "javascripts", name+".js")
+		results = append(results, fmt.Sprintf(`<script src="%s"></script>`, name))
+	}
+	return template.HTML(strings.Join(results, ""))
 }
 
-func (context *Context) styleSheetTag(name string) template.HTML {
-	name = path.Join(context.Admin.GetRouter().Prefix, "assets", "stylesheets", name+".css")
-	return template.HTML(fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
+func (context *Context) styleSheetTag(names ...string) template.HTML {
+	var results []string
+	for _, name := range names {
+		name = path.Join(context.Admin.GetRouter().Prefix, "assets", "stylesheets", name+".css")
+		results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
+	}
+	return template.HTML(strings.Join(results, ""))
 }
 
 type menu struct {
