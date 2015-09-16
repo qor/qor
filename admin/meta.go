@@ -73,7 +73,7 @@ func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context)
 	return meta.Permission.HasPermission(mode, context.Roles...)
 }
 
-func getField(fields map[string]*gorm.Field, name string) (*gorm.Field, bool) {
+func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool) {
 	for _, field := range fields {
 		if field.Name == name || field.DBName == name {
 			return field, true
@@ -96,16 +96,16 @@ func (meta *Meta) updateMeta() {
 	var (
 		scope       = &gorm.Scope{Value: meta.base.Value}
 		nestedField = strings.Contains(meta.Alias, ".")
-		field       *gorm.Field
+		field       *gorm.StructField
 		hasColumn   bool
 	)
 
 	if nestedField {
 		subModel, name := utils.ParseNestedField(reflect.ValueOf(meta.base.Value), meta.Alias)
 		subScope := &gorm.Scope{Value: subModel.Interface()}
-		field, hasColumn = getField(subScope.Fields(), name)
+		field, hasColumn = getField(subScope.GetStructFields(), name)
 	} else {
-		if field, hasColumn = getField(scope.Fields(), meta.Alias); hasColumn {
+		if field, hasColumn = getField(scope.GetStructFields(), meta.Alias); hasColumn {
 			meta.Alias = field.Name
 			if field.IsNormal {
 				meta.DBName = field.DBName
@@ -115,7 +115,7 @@ func (meta *Meta) updateMeta() {
 
 	var fieldType reflect.Type
 	if hasColumn {
-		fieldType = field.Field.Type()
+		fieldType = field.Struct.Type
 		for fieldType.Kind() == reflect.Ptr {
 			fieldType = fieldType.Elem()
 		}
@@ -168,9 +168,9 @@ func (meta *Meta) updateMeta() {
 		if hasColumn && (field.Relationship != nil) {
 			var result interface{}
 			if fieldType.Kind().String() == "struct" {
-				result = reflect.New(field.Field.Type()).Interface()
+				result = reflect.New(fieldType).Interface()
 			} else if fieldType.Kind().String() == "slice" {
-				refelectType := field.Field.Type().Elem()
+				refelectType := fieldType.Elem()
 				for refelectType.Kind() == reflect.Ptr {
 					refelectType = refelectType.Elem()
 				}
