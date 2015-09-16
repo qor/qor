@@ -50,7 +50,7 @@ func (db *publishController) Preview(context *admin.Context) {
 			}
 		}
 	}
-	context.Execute("drafts", drafts)
+	context.Execute("publish_drafts", drafts)
 }
 
 func (db *publishController) Diff(context *admin.Context) {
@@ -67,7 +67,7 @@ func (db *publishController) Diff(context *admin.Context) {
 
 	results := map[string]interface{}{"Production": production, "Draft": draft, "Resource": res}
 
-	fmt.Fprintf(context.Writer, string(context.Render("diff", results)))
+	fmt.Fprintf(context.Writer, string(context.Render("publish_diff", results)))
 }
 
 func (db *publishController) PublishOrDiscard(context *admin.Context) {
