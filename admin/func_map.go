@@ -248,24 +248,6 @@ func (context *Context) newMetas(resources ...*Resource) []*Meta {
 	return res.allowedMetas(res.newMetas(), context, roles.Create)
 }
 
-func (context *Context) javaScriptTag(names ...string) template.HTML {
-	var results []string
-	for _, name := range names {
-		name = path.Join(context.Admin.GetRouter().Prefix, "assets", "javascripts", name+".js")
-		results = append(results, fmt.Sprintf(`<script src="%s"></script>`, name))
-	}
-	return template.HTML(strings.Join(results, ""))
-}
-
-func (context *Context) styleSheetTag(names ...string) template.HTML {
-	var results []string
-	for _, name := range names {
-		name = path.Join(context.Admin.GetRouter().Prefix, "assets", "stylesheets", name+".css")
-		results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
-	}
-	return template.HTML(strings.Join(results, ""))
-}
-
 type menu struct {
 	*Menu
 	Active   bool
@@ -443,27 +425,36 @@ func (context *Context) themesClass() (result string) {
 	return strings.Join(results, " ")
 }
 
-func (context *Context) getThemes() []string {
-	var themes = []string{"default"}
+func (context *Context) javaScriptTag(names ...string) template.HTML {
+	var results []string
+	for _, name := range names {
+		name = path.Join(context.Admin.GetRouter().Prefix, "assets", "javascripts", name+".js")
+		results = append(results, fmt.Sprintf(`<script src="%s"></script>`, name))
+	}
+	return template.HTML(strings.Join(results, ""))
+}
+
+func (context *Context) styleSheetTag(names ...string) template.HTML {
+	var results []string
+	for _, name := range names {
+		name = path.Join(context.Admin.GetRouter().Prefix, "assets", "stylesheets", name+".css")
+		results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s">`, name))
+	}
+	return template.HTML(strings.Join(results, ""))
+}
+
+func (context *Context) getThemes() (themes []string) {
 	if context.Resource != nil {
 		themes = append(themes, context.Resource.Config.Themes...)
 	}
-	return themes
+	return
 }
 
 func (context *Context) loadThemeStyleSheets() template.HTML {
 	var results []string
 	for _, theme := range context.getThemes() {
+		var file = path.Join("assets", "stylesheets", theme+".css")
 		for _, view := range context.getViewPaths() {
-			file := path.Join("assets", "stylesheets", theme+".css")
-			if _, err := os.Stat(path.Join(view, file)); err == nil {
-				results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
-				break
-			}
-		}
-
-		for _, view := range context.getViewPaths() {
-			file := path.Join("../..", "themes", theme, "assets", "stylesheets", "application.css")
 			if _, err := os.Stat(path.Join(view, file)); err == nil {
 				results = append(results, fmt.Sprintf(`<link type="text/css" rel="stylesheet" href="%s?theme=%s">`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
 				break
@@ -476,22 +467,9 @@ func (context *Context) loadThemeStyleSheets() template.HTML {
 
 func (context *Context) loadThemeJavaScripts() template.HTML {
 	var results []string
-	var themes = []string{"default"}
-	if context.Resource != nil {
-		themes = append(themes, context.Resource.Config.Themes...)
-	}
-
-	for _, theme := range themes {
+	for _, theme := range context.getThemes() {
+		var file = path.Join("assets", "javascripts", theme+".js")
 		for _, view := range context.getViewPaths() {
-			file := path.Join("assets", "javascripts", theme+".js")
-			if _, err := os.Stat(path.Join(view, file)); err == nil {
-				results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
-				break
-			}
-		}
-
-		for _, view := range context.getViewPaths() {
-			file := path.Join("../..", "themes", theme, "assets", "javascripts", "application.js")
 			if _, err := os.Stat(path.Join(view, file)); err == nil {
 				results = append(results, fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file), theme))
 				break
