@@ -18,8 +18,9 @@ type Context struct {
 	Flashes  []Flash
 	Resource *Resource
 	Admin    *Admin
-	Result   interface{}
 	Content  template.HTML
+	Action   string
+	Result   interface{}
 }
 
 func (context *Context) clone() *Context {
@@ -73,6 +74,12 @@ func (context *Context) getViewPaths() (paths []string) {
 
 	for _, p := range append(themes, dirs...) {
 		for _, d := range viewPaths {
+			if context.Action != "" {
+				if isExistingDir(path.Join(d, p, context.Action)) {
+					paths = append(paths, path.Join(d, p, context.Action))
+				}
+			}
+
 			if isExistingDir(path.Join(d, p)) {
 				paths = append(paths, path.Join(d, p))
 			}
@@ -128,6 +135,10 @@ func (context *Context) Render(name string, results ...interface{}) template.HTM
 func (context *Context) Execute(name string, result interface{}) {
 	var tmpl *template.Template
 	var cacheKey string
+
+	if context.Action == "" {
+		context.Action = name
+	}
 
 	if context.Resource != nil {
 		cacheKey = path.Join(context.resourcePath(), name)

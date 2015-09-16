@@ -1,0 +1,5 @@
+{{if .Resource.Config.Singleton}}
+{{rt .Resource (singular .Resource.Name)}}
+{{else}}
+{{rt .Resource (plural .Resource.Name)}}
+{{end}}
