@@ -1,36 +1,22 @@
-<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header qor-layout">
-  <header class="mdl-layout__header">
-    <div class="mdl-layout__header-row">
-      <span class="mdl-layout-title">{{rt .Resource (printf "Add %v" (singular .Resource.Name))}}</span>
-      {{render "shared/navbar"}}
-    </div>
-  </header>
-  <div class="mdl-layout__drawer">
-    {{render "shared/sidebar"}}
+{{$actions := load_new_actions}}
+{{if $actions}}
+  <div class="qor-page__header">
+    {{$actions}}
   </div>
-  <main class="mdl-layout__content qor-page" id="content">
-    {{$actions := load_new_actions}}
-    {{if $actions}}
-      <div class="qor-page__header">
-        {{$actions}}
-      </div>
-    {{end}}
-    <div class="qor-page__body">
+{{end}}
+<div class="qor-page__body">
 
-      {{render "shared/alerts"}}
-      {{render "shared/errors"}}
+  {{render "shared/alerts"}}
+  {{render "shared/errors"}}
 
-      <div class="qor-form-container">
-        <form class="qor-form" action="{{url_for .Resource}}" method="POST" enctype="multipart/form-data">
-          {{render_form .Result new_metas}}
-          <div class="qor-form__actions">
-            <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{rt .Resource (printf "Add %v" (singular .Resource.Name))}}</button>
-            </button>
-            <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "Cancel"}}</a>
-          </div>
-        </form>
+  <div class="qor-form-container">
+    <form class="qor-form" action="{{url_for .Resource}}" method="POST" enctype="multipart/form-data">
+      {{render_form .Result new_metas}}
+      <div class="qor-form__actions">
+        <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{rt .Resource (printf "Add %v" (singular .Resource.Name))}}</button>
+        </button>
+        <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "Cancel"}}</a>
       </div>
-    </div>
-    <div class="qor-page__footer"></div>
-  </main>
+    </form>
+  </div>
 </div>
