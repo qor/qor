@@ -489,7 +489,7 @@ func (context *Context) loadAdminJavaScripts() template.HTML {
 	var file = path.Join("assets", "javascripts", strings.ToLower(strings.Replace(siteName, " ", "_", -1))+".js")
 	for _, view := range context.getViewPaths() {
 		if _, err := os.Stat(path.Join(view, file)); err == nil {
-			return template.HTML(fmt.Sprintf(`<script src="%s?theme=%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file)))
+			return template.HTML(fmt.Sprintf(`<script src="%s"></script>`, path.Join(context.Admin.GetRouter().Prefix, file)))
 		}
 	}
 	return ""
