@@ -25,7 +25,7 @@ transition is a Golang state machine implementation. rely on github.com/jinzhu/g
 
 ### 2. Define states and events
 
-    var OrderStateMachine transition.New(&Order{})
+    var OrderStateMachine = transition.New(&Order{})
 
     func init() {
 		// Define initial state

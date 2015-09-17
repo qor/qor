@@ -86,6 +86,22 @@
       content: "\e051";
     }
 
+    > [data-menu-item*="Store"] > a::before {
+      content: "\e8d1";
+    }
+
+    > [data-menu-item*="Newsletter"] > a::before, > [data-menu-item*="Email"] > a::before {
+      content: "\e0be";
+    }
+
+    > [data-menu-item*="Translate"] > a::before, > [data-menu-item*="Translation"] > a::before {
+      content: "\e8e2";
+    }
+
+    > [data-menu-item*="Report"] > a::before, > [data-menu-item*="Chart"] > a::before {
+      content: "\e24b";
+    }
+
     > [data-menu-item*="Order"] > a::before {
       content: "\e8cc";
     }
