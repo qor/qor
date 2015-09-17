@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/admin"
 	"github.com/qor/qor/audited"
+	"github.com/qor/qor/roles"
 )
 
 type Transition struct {
@@ -190,4 +192,8 @@ func (transition *EventTransition) Before(fc func(value interface{}, tx *gorm.DB
 func (transition *EventTransition) After(fc func(value interface{}, tx *gorm.DB) error) *EventTransition {
 	transition.afters = append(transition.afters, fc)
 	return transition
+}
+
+func (transition *Transition) ConfigureQorResource(res *admin.Resource) {
+	res.Meta(&admin.Meta{Name: "State", Permission: roles.Allow(roles.Update, "nobody")})
 }
