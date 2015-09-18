@@ -16,7 +16,8 @@
       <tr data-primary-key="{{primary_key_of $resource}}">
         {{range $meta := index_metas}}
           <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $Resource $meta.Label}}">
-            <div class="qor-table__content">{{render_index_meta $resource $meta}}</div>
+            {{$value := render_index_meta $resource $meta}}
+            <div class="qor-table__content" title="{{$value}}">{{$value}}</div>
           </td>
         {{end}}
         <td class="mdl-data-table__cell--non-numeric qor-table__actions">
