@@ -30,7 +30,7 @@
   <div class="qor-page__body i18n-body">
     <ul class="i18n-list">
       {{range $key := i18n_available_keys .}}
-      <li>
+      <li data-toggle="edit.qor.i18n" class="i18n-list-item">
         <header>
           <button class="mdl-button mdl-js-button mdl-button--icon qor-button--muted i18n-btn-edit" data-toggle="edit.qor.i18n" type="button">
             <i class="material-icons md-18">edit</i>

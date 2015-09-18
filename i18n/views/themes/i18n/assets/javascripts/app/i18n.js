@@ -89,8 +89,13 @@
       var $items = this.$items;
       var $item;
 
-      if (!$target.is('button')) {
-        $target = $target.closest('button');
+      // click whole item to trigger edit mode
+      if (!$target.closest('.i18n-list-item').hasClass('active highlight')) {
+        $target = $target.closest('.i18n-list-item');
+      } else {
+        if (!$target.is('button')) {
+          $target = $target.closest('button');
+        }
       }
 
       if (!$target.length) {
