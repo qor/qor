@@ -40,17 +40,19 @@ func (serialize *SerializeArgument) SetSerializeArgumentValue(value interface{})
 
 func (serialize *SerializeArgument) ConfigureQorResourceAfterNew(res *Resource) {
 	if _, ok := res.Value.(SerializeArgumentInterface); ok {
-		res.Meta(&Meta{
-			Name: "Kind",
-			Type: "hidden",
-			Valuer: func(value interface{}, context *qor.Context) interface{} {
-				if context.GetDB().NewScope(value).PrimaryKeyZero() {
-					return nil
-				} else {
-					return value.(SerializeArgumentInterface).GetSerializeArgumentKind()
-				}
-			},
-		})
+		if res.GetMeta("Kind") == nil {
+			res.Meta(&Meta{
+				Name: "Kind",
+				Type: "hidden",
+				Valuer: func(value interface{}, context *qor.Context) interface{} {
+					if context.GetDB().NewScope(value).PrimaryKeyZero() {
+						return nil
+					} else {
+						return value.(SerializeArgumentInterface).GetSerializeArgumentKind()
+					}
+				},
+			})
+		}
 
 		if res.GetMeta("SerializeArgument") == nil {
 			res.Meta(&Meta{
