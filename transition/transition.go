@@ -195,5 +195,7 @@ func (transition *EventTransition) After(fc func(value interface{}, tx *gorm.DB)
 }
 
 func (transition *Transition) ConfigureQorResource(res *admin.Resource) {
-	res.Meta(&admin.Meta{Name: "State", Permission: roles.Allow(roles.Update, "nobody")})
+	if res.GetMeta("State") == nil {
+		res.Meta(&admin.Meta{Name: "State", Permission: roles.Allow(roles.Update, "nobody")})
+	}
 }
