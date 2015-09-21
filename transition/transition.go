@@ -1,7 +1,6 @@
 package transition
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -142,7 +141,7 @@ func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB, notes ..
 			return newTx.Save(&log).Error
 		}
 	}
-	return errors.New("failed to perform")
+	return fmt.Errorf("failed to perform event %s from state %s", name, stateWas)
 }
 
 type State struct {
