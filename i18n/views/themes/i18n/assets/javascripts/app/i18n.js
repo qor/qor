@@ -87,14 +87,19 @@
     click: function (e) {
       var $target = $(e.target);
       var $items = this.$items;
-      var $item;
+      var $btn;
 
-      // click whole item to trigger edit mode
-      if (!$target.closest('.i18n-list-item').hasClass('active highlight')) {
-        $target = $target.closest('.i18n-list-item');
+      if (!$target.is('button')) {
+        $btn = $target.closest('button');
+      }
+      // event target is a button
+      if ($btn && $btn.size() === 1) {
+        $target = $btn;
       } else {
-        if (!$target.is('button')) {
-          $target = $target.closest('button');
+        // event target is a item
+        var $item = $target.closest('.i18n-list-item');
+        if (!$item.hasClass('active highlight')) {
+          $target = $item;
         }
       }
 
@@ -106,14 +111,14 @@
         case 'bulk':
           this.multiple = true;
           $target.addClass('hidden').siblings('button').removeClass('hidden');
-          $items.removeClass('highlight').addClass('active').find('.qor-js-translator').trigger(EVENT_INPUT);
+          $items.addClass('active highlight').find('.qor-js-translator').trigger(EVENT_INPUT);
           break;
 
         case 'exit':
           this.multiple = false;
           $target.addClass('hidden');
           $target.siblings('button').addClass('hidden').filter('.qor-js-bulk').removeClass('hidden');
-          $items.removeClass('active');
+          $items.removeClass('active highlight');
           break;
 
         case 'edit':
