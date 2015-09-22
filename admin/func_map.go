@@ -577,7 +577,7 @@ func (context *Context) dt(key string, value string, values ...interface{}) stri
 }
 
 func (context *Context) rt(resource *Resource, key string, values ...interface{}) string {
-	return context.dt(strings.Join([]string{"qor_admin", resource.ToParam(), key}, "."), key, values)
+	return context.dt(strings.Join([]string{resource.ToParam(), key}, "."), key, values)
 }
 
 func (context *Context) T(key string, values ...interface{}) string {
