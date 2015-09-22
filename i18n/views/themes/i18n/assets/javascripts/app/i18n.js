@@ -87,6 +87,7 @@
     click: function (e) {
       var $target = $(e.target);
       var $items = this.$items;
+      var $item;
       var $btn;
 
       if (!$target.is('button')) {
@@ -97,7 +98,7 @@
         $target = $btn;
       } else {
         // event target is a item
-        var $item = $target.closest('.i18n-list-item');
+        $item = $target.closest('.i18n-list-item');
         if (!$item.hasClass('active highlight')) {
           $target = $item;
         }
