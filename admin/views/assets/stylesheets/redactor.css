@@ -1,5 +1,5 @@
 /*
-	Icon font
+  Icon font
 */
 @font-face {
   font-family: 'RedactorFont';
@@ -8,7 +8,7 @@
   font-style: normal;
 }
 /*
-	Box
+  Box
 */
 .redactor-box {
   position: relative;
@@ -39,7 +39,7 @@
   background: #fff;
 }
 /*
-	Z-index setup
+  Z-index setup
 */
 .redactor-editor,
 .redactor-box,
@@ -61,7 +61,7 @@
   z-index: 1053;
 }
 /*
-	Fullscreen
+  Fullscreen
 */
 body .redactor-box-fullscreen {
   position: fixed;
@@ -70,7 +70,7 @@ body .redactor-box-fullscreen {
   width: 100%;
 }
 /*
-	Utils
+  Utils
 */
 .redactor-scrollbar-measure {
   position: absolute;
@@ -80,7 +80,7 @@ body .redactor-box-fullscreen {
   overflow: scroll;
 }
 /*
-	Editor
+  Editor
 */
 .redactor-editor {
   position: relative;
@@ -102,7 +102,7 @@ body .redactor-box-fullscreen {
   padding-top: 32px !important;
 }
 /*
-	Placeholder
+  Placeholder
 */
 .redactor-placeholder:after {
   position: absolute;
@@ -115,7 +115,7 @@ body .redactor-box-fullscreen {
   font-weight: normal !important;
 }
 /*
-	Toolbar
+  Toolbar
 */
 .redactor-toolbar {
   position: relative;
@@ -211,13 +211,13 @@ body .redactor-box-fullscreen {
   background: #000;
 }
 /*
-	CodeMirror
+  CodeMirror
 */
 .redactor-box .CodeMirror {
   display: none;
 }
 /*
-	Icons
+  Icons
 */
 .re-icon {
   font-family: 'RedactorFont';
@@ -332,7 +332,7 @@ body .redactor-box-fullscreen {
   content: "\e61f";
 }
 /*
-	Toolbar tooltip
+  Toolbar tooltip
 */
 .redactor-toolbar-tooltip {
   position: absolute;
@@ -349,7 +349,7 @@ body .redactor-box-fullscreen {
   border-radius: 2px;
 }
 /*
-	Dropdown
+  Dropdown
 */
 .redactor-dropdown {
   position: absolute;
@@ -398,7 +398,7 @@ body .redactor-box-fullscreen {
   background: #000;
 }
 /*
-	IMAGE BOX
+  IMAGE BOX
 */
 #redactor-image-box {
   position: relative;
@@ -434,7 +434,7 @@ body .redactor-box-fullscreen {
   height: 8px;
 }
 /*
-	LINK TOOLTIP
+  LINK TOOLTIP
 */
 .redactor-link-tooltip {
   position: absolute;
@@ -459,7 +459,7 @@ body .redactor-box-fullscreen {
   color: #fff;
 }
 /*
-	DROPAREA
+  DROPAREA
 */
 #redactor-droparea {
   position: relative;
@@ -479,7 +479,7 @@ body .redactor-box-fullscreen {
   color: rgba(0, 0, 0, 0.7);
 }
 /*
-	PROGRESS
+  PROGRESS
 */
 #redactor-progress {
   position: fixed;
@@ -527,7 +527,7 @@ body .redactor-box-fullscreen {
   }
 }
 /*
-	MODAL
+  MODAL
 */
 #redactor-modal-overlay {
   position: fixed;
@@ -629,7 +629,7 @@ body .redactor-box-fullscreen {
   line-height: 1.4em;
 }
 /*
-	Tabs in Modal
+  Tabs in Modal
 */
 #redactor-modal-tabber {
   margin-bottom: 15px;
@@ -655,7 +655,7 @@ body .redactor-box-fullscreen {
   color: rgba(0, 0, 0, 0.6);
 }
 /*
-	List in Modal
+  List in Modal
 */
 #redactor-modal #redactor-modal-list {
   margin-left: 0;
@@ -743,11 +743,11 @@ body .redactor-box-fullscreen {
   background-color: #1a4580;
 }
 /*
-	##############################################
+  ##############################################
 
-	DROPDOWN FORMATTING
+  DROPDOWN FORMATTING
 
-	##############################################
+  ##############################################
 */
 .redactor-dropdown .redactor-formatting-blockquote {
   color: rgba(0, 0, 0, 0.4);
@@ -782,15 +782,16 @@ body .redactor-box-fullscreen {
   font-weight: bold;
 }
 /*
-	##############################################
+  ##############################################
 
-	 CONTENT STYLES
+   CONTENT STYLES
 
-	##############################################
+  ##############################################
 */
 .redactor-editor code,
 .redactor-editor pre {
   font-family: Menlo, Monaco, monospace, sans-serif !important;
+  cursor: text;
 }
 .redactor-editor div,
 .redactor-editor p,
@@ -840,9 +841,14 @@ body .redactor-box-fullscreen {
 }
 .redactor-editor blockquote {
   margin-left: 1.6em !important;
-  padding-left: 0;
+  padding: 0;
+  text-align: left;
   color: #777;
   font-style: italic;
+}
+.redactor-editor blockquote:before,
+.redactor-editor blockquote:after {
+  content: '';
 }
 .redactor-editor ul,
 .redactor-editor ol {
