@@ -2,8 +2,10 @@ package l10n
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/utils"
 )
 
 func beforeQuery(scope *gorm.Scope) {
@@ -81,10 +83,10 @@ func afterUpdate(scope *gorm.Scope) {
 			} else if syncColumns := syncColumns(scope); len(syncColumns) > 0 { // is global
 				if mode, _ := scope.DB().Get("l10n:mode"); mode != "unscoped" {
 					if scope.DB().RowsAffected > 0 {
-						primaryKey := scope.PrimaryKeyValue()
+						var primaryField = scope.PrimaryField()
+						var syncAttrs = map[string]interface{}{}
 
 						if updateAttrs, ok := scope.InstanceGet("gorm:update_attrs"); ok {
-							var syncAttrs = map[string]interface{}{}
 							for key, value := range updateAttrs.(map[string]interface{}) {
 								for _, syncColumn := range syncColumns {
 									if syncColumn == key {
@@ -93,11 +95,21 @@ func afterUpdate(scope *gorm.Scope) {
 									}
 								}
 							}
-							if len(syncAttrs) > 0 {
-								scope.DB().Model(scope.Value).Set("l10n:mode", "unscoped").Where("language_code <> ?", Global).UpdateColumns(syncAttrs)
-							}
 						} else {
-							scope.NewDB().Set("l10n:mode", "unscoped").Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), primaryKey).Select(syncColumns).Save(scope.Value)
+							var fields = scope.Fields()
+							for _, syncColumn := range syncColumns {
+								if field, ok := fields[syncColumn]; ok {
+									syncAttrs[syncColumn] = field.Field.Interface()
+								}
+							}
+						}
+
+						if len(syncAttrs) > 0 {
+							db := scope.DB().Model(reflect.New(utils.ModelType(scope.Value)).Interface()).Set("l10n:mode", "unscoped").Where("language_code <> ?", Global)
+							if !primaryField.IsBlank {
+								db = db.Where(fmt.Sprintf("%v = ?", primaryField.DBName), primaryField.Field.Interface())
+							}
+							db.UpdateColumns(syncAttrs)
 						}
 					}
 				}

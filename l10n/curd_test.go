@@ -70,6 +70,7 @@ func TestUpdate(t *testing.T) {
 	dbEN.Save(&product)
 	checkHasProductInLocale(sharedDB.Where("name = ?", "New English Name"), "en", t)
 
+	// Check sync columns with UpdateColumn
 	dbGlobal.Model(&Product{}).Where("id = ?", product.ID).UpdateColumns(map[string]interface{}{"quantity": gorm.Expr("quantity + ?", 2)})
 
 	var newGlobalProduct Product
@@ -78,6 +79,18 @@ func TestUpdate(t *testing.T) {
 	dbEN.Find(&newENProduct, product.ID)
 
 	if newGlobalProduct.Quantity != product.Quantity+2 || newENProduct.Quantity != product.Quantity+2 {
+		t.Errorf("should sync update columns results correctly")
+	}
+
+	// Check sync columns with Save
+	newGlobalProduct.Quantity = 5
+	dbGlobal.Save(&newGlobalProduct)
+
+	var newGlobalProduct2 Product
+	var newENProduct2 Product
+	dbGlobal.Find(&newGlobalProduct2, product.ID)
+	dbEN.Find(&newENProduct2, product.ID)
+	if newGlobalProduct2.Quantity != 5 || newENProduct2.Quantity != 5 {
 		t.Errorf("should sync update columns results correctly")
 	}
 }
@@ -93,11 +106,13 @@ func TestQuery(t *testing.T) {
 		t.Error("Should find localized zh product with unscoped mode")
 	}
 
-	if dbCN.Set("l10n:mode", "locale").First(&productCN, product.ID).RecordNotFound() {
+	var newProduct Product
+	if dbCN.Set("l10n:mode", "locale").First(&newProduct, product.ID).RecordNotFound() {
 		t.Error("Should find localized zh product with locale mode")
 	}
 
-	if dbCN.Set("l10n:mode", "global").First(&productCN); productCN.LanguageCode != l10n.Global {
+	var newProduct2 Product
+	if dbCN.Set("l10n:mode", "global").First(&newProduct2); newProduct2.LanguageCode != l10n.Global {
 		t.Error("Should find global product with global mode")
 	}
 
