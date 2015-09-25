@@ -98,7 +98,7 @@ func afterUpdate(scope *gorm.Scope) {
 						} else {
 							var fields = scope.Fields()
 							for _, syncColumn := range syncColumns {
-								if field, ok := fields[syncColumn]; ok {
+								if field, ok := fields[syncColumn]; ok && field.IsNormal {
 									syncAttrs[syncColumn] = field.Field.Interface()
 								}
 							}
@@ -109,7 +109,7 @@ func afterUpdate(scope *gorm.Scope) {
 							if !primaryField.IsBlank {
 								db = db.Where(fmt.Sprintf("%v = ?", primaryField.DBName), primaryField.Field.Interface())
 							}
-							db.UpdateColumns(syncAttrs)
+							scope.Err(db.UpdateColumns(syncAttrs).Error)
 						}
 					}
 				}
