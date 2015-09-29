@@ -61,7 +61,7 @@ func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
 			}
 
 			if meta.Type == "number" || meta.Type == "float" {
-				if context.isNewRecord(value) && reflect.DeepEqual(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
+				if context.isNewRecord(value) && equal(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
 					return nil
 				}
 			}
@@ -399,10 +399,6 @@ func (context *Context) Pagination() *[]Page {
 	}
 
 	return &pages
-}
-
-func equal(a, b interface{}) bool {
-	return reflect.DeepEqual(a, b)
 }
 
 // PatchCurrentURL is a convinent wrapper for qor/utils.PatchURL

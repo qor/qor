@@ -262,17 +262,28 @@ func (meta *Meta) updateMeta() {
 			if meta.Type == "select_one" || meta.Type == "select_many" {
 				meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
 					scope := &gorm.Scope{Value: resource}
-					field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(meta.Alias)
+					reflectValue := reflect.Indirect(reflect.ValueOf(resource))
+					field := reflectValue.FieldByName(meta.Alias)
 
-					if field.Kind() == reflect.Ptr && field.IsNil() {
-						field.Set(utils.NewValue(field.Type()).Elem())
-					}
+					if field.Kind() == reflect.Ptr {
+						if field.IsNil() {
+							field.Set(utils.NewValue(field.Type()).Elem())
+						}
 
-					for field.Kind() == reflect.Ptr {
-						field = field.Elem()
+						for field.Kind() == reflect.Ptr {
+							field = field.Elem()
+						}
 					}
 
 					if primaryKeys := utils.ToArray(metaValue.Value); len(primaryKeys) > 0 {
+						// associations not changed for belongs to
+						if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
+							oldPrimaryKeys := utils.ToArray(reflectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
+							if equalAsString(primaryKeys, oldPrimaryKeys) {
+								return
+							}
+						}
+
 						context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
 					}
 
@@ -298,12 +309,14 @@ func (meta *Meta) updateMeta() {
 				}
 
 				field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(alias)
-				if field.Kind() == reflect.Ptr && field.IsNil() {
-					field.Set(utils.NewValue(field.Type()).Elem())
-				}
+				if field.Kind() == reflect.Ptr {
+					if field.IsNil() {
+						field.Set(utils.NewValue(field.Type()).Elem())
+					}
 
-				for field.Kind() == reflect.Ptr {
-					field = field.Elem()
+					for field.Kind() == reflect.Ptr {
+						field = field.Elem()
+					}
 				}
 
 				if field.IsValid() && field.CanAddr() {
