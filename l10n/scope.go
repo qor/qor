@@ -15,12 +15,12 @@ func isLocalizable(scope *gorm.Scope) (isLocalizable bool) {
 	return
 }
 
-type LocaleCreateableInterface interface {
-	LocaleCreateable()
+type localeCreatableInterface interface {
+	LocaleCreatable()
 }
 
-func isLocaleCreateable(scope *gorm.Scope) (ok bool) {
-	_, ok = reflect.New(scope.GetModelStruct().ModelType).Interface().(LocaleCreateableInterface)
+func isLocaleCreatable(scope *gorm.Scope) (ok bool) {
+	_, ok = reflect.New(scope.GetModelStruct().ModelType).Interface().(localeCreatableInterface)
 	return
 }
 

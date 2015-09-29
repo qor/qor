@@ -39,7 +39,7 @@ func beforeQuery(scope *gorm.Scope) {
 func beforeCreate(scope *gorm.Scope) {
 	if isLocalizable(scope) {
 		if locale, ok := getLocale(scope); ok { // is locale
-			if isLocaleCreateable(scope) || !scope.PrimaryKeyZero() {
+			if isLocaleCreatable(scope) || !scope.PrimaryKeyZero() {
 				setLocale(scope, locale)
 			} else {
 				err := fmt.Errorf("the resource %v cannot be created in %v", scope.GetModelStruct().ModelType.Name(), locale)

@@ -33,6 +33,13 @@ func (l *Locale) SetLocale(locale string) {
 	l.LanguageCode = locale
 }
 
+// LocaleCreatable make the resource be creatable from a locale, by default, you can only create it from global
+type LocaleCreatable struct {
+	Locale
+}
+
+func (LocaleCreatable) LocaleCreatable() {}
+
 type availableLocalesInterface interface {
 	AvailableLocales() []string
 }
@@ -219,7 +226,7 @@ func (l *Locale) ConfigureQorResource(res *admin.Resource) {
 
 		Admin.RegisterFuncMap("createable_locales", func(context admin.Context) []string {
 			editableLocales := getEditableLocales(context.Request, context.CurrentUser)
-			if _, ok := context.Resource.Value.(LocaleCreateableInterface); ok {
+			if _, ok := context.Resource.Value.(localeCreatableInterface); ok {
 				return editableLocales
 			} else {
 				for _, locale := range editableLocales {
