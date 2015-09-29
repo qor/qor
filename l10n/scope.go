@@ -32,7 +32,7 @@ func setLocale(scope *gorm.Scope, locale string) {
 	}
 }
 
-func getLocale(scope *gorm.Scope) (locale string, ok bool) {
+func getLocale(scope *gorm.Scope) (locale string, isLocale bool) {
 	if str, ok := scope.DB().Get("l10n:locale"); ok {
 		if locale, ok := str.(string); ok {
 			return locale, (locale != Global) && (locale != "")
