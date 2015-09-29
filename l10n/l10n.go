@@ -100,7 +100,7 @@ func (l *Locale) ConfigureQorResource(res *admin.Resource) {
 
 			var languageCodes []string
 			scope := db.NewScope(value)
-			db.New().Set("l10n:mode", "unscoped").Model(value).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
+			db.New().Set("l10n:mode", "unscoped").Model(res.Value).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
 
 			var results string
 			availableLocales := getAvailableLocales(ctx.Request, ctx.CurrentUser)
