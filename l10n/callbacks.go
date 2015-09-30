@@ -62,7 +62,6 @@ func beforeUpdate(scope *gorm.Scope) {
 		switch mode, _ := scope.DB().Get("l10n:mode"); mode {
 		case "unscoped":
 		default:
-			scope.Search.Unscoped = true
 			scope.Search.Where("language_code = ?", locale)
 			setLocale(scope, locale)
 		}
