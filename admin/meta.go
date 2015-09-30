@@ -291,6 +291,7 @@ func (meta *Meta) updateMeta() {
 					if relationship.Kind == "many_to_many" {
 						if !scope.PrimaryKeyZero() {
 							context.GetDB().Model(resource).Association(meta.Alias).Replace(field.Interface())
+							field.Set(reflect.Zero(field.Type()))
 						}
 					}
 				}
