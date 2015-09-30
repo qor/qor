@@ -275,15 +275,23 @@ func (meta *Meta) updateMeta() {
 						}
 					}
 
-					if primaryKeys := utils.ToArray(metaValue.Value); len(primaryKeys) > 0 {
-						// associations not changed for belongs to
-						if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
-							oldPrimaryKeys := utils.ToArray(reflectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
-							if equalAsString(primaryKeys, oldPrimaryKeys) {
-								return
-							}
+					primaryKeys := utils.ToArray(metaValue.Value)
+					// associations not changed for belongs to
+					if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
+						oldPrimaryKeys := utils.ToArray(reflectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
+						// if not changed
+						if equalAsString(primaryKeys, oldPrimaryKeys) {
+							return
 						}
 
+						// if removed
+						if len(primaryKeys) == 0 {
+							field := reflectValue.FieldByName(relationship.ForeignFieldNames[0])
+							field.Set(reflect.Zero(field.Type()))
+						}
+					}
+
+					if len(primaryKeys) > 0 {
 						context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
 					}
 
