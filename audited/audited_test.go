@@ -24,6 +24,7 @@ var db *gorm.DB
 
 func init() {
 	db = utils.TestDB()
+	db.DropTable(&User{}, &Product{})
 	db.AutoMigrate(&User{}, &Product{})
 	audited.RegisterCallbacks(db)
 }
