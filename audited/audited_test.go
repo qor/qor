@@ -31,7 +31,7 @@ func init() {
 func TestCreateUser(t *testing.T) {
 	user := User{Name: "user1"}
 	db.Save(&user)
-	db := db.Set("audited:current_user", user)
+	db := db.Set("qor:current_user", user)
 
 	product := Product{Name: "product1"}
 	db.Save(&product)
