@@ -79,6 +79,13 @@ func afterUpdate(scope *gorm.Scope) {
 				if scope.DB().RowsAffected == 0 && !scope.PrimaryKeyZero() { //is locale and nothing updated
 					var count int
 					var query = fmt.Sprintf("%v.language_code = ? AND %v.%v = ?", scope.QuotedTableName(), scope.QuotedTableName(), scope.PrimaryKey())
+
+					// if enabled soft delete, delete soft deleted records
+					if scope.HasColumn("DeletedAt") {
+						scope.NewDB().Unscoped().Where("deleted_at is not null").Where(query, locale, scope.PrimaryKeyValue()).Delete(scope.Value)
+					}
+
+					// if no localized records exist, localize it
 					if scope.NewDB().Table(scope.TableName()).Where(query, locale, scope.PrimaryKeyValue()).Count(&count); count == 0 {
 						scope.DB().Create(scope.Value)
 					}

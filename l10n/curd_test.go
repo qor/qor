@@ -143,6 +143,13 @@ func TestDelete(t *testing.T) {
 	if dbEN.Delete(&product).RowsAffected != 0 {
 		t.Errorf("Should delete none record in unlocalized locale")
 	}
+
+	// relocalize deleted record
+	dbCN.Save(&product)
+	var count uint
+	if dbCN.Model(&Product{}).Where("code = ? AND name = ?", "Delete", "global").Count(&count); count != 1 {
+		t.Errorf("Should be able to relocalize deleted records, get record %v", count)
+	}
 }
 
 func TestResetLanguageCodeWithGlobalDB(t *testing.T) {

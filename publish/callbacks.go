@@ -83,7 +83,8 @@ func syncDeleteFromProductionToDraft(scope *gorm.Scope) {
 func deleteScope(scope *gorm.Scope) {
 	if !scope.HasError() {
 		_, supportedModel := scope.InstanceGet("publish:supported_model")
-		if supportedModel && IsDraftMode(scope.DB()) {
+
+		if !scope.Search.Unscoped && supportedModel && IsDraftMode(scope.DB()) {
 			scope.Raw(
 				fmt.Sprintf("UPDATE %v SET deleted_at=%v, publish_status=%v %v",
 					scope.QuotedTableName(),
