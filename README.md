@@ -98,3 +98,14 @@ npm install && npm install -g gulp
 	beego.Handler("/admin/*", mux)
 	beego.Run()
 ```
+
+2. How to integrate with [Gin](https://github.com/gin-gonic/gin)
+
+```
+	mux := http.NewServeMux()
+	admin.Admin.MountTo("/admin", mux)
+
+	r := gin.Default()
+	r.Any("/admin/*w", gin.WrapH(mux))
+	r.Run()
+```
