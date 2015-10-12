@@ -116,7 +116,6 @@
       var maxTop = $this.outerHeight() - theadHeight - tbodyLastRowHeight;
       var offsetTop = this.$subHeader.outerHeight() + this.paddingHeight + this.marginBottomPX;
 
-      console.log(this.marginBottomPX);
       if (scrollTop > offsetTop) {
         $clone.css('top', Math.min(scrollTop - offsetTop, maxTop)).removeClass(CLASS_IS_HIDDEN);
       } else {
