@@ -23,7 +23,7 @@
   "devDependencies": {
     "jquery": "~2.1.4",
     "material-design-icons": "~2.0.0",
-    "material-design-lite": "~1.0.4",
+    "material-design-lite": "~1.0.5",
     "html5-boilerplate": "~5.2.0",
     "chosen": "~1.4.2",
     "cropper": "~0.11.1"
