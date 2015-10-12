@@ -43,7 +43,9 @@
       this.$thead = $this.find('thead:first');
       this.$tbody = $this.find('tbody:first');
       this.$header = $(options.header);
+      this.$subHeader = $(options.subHeader);
       this.$content = $(options.content);
+      this.paddingHeight = options.paddingHeight;
 
       this.resize();
       this.bind();
@@ -74,8 +76,6 @@
       if (!$clone) {
         this.$clone = $clone = $thead.clone().prependTo($this);
       }
-
-      this.offsetTop = $this.offset().top - this.$header.outerHeight();
 
       $clone.
         addClass([CLASS_IS_FIXED, CLASS_IS_HIDDEN].join(' ')).
@@ -113,7 +113,7 @@
       var scrollTop = this.$content.scrollTop();
       var minTop = 0;
       var maxTop = $this.outerHeight() - theadHeight - tbodyLastRowHeight;
-      var offsetTop = this.offsetTop;
+      var offsetTop = this.$subHeader.outerHeight() + this.paddingHeight;
 
       if (scrollTop > offsetTop) {
         $clone.css('top', Math.min(scrollTop - offsetTop, maxTop)).removeClass(CLASS_IS_HIDDEN);
@@ -159,7 +159,9 @@
     var selector = '.qor-js-table';
     var options = {
           header: '.mdl-layout__header',
+          subHeader: '.qor-page__header',
           content: '.mdl-layout__content',
+          paddingHeight: 2, // Fix sub header height bug
         };
 
     $(document).
