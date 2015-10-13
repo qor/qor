@@ -235,6 +235,11 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 							conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(field.DBName)))
 							keywords = append(keywords, keyword)
 						}
+					case reflect.Bool:
+						if value, err := strconv.ParseBool(keyword); err == nil {
+							conditions = append(conditions, fmt.Sprintf("%v = ?", scope.Quote(field.DBName)))
+							keywords = append(keywords, value)
+						}
 					case reflect.Struct:
 						// time ?
 						if _, ok := field.Field.Interface().(time.Time); ok {
