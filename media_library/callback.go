@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"mime/multipart"
 
-	"github.com/disintegration/imaging"
+	"gopkg.in/h2non/bimg.v0"
+
 	"github.com/jinzhu/gorm"
 )
 
@@ -54,30 +56,82 @@ func SaveAndCropImage(isCreate bool) func(scope *gorm.Scope) {
 									file.Seek(0, 0)
 
 									// Crop & Resize
-									if img, err := imaging.Decode(file); scope.Err(err) == nil {
-										if format, err := getImageFormat(media.URL()); scope.Err(err) == nil {
-											if cropOption := media.GetCropOption("original"); cropOption != nil {
-												img = imaging.Crop(img, *cropOption)
-											}
+									var buffer bytes.Buffer
+									if _, err := io.Copy(&buffer, file); err != nil {
+										scope.Err(err)
+									}
 
-											// Save default image
-											var buffer bytes.Buffer
-											imaging.Encode(&buffer, img, *format)
-											media.Store(media.URL(), option, &buffer)
+									img := bimg.NewImage(buffer.Bytes())
 
-											for key, size := range media.GetSizes() {
-												newImage := img
-												if cropOption := media.GetCropOption(key); cropOption != nil {
-													newImage = imaging.Crop(newImage, *cropOption)
-												}
+									// Handle original image
+									{
+										bimgOption := bimg.Options{Interlace: true}
 
-												dst := imaging.Thumbnail(newImage, size.Width, size.Height, imaging.Lanczos)
-												var buffer bytes.Buffer
-												imaging.Encode(&buffer, dst, *format)
-												media.Store(media.URL(key), option, &buffer)
-											}
+										// Crop original image if specified
+										if cropOption := media.GetCropOption("original"); cropOption != nil {
+											bimgOption.Top = cropOption.Min.Y
+											bimgOption.Left = cropOption.Min.X
+											bimgOption.AreaWidth = cropOption.Max.X - cropOption.Min.X
+											bimgOption.AreaHeight = cropOption.Max.Y - cropOption.Min.Y
+										}
+
+										// Process & Save original image
+										if buf, err := img.Process(bimgOption); err == nil {
+											media.Store(media.URL(), option, bytes.NewReader(buf))
+										} else {
+											scope.Err(err)
 										}
 									}
+
+									// Handle size images
+									for key, size := range media.GetSizes() {
+										bimgOption := bimg.Options{
+											Interlace: true,
+											Enlarge:   true,
+											Width:     size.Width,
+											Height:    size.Height,
+										}
+
+										if cropOption := media.GetCropOption(key); cropOption != nil {
+											bimgOption.Top = cropOption.Min.Y
+											bimgOption.Left = cropOption.Min.X
+											bimgOption.AreaWidth = cropOption.Max.X - cropOption.Min.X
+											bimgOption.AreaHeight = cropOption.Max.Y - cropOption.Min.Y
+											bimgOption.Crop = true
+										}
+
+										// Process & Save size image
+										if buf, err := img.Process(bimgOption); err == nil {
+											media.Store(media.URL(key), option, bytes.NewReader(buf))
+										} else {
+											scope.Err(err)
+										}
+									}
+
+									// if img, err := imaging.Decode(file); scope.Err(err) == nil {
+									// 	if format, err := getImageFormat(media.URL()); scope.Err(err) == nil {
+									// 		if cropOption := media.GetCropOption("original"); cropOption != nil {
+									// 			img = imaging.Crop(img, *cropOption)
+									// 		}
+
+									// 		// Save default image
+									// 		var buffer bytes.Buffer
+									// 		imaging.Encode(&buffer, img, *format)
+									// 		media.Store(media.URL(), option, &buffer)
+
+									// 		for key, size := range media.GetSizes() {
+									// 			newImage := img
+									// 			if cropOption := media.GetCropOption(key); cropOption != nil {
+									// 				newImage = imaging.Crop(newImage, *cropOption)
+									// 			}
+
+									// 			dst := imaging.Thumbnail(newImage, size.Width, size.Height, imaging.Lanczos)
+									// 			var buffer bytes.Buffer
+									// 			imaging.Encode(&buffer, dst, *format)
+									// 			media.Store(media.URL(key), option, &buffer)
+									// 		}
+									// 	}
+									// }
 								}
 							} else {
 								// Save File
