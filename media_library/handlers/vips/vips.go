@@ -51,11 +51,10 @@ func (bimgImageHandler) Handle(media media_library.MediaLibrary, file multipart.
 
 		// Handle size images
 		for key, size := range media.GetSizes() {
+			img := bimg.NewImage(buffer.Bytes())
+
 			bimgOption := bimg.Options{
 				Interlace: true,
-				Enlarge:   true,
-				Width:     size.Width,
-				Height:    size.Height,
 			}
 
 			if cropOption := media.GetCropOption(key); cropOption != nil {
@@ -64,11 +63,22 @@ func (bimgImageHandler) Handle(media media_library.MediaLibrary, file multipart.
 				bimgOption.AreaWidth = cropOption.Max.X - cropOption.Min.X
 				bimgOption.AreaHeight = cropOption.Max.Y - cropOption.Min.Y
 				bimgOption.Crop = true
+				bimgOption.Force = true
 			}
 
 			// Process & Save size image
-			if buf, err := img.Process(bimgOption); err == nil {
-				media.Store(media.URL(key), option, bytes.NewReader(buf))
+			if _, err := img.Process(bimgOption); err == nil {
+				if buf, err := img.Process(bimg.Options{
+					Width:   size.Width,
+					Height:  size.Height,
+					Crop:    true,
+					Enlarge: true,
+					Force:   true,
+				}); err == nil {
+					media.Store(media.URL(key), option, bytes.NewReader(buf))
+				} else {
+					return err
+				}
 			} else {
 				return err
 			}
