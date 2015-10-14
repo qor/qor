@@ -4,9 +4,9 @@ import (
 	"database/sql/driver"
 	"image"
 	"io"
-	"strings"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/qor/utils"
 
 	"os"
 )
@@ -50,16 +50,6 @@ func (option Option) Get(key string) string {
 }
 
 func parseTagOption(str string) *Option {
-	tags := strings.Split(str, ";")
-	setting := Option{}
-	for _, value := range tags {
-		v := strings.Split(value, ":")
-		k := strings.TrimSpace(strings.ToUpper(v[0]))
-		if len(v) == 2 {
-			setting[k] = v[1]
-		} else {
-			setting[k] = k
-		}
-	}
-	return &setting
+	option := Option(utils.ParseTagOption(str))
+	return &option
 }
