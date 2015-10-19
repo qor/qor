@@ -46,10 +46,13 @@ Worker:
 
 Exchange:
 
-    Exchange := exchange.New()
-    Exchange.Meta{exchange.Meta{Name: , Value:, Setter: }}
-    Exchange.Import(file, logger, context)
-    Exchange.Export(records, writer, logger, context)
+    Exchange := exchange.New(db)
+
+    order := Exchange.NewResource(&Order{})
+    order.Meta{exchange.Meta{Name: , Value:, Setter: }}
+
+    order.Import(file, context)
+    order.Export(db, writer, logger, context)
 
 L10n:
     Admin.AddResource(l10n.Model(&Product{}), Permission: rules.Allow(roles.CRUD, "global_admin", "locale_admin"))
