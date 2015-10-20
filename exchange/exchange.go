@@ -1,9 +1,6 @@
 package exchange
 
 import (
-	"io"
-
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
@@ -29,14 +26,21 @@ func (exchange *Exchange) AddResource(value interface{}) {
 func (res *Resource) Meta(meta Meta) {
 }
 
-func (res *Resource) Import(file interface{}, context qor.Context) {
-	// file To MetaValues
-	// decode to resource
-	// save each value
+func (res *Resource) Import(container Container, context *qor.Context) error {
+	rows, err := container.Rows()
+	if err == nil {
+		for rows.Next() {
+			if metaValues, err := rows.CurrentColumn(); err == nil {
+				resource.DecodeToResource(res, result, metaValues, context).Start()
+			}
+		}
+	}
+	return err
 }
 
-func (res *Resource) Export(scope *gorm.DB, writer io.Writer, logger interface{}, context qor.Context) {
+func (res *Resource) Export(container Container, context *qor.Context) error {
 	// scope to values
 	// write to file
 	// write logger
+	return nil
 }
