@@ -49,10 +49,30 @@ Exchange:
     Exchange := exchange.New(db)
 
     order := Exchange.NewResource(&Order{})
+    order.FindOneHandler = func(interface{}, *MetaValues, *qor.Context) error
+    order.AddValidator(func(interface{}, *MetaValues, *qor.Context) error)
+    order.AddProcessor(func(interface{}, *MetaValues, *qor.Context) error)
     order.Meta{exchange.Meta{Name: , Value:, Setter: }}
 
-    order.Import(file, context)
-    order.Export(db, writer, logger, context)
+    order.ImportHandler = func(result Result, context *qor.Context) {
+      rows, err := results.Rows()
+      for rows.Next() {
+        metaValues := rows.GetMetaValues()
+        rows.Count()
+        result.WriteLog("hello")
+        DecodeToResource(res, result, metaValues, context).Start()
+      }
+    }
+
+    order.ExportHandler = func(result Result, context *qor.Context) {
+      scope.ScanTo(order)
+      order -> Metas
+      result.WriteRow(metas)
+      result.WriteLog("hello")
+    }
+
+    order.Import(results.New("hello.csv"), context)
+    order.Export(results.New("hello.csv"), context)
 
 L10n:
     Admin.AddResource(l10n.Model(&Product{}), Permission: rules.Allow(roles.CRUD, "global_admin", "locale_admin"))

@@ -26,11 +26,17 @@ func (exchange *Exchange) AddResource(value interface{}) {
 	exchange.resources = append(exchange.resources, &res)
 }
 
-func (exchange *Exchange) Import(value interface{}, context qor.Context) {
-}
-
-func (exchange *Exchange) Export(scope *gorm.DB, writer io.Writer, logger interface{}, context qor.Context) {
-}
-
 func (res *Resource) Meta(meta Meta) {
+}
+
+func (res *Resource) Import(file interface{}, context qor.Context) {
+	// file To MetaValues
+	// decode to resource
+	// save each value
+}
+
+func (res *Resource) Export(scope *gorm.DB, writer io.Writer, logger interface{}, context qor.Context) {
+	// scope to values
+	// write to file
+	// write logger
 }
