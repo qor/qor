@@ -54,25 +54,28 @@ Exchange:
     order.AddProcessor(func(interface{}, *MetaValues, *qor.Context) error)
     order.Meta{exchange.Meta{Name: , Value:, Setter: }}
 
-    order.ImportHandler = func(result Result, context *qor.Context) {
-      rows, err := results.Rows()
+    order.ImportHandler = func(container Container, context *qor.Context) {
+      rows, err := container.Rows()
+      // in transaction
       for rows.Next() {
+        // rows.Count()
         metaValues := rows.GetMetaValues()
-        rows.Count()
-        result.WriteLog("hello")
+        container.WriteLog("hello")
         DecodeToResource(res, result, metaValues, context).Start()
+        Save
       }
     }
 
-    order.ExportHandler = func(result Result, context *qor.Context) {
-      scope.ScanTo(order)
-      order -> Metas
-      result.WriteRow(metas)
-      result.WriteLog("hello")
+    order.ExportHandler = func(container Container, context *qor.Context) {
+      1, context.GetDB.ScanTo(order)
+      2, order -> Metas
+      3, container.WriteRow(metas)
+      4, container.WriteLog("hello")
     }
 
-    order.Import(results.New("hello.csv"), context)
-    order.Export(results.New("hello.csv"), context)
+    order.Import(CSVContainer.New("hello.csv"), context)
+    order.Import(ImageContainer.New("uploads/product_images/"), context)
+    order.Export(ExcelContainer.New("hello.xls"), context)
 
 L10n:
     Admin.AddResource(l10n.Model(&Product{}), Permission: rules.Allow(roles.CRUD, "global_admin", "locale_admin"))
