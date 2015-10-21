@@ -73,7 +73,9 @@ func ToArray(value interface{}) (values []string) {
 			values = append(values, fmt.Sprintf("%v", v))
 		}
 	default:
-		values = []string{fmt.Sprintf("%v", value)}
+		if value := fmt.Sprint(value); value != "" {
+			values = []string{fmt.Sprintf("%v", value)}
+		}
 	}
 	return
 }
