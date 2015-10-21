@@ -19,7 +19,7 @@ type CSV struct {
 }
 
 func (c *CSV) Rows(res *exchange.Resource) (exchange.Rows, error) {
-	var rows = Rows{CSV: c}
+	var rows = Rows{CSV: c, Resource: res}
 
 	csvfile, err := os.Open(c.Filename)
 	if err == nil {
@@ -40,11 +40,13 @@ func (csv *CSV) WriteLog(string) {
 
 type Rows struct {
 	*CSV
-	current int
-	total   int
+	Resource *exchange.Resource
+	current  int
+	total    int
 }
 
 func (rows Rows) Columns() []string {
+	metas := rows.Resource.GetMetas([]string{})
 	if rows.total > 0 {
 		return rows.records[0]
 	}

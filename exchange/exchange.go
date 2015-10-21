@@ -20,14 +20,11 @@ func New(config qor.Config) *Exchange {
 type Resource struct {
 	resource.Resource
 	Config *Config
+	metas  []*Meta
 }
 
 type Config struct {
 	Permission *roles.Permission
-}
-
-type Meta struct {
-	Name string
 }
 
 func NewResource(value interface{}, config ...Config) *Resource {
@@ -38,15 +35,17 @@ func NewResource(value interface{}, config ...Config) *Resource {
 	return &res
 }
 
-func (exchange *Exchange) AddResource(value interface{}, config ...Config) {
-	res := Resource{Resource: *resource.New(value)}
-	if len(config) > 0 {
-		res.Config = &config[0]
-	}
-	exchange.resources = append(exchange.resources, &res)
+func (res *Resource) Meta(meta Meta) *Meta {
+	res.metas = append(res.metas, &meta)
+	return &meta
 }
 
-func (res *Resource) Meta(meta Meta) {
+func (res *Resource) GetMetas([]string) []resource.Metaor {
+	metas := []resource.Metaor{}
+	for _, meta := range res.metas {
+		metas = append(metas, meta)
+	}
+	return metas
 }
 
 func (res *Resource) Import(container Container, context *qor.Context) error {
