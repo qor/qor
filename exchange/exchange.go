@@ -50,7 +50,7 @@ func (res *Resource) Meta(meta Meta) {
 }
 
 func (res *Resource) Import(container Container, context *qor.Context) error {
-	rows, err := container.Rows()
+	rows, err := container.Rows(res)
 	if err == nil {
 		for rows.Next() {
 			if metaValues, err := rows.CurrentColumn(); err == nil {
