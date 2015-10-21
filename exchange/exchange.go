@@ -1,6 +1,8 @@
 package exchange
 
 import (
+	"reflect"
+
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
@@ -45,8 +47,16 @@ func (res *Resource) Import(container Container, context *qor.Context) error {
 }
 
 func (res *Resource) Export(container Container, context *qor.Context) error {
-	// scope to values
-	// write to file
-	// write logger
+	results := res.NewSlice()
+	if err := context.GetDB().Find(results).Error; err == nil {
+
+		reflectValue := reflect.ValueOf(results)
+		for i := 0; i < reflectValue.Len(); i++ {
+			var metaValues *resource.MetaValues
+			container.WriteRow(metaValues)
+		}
+	} else {
+		return err
+	}
 	return nil
 }
