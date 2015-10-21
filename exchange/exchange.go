@@ -31,7 +31,13 @@ func (res *Resource) Import(container Container, context *qor.Context) error {
 	if err == nil {
 		for rows.Next() {
 			if metaValues, err := rows.CurrentColumn(); err == nil {
-				resource.DecodeToResource(res, result, metaValues, context).Start()
+				result := res.NewStruct()
+				res.FindOneHandler(result, metaValues, context)
+				if err = resource.DecodeToResource(res, result, metaValues, context).Start(); err == nil {
+					if err = res.CallSaver(result, context); err != nil {
+						return err
+					}
+				}
 			}
 		}
 	}
