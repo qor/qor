@@ -5,6 +5,7 @@ import (
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
+	"github.com/qor/qor/roles"
 )
 
 type Exchange struct {
@@ -12,16 +13,36 @@ type Exchange struct {
 	resources []*Resource
 }
 
+func New(config qor.Config) *Exchange {
+	return &Exchange{Config: &config}
+}
+
 type Resource struct {
 	resource.Resource
+	Config *Config
+}
+
+type Config struct {
+	Permission *roles.Permission
 }
 
 type Meta struct {
 	Name string
 }
 
-func (exchange *Exchange) AddResource(value interface{}) {
+func NewResource(value interface{}, config ...Config) *Resource {
 	res := Resource{Resource: *resource.New(value)}
+	if len(config) > 0 {
+		res.Config = &config[0]
+	}
+	return &res
+}
+
+func (exchange *Exchange) AddResource(value interface{}, config ...Config) {
+	res := Resource{Resource: *resource.New(value)}
+	if len(config) > 0 {
+		res.Config = &config[0]
+	}
 	exchange.resources = append(exchange.resources, &res)
 }
 
