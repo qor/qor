@@ -9,12 +9,12 @@ type Container interface {
 }
 
 type Rows interface {
-	Columns() []string
-	CurrentColumn() (*resource.MetaValues, error)
+	Header() []string
+	ReadRow() (*resource.MetaValues, error)
 	Next() bool
 }
 
 type Writer interface {
-	WriterHeader() error
+	WriteHeader() error
 	WriteRow(*resource.MetaValues) error
 }

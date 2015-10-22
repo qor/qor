@@ -65,7 +65,7 @@ func (res *Resource) Import(container Container, context *qor.Context) error {
 	rows, err := container.NewReader(res)
 	if err == nil {
 		for rows.Next() {
-			if metaValues, err := rows.CurrentColumn(); err == nil {
+			if metaValues, err := rows.ReadRow(); err == nil {
 				result := res.NewStruct()
 				res.FindOneHandler(result, metaValues, context)
 				if err = resource.DecodeToResource(res, result, metaValues, context).Start(); err == nil {

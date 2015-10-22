@@ -13,7 +13,7 @@ func (c *CSV) NewWriter(res *exchange.Resource) (exchange.Writer, error) {
 type Writer struct {
 }
 
-func (*Writer) WriterHeader() error {
+func (*Writer) WriteHeader() error {
 	return nil
 }
 

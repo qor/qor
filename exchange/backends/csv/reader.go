@@ -34,7 +34,7 @@ type Rows struct {
 	total    int
 }
 
-func (rows Rows) Columns() (results []string) {
+func (rows Rows) Header() (results []string) {
 	if rows.total > 0 {
 		if rows.Resource.Config.WithoutHeader {
 			for i := 0; i <= len(rows.records[0]); i++ {
@@ -55,9 +55,9 @@ func (rows *Rows) Next() bool {
 	return false
 }
 
-func (rows Rows) CurrentColumn() (*resource.MetaValues, error) {
+func (rows Rows) ReadRow() (*resource.MetaValues, error) {
 	var metaValues resource.MetaValues
-	columns := rows.Columns()
+	columns := rows.Header()
 
 	for index, column := range columns {
 		metaValue := resource.MetaValue{
