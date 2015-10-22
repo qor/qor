@@ -1,6 +1,8 @@
 package exchange_test
 
 import (
+	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/jinzhu/gorm"
@@ -28,7 +30,11 @@ func init() {
 		resource.(*Product).Name = metaValue.Value.(string)
 	}})
 	product.Meta(exchange.Meta{Name: "Price", Setter: func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-		resource.(*Product).Price = metaValue.Value.(float64)
+		if value, err := strconv.ParseFloat(metaValue.Value.(string), 64); err == nil {
+			resource.(*Product).Price = value
+		} else {
+			fmt.Println(err)
+		}
 	}})
 }
 
@@ -40,6 +46,7 @@ func TestImportCSV(t *testing.T) {
 
 	var products []Product
 	db.Find(&products)
+	fmt.Printf("%+v\n", products[0])
 	if len(products) != 3 {
 		t.Errorf("Failed to find importted products, got %v", len(products))
 	}

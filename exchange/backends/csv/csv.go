@@ -25,6 +25,7 @@ func (c *CSV) Rows(res *exchange.Resource) (exchange.Rows, error) {
 	if err == nil {
 		defer csvfile.Close()
 		reader := csv.NewReader(csvfile)
+		reader.TrimLeadingSpace = true
 		rows.records, err = reader.ReadAll()
 		rows.total = len(rows.records)
 		if res.Config.WithoutHeader {
