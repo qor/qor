@@ -5,11 +5,12 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/qor/qor"
 	"github.com/qor/qor/exchange"
 	"github.com/qor/qor/resource"
 )
 
-func (c *CSV) NewReader(res *exchange.Resource) (exchange.Rows, error) {
+func (c *CSV) NewReader(res *exchange.Resource, context *qor.Context) (exchange.Rows, error) {
 	var rows = Rows{CSV: c, Resource: res}
 
 	csvfile, err := os.Open(c.Filename)

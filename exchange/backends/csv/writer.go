@@ -4,12 +4,22 @@ import (
 	"encoding/csv"
 	"os"
 
+	"github.com/qor/qor"
 	"github.com/qor/qor/exchange"
 	"github.com/qor/qor/resource"
+	"github.com/qor/qor/roles"
 )
 
-func (c *CSV) NewWriter(res *exchange.Resource) (exchange.Writer, error) {
-	writer := &Writer{CSV: c, Resource: res, metas: res.GetMetas([]string{})}
+func (c *CSV) NewWriter(res *exchange.Resource, context *qor.Context) (exchange.Writer, error) {
+	writer := &Writer{CSV: c, Resource: res}
+
+	var metas []resource.Metaor
+	for _, meta := range res.GetMetas([]string{}) {
+		if meta.HasPermission(roles.Read, context) {
+			metas = append(metas, meta)
+		}
+	}
+	writer.metas = metas
 
 	csvfile, err := os.OpenFile(c.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err == nil {
@@ -38,9 +48,12 @@ func (writer *Writer) WriteHeader() error {
 }
 
 func (writer *Writer) WriteRow(record interface{}) error {
+	var results []string
 	for _, meta := range writer.metas {
-		meta.GetName()
+		// FIXME value of meta
+		results = append(results, meta.GetName())
 	}
+	writer.Writer.Write(results)
 	return nil
 }
 

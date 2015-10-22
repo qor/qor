@@ -62,7 +62,7 @@ func (res *Resource) GetMetas([]string) []resource.Metaor {
 }
 
 func (res *Resource) Import(container Container, context *qor.Context) error {
-	rows, err := container.NewReader(res)
+	rows, err := container.NewReader(res, context)
 	if err == nil {
 		for rows.Next() {
 			if metaValues, err := rows.ReadRow(); err == nil {
@@ -84,7 +84,7 @@ func (res *Resource) Export(container Container, context *qor.Context) error {
 
 	if err := context.GetDB().Find(results).Error; err == nil {
 		reflectValue := reflect.Indirect(reflect.ValueOf(results))
-		if writer, err := container.NewWriter(res); err == nil {
+		if writer, err := container.NewWriter(res, context); err == nil {
 			writer.WriteHeader()
 			for i := 0; i < reflectValue.Len(); i++ {
 				var result = reflectValue.Index(i).Interface()

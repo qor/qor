@@ -1,10 +1,13 @@
 package exchange
 
-import "github.com/qor/qor/resource"
+import (
+	"github.com/qor/qor"
+	"github.com/qor/qor/resource"
+)
 
 type Container interface {
-	NewReader(*Resource) (Rows, error)
-	NewWriter(*Resource) (Writer, error)
+	NewReader(*Resource, *qor.Context) (Rows, error)
+	NewWriter(*Resource, *qor.Context) (Writer, error)
 	WriteLog(string)
 }
 
