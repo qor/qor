@@ -39,6 +39,7 @@ func NewResource(value interface{}, config ...Config) *Resource {
 }
 
 func (res *Resource) Meta(meta Meta) *Meta {
+	meta.updateMeta()
 	res.metas = append(res.metas, &meta)
 	return &meta
 }

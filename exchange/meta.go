@@ -1,13 +1,17 @@
 package exchange
 
 import (
+	"reflect"
+
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
+	"github.com/qor/qor/utils"
 )
 
 type Meta struct {
 	Name       string
+	Header     string
 	Valuer     func(interface{}, *qor.Context) interface{}
 	Setter     func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context)
 	Permission *roles.Permission
@@ -43,4 +47,10 @@ func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context)
 		return true
 	}
 	return meta.Permission.HasPermission(mode, context.Roles...)
+}
+
+func (meta *Meta) updateMeta() {
+	if meta.Name == "" {
+		utils.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
+	}
 }

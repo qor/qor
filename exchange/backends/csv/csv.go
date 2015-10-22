@@ -27,8 +27,8 @@ func (c *CSV) Rows(res *exchange.Resource) (exchange.Rows, error) {
 		reader := csv.NewReader(csvfile)
 		rows.records, err = reader.ReadAll()
 		rows.total = len(rows.records)
-		if !res.Config.WithoutHeader {
-			rows.current = 1
+		if res.Config.WithoutHeader {
+			rows.current = -1
 		}
 	}
 
@@ -69,7 +69,9 @@ func (rows Rows) CurrentColumn() (*resource.MetaValues, error) {
 		metaValue := resource.MetaValue{
 			Name:  column,
 			Value: rows.records[rows.current][index],
-			Meta:  rows.Resource.GetMeta(column),
+		}
+		if meta := rows.Resource.GetMeta(column); meta != nil {
+			metaValue.Meta = meta
 		}
 		metaValues.Values = append(metaValues.Values, &metaValue)
 	}
