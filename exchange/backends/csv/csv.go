@@ -2,8 +2,8 @@ package csv
 
 import (
 	"encoding/csv"
-	"errors"
 	"os"
+	"strconv"
 
 	"github.com/qor/qor/exchange"
 	"github.com/qor/qor/resource"
@@ -27,6 +27,9 @@ func (c *CSV) Rows(res *exchange.Resource) (exchange.Rows, error) {
 		reader := csv.NewReader(csvfile)
 		rows.records, err = reader.ReadAll()
 		rows.total = len(rows.records)
+		if !res.Config.WithoutHeader {
+			rows.current = 1
+		}
 	}
 
 	return &rows, err
@@ -45,20 +48,37 @@ type Rows struct {
 	total    int
 }
 
-func (rows Rows) Columns() []string {
-	metas := rows.Resource.GetMetas([]string{})
+func (rows Rows) Columns() (results []string) {
 	if rows.total > 0 {
-		return rows.records[0]
+		if rows.Resource.Config.WithoutHeader {
+			for i := 0; i <= len(rows.records[0]); i++ {
+				results = append(results, strconv.Itoa(i))
+			}
+		} else {
+			return rows.records[0]
+		}
 	}
-	return []string{}
+	return
 }
 
-func (Rows) CurrentColumn() (*resource.MetaValues, error) {
-	return nil, errors.New("not implemented")
+func (rows Rows) CurrentColumn() (*resource.MetaValues, error) {
+	var metaValues resource.MetaValues
+	columns := rows.Columns()
+
+	for index, column := range columns {
+		metaValue := resource.MetaValue{
+			Name:  column,
+			Value: rows.records[rows.current][index],
+			Meta:  rows.Resource.GetMeta(column),
+		}
+		metaValues.Values = append(metaValues.Values, &metaValue)
+	}
+
+	return &metaValues, nil
 }
 
 func (rows *Rows) Next() bool {
-	if rows.total > rows.current {
+	if rows.total > rows.current+1 {
 		rows.current += 1
 		return true
 	}

@@ -24,13 +24,16 @@ type Resource struct {
 }
 
 type Config struct {
-	Permission *roles.Permission
+	Permission    *roles.Permission
+	WithoutHeader bool
 }
 
 func NewResource(value interface{}, config ...Config) *Resource {
 	res := Resource{Resource: *resource.New(value)}
 	if len(config) > 0 {
 		res.Config = &config[0]
+	} else {
+		res.Config = &Config{}
 	}
 	return &res
 }
@@ -38,6 +41,15 @@ func NewResource(value interface{}, config ...Config) *Resource {
 func (res *Resource) Meta(meta Meta) *Meta {
 	res.metas = append(res.metas, &meta)
 	return &meta
+}
+
+func (res *Resource) GetMeta(name string) *Meta {
+	for _, meta := range res.metas {
+		if meta.Name == name {
+			return meta
+		}
+	}
+	return nil
 }
 
 func (res *Resource) GetMetas([]string) []resource.Metaor {
