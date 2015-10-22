@@ -44,10 +44,10 @@ func TestImportCSV(t *testing.T) {
 		t.Fatalf("Failed to import csv, get error %v", err)
 	}
 
-	var products []Product
-	db.Find(&products)
-	fmt.Printf("%+v\n", products[0])
-	if len(products) != 3 {
-		t.Errorf("Failed to find importted products, got %v", len(products))
+	params := [][]interface{}{{"P001", "Product P001", 100}, {"P002", "Product P002", 200}, {"P003", "Product P003", 300}}
+	for _, param := range params {
+		if db.Where("code = ? AND name = ? AND price = ?", param...).First(&Product{}).RecordNotFound() {
+			t.Errorf("Failed to find product", params)
+		}
 	}
 }
