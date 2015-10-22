@@ -51,3 +51,12 @@ func TestImportCSV(t *testing.T) {
 		}
 	}
 }
+
+func TestExportCSV(t *testing.T) {
+	context := &qor.Context{DB: db}
+	product.Import(csv.New("fixtures/products.csv"), context)
+
+	if err := product.Export(csv.New("fixtures/products2.csv"), context); err != nil {
+		t.Fatalf("Failed to export csv, get error %v", err)
+	}
+}
