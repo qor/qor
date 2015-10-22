@@ -84,11 +84,17 @@ func (res *Resource) Export(container Container, context *qor.Context) error {
 
 	if err := context.GetDB().Find(results).Error; err == nil {
 		reflectValue := reflect.Indirect(reflect.ValueOf(results))
-		for i := 0; i < reflectValue.Len(); i++ {
-			// var metaValues *resource.MetaValues
-			// if err := container.WriteRow(metaValues); err != nil {
-			// 	return err
-			// }
+		if writer, err := container.NewWriter(res); err == nil {
+			writer.WriteHeader()
+			for i := 0; i < reflectValue.Len(); i++ {
+				var result = reflectValue.Index(i).Interface()
+				if err := writer.WriteRow(result); err != nil {
+					return err
+				}
+			}
+			writer.Flush()
+		} else {
+			return err
 		}
 	} else {
 		return err
