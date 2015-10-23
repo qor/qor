@@ -2,6 +2,7 @@ package csv
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 
 	"github.com/qor/qor"
@@ -11,7 +12,7 @@ import (
 )
 
 func (c *CSV) NewWriter(res *exchange.Resource, context *qor.Context) (exchange.Writer, error) {
-	writer := &Writer{CSV: c, Resource: res}
+	writer := &Writer{CSV: c, Resource: res, context: context}
 
 	var metas []resource.Metaor
 	for _, meta := range res.GetMetas([]string{}) {
@@ -31,6 +32,7 @@ func (c *CSV) NewWriter(res *exchange.Resource, context *qor.Context) (exchange.
 
 type Writer struct {
 	*CSV
+	context  *qor.Context
 	Resource *exchange.Resource
 	Writer   *csv.Writer
 	metas    []resource.Metaor
@@ -50,8 +52,7 @@ func (writer *Writer) WriteHeader() error {
 func (writer *Writer) WriteRow(record interface{}) error {
 	var results []string
 	for _, meta := range writer.metas {
-		// FIXME value of meta
-		results = append(results, meta.GetName())
+		results = append(results, fmt.Sprint(meta.GetValuer()(record, writer.context)))
 	}
 	writer.Writer.Write(results)
 	return nil

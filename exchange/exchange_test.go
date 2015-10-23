@@ -25,9 +25,13 @@ func init() {
 	product = exchange.NewResource(&Product{})
 	product.Meta(exchange.Meta{Name: "Code", Setter: func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
 		resource.(*Product).Code = metaValue.Value.(string)
+	}, Valuer: func(resource interface{}, context *qor.Context) interface{} {
+		return resource.(*Product).Code
 	}})
 	product.Meta(exchange.Meta{Name: "Name", Setter: func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
 		resource.(*Product).Name = metaValue.Value.(string)
+	}, Valuer: func(resource interface{}, context *qor.Context) interface{} {
+		return resource.(*Product).Name
 	}})
 	product.Meta(exchange.Meta{Name: "Price", Setter: func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
 		if value, err := strconv.ParseFloat(metaValue.Value.(string), 64); err == nil {
@@ -35,6 +39,8 @@ func init() {
 		} else {
 			fmt.Println(err)
 		}
+	}, Valuer: func(resource interface{}, context *qor.Context) interface{} {
+		return resource.(*Product).Price
 	}})
 }
 

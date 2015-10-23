@@ -26,7 +26,6 @@ func (meta *Meta) GetFieldName() string {
 }
 
 func (meta *Meta) GetMetas() []resource.Metaor {
-	// FIXME
 	return []resource.Metaor{}
 }
 
@@ -35,7 +34,24 @@ func (meta *Meta) GetResource() resource.Resourcer {
 }
 
 func (meta *Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
-	return meta.Valuer
+	return func(record interface{}, context *qor.Context) interface{} {
+		if valuer := meta.Valuer; valuer != nil {
+			result := valuer(record, context)
+
+			if reflectValue := reflect.ValueOf(result); reflectValue.IsValid() {
+				if reflectValue.Kind() == reflect.Ptr {
+					if reflectValue.IsNil() || !reflectValue.Elem().IsValid() {
+						return nil
+					}
+
+					result = reflectValue.Elem().Interface()
+				}
+
+				return result
+			}
+		}
+		return nil
+	}
 }
 
 func (meta *Meta) GetSetter() func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
