@@ -280,7 +280,7 @@ func (meta *Meta) updateMeta() {
 					if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
 						oldPrimaryKeys := utils.ToArray(reflectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
 						// if not changed
-						if equalAsString(primaryKeys, oldPrimaryKeys) {
+						if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
 							return
 						}
 
