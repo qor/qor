@@ -16,8 +16,8 @@ type Resource struct {
 	Value           interface{}
 	FindManyHandler func(interface{}, *qor.Context) error
 	FindOneHandler  func(interface{}, *MetaValues, *qor.Context) error
-	Saver           func(interface{}, *qor.Context) error
-	Deleter         func(interface{}, *qor.Context) error
+	SaveHandler     func(interface{}, *qor.Context) error
+	DeleteHandler   func(interface{}, *qor.Context) error
 	validators      []func(interface{}, *MetaValues, *qor.Context) error
 	processors      []func(interface{}, *MetaValues, *qor.Context) error
 }
@@ -38,8 +38,11 @@ func New(value interface{}) *Resource {
 	typeName := structType.String()
 	name := structType.Name()
 
-	res := &Resource{Value: value, Name: name, StructType: typeName, Saver: DefaultSaver, FindManyHandler: DefaultSearcher, Deleter: DefaultDeleter}
-	res.FindOneHandler = res.finder
+	res := &Resource{Value: value, Name: name, StructType: typeName}
+	res.FindOneHandler = res.findOneHandler
+	res.FindManyHandler = res.findManyHandler
+	res.SaveHandler = res.saveHandler
+	res.DeleteHandler = res.deleteHandler
 
 	return res
 }
