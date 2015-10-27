@@ -36,7 +36,9 @@ func New(value interface{}) *Resource {
 	typeName := structType.String()
 	name := structType.Name()
 
-	res := &Resource{Value: value, Name: name, StructType: typeName, Saver: DefaultSaver, FindOneHandler: DefaultFinder, FindManyHandler: DefaultSearcher, Deleter: DefaultDeleter}
+	res := &Resource{Value: value, Name: name, StructType: typeName, Saver: DefaultSaver, FindManyHandler: DefaultSearcher, Deleter: DefaultDeleter}
+	res.FindOneHandler = res.finder
+
 	return res
 }
 

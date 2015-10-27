@@ -1,15 +1,12 @@
 package admin
 
 import (
-	"errors"
-	"fmt"
 	"reflect"
 	"text/template"
 
 	"github.com/qor/inflection"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
 )
 
 const (
@@ -62,28 +59,6 @@ func (admin *Admin) GetRouter() *Router {
 	return admin.router
 }
 
-func (res *Resource) finder(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
-	var primaryKey string
-	if metaValues == nil {
-		primaryKey = context.ResourceID
-	} else if id := metaValues.Get(res.PrimaryFieldName()); id != nil {
-		primaryKey = utils.ToString(id.Value)
-	}
-
-	if primaryKey != "" {
-		if metaValues != nil {
-			if destroy := metaValues.Get("_destroy"); destroy != nil {
-				if fmt.Sprintf("%v", destroy.Value) != "0" {
-					context.GetDB().Delete(result, primaryKey)
-					return resource.ErrProcessorSkipLeft
-				}
-			}
-		}
-		return context.GetDB().First(result, primaryKey).Error
-	}
-	return errors.New("failed to find")
-}
-
 func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource {
 	var configuration *Config
 	if len(config) > 0 {
@@ -101,7 +76,6 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		filters:     map[string]*Filter{},
 		admin:       admin,
 	}
-	res.FindOneHandler = res.finder
 
 	if configuration.PageCount == 0 {
 		configuration.PageCount = DEFAULT_PAGE_COUNT
