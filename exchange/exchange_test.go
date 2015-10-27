@@ -39,8 +39,10 @@ func checkProduct(t *testing.T, filename string) {
 			continue
 		}
 		var count int
-		if db.Model(&Product{}).Where("code = ? AND name = ? AND price = ?", param[0], param[1], param[2]).Count(&count); count != 1 {
-			t.Errorf("Failed to find product", params)
+		if db.Model(&Product{}).Where("code = ?", param[0]).Count(&count); count != 1 {
+			t.Errorf("Found %v with code %v, but should find one (%v)", count, param[0], filename)
+		} else if db.Model(&Product{}).Where("code = ? AND name = ? AND price = ?", param[0], param[1], param[2]).Count(&count); count != 1 {
+			t.Errorf("Found %v with params %v, but should find one (%v)", count, param, filename)
 		}
 	}
 }
@@ -52,6 +54,12 @@ func TestImportCSV(t *testing.T) {
 	}
 
 	checkProduct(t, "fixtures/products.csv")
+
+	if err := product.Import(csv_adaptor.New("fixtures/products_update.csv"), context); err != nil {
+		t.Fatalf("Failed to import csv, get error %v", err)
+	}
+
+	checkProduct(t, "fixtures/products_update.csv")
 }
 
 func TestExportCSV(t *testing.T) {
