@@ -12,10 +12,13 @@ import (
 
 func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, context *qor.Context) error {
 	if res.HasPermission(roles.Read, context) {
+		primaryField := res.PrimaryField()
+		scope := context.GetDB().NewScope(res.Value)
+
 		var primaryKey string
 		if metaValues == nil {
 			primaryKey = context.ResourceID
-		} else if id := metaValues.Get(res.PrimaryFieldName()); id != nil {
+		} else if id := metaValues.Get(primaryField.Name); id != nil {
 			primaryKey = utils.ToString(id.Value)
 		}
 
@@ -23,12 +26,12 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 			if metaValues != nil {
 				if destroy := metaValues.Get("_destroy"); destroy != nil {
 					if fmt.Sprint(destroy.Value) != "0" {
-						context.GetDB().Delete(result, primaryKey)
+						context.GetDB().Delete(result, fmt.Sprintf("%v = ?", scope.Quote(primaryField.DBName)), primaryKey)
 						return ErrProcessorSkipLeft
 					}
 				}
 			}
-			return context.GetDB().First(result, primaryKey).Error
+			return context.GetDB().First(result, fmt.Sprintf("%v = ?", scope.Quote(primaryField.DBName)), primaryKey).Error
 		}
 		return errors.New("failed to find")
 	} else {

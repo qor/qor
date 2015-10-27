@@ -1,10 +1,7 @@
 package exchange_test
 
-import "github.com/jinzhu/gorm"
-
 type Product struct {
-	gorm.Model
-	Code  string
+	Code  string `gorm:"primary_key" sql:"size:100"`
 	Name  string
 	Price float64
 }
