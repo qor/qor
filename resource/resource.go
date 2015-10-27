@@ -5,11 +5,13 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
+	"github.com/qor/qor/roles"
 )
 
 type Resource struct {
 	Name            string
 	StructType      string
+	Permission      *roles.Permission
 	primaryField    *gorm.Field
 	Value           interface{}
 	FindManyHandler func(interface{}, *qor.Context) error
@@ -92,4 +94,11 @@ func (res *Resource) NewStruct() interface{} {
 
 func (res *Resource) GetMetas([]string) []Metaor {
 	panic("not defined")
+}
+
+func (res *Resource) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
+	if res == nil || res.Permission == nil {
+		return true
+	}
+	return res.Permission.HasPermission(mode, context.Roles...)
 }

@@ -36,7 +36,7 @@ func (res *Resource) finder(result interface{}, metaValues *MetaValues, context 
 	if primaryKey != "" {
 		if metaValues != nil {
 			if destroy := metaValues.Get("_destroy"); destroy != nil {
-				if fmt.Sprintf("%v", destroy.Value) != "0" {
+				if fmt.Sprint(destroy.Value) != "0" {
 					context.GetDB().Delete(result, primaryKey)
 					return ErrProcessorSkipLeft
 				}

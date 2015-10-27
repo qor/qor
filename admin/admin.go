@@ -77,6 +77,8 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		admin:       admin,
 	}
 
+	res.Permission = configuration.Permission
+
 	if configuration.PageCount == 0 {
 		configuration.PageCount = DEFAULT_PAGE_COUNT
 	}
