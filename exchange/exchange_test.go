@@ -2,13 +2,17 @@ package exchange_test
 
 import (
 	"encoding/csv"
+	"errors"
+	"fmt"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/exchange"
 	csv_adaptor "github.com/qor/qor/exchange/backends/csv"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/test/utils"
 )
 
@@ -25,6 +29,10 @@ func init() {
 	product.Meta(exchange.Meta{Name: "Code"})
 	product.Meta(exchange.Meta{Name: "Name"})
 	product.Meta(exchange.Meta{Name: "Price"})
+}
+
+func newContext() *qor.Context {
+	return &qor.Context{DB: db}
 }
 
 func checkProduct(t *testing.T, filename string) {
@@ -48,14 +56,13 @@ func checkProduct(t *testing.T, filename string) {
 }
 
 func TestImportCSV(t *testing.T) {
-	context := &qor.Context{DB: db}
-	if err := product.Import(csv_adaptor.New("fixtures/products.csv"), context); err != nil {
+	if err := product.Import(csv_adaptor.New("fixtures/products.csv"), newContext()); err != nil {
 		t.Fatalf("Failed to import csv, get error %v", err)
 	}
 
 	checkProduct(t, "fixtures/products.csv")
 
-	if err := product.Import(csv_adaptor.New("fixtures/products_update.csv"), context); err != nil {
+	if err := product.Import(csv_adaptor.New("fixtures/products_update.csv"), newContext()); err != nil {
 		t.Fatalf("Failed to import csv, get error %v", err)
 	}
 
@@ -63,10 +70,35 @@ func TestImportCSV(t *testing.T) {
 }
 
 func TestExportCSV(t *testing.T) {
-	context := &qor.Context{DB: db}
-	product.Import(csv_adaptor.New("fixtures/products.csv"), context)
+	product.Import(csv_adaptor.New("fixtures/products.csv"), newContext())
 
-	if err := product.Export(csv_adaptor.New("fixtures/products2.csv"), context); err != nil {
+	if err := product.Export(csv_adaptor.New("fixtures/products2.csv"), newContext()); err != nil {
 		t.Fatalf("Failed to export csv, get error %v", err)
+	}
+}
+
+func TestImportWithInvalidData(t *testing.T) {
+	product = exchange.NewResource(&Product{}, exchange.Config{PrimaryField: "Code"})
+	product.Meta(exchange.Meta{Name: "Code"})
+	product.Meta(exchange.Meta{Name: "Name"})
+	product.Meta(exchange.Meta{Name: "Price"})
+
+	product.AddValidator(func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+		if f, err := strconv.ParseFloat(fmt.Sprint(metaValues.Get("Price").Value), 64); err == nil {
+			if f == 0 {
+				return errors.New("product's price can't be env")
+			}
+			return nil
+		} else {
+			return err
+		}
+	})
+
+	if err := product.Import(csv_adaptor.New("fixtures/products.csv"), newContext()); err != nil {
+		t.Errorf("Failed to import product, get error", err)
+	}
+
+	if err := product.Import(csv_adaptor.New("fixtures/invalid_price_products.csv"), newContext()); err == nil {
+		t.Errorf("should get error when import products with invalid price")
 	}
 }

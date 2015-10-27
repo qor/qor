@@ -35,3 +35,22 @@ P001, Product P001, 100
 P002, Product P002, 200
 P003, Product P003, 300
 ```
+
+## Advanced Usage
+
+* Add Validations
+
+```go
+product.AddValidator(func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+  if f, err := strconv.ParseFloat(fmt.Sprint(metaValues.Get("Price").Value), 64); err == nil {
+    if f == 0 {
+      return errors.New("product's price can't be env")
+    }
+    return nil
+  } else {
+    return err
+  }
+})
+```
+
+* Progress data before save
