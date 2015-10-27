@@ -53,4 +53,12 @@ product.AddValidator(func(result interface{}, metaValues *resource.MetaValues, c
 })
 ```
 
-* Progress data before save
+* Process data before save
+
+```go
+product.AddProcessor(func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+  product := result.(*Product)
+  product.Price = product.Price * 1.1 // Add 10% Tax
+  return nil
+})
+```

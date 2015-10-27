@@ -102,3 +102,22 @@ func TestImportWithInvalidData(t *testing.T) {
 		t.Errorf("should get error when import products with invalid price")
 	}
 }
+
+func TestProcessImportedData(t *testing.T) {
+	product = exchange.NewResource(&Product{}, exchange.Config{PrimaryField: "Code"})
+	product.Meta(exchange.Meta{Name: "Code"})
+	product.Meta(exchange.Meta{Name: "Name"})
+	product.Meta(exchange.Meta{Name: "Price"})
+
+	product.AddProcessor(func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+		product := result.(*Product)
+		product.Price = float64(int(product.Price * 1.1)) // Add 10% Tax
+		return nil
+	})
+
+	if err := product.Import(csv_adaptor.New("fixtures/products.csv"), newContext()); err != nil {
+		t.Errorf("Failed to import product, get error", err)
+	}
+
+	checkProduct(t, "fixtures/products_with_tax.csv")
+}
