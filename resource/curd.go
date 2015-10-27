@@ -55,10 +55,10 @@ func (res *Resource) CallFindMany(result interface{}, context *qor.Context) erro
 	return res.FindManyHandler(result, context)
 }
 
-func (res *Resource) CallSaver(result interface{}, context *qor.Context) error {
+func (res *Resource) CallSave(result interface{}, context *qor.Context) error {
 	return res.SaveHandler(result, context)
 }
 
-func (res *Resource) CallDeleter(result interface{}, context *qor.Context) error {
+func (res *Resource) CallDelete(result interface{}, context *qor.Context) error {
 	return res.DeleteHandler(result, context)
 }

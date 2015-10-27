@@ -70,7 +70,7 @@ func (res *Resource) Import(container Container, context *qor.Context) error {
 				result := res.NewStruct()
 				res.FindOneHandler(result, metaValues, context)
 				if err = resource.DecodeToResource(res, result, metaValues, context).Start(); err == nil {
-					if err = res.CallSaver(result, context); err != nil {
+					if err = res.CallSave(result, context); err != nil {
 						return err
 					}
 				}

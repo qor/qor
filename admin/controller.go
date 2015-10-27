@@ -85,7 +85,7 @@ func (ac *controller) Create(context *Context) {
 		res := context.Resource
 		result := res.NewStruct()
 		if context.AddError(res.Decode(context.Context, result)); !context.HasError() {
-			context.AddError(res.CallSaver(result, context.Context))
+			context.AddError(res.CallSave(result, context.Context))
 		}
 
 		if context.HasError() {
@@ -120,7 +120,7 @@ func (ac *controller) Update(context *Context) {
 		context.AddError(err)
 		if !context.HasError() {
 			if context.AddError(res.Decode(context.Context, result)); !context.HasError() {
-				context.AddError(res.CallSaver(result, context.Context))
+				context.AddError(res.CallSave(result, context.Context))
 			}
 		}
 
@@ -152,7 +152,7 @@ func (ac *controller) Delete(context *Context) {
 	if context.checkResourcePermission(roles.Delete) {
 		res := context.Resource
 		status := http.StatusOK
-		if context.AddError(res.CallDeleter(res.NewStruct(), context.Context)); context.HasError() {
+		if context.AddError(res.CallDelete(res.NewStruct(), context.Context)); context.HasError() {
 			status = http.StatusNotFound
 		}
 

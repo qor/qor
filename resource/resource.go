@@ -27,8 +27,8 @@ type Resourcer interface {
 	GetMetas([]string) []Metaor
 	CallFindMany(interface{}, *qor.Context) error
 	CallFindOne(interface{}, *MetaValues, *qor.Context) error
-	CallSaver(interface{}, *qor.Context) error
-	CallDeleter(interface{}, *qor.Context) error
+	CallSave(interface{}, *qor.Context) error
+	CallDelete(interface{}, *qor.Context) error
 	NewSlice() interface{}
 	NewStruct() interface{}
 }
