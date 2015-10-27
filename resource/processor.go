@@ -145,5 +145,8 @@ func (processor *processor) Start() error {
 	if errors.AddError(processor.Validate()); !errors.HasError() {
 		errors.AddError(processor.Commit())
 	}
-	return errors
+	if errors.HasError() {
+		return errors
+	}
+	return nil
 }

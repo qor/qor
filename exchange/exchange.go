@@ -1,11 +1,11 @@
 package exchange
 
 import (
-	"io"
+	"reflect"
 
-	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
+	"github.com/qor/qor/roles"
 )
 
 type Exchange struct {
@@ -13,30 +13,92 @@ type Exchange struct {
 	resources []*Resource
 }
 
+func New(config qor.Config) *Exchange {
+	return &Exchange{Config: &config}
+}
+
 type Resource struct {
 	resource.Resource
+	Config *Config
+	metas  []*Meta
 }
 
-type Meta struct {
-	Name string
+type Config struct {
+	Permission    *roles.Permission
+	WithoutHeader bool
 }
 
-func (exchange *Exchange) AddResource(value interface{}) {
+func NewResource(value interface{}, config ...Config) *Resource {
 	res := Resource{Resource: *resource.New(value)}
-	exchange.resources = append(exchange.resources, &res)
+	if len(config) > 0 {
+		res.Config = &config[0]
+	} else {
+		res.Config = &Config{}
+	}
+	return &res
 }
 
-func (res *Resource) Meta(meta Meta) {
+func (res *Resource) Meta(meta Meta) *Meta {
+	meta.base = res
+	meta.updateMeta()
+	res.metas = append(res.metas, &meta)
+	return &meta
 }
 
-func (res *Resource) Import(file interface{}, context qor.Context) {
-	// file To MetaValues
-	// decode to resource
-	// save each value
+func (res *Resource) GetMeta(name string) *Meta {
+	for _, meta := range res.metas {
+		if meta.Name == name {
+			return meta
+		}
+	}
+	return nil
 }
 
-func (res *Resource) Export(scope *gorm.DB, writer io.Writer, logger interface{}, context qor.Context) {
-	// scope to values
-	// write to file
-	// write logger
+func (res *Resource) GetMetas([]string) []resource.Metaor {
+	metas := []resource.Metaor{}
+	for _, meta := range res.metas {
+		metas = append(metas, meta)
+	}
+	return metas
+}
+
+func (res *Resource) Import(container Container, context *qor.Context) error {
+	rows, err := container.NewReader(res, context)
+	if err == nil {
+		for rows.Next() {
+			if metaValues, err := rows.ReadRow(); err == nil {
+				result := res.NewStruct()
+				res.FindOneHandler(result, metaValues, context)
+				if err = resource.DecodeToResource(res, result, metaValues, context).Start(); err == nil {
+					if err = res.CallSaver(result, context); err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+	return err
+}
+
+func (res *Resource) Export(container Container, context *qor.Context) error {
+	results := res.NewSlice()
+
+	if err := context.GetDB().Find(results).Error; err == nil {
+		reflectValue := reflect.Indirect(reflect.ValueOf(results))
+		if writer, err := container.NewWriter(res, context); err == nil {
+			writer.WriteHeader()
+			for i := 0; i < reflectValue.Len(); i++ {
+				var result = reflectValue.Index(i).Interface()
+				if err := writer.WriteRow(result); err != nil {
+					return err
+				}
+			}
+			writer.Flush()
+		} else {
+			return err
+		}
+	} else {
+		return err
+	}
+	return nil
 }
