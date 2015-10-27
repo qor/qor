@@ -5,20 +5,20 @@ QOR exchange provides conversion (import/export) functionality for any Qor.Resou
 
 ## Usage
 
-```go
-* Define resource
+```gno
+// Define resource
 product = exchange.NewResource(&Product{})
 product.Meta(exchange.Meta{Name: "Code"})
 product.Meta(exchange.Meta{Name: "Name"})
 product.Meta(exchange.Meta{Name: "Price"})
 
-* Define context environment
+// Define context environment
 context := &qor.Context{DB: db}
 
-* Import products.csv into database
+// Import products.csv into database
 product.Import(csv.New("products.csv"), context)
 
-* Export products into products.csv
+// Export products into products.csv
 product.Export(csv.New("products.csv"), context)
 ```
 
