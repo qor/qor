@@ -1,5 +1,7 @@
 package roles
 
+import "errors"
+
 type PermissionMode uint32
 
 const (
@@ -11,6 +13,7 @@ const (
 )
 
 var All = map[string]PermissionMode{"Read": Read, "Update": Update, "Create": Create, "Delete": Delete, "CRUD": CRUD}
+var ErrPermissionDenied = errors.New("permission denied")
 
 type Permission struct {
 	Role       *Role
