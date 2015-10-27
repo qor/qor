@@ -5,7 +5,9 @@ QOR exchange provides conversion (import/export) functionality for any Qor.Resou
 
 ## Usage
 
-```gno
+```go
+import "github.com/qor/qor/exchange/backends/csv"
+
 // Define resource
 product = exchange.NewResource(&Product{})
 product.Meta(exchange.Meta{Name: "Code"})
