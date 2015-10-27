@@ -12,7 +12,7 @@ import (
 )
 
 // Define resource
-product = exchange.NewResource(&Product{})
+product = exchange.NewResource(&Product{}, exchange.Config{PrimaryField: "Code"})
 product.Meta(exchange.Meta{Name: "Code"})
 product.Meta(exchange.Meta{Name: "Name"})
 product.Meta(exchange.Meta{Name: "Price"})

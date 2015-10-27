@@ -1,21 +1,14 @@
 package exchange
 
 import (
+	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 )
-
-type Exchange struct {
-	Config    *qor.Config
-	resources []*Resource
-}
-
-func New(config qor.Config) *Exchange {
-	return &Exchange{Config: &config}
-}
 
 type Resource struct {
 	resource.Resource
@@ -24,6 +17,7 @@ type Resource struct {
 }
 
 type Config struct {
+	PrimaryField  string
 	Permission    *roles.Permission
 	WithoutHeader bool
 }
@@ -34,6 +28,18 @@ func NewResource(value interface{}, config ...Config) *Resource {
 		res.Config = &config[0]
 	} else {
 		res.Config = &Config{}
+	}
+	res.Permission = res.Config.Permission
+
+	if res.Config.PrimaryField != "" {
+		res.FindOneHandler = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+			scope := context.GetDB().NewScope(res.Value)
+			if field, ok := scope.FieldByName(res.Config.PrimaryField); ok {
+				return context.GetDB().First(result, fmt.Sprintf("%v = ?", scope.Quote(field.DBName)), metaValues.Get(res.Config.PrimaryField).Value).Error
+			} else {
+				return errors.New("failed to find primary field")
+			}
+		}
 	}
 	return &res
 }
