@@ -36,14 +36,6 @@ type Meta struct {
 	Permission    *roles.Permission
 }
 
-func (meta *Meta) GetName() string {
-	return meta.Name
-}
-
-func (meta *Meta) GetFieldName() string {
-	return meta.FieldName
-}
-
 func (meta *Meta) GetMetas() []resource.Metaor {
 	if len(meta.Metas) > 0 {
 		return meta.Metas
@@ -56,21 +48,6 @@ func (meta *Meta) GetMetas() []resource.Metaor {
 
 func (meta *Meta) GetResource() resource.Resourcer {
 	return meta.Resource
-}
-
-func (meta *Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
-	return meta.Valuer
-}
-
-func (meta *Meta) GetSetter() func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-	return meta.Setter
-}
-
-func (meta *Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
-	if meta.Permission == nil {
-		return true
-	}
-	return meta.Permission.HasPermission(mode, context.Roles...)
 }
 
 func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool) {

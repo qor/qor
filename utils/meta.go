@@ -34,17 +34,6 @@ func GetNestedModel(value interface{}, fieldName string, context *qor.Context) i
 	return nil
 }
 
-// Profile.Name
-func ParseNestedField(value reflect.Value, name string) (reflect.Value, string) {
-	fields := strings.Split(name, ".")
-	value = reflect.Indirect(value)
-	for _, field := range fields[:len(fields)-1] {
-		value = value.FieldByName(field)
-	}
-
-	return value, fields[len(fields)-1]
-}
-
 func NewValue(t reflect.Type) (v reflect.Value) {
 	v = reflect.New(t)
 	ov := v
