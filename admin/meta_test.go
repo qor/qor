@@ -19,7 +19,7 @@ func TestTextInput(t *testing.T) {
 		t.Error("default label not set")
 	}
 
-	if meta.Alias != "Name" {
+	if meta.FieldName != "Name" {
 		t.Error("default Alias is not same as field Name")
 	}
 

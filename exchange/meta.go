@@ -116,13 +116,13 @@ func (meta *Meta) updateMeta() {
 		if hasColumn {
 			meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
 				scope := context.GetDB().NewScope(value)
-				alias := meta.Name
+				fieldName := meta.Name
 				if nestedField {
-					fields := strings.Split(alias, ".")
-					alias = fields[len(fields)-1]
+					fields := strings.Split(fieldName, ".")
+					fieldName = fields[len(fields)-1]
 				}
 
-				if f, ok := scope.FieldByName(alias); ok {
+				if f, ok := scope.FieldByName(fieldName); ok {
 					if field.Relationship != nil {
 						if f.Field.CanAddr() && !scope.PrimaryKeyZero() {
 							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.Name)
@@ -196,13 +196,13 @@ func (meta *Meta) updateMeta() {
 				}
 
 				value := metaValue.Value
-				alias := meta.Name
+				fieldName := meta.Name
 				if nestedField {
-					fields := strings.Split(alias, ".")
-					alias = fields[len(fields)-1]
+					fields := strings.Split(fieldName, ".")
+					fieldName = fields[len(fields)-1]
 				}
 
-				field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(alias)
+				field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(fieldName)
 				if field.Kind() == reflect.Ptr {
 					if field.IsNil() {
 						field.Set(utils.NewValue(field.Type()).Elem())

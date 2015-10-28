@@ -24,7 +24,7 @@ type Meta struct {
 	base          *Resource
 	Name          string
 	DBName        string
-	Alias         string
+	FieldName     string
 	Label         string
 	Type          string
 	Valuer        func(interface{}, *qor.Context) interface{}
@@ -41,7 +41,7 @@ func (meta *Meta) GetName() string {
 }
 
 func (meta *Meta) GetFieldName() string {
-	return meta.Alias
+	return meta.FieldName
 }
 
 func (meta *Meta) GetMetas() []resource.Metaor {
@@ -85,8 +85,8 @@ func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool)
 func (meta *Meta) updateMeta() {
 	if meta.Name == "" {
 		utils.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
-	} else if meta.Alias == "" {
-		meta.Alias = meta.Name
+	} else if meta.FieldName == "" {
+		meta.FieldName = meta.Name
 	}
 
 	if meta.Label == "" {
@@ -95,18 +95,18 @@ func (meta *Meta) updateMeta() {
 
 	var (
 		scope       = &gorm.Scope{Value: meta.base.Value}
-		nestedField = strings.Contains(meta.Alias, ".")
+		nestedField = strings.Contains(meta.FieldName, ".")
 		field       *gorm.StructField
 		hasColumn   bool
 	)
 
 	if nestedField {
-		subModel, name := utils.ParseNestedField(reflect.ValueOf(meta.base.Value), meta.Alias)
+		subModel, name := utils.ParseNestedField(reflect.ValueOf(meta.base.Value), meta.FieldName)
 		subScope := &gorm.Scope{Value: subModel.Interface()}
 		field, hasColumn = getField(subScope.GetStructFields(), name)
 	} else {
-		if field, hasColumn = getField(scope.GetStructFields(), meta.Alias); hasColumn {
-			meta.Alias = field.Name
+		if field, hasColumn = getField(scope.GetStructFields(), meta.FieldName); hasColumn {
+			meta.FieldName = field.Name
 			if field.IsNormal {
 				meta.DBName = field.DBName
 			}
@@ -188,16 +188,16 @@ func (meta *Meta) updateMeta() {
 		if hasColumn {
 			meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
 				scope := context.GetDB().NewScope(value)
-				alias := meta.Alias
+				fieldName := meta.FieldName
 				if nestedField {
-					fields := strings.Split(alias, ".")
-					alias = fields[len(fields)-1]
+					fields := strings.Split(fieldName, ".")
+					fieldName = fields[len(fields)-1]
 				}
 
-				if f, ok := scope.FieldByName(alias); ok {
+				if f, ok := scope.FieldByName(fieldName); ok {
 					if field.Relationship != nil {
 						if f.Field.CanAddr() && !scope.PrimaryKeyZero() {
-							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.Alias)
+							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.FieldName)
 						}
 					}
 					if f.Field.CanAddr() {
@@ -214,7 +214,7 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
-	scopeField, _ := scope.FieldByName(meta.Alias)
+	scopeField, _ := scope.FieldByName(meta.FieldName)
 
 	// Set Meta Collection
 	if meta.Collection != nil {
@@ -263,7 +263,7 @@ func (meta *Meta) updateMeta() {
 				meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
 					scope := &gorm.Scope{Value: resource}
 					reflectValue := reflect.Indirect(reflect.ValueOf(resource))
-					field := reflectValue.FieldByName(meta.Alias)
+					field := reflectValue.FieldByName(meta.FieldName)
 
 					if field.Kind() == reflect.Ptr {
 						if field.IsNil() {
@@ -298,7 +298,7 @@ func (meta *Meta) updateMeta() {
 					// Replace many 2 many relations
 					if relationship.Kind == "many_to_many" {
 						if !scope.PrimaryKeyZero() {
-							context.GetDB().Model(resource).Association(meta.Alias).Replace(field.Interface())
+							context.GetDB().Model(resource).Association(meta.FieldName).Replace(field.Interface())
 							field.Set(reflect.Zero(field.Type()))
 						}
 					}
@@ -311,13 +311,13 @@ func (meta *Meta) updateMeta() {
 				}
 
 				value := metaValue.Value
-				alias := meta.Alias
+				fieldName := meta.FieldName
 				if nestedField {
-					fields := strings.Split(alias, ".")
-					alias = fields[len(fields)-1]
+					fields := strings.Split(fieldName, ".")
+					fieldName = fields[len(fields)-1]
 				}
 
-				field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(alias)
+				field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(fieldName)
 				if field.Kind() == reflect.Ptr {
 					if field.IsNil() {
 						field.Set(utils.NewValue(field.Type()).Elem())
@@ -376,11 +376,11 @@ func (meta *Meta) updateMeta() {
 	if nestedField {
 		oldvalue := meta.Valuer
 		meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
-			return oldvalue(utils.GetNestedModel(value, meta.Alias, context), context)
+			return oldvalue(utils.GetNestedModel(value, meta.FieldName, context), context)
 		}
 		oldSetter := meta.Setter
 		meta.Setter = func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-			oldSetter(utils.GetNestedModel(resource, meta.Alias, context), metaValue, context)
+			oldSetter(utils.GetNestedModel(resource, meta.FieldName, context), metaValue, context)
 		}
 	}
 }

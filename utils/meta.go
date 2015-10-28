@@ -9,9 +9,9 @@ import (
 	"github.com/qor/qor"
 )
 
-func GetNestedModel(value interface{}, alias string, context *qor.Context) interface{} {
+func GetNestedModel(value interface{}, fieldName string, context *qor.Context) interface{} {
 	model := reflect.Indirect(reflect.ValueOf(value))
-	fields := strings.Split(alias, ".")
+	fields := strings.Split(fieldName, ".")
 	for _, field := range fields[:len(fields)-1] {
 		if model.CanAddr() {
 			submodel := model.FieldByName(field)
