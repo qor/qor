@@ -4,35 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
-
-	"github.com/qor/qor"
 )
-
-func GetNestedModel(value interface{}, fieldName string, context *qor.Context) interface{} {
-	model := reflect.Indirect(reflect.ValueOf(value))
-	fields := strings.Split(fieldName, ".")
-	for _, field := range fields[:len(fields)-1] {
-		if model.CanAddr() {
-			submodel := model.FieldByName(field)
-			if key := submodel.FieldByName("Id"); !key.IsValid() || key.Uint() == 0 {
-				if submodel.CanAddr() {
-					context.GetDB().Model(model.Addr().Interface()).Related(submodel.Addr().Interface())
-					model = submodel
-				} else {
-					break
-				}
-			} else {
-				model = submodel
-			}
-		}
-	}
-
-	if model.CanAddr() {
-		return model.Addr().Interface()
-	}
-	return nil
-}
 
 func NewValue(t reflect.Type) (v reflect.Value) {
 	v = reflect.New(t)

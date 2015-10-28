@@ -237,11 +237,11 @@ func (meta *Meta) UpdateMeta() error {
 	if nestedField {
 		oldvalue := meta.Valuer
 		meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
-			return oldvalue(utils.GetNestedModel(value, meta.Name, context), context)
+			return oldvalue(getNestedModel(value, meta.Name, context), context)
 		}
 		oldSetter := meta.Setter
 		meta.Setter = func(resource interface{}, metaValue *MetaValue, context *qor.Context) {
-			oldSetter(utils.GetNestedModel(resource, meta.Name, context), metaValue, context)
+			oldSetter(getNestedModel(resource, meta.Name, context), metaValue, context)
 		}
 	}
 	return nil
@@ -265,4 +265,29 @@ func parseNestedField(value reflect.Value, name string) (reflect.Value, string) 
 	}
 
 	return value, fields[len(fields)-1]
+}
+
+func getNestedModel(value interface{}, fieldName string, context *qor.Context) interface{} {
+	model := reflect.Indirect(reflect.ValueOf(value))
+	fields := strings.Split(fieldName, ".")
+	for _, field := range fields[:len(fields)-1] {
+		if model.CanAddr() {
+			submodel := model.FieldByName(field)
+			if key := submodel.FieldByName("Id"); !key.IsValid() || key.Uint() == 0 {
+				if submodel.CanAddr() {
+					context.GetDB().Model(model.Addr().Interface()).Related(submodel.Addr().Interface())
+					model = submodel
+				} else {
+					break
+				}
+			} else {
+				model = submodel
+			}
+		}
+	}
+
+	if model.CanAddr() {
+		return model.Addr().Interface()
+	}
+	return nil
 }
