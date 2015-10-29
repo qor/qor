@@ -66,17 +66,17 @@ func (meta *Meta) UpdateMeta() error {
 
 	var (
 		scope       = &gorm.Scope{Value: meta.ResourceValue}
-		nestedField = strings.Contains(meta.Name, ".")
+		nestedField = strings.Contains(meta.FieldName, ".")
 		field       *gorm.StructField
 		hasColumn   bool
 	)
 
 	if nestedField {
-		subModel, name := parseNestedField(reflect.ValueOf(meta.ResourceValue), meta.Name)
+		subModel, name := parseNestedField(reflect.ValueOf(meta.ResourceValue), meta.FieldName)
 		subScope := &gorm.Scope{Value: subModel.Interface()}
 		field, hasColumn = getField(subScope.GetStructFields(), name)
 	} else {
-		field, hasColumn = getField(scope.GetStructFields(), meta.Name)
+		field, hasColumn = getField(scope.GetStructFields(), meta.FieldName)
 	}
 
 	var fieldType reflect.Type
@@ -92,7 +92,7 @@ func (meta *Meta) UpdateMeta() error {
 		if hasColumn {
 			meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
 				scope := context.GetDB().NewScope(value)
-				fieldName := meta.Name
+				fieldName := meta.FieldName
 				if nestedField {
 					fields := strings.Split(fieldName, ".")
 					fieldName = fields[len(fields)-1]
@@ -101,7 +101,7 @@ func (meta *Meta) UpdateMeta() error {
 				if f, ok := scope.FieldByName(fieldName); ok {
 					if field.Relationship != nil {
 						if f.Field.CanAddr() && !scope.PrimaryKeyZero() {
-							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.Name)
+							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.FieldName)
 						}
 					}
 					if f.Field.CanAddr() {
@@ -114,7 +114,7 @@ func (meta *Meta) UpdateMeta() error {
 				return ""
 			}
 		} else {
-			utils.ExitWithMsg("Unsupported meta name %v for resource %v", meta.Name, reflect.TypeOf(meta.ResourceValue))
+			utils.ExitWithMsg("Unsupported meta name %v for resource %v", meta.FieldName, reflect.TypeOf(meta.ResourceValue))
 		}
 	}
 
@@ -124,7 +124,7 @@ func (meta *Meta) UpdateMeta() error {
 				meta.Setter = func(resource interface{}, metaValue *MetaValue, context *qor.Context) {
 					scope := &gorm.Scope{Value: resource}
 					reflectValue := reflect.Indirect(reflect.ValueOf(resource))
-					field := reflectValue.FieldByName(meta.Name)
+					field := reflectValue.FieldByName(meta.FieldName)
 
 					if field.Kind() == reflect.Ptr {
 						if field.IsNil() {
@@ -159,7 +159,7 @@ func (meta *Meta) UpdateMeta() error {
 					// Replace many 2 many relations
 					if relationship.Kind == "many_to_many" {
 						if !scope.PrimaryKeyZero() {
-							context.GetDB().Model(resource).Association(meta.Name).Replace(field.Interface())
+							context.GetDB().Model(resource).Association(meta.FieldName).Replace(field.Interface())
 							field.Set(reflect.Zero(field.Type()))
 						}
 					}
@@ -172,7 +172,7 @@ func (meta *Meta) UpdateMeta() error {
 				}
 
 				value := metaValue.Value
-				fieldName := meta.Name
+				fieldName := meta.FieldName
 				if nestedField {
 					fields := strings.Split(fieldName, ".")
 					fieldName = fields[len(fields)-1]
@@ -237,11 +237,11 @@ func (meta *Meta) UpdateMeta() error {
 	if nestedField {
 		oldvalue := meta.Valuer
 		meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
-			return oldvalue(getNestedModel(value, meta.Name, context), context)
+			return oldvalue(getNestedModel(value, meta.FieldName, context), context)
 		}
 		oldSetter := meta.Setter
 		meta.Setter = func(resource interface{}, metaValue *MetaValue, context *qor.Context) {
-			oldSetter(getNestedModel(resource, meta.Name, context), metaValue, context)
+			oldSetter(getNestedModel(resource, meta.FieldName, context), metaValue, context)
 		}
 	}
 	return nil
