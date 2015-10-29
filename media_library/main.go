@@ -19,6 +19,7 @@ type Size struct {
 type URLTemplater interface {
 	GetURLTemplate(*Option) string
 }
+
 type MediaLibrary interface {
 	Scan(value interface{}) error
 	Value() (driver.Value, error)

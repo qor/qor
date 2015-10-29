@@ -49,7 +49,7 @@ func ToString(value interface{}) string {
 	} else if v, ok := value.([]interface{}); ok && len(v) > 0 {
 		return fmt.Sprintf("%v", v[0])
 	} else {
-		return fmt.Sprintf("%v", v)
+		return fmt.Sprintf("%v", value)
 	}
 }
 
