@@ -38,8 +38,13 @@ type Meta struct {
 func (meta Meta) GetName() string {
 	return meta.Name
 }
+
 func (meta Meta) GetFieldName() string {
 	return meta.FieldName
+}
+
+func (meta *Meta) SetFieldName(name string) {
+	meta.FieldName = name
 }
 
 func (meta Meta) GetSetter() func(resource interface{}, metaValue *MetaValue, context *qor.Context) {

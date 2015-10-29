@@ -73,18 +73,18 @@ func (meta *Meta) updateMeta() {
 
 	var (
 		scope       = &gorm.Scope{Value: meta.base.Value}
-		nestedField = strings.Contains(meta.FieldName, ".")
+		nestedField = strings.Contains(meta.GetFieldName(), ".")
 		field       *gorm.StructField
 		hasColumn   bool
 	)
 
 	if nestedField {
-		subModel, name := parseNestedField(reflect.ValueOf(meta.base.Value), meta.FieldName)
+		subModel, name := parseNestedField(reflect.ValueOf(meta.base.Value), meta.GetFieldName())
 		subScope := &gorm.Scope{Value: subModel.Interface()}
 		field, hasColumn = getField(subScope.GetStructFields(), name)
 	} else {
-		if field, hasColumn = getField(scope.GetStructFields(), meta.FieldName); hasColumn {
-			meta.FieldName = field.Name
+		if field, hasColumn = getField(scope.GetStructFields(), meta.GetFieldName()); hasColumn {
+			meta.SetFieldName(field.Name)
 			if field.IsNormal {
 				meta.DBName = field.DBName
 			}
@@ -161,7 +161,7 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
-	scopeField, _ := scope.FieldByName(meta.FieldName)
+	scopeField, _ := scope.FieldByName(meta.GetFieldName())
 
 	// Set Meta Collection
 	if meta.Collection != nil {
@@ -203,6 +203,8 @@ func (meta *Meta) updateMeta() {
 			utils.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
 		}
 	}
+
+	meta.FieldName = meta.GetFieldName()
 }
 
 func parseNestedField(value reflect.Value, name string) (reflect.Value, string) {
