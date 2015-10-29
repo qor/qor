@@ -109,7 +109,7 @@ func (res *Resource) allAttrs() []string {
 Fields:
 	for _, field := range scope.GetModelStruct().StructFields {
 		for _, meta := range res.Metas {
-			if field.Name == meta.Alias {
+			if field.Name == meta.FieldName {
 				attrs = append(attrs, meta.Name)
 				continue Fields
 			}
@@ -133,7 +133,7 @@ Fields:
 MetaIncluded:
 	for _, meta := range res.Metas {
 		for _, attr := range attrs {
-			if attr == meta.Alias || attr == meta.Name {
+			if attr == meta.FieldName || attr == meta.Name {
 				continue MetaIncluded
 			}
 		}
