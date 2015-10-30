@@ -9,17 +9,11 @@
   ENTERPRISE CONTENT MANAGEMENT SYSTEM
   -->
   <head>
+    {{$title := (render "title")}}
+    <title>{{if $title}}{{$title}} - {{end}}{{if .Admin.SiteName}}{{t .Admin.SiteName}}{{else}}{{t "Qor Admin"}}{{end}}</title>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    {{$title := (render "title")}}
-    <title>
-      {{if $title}}{{$title}} - {{end}}{{if .Admin.SiteName}}{{t .Admin.SiteName}}{{else}}{{t "Qor Admin"}}{{end}}
-    </title>
-
-    <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link type="image/x-icon" rel="shortcut icon" href="/img/favicon.ico">
-    <link type="image/x-icon" rel="icon" href="/img/favicon.ico">
 
     <!-- Stylesheets -->
     {{stylesheet_tag "material.min" "cropper.min" "chosen.min" "redactor" "qor" "app"}}
