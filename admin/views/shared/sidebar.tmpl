@@ -3,10 +3,12 @@
     {{raw (dt "logo" "<a href=\"{{.Prefix}}\"><span class=\"visuallyhidden\">QOR</span></a><a href=\"/\" target=\"_blank\">View Site <i class=\"material-icons md-14\" aria-hidden=\"true\">open_in_new</i></a>" .Admin.GetRouter)}}
   </div>
   <div class="sidebar-body">
-    <div class="qor-search-center-menu">
-      {{t "Search"}}
-    </div>
     <div class="qor-menu-container">
+      <ul class="qor-menu">
+        <li data-menu-item="Search">
+          <a href="#">{{t "Search"}}</a>
+        </li>
+      </ul>
       {{render "shared/menu" get_menus}}
     </div>
   </div>
