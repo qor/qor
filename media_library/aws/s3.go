@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/qor/qor/media_library"
 )
@@ -29,7 +30,7 @@ func s3client() *s3.S3 {
 		creds := credentials.NewStaticCredentials(AwsAccessKeyId, AwsSecretAccessKey, AwsSessionToken)
 
 		if _, err := creds.Get(); err == nil {
-			S3Client = s3.New(&aws.Config{
+			S3Client = s3.New(session.New(), &aws.Config{
 				Region:      &AwsRegion,
 				Credentials: creds,
 			})
