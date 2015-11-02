@@ -51,8 +51,16 @@ func (meta Meta) GetSetter() func(resource interface{}, metaValue *MetaValue, co
 	return meta.Setter
 }
 
+func (meta Meta) SetSetter(fc func(resource interface{}, metaValue *MetaValue, context *qor.Context)) {
+	meta.Setter = fc
+}
+
 func (meta Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
 	return meta.Valuer
+}
+
+func (meta Meta) SetValuer(fc func(interface{}, *qor.Context) interface{}) {
+	meta.Valuer = fc
 }
 
 func (meta Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
