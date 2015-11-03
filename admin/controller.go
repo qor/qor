@@ -31,6 +31,7 @@ func (ac *controller) Dashboard(context *Context) {
 
 func (ac *controller) SearchCenter(context *Context) {
 	type searchResult struct {
+		Context  *Context
 		Resource *Resource
 		Results  interface{}
 	}
@@ -41,6 +42,7 @@ func (ac *controller) SearchCenter(context *Context) {
 			ctx := context.clone().setResource(res)
 			if results, err := ctx.FindMany(); err == nil {
 				searchResults = append(searchResults, searchResult{
+					Context:  ctx,
 					Resource: res,
 					Results:  results,
 				})
