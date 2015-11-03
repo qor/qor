@@ -36,7 +36,8 @@ func (ac *controller) SearchCenter(context *Context) {
 	}
 	var searchResults []searchResult
 	for _, res := range context.Admin.searchResources {
-		if resourceName := context.Request.URL.Query().Get("resource_name"); resourceName == "" || res.Name == resourceName {
+		resourceName := context.Request.URL.Query().Get("resource_name")
+		if resourceName == "" || res.ToParam() == resourceName {
 			ctx := context.clone()
 			ctx.Resource = res
 			if results, err := ctx.FindMany(); err == nil {
@@ -47,7 +48,7 @@ func (ac *controller) SearchCenter(context *Context) {
 			}
 		}
 	}
-	context.Render("search_center", searchResults)
+	context.Execute("search_center", searchResults)
 }
 
 func (ac *controller) Index(context *Context) {

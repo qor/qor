@@ -1,0 +1,21 @@
+<ul class="search-headers">
+  {{range $searchResult := .Result}}
+  <li data-resource="{{$searchResult.Resource.ToParam}}">
+    {{$searchResult.Resource.Name}}
+  </li>
+  {{end}}
+</ul>
+
+<div class="search-results">
+  {{range $searchResult := .Result}}
+  <div class="search-result">
+    <ul>
+    {{range $result := $searchResult.Results}}
+      <li>
+        {{$result}}
+      </li>
+    {{end}}
+    </ul>
+  </div>
+  {{end}}
+</div>
