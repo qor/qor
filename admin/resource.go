@@ -209,7 +209,7 @@ func (res *Resource) SortableAttrs(columns ...string) []string {
 func (res *Resource) SearchAttrs(columns ...string) []string {
 	if len(columns) != 0 || res.searchAttrs == nil {
 		if len(columns) == 0 {
-			columns = res.indexAttrs
+			columns = res.IndexAttrs()
 		}
 
 		res.searchAttrs = &columns

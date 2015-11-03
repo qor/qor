@@ -644,6 +644,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"render_index_meta":      context.renderIndexMeta,
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
+		"search_center_path":     func() string { return path.Join(context.Admin.router.Prefix, "!search") },
 		"patch_current_url":      context.patchCurrentURL,
 		"patch_url":              context.patchURL,
 		"new_resource_path":      context.newResourcePath,

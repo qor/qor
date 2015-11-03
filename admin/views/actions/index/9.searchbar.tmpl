@@ -1,4 +1,4 @@
-{{if .Resource.SearchAttrs}}
+{{if .Resource.SearchHandler}}
   {{ $keyword := .Context.Request.URL.Query.Get "keyword" }}
   <form class="qor-search-container">
     {{range $scope := (index .Context.Request.URL.Query "scopes")}}

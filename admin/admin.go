@@ -20,14 +20,15 @@ type I18n interface {
 }
 
 type Admin struct {
-	Config    *qor.Config
-	SiteName  string
-	I18n      I18n
-	menus     []*Menu
-	resources []*Resource
-	auth      Auth
-	router    *Router
-	funcMaps  template.FuncMap
+	Config          *qor.Config
+	SiteName        string
+	I18n            I18n
+	menus           []*Menu
+	resources       []*Resource
+	searchResources []*Resource
+	auth            Auth
+	router          *Router
+	funcMaps        template.FuncMap
 }
 
 type ResourceNamer interface {
@@ -127,6 +128,14 @@ func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource 
 
 	admin.resources = append(admin.resources, res)
 	return res
+}
+
+func (admin *Admin) AddSearchResource(resources ...*Resource) {
+	admin.searchResources = append(admin.searchResources, resources...)
+}
+
+func (admin *Admin) EnabledSearchCenter() bool {
+	return len(admin.searchResources) > 0
 }
 
 func (admin *Admin) GetResource(name string) *Resource {

@@ -2,6 +2,7 @@
 // --------------------------------------------------
 
 .qor-menu {
+  margin-top: 0;
   margin-bottom: 0;
   padding-left: 0;
   list-style: none;
@@ -120,6 +121,10 @@
 
     > [data-menu-item*="Setting"] > a::before {
       content: "\e8b8";
+    }
+
+    > [data-menu-item*="Search"] > a::before {
+      content: "\e8b6";
     }
 
     > .has-menu > a {
