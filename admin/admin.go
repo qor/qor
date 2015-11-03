@@ -134,6 +134,10 @@ func (admin *Admin) AddSearchResource(resources ...*Resource) {
 	admin.searchResources = append(admin.searchResources, resources...)
 }
 
+func (admin *Admin) EnabledSearchCenter() bool {
+	return len(admin.searchResources) > 0
+}
+
 func (admin *Admin) GetResource(name string) *Resource {
 	for _, res := range admin.resources {
 		if res.ToParam() == name || res.Name == name || res.StructType == name {
