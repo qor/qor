@@ -36,13 +36,15 @@ func (ac *controller) SearchCenter(context *Context) {
 	}
 	var searchResults []searchResult
 	for _, res := range context.Admin.searchResources {
-		ctx := context.clone()
-		ctx.Resource = res
-		if results, err := ctx.FindMany(); err == nil {
-			searchResults = append(searchResults, searchResult{
-				Resource: res,
-				Results:  results,
-			})
+		if resourceName := context.Request.URL.Query().Get("resource_name"); resourceName == "" || res.Name == resourceName {
+			ctx := context.clone()
+			ctx.Resource = res
+			if results, err := ctx.FindMany(); err == nil {
+				searchResults = append(searchResults, searchResult{
+					Resource: res,
+					Results:  results,
+				})
+			}
 		}
 	}
 	context.Render("search_center", searchResults)
