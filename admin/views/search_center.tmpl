@@ -1,3 +1,10 @@
+{{ $keyword := .Context.Request.URL.Query.Get "keyword" }}
+<div class="qor-page__header">
+<form action="{{search_center_path}}" method="GET">
+  <input name="keyword" value="{{$keyword}}">
+</form>
+</div>
+
 <div class="qor-page__body">
   <ul class="search-headers">
     <li>{{t "All"}}</li>
@@ -8,7 +15,6 @@
     {{end}}
   </ul>
 
-  {{ $keyword := .Context.Request.URL.Query.Get "keyword" }}
   <div class="search-results">
     {{range .Result}}
     {{if (len .Results)}}
