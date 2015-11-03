@@ -61,6 +61,15 @@ You can view [qor example](https://github.com/qor/qor/tree/master/example) for a
 - JSON API supported
 - Extendable
 
+## Search Center
+
+It provide feature set that let End User to be able to quickly find any resources Developer defnited, like Product, Order, User, etc. Developer define what field of information user can search on.
+
+### Developer side usage
+
+### End User side usage
+
+
 ## Documentation
 
 https://github.com/qor/qor/wiki
