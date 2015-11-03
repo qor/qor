@@ -22,12 +22,3 @@ func (model *AuditedModel) SetUpdatedBy(updatedBy interface{}) {
 func (model AuditedModel) GetUpdatedBy() string {
 	return model.UpdatedBy
 }
-
-// type Audited struct {
-// 	gorm.Model
-// 	ReferTable    string
-// 	ReferId       string
-// 	Action        string
-// 	ChangeDetails string `sql:"size:65532"`
-// 	Comment       string `sql:"size:1024"`
-// }
