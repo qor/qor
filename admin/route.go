@@ -111,6 +111,8 @@ func (res *Resource) compile() {
 	if injector, ok := res.Value.(configureInjector); ok {
 		injector.ConfigureQorResource(res)
 	}
+
+	res.SearchAttrs()
 }
 
 func (admin *Admin) compile() {
