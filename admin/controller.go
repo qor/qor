@@ -38,8 +38,7 @@ func (ac *controller) SearchCenter(context *Context) {
 	for _, res := range context.Admin.searchResources {
 		resourceName := context.Request.URL.Query().Get("resource_name")
 		if resourceName == "" || res.ToParam() == resourceName {
-			ctx := context.clone()
-			ctx.Resource = res
+			ctx := context.clone().setResource(res)
 			if results, err := ctx.FindMany(); err == nil {
 				searchResults = append(searchResults, searchResult{
 					Resource: res,

@@ -110,11 +110,13 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	}
 
 	// call search
-	if keyword := context.Request.Form.Get("keyword"); keyword != "" {
-		if s.Resource.SearchHandler != nil {
-			context.SetDB(s.Resource.SearchHandler(keyword, context))
-			return context
-		}
+	var keyword string
+	if keyword = context.Request.Form.Get("keyword"); keyword == "" {
+		keyword = context.Request.URL.Query().Get("keyword")
+	}
+	if keyword != "" && s.Resource.SearchHandler != nil {
+		context.SetDB(s.Resource.SearchHandler(keyword, context).Debug())
+		return context
 	}
 
 	context.SetDB(db)
