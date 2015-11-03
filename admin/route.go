@@ -77,6 +77,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 
 	controller := &controller{admin}
 	router.Get("^/?$", controller.Dashboard)
+	router.Get("^/!search$", controller.SearchCenter)
 	router.Get("^/[^/]+/new$", controller.New)
 	router.Post("^/[^/]+$", controller.Create)
 	router.Post("^/[^/]+/action/[^/]+(\\?.*)?$", controller.Action)

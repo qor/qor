@@ -29,6 +29,25 @@ func (ac *controller) Dashboard(context *Context) {
 	context.Execute("dashboard", nil)
 }
 
+func (ac *controller) SearchCenter(context *Context) {
+	type searchResult struct {
+		Resource *Resource
+		Results  interface{}
+	}
+	var searchResults []searchResult
+	for _, res := range context.Admin.searchResources {
+		ctx := context.clone()
+		ctx.Resource = res
+		if results, err := ctx.FindMany(); err == nil {
+			searchResults = append(searchResults, searchResult{
+				Resource: res,
+				Results:  results,
+			})
+		}
+	}
+	context.Render("search_center", searchResults)
+}
+
 func (ac *controller) Index(context *Context) {
 	if context.checkResourcePermission(roles.Read) {
 		// Singleton Resource
