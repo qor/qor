@@ -44,7 +44,7 @@ P003, Product P003, 300
 product.AddValidator(func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
   if f, err := strconv.ParseFloat(fmt.Sprint(metaValues.Get("Price").Value), 64); err == nil {
     if f == 0 {
-      return errors.New("product's price can't be env")
+      return errors.New("product's price can't be 0")
     }
     return nil
   } else {
