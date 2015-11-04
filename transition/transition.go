@@ -130,10 +130,13 @@ func (sm *StateMachine) Trigger(name string, value Stater, tx *gorm.DB, notes ..
 			}
 
 			scope := newTx.NewScope(value)
-			primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
+			var primaryValues []string
+			for _, field := range scope.PrimaryFields() {
+				primaryValues = append(primaryValues, fmt.Sprint(field.Field.Interface()))
+			}
 			log := StateChangeLog{
 				ReferTable: scope.TableName(),
-				ReferId:    primaryKey,
+				ReferId:    strings.Join(primaryValues, "::"),
 				From:       stateWas,
 				To:         transition.to,
 				Note:       strings.Join(notes, ""),
