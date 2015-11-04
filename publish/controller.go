@@ -103,14 +103,9 @@ func (db *publishController) PublishOrDiscard(context *admin.Context) {
 	http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 }
 
-var injected bool
-
 func (publish *Publish) ConfigureQorResource(res *admin.Resource) {
-	if !injected {
-		injected = true
-		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))
-		}
+	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))
 	}
 	res.UseTheme("publish")
 

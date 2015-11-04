@@ -52,11 +52,8 @@ func (s *Sorting) ConfigureQorResource(res *admin.Resource) {
 		res.Config.Permission = roles.NewPermission()
 	}
 
-	if !injected {
-		injected = true
-		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/sorting/views"))
-		}
+	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/sorting/views"))
 	}
 
 	role := res.Config.Permission.Role

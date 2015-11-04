@@ -32,7 +32,18 @@ func init() {
 
 func RegisterViewPath(path string) error {
 	if isExistingDir(path) {
-		viewPaths = append(viewPaths, path)
+		var found bool
+
+		for _, viewPath := range viewPaths {
+			if path == viewPath {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			viewPaths = append(viewPaths, path)
+		}
 		return nil
 	}
 	return errors.New("path not found")
