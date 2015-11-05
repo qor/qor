@@ -36,6 +36,11 @@
       var options = this.options;
       var $this = this.$element;
 
+      // disable fixer if have multiple tables
+      if ($('.qor-page__body .qor-js-table').size() > 1) {
+        return;
+      }
+
       if ($this.is(':hidden') || $this.find('tbody > tr:visible').length <= 1) {
         return;
       }
