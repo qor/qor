@@ -223,28 +223,29 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 				currentScope, nextScope := scope, scope
 
 				if strings.Contains(column, ".") {
-					var joinConditions []string
+					var joinConditionsMap = map[string][]string{}
 					for _, field := range strings.Split(column, ".") {
 						currentScope = nextScope
 						if field, ok := scope.FieldByName(field); ok {
 							if relationship := field.Relationship; relationship != nil {
+								key := fmt.Sprintf("LEFT JOIN %v ON", currentScope.TableName())
 								nextScope = currentScope.New(reflect.New(field.Field.Type()))
-								var joinFields []string
 								for index := range relationship.ForeignDBNames {
-									joinFields = append(joinFields,
-										fmt.Sprint("%v.%v = %v.%v",
+									joinConditionsMap[key] = append(joinConditionsMap[key],
+										fmt.Sprintf("%v.%v = %v.%v",
 											currentScope.TableName(), relationship.ForeignDBNames[index],
 											nextScope.TableName(), relationship.AssociationForeignDBNames[index],
 										))
 								}
-								sql := fmt.Sprintf("LEFT JOIN %v ON %v", currentScope.TableName(), strings.Join(joinFields, " AND "))
-								if relationship.Kind == "has_many" || relationship.Kind == "has_one" {
-									joinConditions = append(joinConditions, sql)
-								} else if relationship.Kind == "belongs_to" {
-									joinConditions = append(joinConditions, sql)
-								}
 							}
 						}
+					}
+					var joinConditions []string
+					for key, values := range joinConditionsMap {
+						joinConditions = append(joinConditions, fmt.Sprintf("%v %v", key, strings.Join(values, " AND ")))
+					}
+					if len(joinConditions) > 0 {
+						db = db.Joins(strings.Join(joinConditions, " "))
 					}
 				}
 
