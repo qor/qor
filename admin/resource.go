@@ -215,6 +215,7 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 		res.searchAttrs = &columns
 		res.SearchHandler = func(keyword string, context *qor.Context) *gorm.DB {
 			db := context.GetDB()
+			var joinConditionsMap = map[string][]string{}
 			var conditions []string
 			var keywords []interface{}
 			scope := db.NewScope(res.Value)
@@ -223,29 +224,31 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 				currentScope, nextScope := scope, scope
 
 				if strings.Contains(column, ".") {
-					var joinConditionsMap = map[string][]string{}
 					for _, field := range strings.Split(column, ".") {
+						column = field
 						currentScope = nextScope
 						if field, ok := scope.FieldByName(field); ok {
 							if relationship := field.Relationship; relationship != nil {
-								key := fmt.Sprintf("LEFT JOIN %v ON", currentScope.TableName())
-								nextScope = currentScope.New(reflect.New(field.Field.Type()))
+								nextScope = currentScope.New(reflect.New(field.Field.Type()).Interface())
+								key := fmt.Sprintf("LEFT JOIN %v ON", nextScope.TableName())
+
 								for index := range relationship.ForeignDBNames {
-									joinConditionsMap[key] = append(joinConditionsMap[key],
-										fmt.Sprintf("%v.%v = %v.%v",
-											currentScope.TableName(), relationship.ForeignDBNames[index],
-											nextScope.TableName(), relationship.AssociationForeignDBNames[index],
-										))
+									if relationship.Kind == "has_one" || relationship.Kind == "has_many" {
+										joinConditionsMap[key] = append(joinConditionsMap[key],
+											fmt.Sprintf("%v.%v = %v.%v",
+												nextScope.QuotedTableName(), scope.Quote(relationship.ForeignDBNames[index]),
+												currentScope.QuotedTableName(), scope.Quote(relationship.AssociationForeignDBNames[index]),
+											))
+									} else if relationship.Kind == "belongs_to" {
+										joinConditionsMap[key] = append(joinConditionsMap[key],
+											fmt.Sprintf("%v.%v = %v.%v",
+												currentScope.QuotedTableName(), scope.Quote(relationship.ForeignDBNames[index]),
+												nextScope.QuotedTableName(), scope.Quote(relationship.AssociationForeignDBNames[index]),
+											))
+									}
 								}
 							}
 						}
-					}
-					var joinConditions []string
-					for key, values := range joinConditionsMap {
-						joinConditions = append(joinConditions, fmt.Sprintf("%v %v", key, strings.Join(values, " AND ")))
-					}
-					if len(joinConditions) > 0 {
-						db = db.Joins(strings.Join(joinConditions, " "))
 					}
 				}
 
@@ -293,6 +296,16 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 				}
 			}
 
+			// join conditions
+			if len(joinConditionsMap) > 0 {
+				var joinConditions []string
+				for key, values := range joinConditionsMap {
+					joinConditions = append(joinConditions, fmt.Sprintf("%v %v", key, strings.Join(values, " AND ")))
+				}
+				db = db.Joins(strings.Join(joinConditions, " "))
+			}
+
+			// search conditions
 			if len(conditions) > 0 {
 				return db.Where(strings.Join(conditions, " OR "), keywords...)
 			} else {
