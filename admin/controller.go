@@ -200,11 +200,17 @@ func (ac *controller) Action(context *Context) {
 	}
 
 	responder.With("html", func() {
-		http.Redirect(context.Writer, context.Request, context.Request.Referer(), http.StatusFound)
+		if err == nil {
+			http.Redirect(context.Writer, context.Request, context.Request.Referer(), http.StatusFound)
+		} else {
+			context.Writer.WriteHeader(HTTPUnprocessableEntity)
+			context.Writer.Write([]byte(err.Error()))
+		}
 	}).With("json", func() {
 		if err == nil {
 			context.Writer.Write([]byte("OK"))
 		} else {
+			context.Writer.WriteHeader(HTTPUnprocessableEntity)
 			context.Writer.Write([]byte(err.Error()))
 		}
 	}).Respond(context.Writer, context.Request)
