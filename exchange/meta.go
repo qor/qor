@@ -28,7 +28,7 @@ func (meta *Meta) GetResource() resource.Resourcer {
 
 func (meta *Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
 	return func(record interface{}, context *qor.Context) interface{} {
-		if valuer := meta.Valuer; valuer != nil {
+		if valuer := meta.Meta.Valuer; valuer != nil {
 			result := valuer(record, context)
 
 			if reflectValue := reflect.ValueOf(result); reflectValue.IsValid() {
