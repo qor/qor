@@ -40,6 +40,12 @@ func main() {
 ## Advanced Usage
 
 ```go
+// Using on frontend - you could define a T method then using in template
+// <h2>{{T "home_page.how_it_works" "HOW DOES IT WORK? {{$1}}" "It is work" }}</h2>
+func T(key string, value string, args ...interface{}) string {
+	return config.Config.I18n.Default(value).T("en-US", key, args)
+}
+
 // Interpolation - i18n using golang template to parse translations with interpolation variable
 
 I18n.AddTranslation(&i18n.Translation{Key: "hello", Locale: "en-US", Value: "Hello {{.Name}}"})
