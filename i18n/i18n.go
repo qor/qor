@@ -3,6 +3,8 @@ package i18n
 import (
 	"errors"
 	"fmt"
+	"html/template"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -23,6 +25,7 @@ type I18n struct {
 	value        string
 	Backends     []Backend
 	Translations map[string]map[string]*Translation
+	IsInlineEdit bool
 }
 
 func (I18n) ResourceName() string {
@@ -85,15 +88,19 @@ func (i18n *I18n) DeleteTranslation(translation *Translation) error {
 	return err
 }
 
+func (i18n *I18n) EnableInlineEdit(isInlineEdit bool) admin.I18n {
+	return &I18n{Translations: i18n.Translations, scope: i18n.scope, value: i18n.value, Backends: i18n.Backends, IsInlineEdit: isInlineEdit}
+}
+
 func (i18n *I18n) Scope(scope string) admin.I18n {
-	return &I18n{Translations: i18n.Translations, scope: scope, value: i18n.value, Backends: i18n.Backends}
+	return &I18n{Translations: i18n.Translations, scope: scope, value: i18n.value, Backends: i18n.Backends, IsInlineEdit: i18n.IsInlineEdit}
 }
 
 func (i18n *I18n) Default(value string) admin.I18n {
-	return &I18n{Translations: i18n.Translations, scope: i18n.scope, value: value, Backends: i18n.Backends}
+	return &I18n{Translations: i18n.Translations, scope: i18n.scope, value: value, Backends: i18n.Backends, IsInlineEdit: i18n.IsInlineEdit}
 }
 
-func (i18n *I18n) T(locale, key string, args ...interface{}) string {
+func (i18n *I18n) T(locale, key string, args ...interface{}) template.HTML {
 	var value = i18n.value
 	var translationKey = key
 	if i18n.scope != "" {
@@ -119,9 +126,54 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) string {
 	}
 
 	if str, err := cldr.Parse(locale, value, args...); err == nil {
-		return str
+		value = str
 	}
-	return value
+
+	if i18n.IsInlineEdit {
+		value = fmt.Sprintf("<span class=\"qor-i18n-inline\" data-locale=\"%s\" data-key=\"%s\">%s</span>", locale, key, value)
+	}
+
+	return template.HTML(value)
+}
+
+// Using: http://vitalets.github.io/x-editable/index.html
+// You could use Bootstrap or JQuery UI by set isIncludeExtendAssetLib to false and load files by yourself
+func RenderInlineEditAssets(isIncludeJQuery bool, isIncludeExtendAssetLib bool) (template.HTML, error) {
+	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+		var content string
+		var hasError bool
+
+		if isIncludeJQuery {
+			content = `<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>`
+		}
+
+		if isIncludeExtendAssetLib {
+			if extendLib, err := ioutil.ReadFile(path.Join(gopath, "src/github.com/qor/qor/i18n/views/themes/i18n/inline-edit-libs.tmpl")); err == nil {
+				content += string(extendLib)
+			} else {
+				hasError = true
+			}
+
+			if css, err := ioutil.ReadFile(path.Join(gopath, "src/github.com/qor/qor/i18n/views/themes/i18n/assets/stylesheets/i18n-inline.css")); err == nil {
+				content += fmt.Sprintf("<style>%s</style>", string(css))
+			} else {
+				hasError = true
+			}
+
+		}
+
+		if js, err := ioutil.ReadFile(path.Join(gopath, "src/github.com/qor/qor/i18n/views/themes/i18n/assets/javascripts/i18n-inline.js")); err == nil {
+			content += fmt.Sprintf("<script type=\"text/javascript\">%s</script>", string(js))
+		} else {
+			hasError = true
+		}
+
+		if !hasError {
+			return template.HTML(content), nil
+		}
+	}
+
+	return template.HTML(""), errors.New("templates not found")
 }
 
 func getLocaleFromContext(context *qor.Context) string {

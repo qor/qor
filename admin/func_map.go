@@ -559,24 +559,24 @@ func (context *Context) logoutURL() string {
 	return ""
 }
 
-func (context *Context) dt(key string, value string, values ...interface{}) string {
+func (context *Context) dt(key string, value string, values ...interface{}) template.HTML {
 	locale := utils.GetLocale(context.Context)
 
 	if context.Admin.I18n == nil {
 		if result, err := cldr.Parse(locale, value, values...); err == nil {
-			return result
+			return template.HTML(result)
 		}
-		return key
+		return template.HTML(key)
 	} else {
 		return context.Admin.I18n.Scope("qor_admin").Default(value).T(locale, key, values...)
 	}
 }
 
-func (context *Context) rt(resource *Resource, key string, values ...interface{}) string {
+func (context *Context) rt(resource *Resource, key string, values ...interface{}) template.HTML {
 	return context.dt(strings.Join([]string{resource.ToParam(), key}, "."), key, values)
 }
 
-func (context *Context) T(key string, values ...interface{}) string {
+func (context *Context) T(key string, values ...interface{}) template.HTML {
 	return context.dt(key, key, values...)
 }
 
