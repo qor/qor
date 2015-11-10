@@ -44,7 +44,7 @@ Use 35 lines of code to setup & run Qor admin.
 // TODO: add screenshot after QOR admin UI finished
 `go run main.go` and visit `localhost:9000/admin` to see the result !
 
-You can view [qor example](https://github.com/qor/qor/tree/master/example) for a more detailed configuration example.
+You can view [qor example](https://github.com/qor/qor-example) for a more detailed configuration example.
 
 ## Features
 
