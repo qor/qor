@@ -1,8 +1,8 @@
 package admin
 
 import (
+	"html/template"
 	"reflect"
-	"text/template"
 
 	"github.com/qor/inflection"
 	"github.com/qor/qor"
@@ -16,7 +16,7 @@ const (
 type I18n interface {
 	Scope(scope string) I18n
 	Default(value string) I18n
-	T(locale string, key string, args ...interface{}) string
+	T(locale string, key string, args ...interface{}) template.HTML
 }
 
 type Admin struct {

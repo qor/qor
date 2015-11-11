@@ -122,7 +122,7 @@ func (ac *controller) Create(context *Context) {
 			}).Respond(context.Writer, context.Request)
 		} else {
 			responder.With("html", func() {
-				context.Flash(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res), "success")
+				context.Flash(string(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res)), "success")
 				if res.Config.Singleton {
 					http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path), http.StatusFound)
 				} else {
@@ -157,7 +157,7 @@ func (ac *controller) Update(context *Context) {
 			}).Respond(context.Writer, context.Request)
 		} else {
 			responder.With("html", func() {
-				context.FlashNow(context.dt("resource_successfully_updated", "{{.Name}} was successfully updated", res), "success")
+				context.FlashNow(string(context.dt("resource_successfully_updated", "{{.Name}} was successfully updated", res)), "success")
 				if res.Config.Singleton {
 					http.Redirect(context.Writer, context.Request, context.UrlFor(res), http.StatusFound)
 				} else {
