@@ -27,6 +27,19 @@
   -moz-background-clip: padding;
   background-clip: padding-box;
 }
+
+.editableform textarea{
+  width: 330px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #555;
+}
+
+.editableform input{
+  width: 300px;
+}
+
 .editable-submit {
   cursor: pointer;
   text-transform: uppercase;

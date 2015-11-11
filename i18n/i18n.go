@@ -130,7 +130,11 @@ func (i18n *I18n) T(locale, key string, args ...interface{}) template.HTML {
 	}
 
 	if i18n.IsInlineEdit {
-		value = fmt.Sprintf("<span class=\"qor-i18n-inline\" data-locale=\"%s\" data-key=\"%s\">%s</span>", locale, key, value)
+		var editType string
+		if len(value) > 25 {
+			editType = "data-type=\"textarea\""
+		}
+		value = fmt.Sprintf("<span class=\"qor-i18n-inline\" %s data-locale=\"%s\" data-key=\"%s\">%s</span>", editType, locale, key, value)
 	}
 
 	return template.HTML(value)
