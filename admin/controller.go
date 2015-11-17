@@ -82,16 +82,38 @@ func (ac *controller) Index(context *Context) {
 	}
 }
 
-func (ac *controller) Show(context *Context) {
+func (ac *controller) Edit(context *Context) {
 	if context.checkResourcePermission(roles.Read) {
 		result, err := context.FindOne()
 		context.AddError(err)
 
 		responder.With("html", func() {
-			context.Execute("show", result)
+			context.Execute("edit", result)
 		}).With("json", func() {
 			res := context.Resource
-			js, _ := json.Marshal(res.convertObjectToMap(context, result, "show"))
+			js, _ := json.Marshal(res.convertObjectToMap(context, result, "edit"))
+			context.Writer.Write(js)
+		}).Respond(context.Writer, context.Request)
+	}
+}
+
+func (ac *controller) Show(context *Context) {
+	if context.checkResourcePermission(roles.Read) {
+		result, err := context.FindOne()
+		context.AddError(err)
+
+		var templateName string
+		if context.Resource.IsSetShowAttrs {
+			templateName = "show"
+		} else {
+			templateName = "edit"
+		}
+
+		responder.With("html", func() {
+			context.Execute(templateName, result)
+		}).With("json", func() {
+			res := context.Resource
+			js, _ := json.Marshal(res.convertObjectToMap(context, result, templateName))
 			context.Writer.Write(js)
 		}).Respond(context.Writer, context.Request)
 	}

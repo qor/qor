@@ -83,7 +83,7 @@ func (context *Context) newResourcePath(value interface{}) string {
 
 func (context *Context) editResourcePath(value interface{}, res *Resource) string {
 	primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
-	return path.Join(context.Admin.router.Prefix, res.ToParam(), primaryKey)
+	return path.Join(context.Admin.router.Prefix, res.ToParam(), primaryKey, "/edit")
 }
 
 func (context *Context) UrlFor(value interface{}, resources ...*Resource) string {
