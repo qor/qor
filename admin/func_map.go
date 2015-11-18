@@ -22,10 +22,14 @@ import (
 	"github.com/theplant/cldr"
 )
 
-func (context *Context) NewResourceContext(name ...string) *Context {
+func (context *Context) NewResourceContext(name ...interface{}) *Context {
 	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result}
 	if len(name) > 0 {
-		clone.setResource(context.Admin.GetResource(name[0]))
+		if str, ok := name[0].(string); ok {
+			clone.setResource(context.Admin.GetResource(str))
+		} else if res, ok := name[0].(*Resource); ok {
+			clone.setResource(res)
+		}
 	} else {
 		clone.setResource(context.Resource)
 	}
