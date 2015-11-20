@@ -135,6 +135,29 @@ func (context *Context) RenderForm(value interface{}, metas []*Meta) template.HT
 	return template.HTML(result.String())
 }
 
+func (context *Context) RenderForm1(value interface{}, sections []*Section) template.HTML {
+	var result = bytes.NewBufferString("")
+	context.renderForm1(result, value, sections, []string{"QorResource"})
+	return template.HTML(result.String())
+}
+
+func (context *Context) renderForm1(result *bytes.Buffer, value interface{}, sections []*Section, prefix []string) {
+	for _, section := range sections {
+		context.renderSection(result, section, value, prefix)
+	}
+}
+
+func (context *Context) renderSection(writer *bytes.Buffer, section *Section, value interface{}, prefix []string) {
+	for _, column := range section.Columns {
+		for _, col := range column {
+			meta := context.Resource.GetMeta(col)
+			if meta != nil {
+				context.renderMeta(writer, meta, value, prefix)
+			}
+		}
+	}
+}
+
 func (context *Context) renderForm(result *bytes.Buffer, value interface{}, metas []*Meta, prefix []string) {
 	for _, meta := range metas {
 		context.renderMeta(result, meta, value, prefix)
@@ -233,10 +256,15 @@ func (context *Context) indexMetas(resources ...*Resource) []*Meta {
 	return res.allowedMetas(res.indexMetas(), context, roles.Read)
 }
 
-func (context *Context) editMetas(resources ...*Resource) []*Meta {
+func (context *Context) editSections(resources ...*Resource) []*Section {
+	res := context.getResource(resources...)
+	return res.allowedMetas1(res.EditAttrs(), context, roles.Update)
+}
+
+/*func (context *Context) editMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
 	return res.allowedMetas(res.editMetas(), context, roles.Update)
-}
+}*/
 
 func (context *Context) showMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
@@ -641,6 +669,7 @@ func (context *Context) FuncMap() template.FuncMap {
 
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
+		"render_form1":           context.RenderForm1,
 		"render_index_meta":      context.renderIndexMeta,
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
@@ -663,9 +692,9 @@ func (context *Context) FuncMap() template.FuncMap {
 
 		"all_metas":        context.allMetas,
 		"index_metas":      context.indexMetas,
-		"edit_metas":       context.editMetas,
 		"show_metas":       context.showMetas,
 		"new_metas":        context.newMetas,
+		"edit_sections":    context.editSections,
 		"is_sortable_meta": context.isSortableMeta,
 
 		"has_create_permission": context.hasCreatePermission,

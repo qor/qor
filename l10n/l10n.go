@@ -134,7 +134,7 @@ func (l *Locale) ConfigureQorResource(res *admin.Resource) {
 		if res.IsSetShowAttrs {
 			res.ShowAttrs(append(res.ShowAttrs(), "-LanguageCode", "-Localization")...)
 		}
-		res.EditAttrs(append(res.EditAttrs(), "-LanguageCode", "-Localization")...)
+		res.EditAttrs(res.EditAttrs(), "-LanguageCode", "-Localization")
 		res.NewAttrs(append(res.NewAttrs(), "-LanguageCode", "-Localization")...)
 	}
 

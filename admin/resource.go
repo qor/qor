@@ -28,9 +28,9 @@ type Resource struct {
 	sortableAttrs  *[]string
 	indexAttrs     []string
 	newAttrs       []string
-	editAttrs      []string
-	showAttrs      []string
+	editAttrs      []*Section
 	IsSetShowAttrs bool
+	showAttrs      []string
 	cachedMetas    *map[string][]*Meta
 	SearchHandler  func(keyword string, context *qor.Context) *gorm.DB
 }
@@ -162,6 +162,33 @@ func (res *Resource) getAttrs(attrs []string) []string {
 	}
 }
 
+func (res *Resource) getAttrs1(attrs []*Section) []*Section {
+	if len(attrs) == 0 {
+		var sections []*Section
+		for _, attr := range res.allAttrs() {
+			sections = append(sections, &Section{Columns: [][]string{{attr}}})
+		}
+		return sections
+	} else {
+		var onlyExcludeAttrs = true
+		for _, attr := range attrs {
+			attrName := attr.Columns[0][0]
+			if !strings.HasPrefix(attrName, "-") {
+				onlyExcludeAttrs = false
+				break
+			}
+		}
+		if onlyExcludeAttrs {
+			var sections []*Section
+			for _, attr := range res.allAttrs() {
+				sections = append(sections, &Section{Columns: [][]string{{attr}}})
+			}
+			return append(sections, attrs...)
+		}
+		return attrs
+	}
+}
+
 func (res *Resource) IndexAttrs(columns ...string) []string {
 	if len(columns) > 0 {
 		res.indexAttrs = columns
@@ -176,11 +203,127 @@ func (res *Resource) NewAttrs(columns ...string) []string {
 	return res.getAttrs(res.newAttrs)
 }
 
-func (res *Resource) EditAttrs(columns ...string) []string {
-	if len(columns) > 0 {
-		res.editAttrs = columns
+func (res *Resource) EditAttrs(values ...interface{}) []*Section {
+	if len(res.editAttrs) > 0 && len(values) == 0 {
+		return res.editAttrs
 	}
-	return res.getAttrs(res.editAttrs)
+	if len(res.editAttrs) == 0 && len(values) == 0 {
+		res.editAttrs = appendSectionFromStrings(res.allAttrs())
+	} else {
+		var flattenValues []interface{}
+		for _, value := range values {
+			if columns, ok := value.([]string); ok {
+				for _, column := range columns {
+					flattenValues = append(flattenValues, column)
+				}
+			} else if sections, ok := value.([]*Section); ok {
+				for _, section := range sections {
+					flattenValues = append(flattenValues, section)
+				}
+			} else if section, ok := value.(*Section); ok {
+				flattenValues = append(flattenValues, section)
+			} else if column, ok := value.(string); ok {
+				flattenValues = append(flattenValues, column)
+			} else {
+				panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
+			}
+		}
+		if isSectionsHasPositive(flattenValues...) {
+			res.editAttrs = appendSectionFromInterfaces(flattenValues...)
+		} else {
+			var valueStrs []string
+			var availbleColumns []string
+			for _, value := range flattenValues {
+				if column, ok := value.(string); ok {
+					valueStrs = append(valueStrs, column)
+				}
+			}
+
+			for _, column := range res.allAttrs() {
+				if !isContainsColumn(valueStrs, column) {
+					availbleColumns = append(availbleColumns, column)
+				}
+			}
+			res.editAttrs = appendSectionFromStrings(availbleColumns)
+		}
+	}
+	return res.editAttrs
+}
+
+func appendSectionFromStrings(columns []string) []*Section {
+	var sections []*Section
+	for _, column := range columns {
+		sections = append(sections, &Section{Columns: [][]string{{column}}})
+	}
+	return sections
+}
+
+func appendSectionFromInterfaces(values ...interface{}) []*Section {
+	var sections []*Section
+	var hasColumns []string
+	var excludedColumns []string
+	valueSize := len(values)
+	for i := 0; i < len(values); i++ {
+		value := values[valueSize-i-1]
+		if section, ok := value.(*Section); ok {
+			sections = append(sections, uniqueSection(section, hasColumns))
+		} else if column, ok := value.(string); ok {
+			if strings.HasPrefix(column, "-") {
+				excludedColumns = append(excludedColumns, column)
+			} else {
+				if !isContainsColumn(excludedColumns, column) {
+					sections = append(sections, &Section{Columns: [][]string{{column}}})
+				}
+			}
+			hasColumns = append(hasColumns, column)
+		} else {
+			panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
+		}
+	}
+	return sections
+}
+
+func uniqueSection(section *Section, hasColumns []string) *Section {
+	newSection := Section{Title: section.Title}
+	var newRows [][]string
+	for _, row := range section.Columns {
+		var newColumns []string
+		for _, column := range row {
+			if !isContainsColumn(hasColumns, column) {
+				newColumns = append(newColumns, column)
+				hasColumns = append(hasColumns, column)
+			}
+		}
+		if len(newColumns) > 0 {
+			newRows = append(newRows, newColumns)
+		}
+	}
+	newSection.Columns = newRows
+	return &newSection
+}
+
+func isContainsColumn(hasColumns []string, column string) bool {
+	for _, col := range hasColumns {
+		if col == column || ("-"+col == column) || ("-"+column == col) {
+			return true
+		}
+	}
+	return false
+}
+
+func isSectionsHasPositive(values ...interface{}) bool {
+	for _, value := range values {
+		if _, ok := value.(*Section); ok {
+			return true
+		} else if column, ok := value.(string); ok {
+			if !strings.HasPrefix(column, "-") {
+				return true
+			}
+		} else {
+			panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
+		}
+	}
+	return false
 }
 
 func (res *Resource) ShowAttrs(columns ...string) []string {
@@ -408,11 +551,11 @@ func (res *Resource) newMetas() []*Meta {
 	})
 }
 
-func (res *Resource) editMetas() []*Meta {
+/*func (res *Resource) editMetas() []*Meta {
 	return res.getCachedMetas("edit_metas", func() []resource.Metaor {
 		return res.GetMetas(res.EditAttrs())
 	})
-}
+}*/
 
 func (res *Resource) showMetas() []*Meta {
 	return res.getCachedMetas("show_metas", func() []resource.Metaor {
@@ -437,4 +580,27 @@ func (res *Resource) allowedMetas(attrs []*Meta, context *Context, roles ...role
 		}
 	}
 	return metas
+}
+
+func (res *Resource) allowedMetas1(sections []*Section, context *Context, roles ...roles.PermissionMode) []*Section {
+	var editableSections []*Section
+	for _, section := range sections {
+		var editableColumns [][]string
+		for _, column := range section.Columns {
+			var editableRows []string
+			for _, col := range column {
+				for _, role := range roles {
+					meta := context.Resource.GetMeta(col)
+					if meta != nil && meta.HasPermission(role, context.Context) {
+						editableRows = append(editableRows, col)
+					}
+				}
+			}
+			if len(editableRows) > 0 {
+				editableColumns = append(editableColumns, editableRows)
+			}
+		}
+		editableSections = append(editableSections, &Section{Title: section.Title, Columns: editableColumns})
+	}
+	return editableSections
 }
