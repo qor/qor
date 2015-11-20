@@ -70,6 +70,8 @@ func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
 				}
 			}
 			return result
+		} else if reflectValue.IsNil() {
+			return nil
 		}
 	}
 
