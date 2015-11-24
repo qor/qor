@@ -93,22 +93,27 @@ func (context *Context) editResourcePath(value interface{}, res *Resource) strin
 }
 
 func (context *Context) UrlFor(value interface{}, resources ...*Resource) string {
-	var url string
 	if admin, ok := value.(*Admin); ok {
-		url = admin.router.Prefix
+		return admin.router.Prefix
 	} else if res, ok := value.(*Resource); ok {
-		url = path.Join(context.Admin.router.Prefix, res.ToParam())
+		return path.Join(context.Admin.router.Prefix, res.ToParam())
 	} else {
-		structType := reflect.Indirect(reflect.ValueOf(value)).Type().String()
-		res := context.Admin.GetResource(structType)
+		var res *Resource
+
+		if len(resources) > 0 {
+			res = resources[0]
+		}
+
 		if res == nil {
-			url = ""
-		} else {
+			res = context.Admin.GetResource(reflect.Indirect(reflect.ValueOf(value)).Type().String())
+		}
+
+		if res != nil {
 			primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
-			url = path.Join(context.Admin.router.Prefix, res.ToParam(), fmt.Sprintf("%v", primaryKey))
+			return path.Join(context.Admin.router.Prefix, res.ToParam(), fmt.Sprintf("%v", primaryKey))
 		}
 	}
-	return url
+	return "#"
 }
 
 func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML {
