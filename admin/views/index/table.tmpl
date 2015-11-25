@@ -1,4 +1,4 @@
-{{$Resource := .Resource}}
+{{$resource := .Resource}}
 <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp qor-table qor-js-table">
   <thead>
     <tr>
@@ -6,28 +6,28 @@
       {{range $index, $meta := index_metas}}
         {{$is_sorted := eq $order_by $meta.DBName}}
         {{$is_desc_sorted := eq $order_by (print $meta.DBName "_desc")}}
-        <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$meta.DBName}}_desc"{{else}}data-order-by="{{$meta.DBName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $Resource.ToParam $meta.Label) $meta.Label}}</th>
+        <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$meta.DBName}}_desc"{{else}}data-order-by="{{$meta.DBName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $resource.ToParam $meta.Label) $meta.Label}}</th>
       {{end}}
       <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
     </tr>
   </thead>
   <tbody>
-    {{range $resource := .Result}}
-      <tr data-primary-key="{{primary_key_of $resource}}">
+    {{range $result := .Result}}
+      <tr data-primary-key="{{primary_key_of $result}}">
         {{range $meta := index_metas}}
-          <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $Resource $meta.Label}}">
-            {{$value := render_index_meta $resource $meta}}
+          <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $resource $meta.Label}}">
+            {{$value := render_index_meta $result $meta}}
             <div class="qor-table__content" title="{{$value}}">{{$value}}</div>
           </td>
         {{end}}
         <td class="mdl-data-table__cell--non-numeric qor-table__actions">
-          {{if has_update_permission $Resource}}
-            <a class="mdl-button mdl-js-button mdl-button--icon qor-button--muted qor-button--edit" href="{{url_for $resource}}">
+          {{if has_update_permission $resource}}
+            <a class="mdl-button mdl-js-button mdl-button--icon qor-button--muted qor-button--edit" href="{{url_for $result $resource}}">
               <i class="material-icons md-18">edit</i>
             </a>
           {{end}}
-          {{if has_delete_permission $Resource}}
-            <a class="mdl-button mdl-js-button mdl-button--icon qor-button--muted qor-button--delete" href="{{url_for $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
+          {{if has_delete_permission $resource}}
+            <a class="mdl-button mdl-js-button mdl-button--icon qor-button--muted qor-button--delete" href="{{url_for $result $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
               <i class="material-icons md-18">delete</i>
             </a>
           {{end}}
