@@ -325,8 +325,7 @@
 .qor-cropper__options {
   display: none;
   margin-top: 32px; }
-  .qor-cropper__options:before,
-  .qor-cropper__options:after {
+  .qor-cropper__options:before, .qor-cropper__options:after {
     content: " ";
     display: table; }
   .qor-cropper__options:after {
@@ -449,8 +448,7 @@
     margin: 16px; }
     .qor-modal .mdl-card .mdl-card__supporting-text {
       width: auto; }
-    .qor-modal .mdl-card .mdl-card__actions:before,
-    .qor-modal .mdl-card .mdl-card__actions:after {
+    .qor-modal .mdl-card .mdl-card__actions:before, .qor-modal .mdl-card .mdl-card__actions:after {
       content: " ";
       display: table; }
     .qor-modal .mdl-card .mdl-card__actions:after {
@@ -516,8 +514,7 @@
   border: 2px solid rgba(0,0,0, 0.12);
   border-radius: 2px;
   cursor: pointer; }
-  .qor-selector-toggle:hover,
-  .qor-selector-toggle:focus {
+  .qor-selector-toggle:hover, .qor-selector-toggle:focus {
     text-decoration: none;
     color: rgba(0,0,0, 0.54); }
   .qor-selector-toggle.active {
@@ -565,16 +562,11 @@
     line-height: 48px;
     white-space: nowrap;
     cursor: pointer; }
-    .qor-selector-menu > li:hover,
-    .qor-selector-menu > li:focus {
+    .qor-selector-menu > li:hover, .qor-selector-menu > li:focus {
       background-color: #eee; }
-  .qor-selector-menu > .selected,
-  .qor-selector-menu > .selected:hover,
-  .qor-selector-menu > .selected:focus {
+  .qor-selector-menu > .selected, .qor-selector-menu > .selected:hover, .qor-selector-menu > .selected:focus {
     background-color: #eee; }
-  .qor-selector-menu > .disabled,
-  .qor-selector-menu > .disabled:hover,
-  .qor-selector-menu > .disabled:focus {
+  .qor-selector-menu > .disabled, .qor-selector-menu > .disabled:hover, .qor-selector-menu > .disabled:focus {
     color: rgba(0,0,0, 0.26);
     background-color: transparent;
     cursor: auto; }

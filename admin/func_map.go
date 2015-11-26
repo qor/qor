@@ -160,11 +160,20 @@ func (context *Context) renderForm1(res *Resource, sections []*Section, value in
 
 func (context *Context) renderSection(res *Resource, section *Section, value interface{}, prefix []string, writer *bytes.Buffer) {
 	for _, column := range section.Columns {
+		data := map[string]interface{}{}
+		data["Columns"] = len(column)
+
+		if tmpl, err := context.FindTemplate(template.New("section_begin.tmpl"), "metas/form/section_begin.tmpl"); err == nil {
+			tmpl.Execute(writer, data)
+		}
 		for _, col := range column {
 			meta := res.GetMetaOrNew(col)
 			if meta != nil {
 				context.renderMeta(writer, meta, value, prefix)
 			}
+		}
+		if tmpl, err := context.FindTemplate(template.New("section_end.tmpl"), "metas/form/section_end.tmpl"); err == nil {
+			tmpl.Execute(writer, data)
 		}
 	}
 }
