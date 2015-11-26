@@ -183,7 +183,7 @@ func (ac *controller) Update(context *Context) {
 				if res.Config.Singleton {
 					http.Redirect(context.Writer, context.Request, context.UrlFor(res), http.StatusFound)
 				} else {
-					context.Execute("show", result)
+					context.Execute("edit", result)
 				}
 			}).With("json", func() {
 				js, _ := json.Marshal(context.Resource.convertObjectToMap(context, result, "show"))

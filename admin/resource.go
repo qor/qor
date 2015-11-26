@@ -228,7 +228,7 @@ func (res *Resource) EditAttrs(values ...interface{}) []*Section {
 				panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
 			}
 		}
-		if isSectionsHasPositive(flattenValues...) {
+		if isSectionsAllPositive(flattenValues...) {
 			res.editAttrs = appendSectionFromInterfaces(flattenValues...)
 		} else {
 			var valueStrs []string
@@ -248,82 +248,6 @@ func (res *Resource) EditAttrs(values ...interface{}) []*Section {
 		}
 	}
 	return res.editAttrs
-}
-
-func appendSectionFromStrings(columns []string) []*Section {
-	var sections []*Section
-	for _, column := range columns {
-		sections = append(sections, &Section{Columns: [][]string{{column}}})
-	}
-	return sections
-}
-
-func appendSectionFromInterfaces(values ...interface{}) []*Section {
-	var sections []*Section
-	var hasColumns []string
-	var excludedColumns []string
-	valueSize := len(values)
-	for i := 0; i < len(values); i++ {
-		value := values[valueSize-i-1]
-		if section, ok := value.(*Section); ok {
-			sections = append(sections, uniqueSection(section, hasColumns))
-		} else if column, ok := value.(string); ok {
-			if strings.HasPrefix(column, "-") {
-				excludedColumns = append(excludedColumns, column)
-			} else {
-				if !isContainsColumn(excludedColumns, column) {
-					sections = append(sections, &Section{Columns: [][]string{{column}}})
-				}
-			}
-			hasColumns = append(hasColumns, column)
-		} else {
-			panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
-		}
-	}
-	return sections
-}
-
-func uniqueSection(section *Section, hasColumns []string) *Section {
-	newSection := Section{Title: section.Title}
-	var newRows [][]string
-	for _, row := range section.Columns {
-		var newColumns []string
-		for _, column := range row {
-			if !isContainsColumn(hasColumns, column) {
-				newColumns = append(newColumns, column)
-				hasColumns = append(hasColumns, column)
-			}
-		}
-		if len(newColumns) > 0 {
-			newRows = append(newRows, newColumns)
-		}
-	}
-	newSection.Columns = newRows
-	return &newSection
-}
-
-func isContainsColumn(hasColumns []string, column string) bool {
-	for _, col := range hasColumns {
-		if col == column || ("-"+col == column) || ("-"+column == col) {
-			return true
-		}
-	}
-	return false
-}
-
-func isSectionsHasPositive(values ...interface{}) bool {
-	for _, value := range values {
-		if _, ok := value.(*Section); ok {
-			return true
-		} else if column, ok := value.(string); ok {
-			if !strings.HasPrefix(column, "-") {
-				return true
-			}
-		} else {
-			panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
-		}
-	}
-	return false
 }
 
 func (res *Resource) ShowAttrs(columns ...string) []string {
@@ -498,6 +422,7 @@ func (res *Resource) GetMetas(attrs []string) []resource.Metaor {
 	primaryKey := res.PrimaryFieldName()
 
 	metas := []resource.Metaor{}
+
 Attrs:
 	for _, attr := range showAttrs {
 		for _, a := range ignoredAttrs {
@@ -532,6 +457,20 @@ Attrs:
 
 func (res *Resource) GetMeta(name string) *Meta {
 	for _, meta := range res.Metas {
+		if meta.Name == name || meta.GetFieldName() == name {
+			return meta
+		}
+	}
+	return nil
+}
+
+func (res *Resource) GetMetaOrNew(name string) *Meta {
+	for _, meta := range res.Metas {
+		if meta.Name == name || meta.GetFieldName() == name {
+			return meta
+		}
+	}
+	for _, meta := range res.allMetas() {
 		if meta.Name == name || meta.GetFieldName() == name {
 			return meta
 		}
@@ -583,24 +522,109 @@ func (res *Resource) allowedMetas(attrs []*Meta, context *Context, roles ...role
 }
 
 func (res *Resource) allowedMetas1(sections []*Section, context *Context, roles ...roles.PermissionMode) []*Section {
-	var editableSections []*Section
 	for _, section := range sections {
-		var editableColumns [][]string
-		for _, column := range section.Columns {
-			var editableRows []string
-			for _, col := range column {
+		var editableRows [][]string
+		for _, row := range section.Columns {
+			var editableColumns []string
+			for _, column := range row {
 				for _, role := range roles {
-					meta := context.Resource.GetMeta(col)
-					if meta != nil && meta.HasPermission(role, context.Context) {
-						editableRows = append(editableRows, col)
+					meta := res.GetMeta(column)
+					if true || (meta != nil && meta.HasPermission(role, context.Context)) {
+						editableColumns = append(editableColumns, column)
+						break
 					}
 				}
 			}
-			if len(editableRows) > 0 {
-				editableColumns = append(editableColumns, editableRows)
+			if len(editableColumns) > 0 {
+				editableRows = append(editableRows, editableColumns)
 			}
 		}
-		editableSections = append(editableSections, &Section{Title: section.Title, Columns: editableColumns})
+		section.Columns = editableRows
 	}
-	return editableSections
+	return sections
+}
+
+// Section Related Methods
+func appendSectionFromStrings(columns []string) []*Section {
+	var sections []*Section
+	for _, column := range columns {
+		sections = append(sections, &Section{Columns: [][]string{{column}}})
+	}
+	return sections
+}
+
+func appendSectionFromInterfaces(values ...interface{}) []*Section {
+	var sections []*Section
+	var hasColumns []string
+	var excludedColumns []string
+	valueSize := len(values)
+	for i := 0; i < len(values); i++ {
+		value := values[valueSize-i-1]
+		if section, ok := value.(*Section); ok {
+			sections = append(sections, uniqueSection(section, hasColumns))
+		} else if column, ok := value.(string); ok {
+			if strings.HasPrefix(column, "-") {
+				excludedColumns = append(excludedColumns, column)
+			} else {
+				if !isContainsColumn(excludedColumns, column) {
+					sections = append(sections, &Section{Columns: [][]string{{column}}})
+				}
+			}
+			hasColumns = append(hasColumns, column)
+		} else {
+			panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
+		}
+	}
+	return reverseSections(sections)
+}
+
+func uniqueSection(section *Section, hasColumns []string) *Section {
+	newSection := Section{Title: section.Title}
+	var newRows [][]string
+	for _, row := range section.Columns {
+		var newColumns []string
+		for _, column := range row {
+			if !isContainsColumn(hasColumns, column) {
+				newColumns = append(newColumns, column)
+				hasColumns = append(hasColumns, column)
+			}
+		}
+		if len(newColumns) > 0 {
+			newRows = append(newRows, newColumns)
+		}
+	}
+	newSection.Columns = newRows
+	return &newSection
+}
+
+func reverseSections(sections []*Section) []*Section {
+	var results []*Section
+	for i := 0; i < len(sections); i++ {
+		results = append(results, sections[len(sections)-i-1])
+	}
+	return results
+}
+
+func isContainsColumn(hasColumns []string, column string) bool {
+	for _, col := range hasColumns {
+		if col == column || ("-"+col == column) || ("-"+column == col) {
+			return true
+		}
+	}
+	return false
+}
+
+func isSectionsAllPositive(values ...interface{}) bool {
+	for _, value := range values {
+		if _, ok := value.(*Section); ok {
+			return true
+		} else if column, ok := value.(string); ok {
+			if !strings.HasPrefix(column, "-") {
+				return true
+			}
+		} else {
+			panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
+		}
+	}
+	return false
 }

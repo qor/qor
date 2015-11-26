@@ -146,22 +146,22 @@ func (context *Context) RenderForm(value interface{}, metas []*Meta) template.HT
 	return template.HTML(result.String())
 }
 
-func (context *Context) RenderForm1(value interface{}, sections []*Section) template.HTML {
+func (context *Context) RenderForm1(res *Resource, sections []*Section, value interface{}) template.HTML {
 	var result = bytes.NewBufferString("")
-	context.renderForm1(result, value, sections, []string{"QorResource"})
+	context.renderForm1(res, sections, value, []string{"QorResource"}, result)
 	return template.HTML(result.String())
 }
 
-func (context *Context) renderForm1(result *bytes.Buffer, value interface{}, sections []*Section, prefix []string) {
+func (context *Context) renderForm1(res *Resource, sections []*Section, value interface{}, prefix []string, result *bytes.Buffer) {
 	for _, section := range sections {
-		context.renderSection(result, section, value, prefix)
+		context.renderSection(res, section, value, prefix, result)
 	}
 }
 
-func (context *Context) renderSection(writer *bytes.Buffer, section *Section, value interface{}, prefix []string) {
+func (context *Context) renderSection(res *Resource, section *Section, value interface{}, prefix []string, writer *bytes.Buffer) {
 	for _, column := range section.Columns {
 		for _, col := range column {
-			meta := context.Resource.GetMeta(col)
+			meta := res.GetMetaOrNew(col)
 			if meta != nil {
 				context.renderMeta(writer, meta, value, prefix)
 			}
@@ -189,6 +189,19 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 		}
 
 		context.renderForm(result, value, metas, newPrefix)
+		return template.HTML(result.String())
+	}
+
+	funcsMap["render_form1"] = func(res *Resource, sections []*Section, value interface{}, index ...int) template.HTML {
+		var result = bytes.NewBufferString("")
+		newPrefix := append([]string{}, prefix...)
+
+		if len(index) > 0 {
+			last := newPrefix[len(newPrefix)-1]
+			newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
+		}
+
+		context.renderForm1(res, sections, value, newPrefix, result)
 		return template.HTML(result.String())
 	}
 
@@ -269,7 +282,7 @@ func (context *Context) indexMetas(resources ...*Resource) []*Meta {
 
 func (context *Context) editSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedMetas1(res.EditAttrs(), context, roles.Update)
+	return res.EditAttrs() //res.allowedMetas1(res.EditAttrs(), context, roles.Update)
 }
 
 /*func (context *Context) editMetas(resources ...*Resource) []*Meta {
