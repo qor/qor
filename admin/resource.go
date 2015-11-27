@@ -18,20 +18,21 @@ import (
 
 type Resource struct {
 	resource.Resource
-	admin         *Admin
-	Config        *Config
-	Metas         []*Meta
-	actions       []*Action
-	scopes        []*Scope
-	filters       map[string]*Filter
-	searchAttrs   *[]string
-	sortableAttrs *[]string
-	indexAttrs    []string
-	newAttrs      []string
-	editAttrs     []string
-	showAttrs     []string
-	cachedMetas   *map[string][]*Meta
-	SearchHandler func(keyword string, context *qor.Context) *gorm.DB
+	admin          *Admin
+	Config         *Config
+	Metas          []*Meta
+	actions        []*Action
+	scopes         []*Scope
+	filters        map[string]*Filter
+	searchAttrs    *[]string
+	sortableAttrs  *[]string
+	indexAttrs     []string
+	newAttrs       []string
+	editAttrs      []string
+	showAttrs      []string
+	IsSetShowAttrs bool
+	cachedMetas    *map[string][]*Meta
+	SearchHandler  func(keyword string, context *qor.Context) *gorm.DB
 }
 
 func (res *Resource) Meta(meta *Meta) {
@@ -184,6 +185,7 @@ func (res *Resource) EditAttrs(columns ...string) []string {
 
 func (res *Resource) ShowAttrs(columns ...string) []string {
 	if len(columns) > 0 {
+		res.IsSetShowAttrs = true
 		res.showAttrs = columns
 	}
 	return res.getAttrs(res.showAttrs)
