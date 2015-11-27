@@ -145,9 +145,9 @@ func (meta *Meta) updateMeta() {
 	if meta.Resource == nil {
 		if hasColumn && (field.Relationship != nil) {
 			var result interface{}
-			if fieldType.Kind().String() == "struct" {
+			if fieldType.Kind() == reflect.Struct {
 				result = reflect.New(fieldType).Interface()
-			} else if fieldType.Kind().String() == "slice" {
+			} else if fieldType.Kind() == reflect.Slice {
 				refelectType := fieldType.Elem()
 				for refelectType.Kind() == reflect.Ptr {
 					refelectType = refelectType.Elem()

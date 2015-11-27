@@ -96,8 +96,7 @@ type configureInjector interface {
 }
 
 func (res *Resource) compile() {
-	admin := res.GetAdmin()
-	scope := admin.Config.DB.NewScope(res.Value)
+	scope := res.GetAdmin().Config.DB.NewScope(res.Value)
 	modelType := scope.GetModelStruct().ModelType
 	for i := 0; i < modelType.NumField(); i++ {
 		fieldStruct := modelType.Field(i)
@@ -111,8 +110,6 @@ func (res *Resource) compile() {
 	if injector, ok := res.Value.(configureInjector); ok {
 		injector.ConfigureQorResource(res)
 	}
-
-	res.SearchAttrs()
 }
 
 func (admin *Admin) compile() {
