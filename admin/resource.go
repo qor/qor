@@ -29,8 +29,8 @@ type Resource struct {
 	indexAttrs     []string
 	newAttrs       []*Section
 	editAttrs      []*Section
+	showAttrs      []*Section
 	IsSetShowAttrs bool
-	showAttrs      []string
 	cachedMetas    *map[string][]*Meta
 	SearchHandler  func(keyword string, context *qor.Context) *gorm.DB
 }
@@ -77,9 +77,11 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 		var metas []*Meta
 		if kind == "index" {
 			metas = res.indexMetas()
-		} else if kind == "show" {
-			metas = res.showMetas()
 		}
+		// TOOD: what?
+		//else if kind == "show" {
+		//		metas = res.showMetas()
+		//}
 
 		values := map[string]interface{}{}
 		for _, meta := range metas {
@@ -206,12 +208,17 @@ func (res *Resource) EditAttrs(values ...interface{}) []*Section {
 	return res.editAttrs
 }
 
-func (res *Resource) ShowAttrs(columns ...string) []string {
-	if len(columns) > 0 {
+func (res *Resource) ShowAttrs(values ...interface{}) []*Section {
+	if len(values) > 0 {
 		res.IsSetShowAttrs = true
-		res.showAttrs = columns
 	}
-	return res.getAttrs(res.showAttrs)
+	res.setSections(&res.showAttrs, values...)
+	return res.showAttrs
+}
+
+func (res *Resource) TouchShowAttrs(values ...interface{}) []*Section {
+	res.setSections(&res.showAttrs, values...)
+	return res.showAttrs
 }
 
 func (res *Resource) SortableAttrs(columns ...string) []string {
@@ -437,24 +444,6 @@ func (res *Resource) GetMetaOrNew(name string) *Meta {
 func (res *Resource) indexMetas() []*Meta {
 	return res.getCachedMetas("index_metas", func() []resource.Metaor {
 		return res.GetMetas(res.IndexAttrs())
-	})
-}
-
-/*func (res *Resource) newMetas() []*Meta {
-	return res.getCachedMetas("new_metas", func() []resource.Metaor {
-		return res.GetMetas(res.NewAttrs())
-	})
-}*/
-
-/*func (res *Resource) editMetas() []*Meta {
-	return res.getCachedMetas("edit_metas", func() []resource.Metaor {
-		return res.GetMetas(res.EditAttrs())
-	})
-}*/
-
-func (res *Resource) showMetas() []*Meta {
-	return res.getCachedMetas("show_metas", func() []resource.Metaor {
-		return res.GetMetas(res.ShowAttrs())
 	})
 }
 

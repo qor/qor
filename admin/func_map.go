@@ -299,14 +299,9 @@ func (context *Context) newSections(resources ...*Resource) []*Section {
 	return res.NewAttrs() //res.allowedMetas1(res.EditAttrs(), context, roles.Update)
 }
 
-/*func (context *Context) editMetas(resources ...*Resource) []*Meta {
+func (context *Context) showSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedMetas(res.editMetas(), context, roles.Update)
-}*/
-
-func (context *Context) showMetas(resources ...*Resource) []*Meta {
-	res := context.getResource(resources...)
-	return res.allowedMetas(res.showMetas(), context, roles.Read)
+	return res.ShowAttrs() //allowedMetas(res.showMetas(), context, roles.Read)
 }
 
 type menu struct {
@@ -725,7 +720,7 @@ func (context *Context) FuncMap() template.FuncMap {
 
 		"all_metas":        context.allMetas,
 		"index_metas":      context.indexMetas,
-		"show_metas":       context.showMetas,
+		"show_sections":    context.showSections,
 		"new_sections":     context.newSections,
 		"edit_sections":    context.editSections,
 		"is_sortable_meta": context.isSortableMeta,

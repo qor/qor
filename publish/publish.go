@@ -43,11 +43,9 @@ func (s *Status) SetPublishStatus(status bool) {
 func (s Status) ConfigureQorResource(res *admin.Resource) {
 	if res.GetMeta("PublishStatus") == nil {
 		res.IndexAttrs(append(res.IndexAttrs(), "-PublishStatus")...)
-		if res.IsSetShowAttrs {
-			res.ShowAttrs(append(res.ShowAttrs(), "-PublishStatus")...)
-		}
-		res.EditAttrs(res.EditAttrs(), "-PublishStatus")
 		res.NewAttrs(res.NewAttrs(), "-PublishStatus")
+		res.EditAttrs(res.EditAttrs(), "-PublishStatus")
+		res.TouchShowAttrs(res.ShowAttrs(), "-PublishStatus")
 	}
 }
 

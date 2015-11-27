@@ -98,8 +98,9 @@ func (s *Sorting) ConfigureQorResource(res *admin.Resource) {
 		}
 	}
 	res.IndexAttrs(append(attrs, "Position")...)
-	res.EditAttrs(res.EditAttrs(), "-Position")
 	res.NewAttrs(res.NewAttrs(), "-Position")
+	res.EditAttrs(res.EditAttrs(), "-Position")
+	res.TouchShowAttrs(res.ShowAttrs(), "-Position")
 
 	router := Admin.GetRouter()
 	router.Post(fmt.Sprintf("^/%v/\\d+/sorting/update_position$", res.ToParam()), updatePosition)
