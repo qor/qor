@@ -294,6 +294,11 @@ func (context *Context) editSections(resources ...*Resource) []*Section {
 	return res.EditAttrs() //res.allowedMetas1(res.EditAttrs(), context, roles.Update)
 }
 
+func (context *Context) newSections(resources ...*Resource) []*Section {
+	res := context.getResource(resources...)
+	return res.NewAttrs() //res.allowedMetas1(res.EditAttrs(), context, roles.Update)
+}
+
 /*func (context *Context) editMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
 	return res.allowedMetas(res.editMetas(), context, roles.Update)
@@ -302,11 +307,6 @@ func (context *Context) editSections(resources ...*Resource) []*Section {
 func (context *Context) showMetas(resources ...*Resource) []*Meta {
 	res := context.getResource(resources...)
 	return res.allowedMetas(res.showMetas(), context, roles.Read)
-}
-
-func (context *Context) newMetas(resources ...*Resource) []*Meta {
-	res := context.getResource(resources...)
-	return res.allowedMetas(res.newMetas(), context, roles.Create)
 }
 
 type menu struct {
@@ -726,7 +726,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"all_metas":        context.allMetas,
 		"index_metas":      context.indexMetas,
 		"show_metas":       context.showMetas,
-		"new_metas":        context.newMetas,
+		"new_sections":     context.newSections,
 		"edit_sections":    context.editSections,
 		"is_sortable_meta": context.isSortableMeta,
 

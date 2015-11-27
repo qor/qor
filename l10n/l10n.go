@@ -135,7 +135,7 @@ func (l *Locale) ConfigureQorResource(res *admin.Resource) {
 			res.ShowAttrs(append(res.ShowAttrs(), "-LanguageCode", "-Localization")...)
 		}
 		res.EditAttrs(res.EditAttrs(), "-LanguageCode", "-Localization")
-		res.NewAttrs(append(res.NewAttrs(), "-LanguageCode", "-Localization")...)
+		res.NewAttrs(res.NewAttrs(), "-LanguageCode", "-Localization")
 	}
 
 	// Set meta permissions

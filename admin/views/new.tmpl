@@ -11,7 +11,7 @@
 
   <div class="qor-form-container">
     <form class="qor-form" action="{{url_for .Resource}}" method="POST" enctype="multipart/form-data">
-      {{render_form .Result new_metas}}
+      {{render_form1 .Resource new_sections .Result }}
       <div class="qor-form__actions">
         <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{rt .Resource (printf "Add %v" (singular .Resource.Name))}}</button>
         </button>

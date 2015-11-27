@@ -27,7 +27,7 @@ type Resource struct {
 	searchAttrs    *[]string
 	sortableAttrs  *[]string
 	indexAttrs     []string
-	newAttrs       []string
+	newAttrs       []*Section
 	editAttrs      []*Section
 	IsSetShowAttrs bool
 	showAttrs      []string
@@ -196,57 +196,13 @@ func (res *Resource) IndexAttrs(columns ...string) []string {
 	return res.getAttrs(res.indexAttrs)
 }
 
-func (res *Resource) NewAttrs(columns ...string) []string {
-	if len(columns) > 0 {
-		res.newAttrs = columns
-	}
-	return res.getAttrs(res.newAttrs)
+func (res *Resource) NewAttrs(values ...interface{}) []*Section {
+	res.setSections(&res.newAttrs, values...)
+	return res.newAttrs
 }
 
 func (res *Resource) EditAttrs(values ...interface{}) []*Section {
-	if len(res.editAttrs) > 0 && len(values) == 0 {
-		return res.editAttrs
-	}
-	if len(res.editAttrs) == 0 && len(values) == 0 {
-		res.editAttrs = appendSectionFromStrings(res.allAttrs())
-	} else {
-		var flattenValues []interface{}
-		for _, value := range values {
-			if columns, ok := value.([]string); ok {
-				for _, column := range columns {
-					flattenValues = append(flattenValues, column)
-				}
-			} else if sections, ok := value.([]*Section); ok {
-				for _, section := range sections {
-					flattenValues = append(flattenValues, section)
-				}
-			} else if section, ok := value.(*Section); ok {
-				flattenValues = append(flattenValues, section)
-			} else if column, ok := value.(string); ok {
-				flattenValues = append(flattenValues, column)
-			} else {
-				panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
-			}
-		}
-		if isSectionsAllPositive(flattenValues...) {
-			res.editAttrs = appendSectionFromInterfaces(flattenValues...)
-		} else {
-			var valueStrs []string
-			var availbleColumns []string
-			for _, value := range flattenValues {
-				if column, ok := value.(string); ok {
-					valueStrs = append(valueStrs, column)
-				}
-			}
-
-			for _, column := range res.allAttrs() {
-				if !isContainsColumn(valueStrs, column) {
-					availbleColumns = append(availbleColumns, column)
-				}
-			}
-			res.editAttrs = appendSectionFromStrings(availbleColumns)
-		}
-	}
+	res.setSections(&res.editAttrs, values...)
 	return res.editAttrs
 }
 
@@ -484,11 +440,11 @@ func (res *Resource) indexMetas() []*Meta {
 	})
 }
 
-func (res *Resource) newMetas() []*Meta {
+/*func (res *Resource) newMetas() []*Meta {
 	return res.getCachedMetas("new_metas", func() []resource.Metaor {
 		return res.GetMetas(res.NewAttrs())
 	})
-}
+}*/
 
 /*func (res *Resource) editMetas() []*Meta {
 	return res.getCachedMetas("edit_metas", func() []resource.Metaor {
@@ -627,4 +583,50 @@ func isSectionsAllPositive(values ...interface{}) bool {
 		}
 	}
 	return false
+}
+
+func (res *Resource) setSections(sections *[]*Section, values ...interface{}) {
+	if len(*sections) > 0 && len(values) == 0 {
+		return
+	}
+	if len(*sections) == 0 && len(values) == 0 {
+		*sections = appendSectionFromStrings(res.allAttrs())
+	} else {
+		var flattenValues []interface{}
+		for _, value := range values {
+			if columns, ok := value.([]string); ok {
+				for _, column := range columns {
+					flattenValues = append(flattenValues, column)
+				}
+			} else if _sections, ok := value.([]*Section); ok {
+				for _, section := range _sections {
+					flattenValues = append(flattenValues, section)
+				}
+			} else if section, ok := value.(*Section); ok {
+				flattenValues = append(flattenValues, section)
+			} else if column, ok := value.(string); ok {
+				flattenValues = append(flattenValues, column)
+			} else {
+				panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
+			}
+		}
+		if isSectionsAllPositive(flattenValues...) {
+			*sections = appendSectionFromInterfaces(flattenValues...)
+		} else {
+			var valueStrs []string
+			var availbleColumns []string
+			for _, value := range flattenValues {
+				if column, ok := value.(string); ok {
+					valueStrs = append(valueStrs, column)
+				}
+			}
+
+			for _, column := range res.allAttrs() {
+				if !isContainsColumn(valueStrs, column) {
+					availbleColumns = append(availbleColumns, column)
+				}
+			}
+			*sections = appendSectionFromStrings(availbleColumns)
+		}
+	}
 }

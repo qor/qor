@@ -47,7 +47,7 @@ func (s Status) ConfigureQorResource(res *admin.Resource) {
 			res.ShowAttrs(append(res.ShowAttrs(), "-PublishStatus")...)
 		}
 		res.EditAttrs(res.EditAttrs(), "-PublishStatus")
-		res.NewAttrs(append(res.NewAttrs(), "-PublishStatus")...)
+		res.NewAttrs(res.NewAttrs(), "-PublishStatus")
 	}
 }
 
