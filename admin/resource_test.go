@@ -16,6 +16,7 @@ type Product struct {
 	Description string
 }
 
+// Test Edit Attrs
 type EditAttrsTestCase struct {
 	Params []string
 	Result []string

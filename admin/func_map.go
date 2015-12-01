@@ -166,7 +166,7 @@ func (context *Context) renderForm1(res *Resource, sections []*Section, value in
 func (context *Context) renderSection(res *Resource, section *Section, value interface{}, prefix []string, writer *bytes.Buffer) {
 	data := map[string]interface{}{}
 	var rows []SectionRowData
-	for _, column := range section.Columns {
+	for _, column := range section.Rows {
 		columnsHTML := bytes.NewBufferString("")
 		for _, col := range column {
 			meta := res.GetMetaOrNew(col)

@@ -169,13 +169,13 @@ func (res *Resource) getAttrs1(attrs []*Section) []*Section {
 	if len(attrs) == 0 {
 		var sections []*Section
 		for _, attr := range res.allAttrs() {
-			sections = append(sections, &Section{Columns: [][]string{{attr}}})
+			sections = append(sections, &Section{Rows: [][]string{{attr}}})
 		}
 		return sections
 	} else {
 		var onlyExcludeAttrs = true
 		for _, attr := range attrs {
-			attrName := attr.Columns[0][0]
+			attrName := attr.Rows[0][0]
 			if !strings.HasPrefix(attrName, "-") {
 				onlyExcludeAttrs = false
 				break
@@ -184,7 +184,7 @@ func (res *Resource) getAttrs1(attrs []*Section) []*Section {
 		if onlyExcludeAttrs {
 			var sections []*Section
 			for _, attr := range res.allAttrs() {
-				sections = append(sections, &Section{Columns: [][]string{{attr}}})
+				sections = append(sections, &Section{Rows: [][]string{{attr}}})
 			}
 			return append(sections, attrs...)
 		}
@@ -470,7 +470,7 @@ func (res *Resource) allowedMetas(attrs []*Meta, context *Context, roles ...role
 func (res *Resource) allowedMetas1(sections []*Section, context *Context, roles ...roles.PermissionMode) []*Section {
 	for _, section := range sections {
 		var editableRows [][]string
-		for _, row := range section.Columns {
+		for _, row := range section.Rows {
 			var editableColumns []string
 			for _, column := range row {
 				for _, role := range roles {
@@ -485,7 +485,7 @@ func (res *Resource) allowedMetas1(sections []*Section, context *Context, roles 
 				editableRows = append(editableRows, editableColumns)
 			}
 		}
-		section.Columns = editableRows
+		section.Rows = editableRows
 	}
 	return sections
 }
@@ -495,6 +495,8 @@ func generateSections(values ...interface{}) []*Section {
 	var sections []*Section
 	var hasColumns []string
 	var excludedColumns []string
+	// Reverse values to make the last one as a key one
+	// e.g. Name, Code, -Name (`-Name` will get first and will skip `Name`)
 	for i := len(values) - 1; i >= 0; i-- {
 		value := values[i]
 		if section, ok := value.(*Section); ok {
@@ -503,13 +505,13 @@ func generateSections(values ...interface{}) []*Section {
 			if strings.HasPrefix(column, "-") {
 				excludedColumns = append(excludedColumns, column)
 			} else if !isContainsColumn(excludedColumns, column) {
-				sections = append(sections, &Section{Columns: [][]string{{column}}})
+				sections = append(sections, &Section{Rows: [][]string{{column}}})
 			}
 			hasColumns = append(hasColumns, column)
-		} else if columns, ok := value.([]string); ok {
-			for j := len(columns) - 1; j >= 0; j-- {
-				column = columns[j]
-				sections = append(sections, &Section{Columns: [][]string{{column}}})
+		} else if row, ok := value.([]string); ok {
+			for j := len(row) - 1; j >= 0; j-- {
+				column = row[j]
+				sections = append(sections, &Section{Rows: [][]string{{column}}})
 				hasColumns = append(hasColumns, column)
 			}
 		} else {
@@ -522,7 +524,7 @@ func generateSections(values ...interface{}) []*Section {
 func uniqueSection(section *Section, hasColumns []string) *Section {
 	newSection := Section{Title: section.Title}
 	var newRows [][]string
-	for _, row := range section.Columns {
+	for _, row := range section.Rows {
 		var newColumns []string
 		for _, column := range row {
 			if !isContainsColumn(hasColumns, column) {
@@ -534,7 +536,7 @@ func uniqueSection(section *Section, hasColumns []string) *Section {
 			newRows = append(newRows, newColumns)
 		}
 	}
-	newSection.Columns = newRows
+	newSection.Rows = newRows
 	return &newSection
 }
 
@@ -548,7 +550,7 @@ func reverseSections(sections []*Section) []*Section {
 
 func isContainsColumn(hasColumns []string, column string) bool {
 	for _, col := range hasColumns {
-		if col == column || ("-"+col == column) || ("-"+column == col) {
+		if strings.TrimLeft(col, "-") == strings.TrimLeft(column, "-") {
 			return true
 		}
 	}
