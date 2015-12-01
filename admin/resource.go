@@ -557,7 +557,7 @@ func isContainsColumn(hasColumns []string, column string) bool {
 	return false
 }
 
-func isSectionsAllPositive(values ...interface{}) bool {
+func isContainsPositiveValue(values ...interface{}) bool {
 	for _, value := range values {
 		if _, ok := value.(*Section); ok {
 			return true
@@ -597,7 +597,7 @@ func (res *Resource) setSections(sections *[]*Section, values ...interface{}) {
 				utils.ExitWithMsg(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
 			}
 		}
-		if isSectionsAllPositive(flattenValues...) {
+		if isContainsPositiveValue(flattenValues...) {
 			*sections = generateSections(flattenValues...)
 		} else {
 			var valueStrs []string

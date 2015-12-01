@@ -10,7 +10,7 @@
   {{render "shared/errors"}}
   <div class="qor-form-container">
     <form class="qor-form" action="{{patch_url (edit_resource_path .Result .Resource) "locale" (current_locale .)}}" method="POST" enctype="multipart/form-data">
-      {{render_form1 .Resource edit_sections .Result }}
+      {{render_form .Resource edit_sections .Result }}
       <div class="qor-form__actions">
         <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Save Changes"}}</button>
         <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "Cancel Edit"}}</a>

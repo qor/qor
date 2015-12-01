@@ -145,19 +145,13 @@ func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.
 	return template.HTML(result.String())
 }
 
-func (context *Context) RenderForm(value interface{}, metas []*Meta) template.HTML {
+func (context *Context) RenderForm(res *Resource, sections []*Section, value interface{}) template.HTML {
 	var result = bytes.NewBufferString("")
-	context.renderForm(result, value, metas, []string{"QorResource"})
+	context.renderForm(res, sections, value, []string{"QorResource"}, result)
 	return template.HTML(result.String())
 }
 
-func (context *Context) RenderForm1(res *Resource, sections []*Section, value interface{}) template.HTML {
-	var result = bytes.NewBufferString("")
-	context.renderForm1(res, sections, value, []string{"QorResource"}, result)
-	return template.HTML(result.String())
-}
-
-func (context *Context) renderForm1(res *Resource, sections []*Section, value interface{}, prefix []string, result *bytes.Buffer) {
+func (context *Context) renderForm(res *Resource, sections []*Section, value interface{}, prefix []string, result *bytes.Buffer) {
 	for _, section := range sections {
 		context.renderSection(res, section, value, prefix, result)
 	}
@@ -187,17 +181,11 @@ func (context *Context) renderSection(res *Resource, section *Section, value int
 	}
 }
 
-func (context *Context) renderForm(result *bytes.Buffer, value interface{}, metas []*Meta, prefix []string) {
-	for _, meta := range metas {
-		context.renderMeta(result, meta, value, prefix)
-	}
-}
-
 func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value interface{}, prefix []string) {
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := context.FuncMap()
-	funcsMap["render_form"] = func(value interface{}, metas []*Meta, index ...int) template.HTML {
+	funcsMap["render_form"] = func(res *Resource, sections []*Section, value interface{}, index ...int) template.HTML {
 		var result = bytes.NewBufferString("")
 		newPrefix := append([]string{}, prefix...)
 
@@ -206,20 +194,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 			newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
 		}
 
-		context.renderForm(result, value, metas, newPrefix)
-		return template.HTML(result.String())
-	}
-
-	funcsMap["render_form1"] = func(res *Resource, sections []*Section, value interface{}, index ...int) template.HTML {
-		var result = bytes.NewBufferString("")
-		newPrefix := append([]string{}, prefix...)
-
-		if len(index) > 0 {
-			last := newPrefix[len(newPrefix)-1]
-			newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
-		}
-
-		context.renderForm1(res, sections, value, newPrefix, result)
+		context.renderForm(res, sections, value, newPrefix, result)
 		return template.HTML(result.String())
 	}
 
@@ -706,7 +681,6 @@ func (context *Context) FuncMap() template.FuncMap {
 
 		"render":                 context.Render,
 		"render_form":            context.RenderForm,
-		"render_form1":           context.RenderForm1,
 		"render_index_meta":      context.renderIndexMeta,
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
