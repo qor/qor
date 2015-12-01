@@ -93,16 +93,15 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 	scope := admin.Config.DB.NewScope(res.Value)
 	modelType := scope.GetModelStruct().ModelType
 	for i := 0; i < modelType.NumField(); i++ {
-		fieldStruct := modelType.Field(i)
-		if field, ok := scope.FieldByName(fieldStruct.Name); !ok || field.Relationship == nil {
-			if injector, ok := reflect.New(fieldStruct.Type).Interface().(configureAfterNewInjector); ok {
-				injector.ConfigureQorResourceAfterNew(res)
+		if fieldStruct := modelType.Field(i); !fieldStruct.Anonymous {
+			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourcerBeforeInitializeInterface); ok {
+				injector.ConfigureQorResourceBeforeInitialize(res)
 			}
 		}
 	}
 
-	if injector, ok := res.Value.(configureAfterNewInjector); ok {
-		injector.ConfigureQorResourceAfterNew(res)
+	if injector, ok := res.Value.(resource.ConfigureResourcerBeforeInitializeInterface); ok {
+		injector.ConfigureQorResourceBeforeInitialize(res)
 	}
 	return res
 }
