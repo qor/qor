@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
 )
 
@@ -103,46 +104,48 @@ func (db *publishController) PublishOrDiscard(context *admin.Context) {
 	http.Redirect(context.Writer, context.Request, context.Request.RequestURI, http.StatusFound)
 }
 
-func (publish *Publish) ConfigureQorResource(res *admin.Resource) {
-	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))
-	}
-	res.UseTheme("publish")
+func (publish *Publish) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))
+		}
+		res.UseTheme("publish")
 
-	if event := res.GetAdmin().GetResource("PublishEvent"); event == nil {
-		eventResource := res.GetAdmin().AddResource(&PublishEvent{}, &admin.Config{Invisible: true})
-		eventResource.IndexAttrs("Name", "Description", "CreatedAt")
-	}
+		if event := res.GetAdmin().GetResource("PublishEvent"); event == nil {
+			eventResource := res.GetAdmin().AddResource(&PublishEvent{}, &admin.Config{Invisible: true})
+			eventResource.IndexAttrs("Name", "Description", "CreatedAt")
+		}
 
-	controller := publishController{publish}
-	router := res.GetAdmin().GetRouter()
-	router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
-	router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Preview)
-	router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.PublishOrDiscard)
+		controller := publishController{publish}
+		router := res.GetAdmin().GetRouter()
+		router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
+		router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Preview)
+		router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.PublishOrDiscard)
 
-	res.GetAdmin().RegisterFuncMap("render_publish_meta", func(value interface{}, meta *admin.Meta, context *admin.Context) template.HTML {
-		var err error
-		var result = bytes.NewBufferString("")
-		var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
+		res.GetAdmin().RegisterFuncMap("render_publish_meta", func(value interface{}, meta *admin.Meta, context *admin.Context) template.HTML {
+			var err error
+			var result = bytes.NewBufferString("")
+			var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
 
-		if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/publish/%v.tmpl", meta.Type)); err != nil {
-			if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
-				tmpl, _ = tmpl.Parse("{{.Value}}")
+			if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/publish/%v.tmpl", meta.Type)); err != nil {
+				if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
+					tmpl, _ = tmpl.Parse("{{.Value}}")
+				}
 			}
-		}
 
-		data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
-		if err := tmpl.Execute(result, data); err != nil {
-			utils.ExitWithMsg(err.Error())
-		}
-		return template.HTML(result.String())
-	})
+			data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
+			if err := tmpl.Execute(result, data); err != nil {
+				utils.ExitWithMsg(err.Error())
+			}
+			return template.HTML(result.String())
+		})
 
-	res.GetAdmin().RegisterFuncMap("publish_unique_key", func(res *admin.Resource, record interface{}, context *admin.Context) string {
-		return fmt.Sprintf("%s__%v", res.ToParam(), context.GetDB().NewScope(record).PrimaryKeyValue())
-	})
+		res.GetAdmin().RegisterFuncMap("publish_unique_key", func(res *admin.Resource, record interface{}, context *admin.Context) string {
+			return fmt.Sprintf("%s__%v", res.ToParam(), context.GetDB().NewScope(record).PrimaryKeyValue())
+		})
 
-	res.GetAdmin().RegisterFuncMap("is_publish_event_resource", func(res *admin.Resource) bool {
-		return IsPublishEvent(res.Value)
-	})
+		res.GetAdmin().RegisterFuncMap("is_publish_event_resource", func(res *admin.Resource) bool {
+			return IsPublishEvent(res.Value)
+		})
+	}
 }

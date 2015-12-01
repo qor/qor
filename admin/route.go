@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/qor/qor"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 )
 
@@ -95,19 +96,17 @@ type configureInjector interface {
 	ConfigureQorResource(*Resource)
 }
 
-func (res *Resource) compile() {
-	scope := res.GetAdmin().Config.DB.NewScope(res.Value)
-	modelType := scope.GetModelStruct().ModelType
+func (res *Resource) configure() {
+	modelType := res.GetAdmin().Config.DB.NewScope(res.Value).GetModelStruct().ModelType
 	for i := 0; i < modelType.NumField(); i++ {
-		fieldStruct := modelType.Field(i)
-		if field, ok := scope.FieldByName(fieldStruct.Name); !ok || field.Relationship == nil {
-			if injector, ok := reflect.New(fieldStruct.Type).Interface().(configureInjector); ok {
+		if fieldStruct := modelType.Field(i); !fieldStruct.Anonymous {
+			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourcerInterface); ok {
 				injector.ConfigureQorResource(res)
 			}
 		}
 	}
 
-	if injector, ok := res.Value.(configureInjector); ok {
+	if injector, ok := res.Value.(resource.ConfigureResourcerInterface); ok {
 		injector.ConfigureQorResource(res)
 	}
 }
@@ -118,7 +117,7 @@ func (admin *Admin) compile() {
 	router := admin.GetRouter()
 
 	for _, res := range admin.resources {
-		res.compile()
+		res.configure()
 	}
 
 	router.Use(func(context *Context, middleware *Middleware) {

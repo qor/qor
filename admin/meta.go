@@ -156,7 +156,7 @@ func (meta *Meta) updateMeta() {
 			}
 
 			res := meta.base.GetAdmin().NewResource(result)
-			res.compile()
+			res.configure()
 			meta.Resource = res
 		}
 	}

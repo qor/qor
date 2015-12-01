@@ -10,6 +10,7 @@ import (
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
 )
@@ -84,158 +85,160 @@ func getLocaleFromContext(context *qor.Context) string {
 
 var injected bool
 
-func (l *Locale) ConfigureQorResource(res *admin.Resource) {
-	Admin := res.GetAdmin()
-	res.UseTheme("l10n")
+func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		Admin := res.GetAdmin()
+		res.UseTheme("l10n")
 
-	if res.Config.Permission == nil {
-		res.Config.Permission = roles.NewPermission()
-	}
-	res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
+		if res.Config.Permission == nil {
+			res.Config.Permission = roles.NewPermission()
+		}
+		res.Config.Permission.Allow(roles.CRUD, "locale_admin").Allow(roles.Read, "locale_reader")
 
-	if res.GetMeta("Localization") == nil {
-		res.Meta(&admin.Meta{Name: "Localization", Valuer: func(value interface{}, ctx *qor.Context) interface{} {
-			db := ctx.GetDB()
-			context := Admin.NewContext(ctx.Writer, ctx.Request)
+		if res.GetMeta("Localization") == nil {
+			res.Meta(&admin.Meta{Name: "Localization", Valuer: func(value interface{}, ctx *qor.Context) interface{} {
+				db := ctx.GetDB()
+				context := Admin.NewContext(ctx.Writer, ctx.Request)
 
-			var languageCodes []string
-			scope := db.NewScope(value)
-			db.New().Set("l10n:mode", "unscoped").Model(res.Value).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
+				var languageCodes []string
+				scope := db.NewScope(value)
+				db.New().Set("l10n:mode", "unscoped").Model(res.Value).Where(fmt.Sprintf("%v = ?", scope.PrimaryKey()), scope.PrimaryKeyValue()).Pluck("language_code", &languageCodes)
 
-			var results string
-			availableLocales := getAvailableLocales(ctx.Request, ctx.CurrentUser)
-		OUT:
-			for _, locale := range availableLocales {
-				for _, localized := range languageCodes {
-					if locale == localized {
-						results += fmt.Sprintf("<span class=\"qor-label is-active\">%s</span> ", context.T(locale))
-						continue OUT
+				var results string
+				availableLocales := getAvailableLocales(ctx.Request, ctx.CurrentUser)
+			OUT:
+				for _, locale := range availableLocales {
+					for _, localized := range languageCodes {
+						if locale == localized {
+							results += fmt.Sprintf("<span class=\"qor-label is-active\">%s</span> ", context.T(locale))
+							continue OUT
+						}
 					}
+					results += fmt.Sprintf("<span class=\"qor-label\">%s</span> ", context.T(locale))
 				}
-				results += fmt.Sprintf("<span class=\"qor-label\">%s</span> ", context.T(locale))
-			}
-			return template.HTML(results)
-		}})
+				return template.HTML(results)
+			}})
 
-		attrs := res.IndexAttrs()
-		var hasLocalization bool
-		for _, attr := range attrs {
-			if attr == "Localization" {
-				hasLocalization = true
-				break
+			attrs := res.IndexAttrs()
+			var hasLocalization bool
+			for _, attr := range attrs {
+				if attr == "Localization" {
+					hasLocalization = true
+					break
+				}
 			}
+
+			if hasLocalization {
+				res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode")...)
+			} else {
+				res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode", "Localization")...)
+			}
+			res.ShowAttrs(append(res.ShowAttrs(), "-LanguageCode", "-Localization")...)
+			res.EditAttrs(append(res.EditAttrs(), "-LanguageCode", "-Localization")...)
+			res.NewAttrs(append(res.NewAttrs(), "-LanguageCode", "-Localization")...)
 		}
 
-		if hasLocalization {
-			res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode")...)
-		} else {
-			res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode", "Localization")...)
-		}
-		res.ShowAttrs(append(res.ShowAttrs(), "-LanguageCode", "-Localization")...)
-		res.EditAttrs(append(res.EditAttrs(), "-LanguageCode", "-Localization")...)
-		res.NewAttrs(append(res.NewAttrs(), "-LanguageCode", "-Localization")...)
-	}
+		// Set meta permissions
+		for _, field := range Admin.Config.DB.NewScope(res.Value).Fields() {
+			if isSyncField(field.StructField) {
+				if meta := res.GetMeta(field.Name); meta != nil {
+					permission := meta.Permission
+					if permission == nil {
+						permission = roles.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")
+					} else {
+						permission = permission.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")
+					}
 
-	// Set meta permissions
-	for _, field := range Admin.Config.DB.NewScope(res.Value).Fields() {
-		if isSyncField(field.StructField) {
-			if meta := res.GetMeta(field.Name); meta != nil {
-				permission := meta.Permission
-				if permission == nil {
-					permission = roles.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")
+					meta.Permission = permission
 				} else {
-					permission = permission.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")
+					res.Meta(&admin.Meta{Name: field.Name, Permission: roles.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")})
 				}
-
-				meta.Permission = permission
-			} else {
-				res.Meta(&admin.Meta{Name: field.Name, Permission: roles.Allow(roles.CRUD, "global_admin").Allow(roles.Read, "locale_reader")})
 			}
 		}
-	}
 
-	// Roles
-	role := res.Config.Permission.Role
-	if _, ok := role.Get("locale_admin"); !ok {
-		role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
-			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
-			for _, locale := range getEditableLocales(req, currentUser) {
-				if locale == currentLocale {
-					return true
-				}
-			}
-			return false
-		})
-	}
-
-	if _, ok := role.Get("global_admin"); !ok {
-		role.Register("global_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
-			return getLocaleFromContext(&qor.Context{Request: req}) == Global
-		})
-	}
-
-	if _, ok := role.Get("locale_reader"); !ok {
-		role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
-			currentLocale := getLocaleFromContext(&qor.Context{Request: req})
-			for _, locale := range getAvailableLocales(req, currentUser) {
-				if locale == currentLocale {
-					return true
-				}
-			}
-			return false
-		})
-	}
-
-	// Inject for l10n
-	if !injected {
-		injected = true
-		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/l10n/views"))
-		}
-
-		// Middleware
-		Admin.GetRouter().Use(func(context *admin.Context, middleware *admin.Middleware) {
-			db := context.GetDB().Set("l10n:locale", getLocaleFromContext(context.Context))
-			if mode := context.Request.URL.Query().Get("locale_mode"); mode != "" {
-				db = db.Set("l10n:mode", mode)
-			}
-			if context.Request.URL.Query().Get("sorting") != "" {
-				db = db.Set("l10n:mode", "locale")
-			}
-			context.SetDB(db)
-
-			middleware.Next(context)
-		})
-
-		// FunMap
-		Admin.RegisterFuncMap("current_locale", func(context admin.Context) string {
-			return getLocaleFromContext(context.Context)
-		})
-
-		Admin.RegisterFuncMap("global_locale", func() string {
-			return Global
-		})
-
-		Admin.RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
-			return getAvailableLocales(context.Request, context.CurrentUser)
-		})
-
-		Admin.RegisterFuncMap("editable_locales", func(context admin.Context) []string {
-			return getEditableLocales(context.Request, context.CurrentUser)
-		})
-
-		Admin.RegisterFuncMap("createable_locales", func(context admin.Context) []string {
-			editableLocales := getEditableLocales(context.Request, context.CurrentUser)
-			if _, ok := context.Resource.Value.(localeCreatableInterface); ok {
-				return editableLocales
-			} else {
-				for _, locale := range editableLocales {
-					if locale == Global {
-						return []string{Global}
+		// Roles
+		role := res.Config.Permission.Role
+		if _, ok := role.Get("locale_admin"); !ok {
+			role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+				currentLocale := getLocaleFromContext(&qor.Context{Request: req})
+				for _, locale := range getEditableLocales(req, currentUser) {
+					if locale == currentLocale {
+						return true
 					}
 				}
+				return false
+			})
+		}
+
+		if _, ok := role.Get("global_admin"); !ok {
+			role.Register("global_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+				return getLocaleFromContext(&qor.Context{Request: req}) == Global
+			})
+		}
+
+		if _, ok := role.Get("locale_reader"); !ok {
+			role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
+				currentLocale := getLocaleFromContext(&qor.Context{Request: req})
+				for _, locale := range getAvailableLocales(req, currentUser) {
+					if locale == currentLocale {
+						return true
+					}
+				}
+				return false
+			})
+		}
+
+		// Inject for l10n
+		if !injected {
+			injected = true
+			for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+				admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/l10n/views"))
 			}
-			return []string{}
-		})
+
+			// Middleware
+			Admin.GetRouter().Use(func(context *admin.Context, middleware *admin.Middleware) {
+				db := context.GetDB().Set("l10n:locale", getLocaleFromContext(context.Context))
+				if mode := context.Request.URL.Query().Get("locale_mode"); mode != "" {
+					db = db.Set("l10n:mode", mode)
+				}
+				if context.Request.URL.Query().Get("sorting") != "" {
+					db = db.Set("l10n:mode", "locale")
+				}
+				context.SetDB(db)
+
+				middleware.Next(context)
+			})
+
+			// FunMap
+			Admin.RegisterFuncMap("current_locale", func(context admin.Context) string {
+				return getLocaleFromContext(context.Context)
+			})
+
+			Admin.RegisterFuncMap("global_locale", func() string {
+				return Global
+			})
+
+			Admin.RegisterFuncMap("viewable_locales", func(context admin.Context) []string {
+				return getAvailableLocales(context.Request, context.CurrentUser)
+			})
+
+			Admin.RegisterFuncMap("editable_locales", func(context admin.Context) []string {
+				return getEditableLocales(context.Request, context.CurrentUser)
+			})
+
+			Admin.RegisterFuncMap("createable_locales", func(context admin.Context) []string {
+				editableLocales := getEditableLocales(context.Request, context.CurrentUser)
+				if _, ok := context.Resource.Value.(localeCreatableInterface); ok {
+					return editableLocales
+				} else {
+					for _, locale := range editableLocales {
+						if locale == Global {
+							return []string{Global}
+						}
+					}
+				}
+				return []string{}
+			})
+		}
 	}
 }

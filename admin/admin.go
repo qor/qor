@@ -90,8 +90,8 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		res.Name = namer.ResourceName()
 	}
 
-	scope := admin.Config.DB.NewScope(res.Value)
-	modelType := scope.GetModelStruct().ModelType
+	// Configure resource when initializing
+	modelType := admin.Config.DB.NewScope(res.Value).GetModelStruct().ModelType
 	for i := 0; i < modelType.NumField(); i++ {
 		if fieldStruct := modelType.Field(i); !fieldStruct.Anonymous {
 			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourcerBeforeInitializeInterface); ok {
@@ -104,10 +104,6 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		injector.ConfigureQorResourceBeforeInitialize(res)
 	}
 	return res
-}
-
-type configureAfterNewInjector interface {
-	ConfigureQorResourceAfterNew(*Resource)
 }
 
 func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource {
