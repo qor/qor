@@ -571,7 +571,7 @@ func (context *Context) loadActions(action string) template.HTML {
 	for _, key := range actionKeys {
 		base := regexp.MustCompile("^\\d+\\.").ReplaceAllString(key, "")
 		file := actions[base]
-		if tmpl, err := template.New(path.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
+		if tmpl, err := template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
 			if err := tmpl.Execute(result, context); err != nil {
 				panic(err)
 			}
