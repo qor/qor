@@ -21,9 +21,9 @@ type Metaor interface {
 	GetFieldName() string
 	GetSetter() func(resource interface{}, metaValue *MetaValue, context *qor.Context)
 	GetValuer() func(interface{}, *qor.Context) interface{}
-	HasPermission(roles.PermissionMode, *qor.Context) bool
-	GetMetas() []Metaor
 	GetResource() Resourcer
+	GetMetas() []Metaor
+	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
 
 type Meta struct {
@@ -269,7 +269,7 @@ func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool)
 	return nil, false
 }
 
-// Profile.Name
+// parseNestedField used to handle case like Profile.Name
 func parseNestedField(value reflect.Value, name string) (reflect.Value, string) {
 	fields := strings.Split(name, ".")
 	value = reflect.Indirect(value)
