@@ -22,6 +22,11 @@ import (
 	"github.com/theplant/cldr"
 )
 
+type SectionRowData struct {
+	Length      int
+	ColumnsHTML template.HTML
+}
+
 func (context *Context) NewResourceContext(name ...interface{}) *Context {
 	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result}
 	if len(name) > 0 {
@@ -159,22 +164,26 @@ func (context *Context) renderForm1(res *Resource, sections []*Section, value in
 }
 
 func (context *Context) renderSection(res *Resource, section *Section, value interface{}, prefix []string, writer *bytes.Buffer) {
+	data := map[string]interface{}{}
+	var rows []SectionRowData
 	for _, column := range section.Columns {
-		data := map[string]interface{}{}
-		data["Columns"] = len(column)
-
-		if tmpl, err := context.FindTemplate(template.New("section_begin.tmpl"), "metas/form/section_begin.tmpl"); err == nil {
-			tmpl.Execute(writer, data)
-		}
+		columnsHTML := bytes.NewBufferString("")
 		for _, col := range column {
 			meta := res.GetMetaOrNew(col)
 			if meta != nil {
-				context.renderMeta(writer, meta, value, prefix)
+				context.renderMeta(columnsHTML, meta, value, prefix)
 			}
 		}
-		if tmpl, err := context.FindTemplate(template.New("section_end.tmpl"), "metas/form/section_end.tmpl"); err == nil {
-			tmpl.Execute(writer, data)
-		}
+		rows = append(rows, SectionRowData{
+			Length:      len(column),
+			ColumnsHTML: template.HTML(string(columnsHTML.Bytes())),
+		})
+	}
+
+	data["Title"] = template.HTML(section.Title)
+	data["Rows"] = rows
+	if tmpl, err := context.FindTemplate(template.New("section.tmpl"), "metas/form/section.tmpl"); err == nil {
+		tmpl.Execute(writer, data)
 	}
 }
 
