@@ -500,7 +500,7 @@ func generateSections(values ...interface{}) []*Section {
 	for i := len(values) - 1; i >= 0; i-- {
 		value := values[i]
 		if section, ok := value.(*Section); ok {
-			sections = append(sections, uniqueSection(section, hasColumns))
+			sections = append(sections, uniqueSection(section, &hasColumns))
 		} else if column, ok := value.(string); ok {
 			if strings.HasPrefix(column, "-") {
 				excludedColumns = append(excludedColumns, column)
@@ -521,15 +521,15 @@ func generateSections(values ...interface{}) []*Section {
 	return reverseSections(sections)
 }
 
-func uniqueSection(section *Section, hasColumns []string) *Section {
+func uniqueSection(section *Section, hasColumns *[]string) *Section {
 	newSection := Section{Title: section.Title}
 	var newRows [][]string
 	for _, row := range section.Rows {
 		var newColumns []string
 		for _, column := range row {
-			if !isContainsColumn(hasColumns, column) {
+			if !isContainsColumn(*hasColumns, column) {
 				newColumns = append(newColumns, column)
-				hasColumns = append(hasColumns, column)
+				*hasColumns = append(*hasColumns, column)
 			}
 		}
 		if len(newColumns) > 0 {
