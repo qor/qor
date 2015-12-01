@@ -26,6 +26,16 @@ type Metaor interface {
 	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
 
+// ConfigureMetaorBeforeInitializeInterface if a struct's field's type implemented this interface, it will be called when initializing a meta
+type ConfigureMetaorBeforeInitializeInterface interface {
+	ConfigureQorMetaorBeforeInitialize(Metaor)
+}
+
+// ConfigureMetaorInterface if a struct's field's type implemented this interface, it will be called after configed
+type ConfigureMetaorInterface interface {
+	ConfigureQorMetaor(Metaor)
+}
+
 type Meta struct {
 	Name          string
 	FieldName     string
