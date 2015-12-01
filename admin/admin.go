@@ -93,7 +93,7 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 	// Configure resource when initializing
 	modelType := admin.Config.DB.NewScope(res.Value).GetModelStruct().ModelType
 	for i := 0; i < modelType.NumField(); i++ {
-		if fieldStruct := modelType.Field(i); !fieldStruct.Anonymous {
+		if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
 			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourcerBeforeInitializeInterface); ok {
 				injector.ConfigureQorResourceBeforeInitialize(res)
 			}

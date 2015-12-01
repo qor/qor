@@ -99,7 +99,7 @@ type configureInjector interface {
 func (res *Resource) configure() {
 	modelType := res.GetAdmin().Config.DB.NewScope(res.Value).GetModelStruct().ModelType
 	for i := 0; i < modelType.NumField(); i++ {
-		if fieldStruct := modelType.Field(i); !fieldStruct.Anonymous {
+		if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
 			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourcerInterface); ok {
 				injector.ConfigureQorResource(res)
 			}
