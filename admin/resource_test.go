@@ -24,12 +24,12 @@ type EditAttrsTestCase struct {
 func TestEditAttrs(t *testing.T) {
 	var testCases []EditAttrsTestCase
 	testCases = append(testCases,
-		EditAttrsTestCase{Params: []string{"Name", "Code"}, Result: []string{"Code", "Name"}},
+		EditAttrsTestCase{Params: []string{"Name", "Code"}, Result: []string{"Name", "Code"}},
 		EditAttrsTestCase{Params: []string{"-Name"}, Result: []string{"Code", "URL", "Description"}},
 		EditAttrsTestCase{Params: []string{"Name", "-Code"}, Result: []string{"Name"}},
 		EditAttrsTestCase{Params: []string{"Name", "-Code", "-Name"}, Result: []string{}},
 		EditAttrsTestCase{Params: []string{"Name", "Code", "-Name"}, Result: []string{"Code"}},
-		EditAttrsTestCase{Params: []string{"-Name", "Code", "Name"}, Result: []string{"Name", "Code"}},
+		EditAttrsTestCase{Params: []string{"-Name", "Code", "Name"}, Result: []string{"Code", "Name"}},
 		EditAttrsTestCase{Params: []string{"Section:Name+Code+Description", "-Name"}, Result: []string{"Code+Description"}},
 	)
 

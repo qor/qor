@@ -97,7 +97,8 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 		}
 		return values
 	default:
-		panic(fmt.Sprintf("Can't convert %v (%v) to map", reflectValue, reflectValue.Kind()))
+		utils.ExitWithMsg(fmt.Sprintf("Can't convert %v (%v) to map", reflectValue, reflectValue.Kind()))
+		return nil
 	}
 }
 
@@ -490,34 +491,29 @@ func (res *Resource) allowedMetas1(sections []*Section, context *Context, roles 
 }
 
 // Section Related Methods
-func appendSectionFromStrings(columns []string) []*Section {
-	var sections []*Section
-	for _, column := range columns {
-		sections = append(sections, &Section{Columns: [][]string{{column}}})
-	}
-	return sections
-}
-
-func appendSectionFromInterfaces(values ...interface{}) []*Section {
+func generateSections(values ...interface{}) []*Section {
 	var sections []*Section
 	var hasColumns []string
 	var excludedColumns []string
-	valueSize := len(values)
-	for i := 0; i < len(values); i++ {
-		value := values[valueSize-i-1]
+	for i := len(values) - 1; i >= 0; i-- {
+		value := values[i]
 		if section, ok := value.(*Section); ok {
 			sections = append(sections, uniqueSection(section, hasColumns))
 		} else if column, ok := value.(string); ok {
 			if strings.HasPrefix(column, "-") {
 				excludedColumns = append(excludedColumns, column)
-			} else {
-				if !isContainsColumn(excludedColumns, column) {
-					sections = append(sections, &Section{Columns: [][]string{{column}}})
-				}
+			} else if !isContainsColumn(excludedColumns, column) {
+				sections = append(sections, &Section{Columns: [][]string{{column}}})
 			}
 			hasColumns = append(hasColumns, column)
+		} else if columns, ok := value.([]string); ok {
+			for j := len(columns) - 1; j >= 0; j-- {
+				column = columns[j]
+				sections = append(sections, &Section{Columns: [][]string{{column}}})
+				hasColumns = append(hasColumns, column)
+			}
 		} else {
-			panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
+			utils.ExitWithMsg(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
 		}
 	}
 	return reverseSections(sections)
@@ -568,7 +564,7 @@ func isSectionsAllPositive(values ...interface{}) bool {
 				return true
 			}
 		} else {
-			panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
+			utils.ExitWithMsg(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
 		}
 	}
 	return false
@@ -579,7 +575,7 @@ func (res *Resource) setSections(sections *[]*Section, values ...interface{}) {
 		return
 	}
 	if len(*sections) == 0 && len(values) == 0 {
-		*sections = appendSectionFromStrings(res.allAttrs())
+		*sections = generateSections(res.allAttrs())
 	} else {
 		var flattenValues []interface{}
 		for _, value := range values {
@@ -596,11 +592,11 @@ func (res *Resource) setSections(sections *[]*Section, values ...interface{}) {
 			} else if column, ok := value.(string); ok {
 				flattenValues = append(flattenValues, column)
 			} else {
-				panic(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
+				utils.ExitWithMsg(fmt.Sprintf("Qor Resource: attributes should be Section or String, but it is %+v", value))
 			}
 		}
 		if isSectionsAllPositive(flattenValues...) {
-			*sections = appendSectionFromInterfaces(flattenValues...)
+			*sections = generateSections(flattenValues...)
 		} else {
 			var valueStrs []string
 			var availbleColumns []string
@@ -615,7 +611,7 @@ func (res *Resource) setSections(sections *[]*Section, values ...interface{}) {
 					availbleColumns = append(availbleColumns, column)
 				}
 			}
-			*sections = appendSectionFromStrings(availbleColumns)
+			*sections = generateSections(availbleColumns)
 		}
 	}
 }
