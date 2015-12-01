@@ -140,7 +140,8 @@ func (admin *Admin) EnabledSearchCenter() bool {
 
 func (admin *Admin) GetResource(name string) *Resource {
 	for _, res := range admin.resources {
-		if res.ToParam() == name || res.Name == name || res.StructType == name {
+		var typeName = reflect.Indirect(reflect.ValueOf(res.Value)).Type().String()
+		if res.ToParam() == name || res.Name == name || typeName == name {
 			return res
 		}
 	}

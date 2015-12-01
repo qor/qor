@@ -10,16 +10,15 @@ import (
 
 type Resource struct {
 	Name            string
-	StructType      string
-	Permission      *roles.Permission
-	primaryField    *gorm.Field
 	Value           interface{}
 	FindManyHandler func(interface{}, *qor.Context) error
 	FindOneHandler  func(interface{}, *MetaValues, *qor.Context) error
 	SaveHandler     func(interface{}, *qor.Context) error
 	DeleteHandler   func(interface{}, *qor.Context) error
+	Permission      *roles.Permission
 	validators      []func(interface{}, *MetaValues, *qor.Context) error
 	processors      []func(interface{}, *MetaValues, *qor.Context) error
+	primaryField    *gorm.Field
 }
 
 type Resourcer interface {
@@ -34,11 +33,8 @@ type Resourcer interface {
 }
 
 func New(value interface{}) *Resource {
-	structType := reflect.Indirect(reflect.ValueOf(value)).Type()
-	typeName := structType.String()
-	name := structType.Name()
-
-	res := &Resource{Value: value, Name: name, StructType: typeName}
+	name := reflect.Indirect(reflect.ValueOf(value)).Type().Name()
+	res := &Resource{Value: value, Name: name}
 	res.FindOneHandler = res.findOneHandler
 	res.FindManyHandler = res.findManyHandler
 	res.SaveHandler = res.saveHandler
