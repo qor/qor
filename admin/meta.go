@@ -64,9 +64,12 @@ func (meta *Meta) updateMeta() {
 		Permission:    meta.Permission,
 		ResourceValue: meta.base.Value,
 	}
+
 	meta.PreInitialize()
-	if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorBeforeInitializeInterface); ok {
-		injector.ConfigureQorMetaorBeforeInitialize(meta)
+	if meta.FieldStruct != nil {
+		if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorBeforeInitializeInterface); ok {
+			injector.ConfigureQorMetaorBeforeInitialize(meta)
+		}
 	}
 
 	meta.Initialize()
@@ -194,7 +197,9 @@ func (meta *Meta) updateMeta() {
 
 	meta.FieldName = meta.GetFieldName()
 
-	if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorInterface); ok {
-		injector.ConfigureQorMetaor(meta)
+	if meta.FieldStruct != nil {
+		if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorInterface); ok {
+			injector.ConfigureQorMetaor(meta)
+		}
 	}
 }

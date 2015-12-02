@@ -58,13 +58,17 @@ func (meta *Meta) updateMeta() {
 	}
 
 	meta.PreInitialize()
-	if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorBeforeInitializeInterface); ok {
-		injector.ConfigureQorMetaorBeforeInitialize(meta)
+	if meta.FieldStruct != nil {
+		if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorBeforeInitializeInterface); ok {
+			injector.ConfigureQorMetaorBeforeInitialize(meta)
+		}
 	}
 
 	meta.Initialize()
 
-	if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorInterface); ok {
-		injector.ConfigureQorMetaor(meta)
+	if meta.FieldStruct != nil {
+		if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorInterface); ok {
+			injector.ConfigureQorMetaor(meta)
+		}
 	}
 }
