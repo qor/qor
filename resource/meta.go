@@ -27,13 +27,13 @@ type Metaor interface {
 }
 
 // ConfigureMetaorBeforeInitializeInterface if a struct's field's type implemented this interface, it will be called when initializing a meta
-type ConfigureMetaorBeforeInitializeInterface interface {
-	ConfigureQorMetaorBeforeInitialize(Metaor)
+type ConfigureMetaBeforeInitializeInterface interface {
+	ConfigureQorMetaBeforeInitialize(Metaor)
 }
 
 // ConfigureMetaorInterface if a struct's field's type implemented this interface, it will be called after configed
-type ConfigureMetaorInterface interface {
-	ConfigureQorMetaor(Metaor)
+type ConfigureMetaInterface interface {
+	ConfigureQorMeta(Metaor)
 }
 
 type Meta struct {

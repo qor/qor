@@ -20,12 +20,12 @@ type Resourcer interface {
 }
 
 // ConfigureResourcerBeforeInitializeInterface if a struct implemented this interface, it will be called before everything when create a resource with the struct
-type ConfigureResourcerBeforeInitializeInterface interface {
+type ConfigureResourceBeforeInitializeInterface interface {
 	ConfigureQorResourceBeforeInitialize(Resourcer)
 }
 
 // ConfigureResourcerInterface if a struct implemented this interface, it will be called after configured by user
-type ConfigureResourcerInterface interface {
+type ConfigureResourceInterface interface {
 	ConfigureQorResource(Resourcer)
 }
 
