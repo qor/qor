@@ -1,10 +1,12 @@
 <div class="qor-section clearfix">
   {{if .Title}}
-    <h3>{{.Title}}</h3>
+    <div class="qor-section-title">{{.Title}}</div>
   {{end}}
+  {{if .Title}}<div class="qor-fieldset">{{end}}
   {{range .Rows}}
     <div class="qor-section-rows qor-section-columns-{{.Length}} clearfix">
       {{.ColumnsHTML}}
     </div>
   {{end}}
+  {{if .Title}}</div>{{end}}
 </div>
