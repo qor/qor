@@ -9,7 +9,6 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
-	"github.com/qor/qor/media_library"
 	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
@@ -124,8 +123,6 @@ func (meta *Meta) updateMeta() {
 					meta.Type = "float"
 				} else if _, ok := reflect.New(fieldType).Interface().(*time.Time); ok {
 					meta.Type = "datetime"
-				} else if _, ok := reflect.New(fieldType).Interface().(media_library.MediaLibrary); ok {
-					meta.Type = "file"
 				}
 			}
 		}
