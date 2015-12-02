@@ -37,13 +37,17 @@ type ConfigureMetaInterface interface {
 }
 
 type Meta struct {
-	Name          string
-	FieldName     string
-	Setter        func(resource interface{}, metaValue *MetaValue, context *qor.Context)
-	Valuer        func(interface{}, *qor.Context) interface{}
-	Permission    *roles.Permission
-	ResourceValue interface{}
-	FieldStruct   *gorm.StructField
+	Name        string
+	FieldName   string
+	Setter      func(resource interface{}, metaValue *MetaValue, context *qor.Context)
+	Valuer      func(interface{}, *qor.Context) interface{}
+	Permission  *roles.Permission
+	Resource    Resourcer
+	FieldStruct *gorm.StructField
+}
+
+func (meta Meta) GetBaseResource() Resourcer {
+	return meta.Resource
 }
 
 func (meta Meta) GetName() string {
@@ -109,9 +113,9 @@ func (meta *Meta) PreInitialize() error {
 	}
 
 	var nestedField = strings.Contains(meta.FieldName, ".")
-	var scope = &gorm.Scope{Value: meta.ResourceValue}
+	var scope = &gorm.Scope{Value: meta.Resource.GetResource().Value}
 	if nestedField {
-		subModel, name := parseNestedField(reflect.ValueOf(meta.ResourceValue), meta.FieldName)
+		subModel, name := parseNestedField(reflect.ValueOf(meta.Resource.GetResource().Value), meta.FieldName)
 		meta.FieldStruct = getField(scope.New(subModel.Interface()).GetStructFields(), name)
 	} else {
 		meta.FieldStruct = getField(scope.GetStructFields(), meta.FieldName)
@@ -161,7 +165,7 @@ func (meta *Meta) Initialize() error {
 				return ""
 			}
 		} else {
-			utils.ExitWithMsg("Unsupported meta name %v for resource %v", meta.FieldName, reflect.TypeOf(meta.ResourceValue))
+			utils.ExitWithMsg("Unsupported meta name %v for resource %v", meta.FieldName, reflect.TypeOf(meta.Resource.GetResource().Value))
 		}
 	}
 
