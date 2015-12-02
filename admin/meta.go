@@ -64,9 +64,12 @@ func (meta *Meta) updateMeta() {
 		Permission:    meta.Permission,
 		ResourceValue: meta.base.Value,
 	}
-	meta.Initialize()
+	meta.PreInitialize()
+	if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorBeforeInitializeInterface); ok {
+		injector.ConfigureQorMetaorBeforeInitialize(meta)
+	}
 
-	meta.UpdateMeta()
+	meta.Initialize()
 
 	if meta.Label == "" {
 		meta.Label = utils.HumanizeString(meta.Name)
@@ -190,4 +193,8 @@ func (meta *Meta) updateMeta() {
 	}
 
 	meta.FieldName = meta.GetFieldName()
+
+	if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorInterface); ok {
+		injector.ConfigureQorMetaor(meta)
+	}
 }

@@ -92,10 +92,6 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
 }
 
-type configureInjector interface {
-	ConfigureQorResource(*Resource)
-}
-
 func (res *Resource) configure() {
 	modelType := res.GetAdmin().Config.DB.NewScope(res.Value).GetModelStruct().ModelType
 	for i := 0; i < modelType.NumField(); i++ {

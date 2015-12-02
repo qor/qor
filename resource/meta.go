@@ -81,7 +81,7 @@ func (meta Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) 
 	return meta.Permission.HasPermission(mode, context.Roles...)
 }
 
-func (meta *Meta) Initialize() error {
+func (meta *Meta) PreInitialize() error {
 	if meta.Name == "" {
 		utils.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
 	} else if meta.FieldName == "" {
@@ -119,7 +119,7 @@ func (meta *Meta) Initialize() error {
 	return nil
 }
 
-func (meta *Meta) UpdateMeta() error {
+func (meta *Meta) Initialize() error {
 	var (
 		nestedField = strings.Contains(meta.FieldName, ".")
 		field       = meta.FieldStruct

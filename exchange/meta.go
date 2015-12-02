@@ -56,5 +56,15 @@ func (meta *Meta) updateMeta() {
 		Permission:    meta.Permission,
 		ResourceValue: meta.base.Value,
 	}
-	meta.UpdateMeta()
+
+	meta.PreInitialize()
+	if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorBeforeInitializeInterface); ok {
+		injector.ConfigureQorMetaorBeforeInitialize(meta)
+	}
+
+	meta.Initialize()
+
+	if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaorInterface); ok {
+		injector.ConfigureQorMetaor(meta)
+	}
 }
