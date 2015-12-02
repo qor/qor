@@ -43,6 +43,7 @@ type Meta struct {
 	Valuer        func(interface{}, *qor.Context) interface{}
 	Permission    *roles.Permission
 	ResourceValue interface{}
+	FieldStruct   *gorm.StructField
 }
 
 func (meta Meta) GetName() string {
@@ -80,27 +81,50 @@ func (meta Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) 
 	return meta.Permission.HasPermission(mode, context.Roles...)
 }
 
-func (meta *Meta) UpdateMeta() error {
+func (meta *Meta) Initialize() error {
 	if meta.Name == "" {
 		utils.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
 	} else if meta.FieldName == "" {
 		meta.FieldName = meta.Name
 	}
 
-	var (
-		scope       = &gorm.Scope{Value: meta.ResourceValue}
-		nestedField = strings.Contains(meta.FieldName, ".")
-		field       *gorm.StructField
-		hasColumn   bool
-	)
+	// parseNestedField used to handle case like Profile.Name
+	var parseNestedField = func(value reflect.Value, name string) (reflect.Value, string) {
+		fields := strings.Split(name, ".")
+		value = reflect.Indirect(value)
+		for _, field := range fields[:len(fields)-1] {
+			value = value.FieldByName(field)
+		}
 
+		return value, fields[len(fields)-1]
+	}
+
+	var getField = func(fields []*gorm.StructField, name string) *gorm.StructField {
+		for _, field := range fields {
+			if field.Name == name || field.DBName == name {
+				return field
+			}
+		}
+		return nil
+	}
+
+	var nestedField = strings.Contains(meta.FieldName, ".")
+	var scope = &gorm.Scope{Value: meta.ResourceValue}
 	if nestedField {
 		subModel, name := parseNestedField(reflect.ValueOf(meta.ResourceValue), meta.FieldName)
-		subScope := &gorm.Scope{Value: subModel.Interface()}
-		field, hasColumn = getField(subScope.GetStructFields(), name)
+		meta.FieldStruct = getField(scope.New(subModel.Interface()).GetStructFields(), name)
 	} else {
-		field, hasColumn = getField(scope.GetStructFields(), meta.FieldName)
+		meta.FieldStruct = getField(scope.GetStructFields(), meta.FieldName)
 	}
+	return nil
+}
+
+func (meta *Meta) UpdateMeta() error {
+	var (
+		nestedField = strings.Contains(meta.FieldName, ".")
+		field       = meta.FieldStruct
+		hasColumn   = meta.FieldStruct != nil
+	)
 
 	var fieldType reflect.Type
 	if hasColumn {
@@ -268,26 +292,6 @@ func (meta *Meta) UpdateMeta() error {
 		}
 	}
 	return nil
-}
-
-func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool) {
-	for _, field := range fields {
-		if field.Name == name || field.DBName == name {
-			return field, true
-		}
-	}
-	return nil, false
-}
-
-// parseNestedField used to handle case like Profile.Name
-func parseNestedField(value reflect.Value, name string) (reflect.Value, string) {
-	fields := strings.Split(name, ".")
-	value = reflect.Indirect(value)
-	for _, field := range fields[:len(fields)-1] {
-		value = value.FieldByName(field)
-	}
-
-	return value, fields[len(fields)-1]
 }
 
 func getNestedModel(value interface{}, fieldName string, context *qor.Context) interface{} {

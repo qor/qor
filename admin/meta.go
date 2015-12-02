@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -65,35 +64,19 @@ func (meta *Meta) updateMeta() {
 		Permission:    meta.Permission,
 		ResourceValue: meta.base.Value,
 	}
+	meta.Initialize()
+
 	meta.UpdateMeta()
 
 	if meta.Label == "" {
 		meta.Label = utils.HumanizeString(meta.Name)
 	}
 
-	var (
-		scope       = &gorm.Scope{Value: meta.base.Value}
-		nestedField = strings.Contains(meta.GetFieldName(), ".")
-		field       *gorm.StructField
-		hasColumn   bool
-	)
-
-	if nestedField {
-		subModel, name := parseNestedField(reflect.ValueOf(meta.base.Value), meta.GetFieldName())
-		subScope := &gorm.Scope{Value: subModel.Interface()}
-		field, hasColumn = getField(subScope.GetStructFields(), name)
-	} else {
-		if field, hasColumn = getField(scope.GetStructFields(), meta.GetFieldName()); hasColumn {
-			meta.SetFieldName(field.Name)
-			if field.IsNormal {
-				meta.DBName = field.DBName
-			}
-		}
-	}
-
 	var fieldType reflect.Type
+	var hasColumn = meta.FieldStruct != nil
+
 	if hasColumn {
-		fieldType = field.Struct.Type
+		fieldType = meta.FieldStruct.Struct.Type
 		for fieldType.Kind() == reflect.Ptr {
 			fieldType = fieldType.Elem()
 		}
@@ -101,7 +84,7 @@ func (meta *Meta) updateMeta() {
 
 	// Set Meta Type
 	if meta.Type == "" && hasColumn {
-		if relationship := field.Relationship; relationship != nil {
+		if relationship := meta.FieldStruct.Relationship; relationship != nil {
 			if relationship.Kind == "has_one" {
 				meta.Type = "single_edit"
 			} else if relationship.Kind == "has_many" {
@@ -114,13 +97,14 @@ func (meta *Meta) updateMeta() {
 		} else {
 			switch fieldType.Kind().String() {
 			case "string":
-				if size, ok := utils.ParseTagOption(field.Tag.Get("sql"))["SIZE"]; ok {
+				var tag = meta.FieldStruct.Tag
+				if size, ok := utils.ParseTagOption(tag.Get("sql"))["SIZE"]; ok {
 					if i, _ := strconv.Atoi(size); i > 255 {
 						meta.Type = "text"
 					} else {
 						meta.Type = "string"
 					}
-				} else if text, ok := utils.ParseTagOption(field.Tag.Get("sql"))["TYPE"]; ok && text == "text" {
+				} else if text, ok := utils.ParseTagOption(tag.Get("sql"))["TYPE"]; ok && text == "text" {
 					meta.Type = "text"
 				} else {
 					meta.Type = "string"
@@ -143,7 +127,7 @@ func (meta *Meta) updateMeta() {
 
 	// Set Meta Resource
 	if meta.Resource == nil {
-		if hasColumn && (field.Relationship != nil) {
+		if hasColumn && (meta.FieldStruct.Relationship != nil) {
 			var result interface{}
 			if fieldType.Kind() == reflect.Struct {
 				result = reflect.New(fieldType).Interface()
@@ -161,6 +145,7 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
+	scope := &gorm.Scope{Value: meta.base.Value}
 	scopeField, _ := scope.FieldByName(meta.GetFieldName())
 
 	// Set Meta Collection
@@ -205,14 +190,4 @@ func (meta *Meta) updateMeta() {
 	}
 
 	meta.FieldName = meta.GetFieldName()
-}
-
-func parseNestedField(value reflect.Value, name string) (reflect.Value, string) {
-	fields := strings.Split(name, ".")
-	value = reflect.Indirect(value)
-	for _, field := range fields[:len(fields)-1] {
-		value = value.FieldByName(field)
-	}
-
-	return value, fields[len(fields)-1]
 }
