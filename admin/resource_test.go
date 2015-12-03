@@ -44,7 +44,7 @@ func TestEditAttrs(t *testing.T) {
 				var rows [][]string
 				param = strings.Replace(param, "Section:", "", 1)
 				rows = append(rows, strings.Split(param, "+"))
-				attrs = append(attrs, &Section{Columns: rows})
+				attrs = append(attrs, &Section{Rows: rows})
 			} else {
 				attrs = append(attrs, param)
 			}
@@ -53,7 +53,7 @@ func TestEditAttrs(t *testing.T) {
 		editSections := product.EditAttrs(attrs...)
 		var results []string
 		for _, section := range editSections {
-			columnStr := strings.Join(section.Columns[0], "+")
+			columnStr := strings.Join(section.Rows[0], "+")
 			results = append(results, columnStr)
 		}
 		if compareStringSlice(results, testCase.Result) {
