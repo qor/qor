@@ -275,17 +275,17 @@ func (context *Context) indexMetas(resources ...*Resource) []*Meta {
 
 func (context *Context) editSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.EditAttrs() //res.allowedMetas1(res.EditAttrs(), context, roles.Update)
+	return res.allowedSections(res.EditAttrs(), context, roles.Update)
 }
 
 func (context *Context) newSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.NewAttrs() //res.allowedMetas1(res.EditAttrs(), context, roles.Update)
+	return res.allowedSections(res.EditAttrs(), context, roles.Update)
 }
 
 func (context *Context) showSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.ShowAttrs() //allowedMetas(res.showMetas(), context, roles.Read)
+	return res.allowedSections(res.ShowAttrs(), context, roles.Read)
 }
 
 type menu struct {

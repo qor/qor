@@ -467,15 +467,15 @@ func (res *Resource) allowedMetas(attrs []*Meta, context *Context, roles ...role
 	return metas
 }
 
-func (res *Resource) allowedMetas1(sections []*Section, context *Context, roles ...roles.PermissionMode) []*Section {
+func (res *Resource) allowedSections(sections []*Section, context *Context, roles ...roles.PermissionMode) []*Section {
 	for _, section := range sections {
 		var editableRows [][]string
 		for _, row := range section.Rows {
 			var editableColumns []string
 			for _, column := range row {
 				for _, role := range roles {
-					meta := res.GetMeta(column)
-					if true || (meta != nil && meta.HasPermission(role, context.Context)) {
+					meta := res.GetMetaOrNew(column)
+					if meta != nil && meta.HasPermission(role, context.Context) {
 						editableColumns = append(editableColumns, column)
 						break
 					}
