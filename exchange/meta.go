@@ -49,12 +49,26 @@ func (meta *Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
 
 func (meta *Meta) updateMeta() {
 	meta.Meta = resource.Meta{
-		Name:          meta.Name,
-		FieldName:     meta.FieldName,
-		Setter:        meta.Setter,
-		Valuer:        meta.Valuer,
-		Permission:    meta.Permission,
-		ResourceValue: meta.base.Value,
+		Name:       meta.Name,
+		FieldName:  meta.FieldName,
+		Setter:     meta.Setter,
+		Valuer:     meta.Valuer,
+		Permission: meta.Permission,
+		Resource:   meta.base,
 	}
-	meta.UpdateMeta()
+
+	meta.PreInitialize()
+	if meta.FieldStruct != nil {
+		if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaBeforeInitializeInterface); ok {
+			injector.ConfigureQorMetaBeforeInitialize(meta)
+		}
+	}
+
+	meta.Initialize()
+
+	if meta.FieldStruct != nil {
+		if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaInterface); ok {
+			injector.ConfigureQorMeta(meta)
+		}
+	}
 }

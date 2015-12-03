@@ -38,58 +38,60 @@ func (serialize *SerializeArgument) SetSerializeArgumentValue(value interface{})
 	}
 }
 
-func (serialize *SerializeArgument) ConfigureQorResourceAfterNew(res *Resource) {
-	if _, ok := res.Value.(SerializeArgumentInterface); ok {
-		if res.GetMeta("Kind") == nil {
-			res.Meta(&Meta{
-				Name: "Kind",
-				Type: "hidden",
-				Valuer: func(value interface{}, context *qor.Context) interface{} {
-					if context.GetDB().NewScope(value).PrimaryKeyZero() {
-						return nil
-					} else {
-						return value.(SerializeArgumentInterface).GetSerializeArgumentKind()
-					}
-				},
-			})
-		}
-
-		if res.GetMeta("SerializeArgument") == nil {
-			res.Meta(&Meta{
-				Name: "SerializeArgument",
-				Type: "serialize_argument",
-				Valuer: func(value interface{}, context *qor.Context) interface{} {
-					if serializeArgument, ok := value.(SerializeArgumentInterface); ok {
-						return struct {
-							Value    interface{}
-							Resource *Resource
-						}{
-							Value:    serializeArgument.GetSerializeArgument(serializeArgument),
-							Resource: serializeArgument.GetSerializeArgumentResource(),
+func (serialize *SerializeArgument) ConfigureQorResourceBeforeInitialize(res resource.Resourcer) {
+	if res, ok := res.(*Resource); ok {
+		if _, ok := res.Value.(SerializeArgumentInterface); ok {
+			if res.GetMeta("Kind") == nil {
+				res.Meta(&Meta{
+					Name: "Kind",
+					Type: "hidden",
+					Valuer: func(value interface{}, context *qor.Context) interface{} {
+						if context.GetDB().NewScope(value).PrimaryKeyZero() {
+							return nil
+						} else {
+							return value.(SerializeArgumentInterface).GetSerializeArgumentKind()
 						}
-					}
-					return nil
-				},
-				Setter: func(result interface{}, metaValue *resource.MetaValue, context *qor.Context) {
-					if serializeArgument, ok := result.(SerializeArgumentInterface); ok {
-						serializeArgumentResource := serializeArgument.GetSerializeArgumentResource()
-						value := serializeArgumentResource.NewStruct()
+					},
+				})
+			}
 
-						for _, meta := range serializeArgumentResource.GetMetas([]string{}) {
-							if metaValue := metaValue.MetaValues.Get(meta.GetName()); metaValue != nil {
-								if setter := meta.GetSetter(); setter != nil {
-									setter(value, metaValue, context)
-								}
+			if res.GetMeta("SerializeArgument") == nil {
+				res.Meta(&Meta{
+					Name: "SerializeArgument",
+					Type: "serialize_argument",
+					Valuer: func(value interface{}, context *qor.Context) interface{} {
+						if serializeArgument, ok := value.(SerializeArgumentInterface); ok {
+							return struct {
+								Value    interface{}
+								Resource *Resource
+							}{
+								Value:    serializeArgument.GetSerializeArgument(serializeArgument),
+								Resource: serializeArgument.GetSerializeArgumentResource(),
 							}
 						}
+						return nil
+					},
+					Setter: func(result interface{}, metaValue *resource.MetaValue, context *qor.Context) {
+						if serializeArgument, ok := result.(SerializeArgumentInterface); ok {
+							serializeArgumentResource := serializeArgument.GetSerializeArgumentResource()
+							value := serializeArgumentResource.NewStruct()
 
-						serializeArgument.SetSerializeArgumentValue(value)
-					}
-				},
-			})
+							for _, meta := range serializeArgumentResource.GetMetas([]string{}) {
+								if metaValue := metaValue.MetaValues.Get(meta.GetName()); metaValue != nil {
+									if setter := meta.GetSetter(); setter != nil {
+										setter(value, metaValue, context)
+									}
+								}
+							}
+
+							serializeArgument.SetSerializeArgumentValue(value)
+						}
+					},
+				})
+			}
+
+			res.NewAttrs("Kind", "SerializeArgument")
+			res.EditAttrs("ID", "Kind", "SerializeArgument")
 		}
-
-		res.NewAttrs("Kind", "SerializeArgument")
-		res.EditAttrs("ID", "Kind", "SerializeArgument")
 	}
 }

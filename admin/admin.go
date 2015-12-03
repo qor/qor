@@ -90,25 +90,20 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 		res.Name = namer.ResourceName()
 	}
 
-	scope := admin.Config.DB.NewScope(res.Value)
-	modelType := scope.GetModelStruct().ModelType
+	// Configure resource when initializing
+	modelType := admin.Config.DB.NewScope(res.Value).GetModelStruct().ModelType
 	for i := 0; i < modelType.NumField(); i++ {
-		fieldStruct := modelType.Field(i)
-		if field, ok := scope.FieldByName(fieldStruct.Name); !ok || field.Relationship == nil {
-			if injector, ok := reflect.New(fieldStruct.Type).Interface().(configureAfterNewInjector); ok {
-				injector.ConfigureQorResourceAfterNew(res)
+		if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
+			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourceBeforeInitializeInterface); ok {
+				injector.ConfigureQorResourceBeforeInitialize(res)
 			}
 		}
 	}
 
-	if injector, ok := res.Value.(configureAfterNewInjector); ok {
-		injector.ConfigureQorResourceAfterNew(res)
+	if injector, ok := res.Value.(resource.ConfigureResourceBeforeInitializeInterface); ok {
+		injector.ConfigureQorResourceBeforeInitialize(res)
 	}
 	return res
-}
-
-type configureAfterNewInjector interface {
-	ConfigureQorResourceAfterNew(*Resource)
 }
 
 func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource {
@@ -140,7 +135,8 @@ func (admin *Admin) EnabledSearchCenter() bool {
 
 func (admin *Admin) GetResource(name string) *Resource {
 	for _, res := range admin.resources {
-		if res.ToParam() == name || res.Name == name || res.StructType == name {
+		var typeName = reflect.Indirect(reflect.ValueOf(res.Value)).Type().String()
+		if res.ToParam() == name || res.Name == name || typeName == name {
 			return res
 		}
 	}

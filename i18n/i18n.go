@@ -14,6 +14,7 @@ import (
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
 	"github.com/theplant/cldr"
 )
@@ -222,102 +223,104 @@ func getEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string
 	return []string{Default}
 }
 
-func (i18n *I18n) ConfigureQorResource(res *admin.Resource) {
-	res.UseTheme("i18n")
-	res.GetAdmin().I18n = i18n
-	res.SearchAttrs("value") // generate search handler for i18n
+func (i18n *I18n) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		res.UseTheme("i18n")
+		res.GetAdmin().I18n = i18n
+		res.SearchAttrs("value") // generate search handler for i18n
 
-	res.GetAdmin().RegisterFuncMap("lt", func(locale, key string, withDefault bool) string {
-		if translations := i18n.Translations[locale]; translations != nil {
-			if t := translations[key]; t != nil && t.Value != "" {
-				return t.Value
-			}
-		}
-
-		if withDefault {
-			if translations := i18n.Translations[Default]; translations != nil {
-				if t := translations[key]; t != nil {
+		res.GetAdmin().RegisterFuncMap("lt", func(locale, key string, withDefault bool) string {
+			if translations := i18n.Translations[locale]; translations != nil {
+				if t := translations[key]; t != nil && t.Value != "" {
 					return t.Value
 				}
 			}
-		}
 
-		return ""
-	})
-
-	res.GetAdmin().RegisterFuncMap("i18n_available_keys", func(context *admin.Context) (keys []string) {
-		translations := i18n.Translations[Default]
-		if translations == nil {
-			for _, values := range i18n.Translations {
-				translations = values
-				break
+			if withDefault {
+				if translations := i18n.Translations[Default]; translations != nil {
+					if t := translations[key]; t != nil {
+						return t.Value
+					}
+				}
 			}
-		}
 
-		keyword := context.Request.URL.Query().Get("keyword")
+			return ""
+		})
 
-		for key, translation := range translations {
-			if (keyword == "") || (strings.Index(strings.ToLower(translation.Key), strings.ToLower(keyword)) != -1 ||
-				strings.Index(strings.ToLower(translation.Value), keyword) != -1) {
-				keys = append(keys, key)
+		res.GetAdmin().RegisterFuncMap("i18n_available_keys", func(context *admin.Context) (keys []string) {
+			translations := i18n.Translations[Default]
+			if translations == nil {
+				for _, values := range i18n.Translations {
+					translations = values
+					break
+				}
 			}
+
+			keyword := context.Request.URL.Query().Get("keyword")
+
+			for key, translation := range translations {
+				if (keyword == "") || (strings.Index(strings.ToLower(translation.Key), strings.ToLower(keyword)) != -1 ||
+					strings.Index(strings.ToLower(translation.Value), keyword) != -1) {
+					keys = append(keys, key)
+				}
+			}
+
+			sort.Strings(keys)
+
+			pagination := context.Searcher.Pagination
+			pagination.Total = len(keys)
+			pagination.PrePage = 25
+			pagination.CurrentPage, _ = strconv.Atoi(context.Request.URL.Query().Get("page"))
+			if pagination.CurrentPage == 0 {
+				pagination.CurrentPage = 1
+			}
+			if pagination.CurrentPage > 0 {
+				pagination.Pages = pagination.Total / pagination.PrePage
+			}
+			context.Searcher.Pagination = pagination
+
+			if pagination.CurrentPage == -1 {
+				return keys
+			}
+
+			lastIndex := pagination.CurrentPage * pagination.PrePage
+			if pagination.Total < lastIndex {
+				lastIndex = pagination.Total
+			}
+
+			return keys[(pagination.CurrentPage-1)*pagination.PrePage : lastIndex]
+		})
+
+		res.GetAdmin().RegisterFuncMap("i18n_primary_locale", func(context admin.Context) string {
+			if locale := context.Request.Form.Get("primary_locale"); locale != "" {
+				return locale
+			}
+			return getAvailableLocales(context.Request, context.CurrentUser)[0]
+		})
+
+		res.GetAdmin().RegisterFuncMap("i18n_editing_locale", func(context admin.Context) string {
+			if locale := context.Request.Form.Get("to_locale"); locale != "" {
+				return locale
+			}
+			return getLocaleFromContext(context.Context)
+		})
+
+		res.GetAdmin().RegisterFuncMap("i18n_viewable_locales", func(context admin.Context) []string {
+			return getAvailableLocales(context.Request, context.CurrentUser)
+		})
+
+		res.GetAdmin().RegisterFuncMap("i18n_editable_locales", func(context admin.Context) []string {
+			return getEditableLocales(context.Request, context.CurrentUser)
+		})
+
+		controller := i18nController{i18n}
+		router := res.GetAdmin().GetRouter()
+		router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Index)
+		router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.Update)
+		router.Put(fmt.Sprintf("^/%v", res.ToParam()), controller.Update)
+
+		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/i18n/views"))
 		}
-
-		sort.Strings(keys)
-
-		pagination := context.Searcher.Pagination
-		pagination.Total = len(keys)
-		pagination.PrePage = 25
-		pagination.CurrentPage, _ = strconv.Atoi(context.Request.URL.Query().Get("page"))
-		if pagination.CurrentPage == 0 {
-			pagination.CurrentPage = 1
-		}
-		if pagination.CurrentPage > 0 {
-			pagination.Pages = pagination.Total / pagination.PrePage
-		}
-		context.Searcher.Pagination = pagination
-
-		if pagination.CurrentPage == -1 {
-			return keys
-		}
-
-		lastIndex := pagination.CurrentPage * pagination.PrePage
-		if pagination.Total < lastIndex {
-			lastIndex = pagination.Total
-		}
-
-		return keys[(pagination.CurrentPage-1)*pagination.PrePage : lastIndex]
-	})
-
-	res.GetAdmin().RegisterFuncMap("i18n_primary_locale", func(context admin.Context) string {
-		if locale := context.Request.Form.Get("primary_locale"); locale != "" {
-			return locale
-		}
-		return getAvailableLocales(context.Request, context.CurrentUser)[0]
-	})
-
-	res.GetAdmin().RegisterFuncMap("i18n_editing_locale", func(context admin.Context) string {
-		if locale := context.Request.Form.Get("to_locale"); locale != "" {
-			return locale
-		}
-		return getLocaleFromContext(context.Context)
-	})
-
-	res.GetAdmin().RegisterFuncMap("i18n_viewable_locales", func(context admin.Context) []string {
-		return getAvailableLocales(context.Request, context.CurrentUser)
-	})
-
-	res.GetAdmin().RegisterFuncMap("i18n_editable_locales", func(context admin.Context) []string {
-		return getEditableLocales(context.Request, context.CurrentUser)
-	})
-
-	controller := i18nController{i18n}
-	router := res.GetAdmin().GetRouter()
-	router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Index)
-	router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.Update)
-	router.Put(fmt.Sprintf("^/%v", res.ToParam()), controller.Update)
-
-	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-		admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/i18n/views"))
 	}
 }
