@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"reflect"
 
-	"github.com/qor/inflection"
+	"github.com/jinzhu/inflection"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 )
