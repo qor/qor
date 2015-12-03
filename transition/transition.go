@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/audited"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 )
 
@@ -196,8 +197,10 @@ func (transition *EventTransition) After(fc func(value interface{}, tx *gorm.DB)
 	return transition
 }
 
-func (transition *Transition) ConfigureQorResource(res *admin.Resource) {
-	if res.GetMeta("State") == nil {
-		res.Meta(&admin.Meta{Name: "State", Permission: roles.Allow(roles.Update, "nobody")})
+func (transition *Transition) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		if res.GetMeta("State") == nil {
+			res.Meta(&admin.Meta{Name: "State", Permission: roles.Allow(roles.Update, "nobody")})
+		}
 	}
 }

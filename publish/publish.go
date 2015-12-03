@@ -5,6 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor/admin"
+	"github.com/qor/qor/resource"
 	"github.com/qor/qor/utils"
 
 	"reflect"
@@ -40,12 +41,14 @@ func (s *Status) SetPublishStatus(status bool) {
 	s.PublishStatus = status
 }
 
-func (s Status) ConfigureQorResource(res *admin.Resource) {
-	if res.GetMeta("PublishStatus") == nil {
-		res.IndexAttrs(append(res.IndexAttrs(), "-PublishStatus")...)
-		res.NewAttrs(res.NewAttrs(), "-PublishStatus")
-		res.EditAttrs(res.EditAttrs(), "-PublishStatus")
-		res.TouchShowAttrs(res.ShowAttrs(), "-PublishStatus")
+func (s Status) ConfigureQorResource(res resource.Resourcer) {
+	if res, ok := res.(*admin.Resource); ok {
+		if res.GetMeta("PublishStatus") == nil {
+			res.IndexAttrs(append(res.IndexAttrs(), "-PublishStatus")...)
+			res.NewAttrs(res.NewAttrs(), "-PublishStatus")
+			res.EditAttrs(res.EditAttrs(), "-PublishStatus")
+			res.TouchShowAttrs(res.ShowAttrs(), "-PublishStatus")
+		}
 	}
 }
 

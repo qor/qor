@@ -39,10 +39,9 @@ func (res *Resource) Meta(meta *Meta) {
 	if res.GetMeta(meta.Name) != nil {
 		utils.ExitWithMsg("Duplicated meta %v defined for resource %v", meta.Name, res.Name)
 	}
-
+	res.Metas = append(res.Metas, meta)
 	meta.base = res
 	meta.updateMeta()
-	res.Metas = append(res.Metas, meta)
 }
 
 func (res Resource) GetAdmin() *Admin {
