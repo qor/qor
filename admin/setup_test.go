@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/qor/media_library"
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
-	"github.com/qor/qor/media_library"
 	"github.com/qor/qor/test/utils"
 
 	_ "github.com/mattn/go-sqlite3"
