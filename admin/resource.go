@@ -76,11 +76,11 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 		var metas []*Meta
 		if kind == "index" {
 			metas = res.indexMetas()
+		} else if kind == "edit" {
+			metas = res.convertSectionToMetas(res.allowedSections(res.EditAttrs(), context, roles.Update))
+		} else if kind == "show" {
+			metas = res.convertSectionToMetas(res.allowedSections(res.EditAttrs(), context, roles.Read))
 		}
-		// TOOD: what?
-		//else if kind == "show" {
-		//		metas = res.showMetas()
-		//}
 
 		values := map[string]interface{}{}
 		for _, meta := range metas {
@@ -99,6 +99,21 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 		utils.ExitWithMsg(fmt.Sprintf("Can't convert %v (%v) to map", reflectValue, reflectValue.Kind()))
 		return nil
 	}
+}
+
+func (res *Resource) convertSectionToMetas(sections []*Section) []*Meta {
+	var metas []*Meta
+	for _, section := range sections {
+		for _, row := range section.Rows {
+			for _, col := range row {
+				meta := res.GetMetaOrNew(col)
+				if meta != nil {
+					metas = append(metas, meta)
+				}
+			}
+		}
+	}
+	return metas
 }
 
 func (res *Resource) Decode(context *qor.Context, value interface{}) error {
