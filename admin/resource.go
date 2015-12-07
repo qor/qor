@@ -79,7 +79,7 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 		} else if kind == "edit" {
 			metas = res.convertSectionToMetas(res.allowedSections(res.EditAttrs(), context, roles.Update))
 		} else if kind == "show" {
-			metas = res.convertSectionToMetas(res.allowedSections(res.EditAttrs(), context, roles.Read))
+			metas = res.convertSectionToMetas(res.allowedSections(res.ShowAttrs(), context, roles.Read))
 		}
 
 		values := map[string]interface{}{}
