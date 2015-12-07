@@ -22,11 +22,6 @@ import (
 	"github.com/theplant/cldr"
 )
 
-type SectionRowData struct {
-	Length      int
-	ColumnsHTML template.HTML
-}
-
 func (context *Context) NewResourceContext(name ...interface{}) *Context {
 	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result}
 	if len(name) > 0 {
@@ -158,8 +153,11 @@ func (context *Context) renderForm(res *Resource, sections []*Section, value int
 }
 
 func (context *Context) renderSection(res *Resource, section *Section, value interface{}, prefix []string, writer *bytes.Buffer) {
-	data := map[string]interface{}{}
-	var rows []SectionRowData
+	var rows []struct {
+		Length      int
+		ColumnsHTML template.HTML
+	}
+
 	for _, column := range section.Rows {
 		columnsHTML := bytes.NewBufferString("")
 		for _, col := range column {
@@ -168,15 +166,21 @@ func (context *Context) renderSection(res *Resource, section *Section, value int
 				context.renderMeta(columnsHTML, meta, value, prefix)
 			}
 		}
-		rows = append(rows, SectionRowData{
+
+		rows = append(rows, struct {
+			Length      int
+			ColumnsHTML template.HTML
+		}{
 			Length:      len(column),
 			ColumnsHTML: template.HTML(string(columnsHTML.Bytes())),
 		})
 	}
 
-	data["Title"] = template.HTML(section.Title)
-	data["Rows"] = rows
-	if tmpl, err := context.FindTemplate(template.New("section.tmpl"), "metas/form/section.tmpl"); err == nil {
+	var data = map[string]interface{}{
+		"Title": template.HTML(section.Title),
+		"Rows":  rows,
+	}
+	if tmpl, err := context.FindTemplate(template.New("section.tmpl"), "metas/section.tmpl"); err == nil {
 		tmpl.Execute(writer, data)
 	}
 }
@@ -201,20 +205,20 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
 
 	if tmpl, err := context.FindTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
-		data := map[string]interface{}{}
-		data["Base"] = meta.base
-		scope := context.GetDB().NewScope(value)
-		data["InputId"] = fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name)
-		data["Label"] = meta.Label
-		data["InputName"] = strings.Join(prefix, ".")
-		data["Result"] = value
-		data["Value"] = context.ValueOf(value, meta)
+		var scope = context.GetDB().NewScope(value)
+		var data = map[string]interface{}{
+			"Base":      meta.base,
+			"InputId":   fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
+			"Label":     meta.Label,
+			"InputName": strings.Join(prefix, "."),
+			"Result":    value,
+			"Value":     context.ValueOf(value, meta),
+			"Meta":      meta,
+		}
 
 		if meta.GetCollection != nil {
 			data["CollectionValue"] = meta.GetCollection(value, context.Context)
 		}
-
-		data["Meta"] = meta
 
 		if err := tmpl.Execute(writer, data); err != nil {
 			utils.ExitWithMsg(fmt.Sprintf("got error when parse template for %v(%v):%v", meta.Name, meta.Type, err))

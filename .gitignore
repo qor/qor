@@ -24,4 +24,3 @@ __*
 *.min.map
 .sass-cache
 npm-debug.log
-media_library/public/system/

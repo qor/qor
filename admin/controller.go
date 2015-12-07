@@ -29,29 +29,6 @@ func (ac *controller) Dashboard(context *Context) {
 	context.Execute("dashboard", nil)
 }
 
-func (ac *controller) SearchCenter(context *Context) {
-	type searchResult struct {
-		Context  *Context
-		Resource *Resource
-		Results  interface{}
-	}
-	var searchResults []searchResult
-	for _, res := range context.Admin.searchResources {
-		resourceName := context.Request.URL.Query().Get("resource_name")
-		if resourceName == "" || res.ToParam() == resourceName {
-			ctx := context.clone().setResource(res)
-			if results, err := ctx.FindMany(); err == nil {
-				searchResults = append(searchResults, searchResult{
-					Context:  ctx,
-					Resource: res,
-					Results:  results,
-				})
-			}
-		}
-	}
-	context.Execute("search_center", searchResults)
-}
-
 func (ac *controller) Index(context *Context) {
 	if context.checkResourcePermission(roles.Read) {
 		// Singleton Resource
@@ -82,41 +59,27 @@ func (ac *controller) Index(context *Context) {
 	}
 }
 
-func (ac *controller) Edit(context *Context) {
-	if context.checkResourcePermission(roles.Read) {
-		result, err := context.FindOne()
-		context.AddError(err)
-
-		responder.With("html", func() {
-			context.Execute("edit", result)
-		}).With("json", func() {
-			res := context.Resource
-			js, _ := json.Marshal(res.convertObjectToMap(context, result, "edit"))
-			context.Writer.Write(js)
-		}).Respond(context.Writer, context.Request)
+func (ac *controller) SearchCenter(context *Context) {
+	type searchResult struct {
+		Context  *Context
+		Resource *Resource
+		Results  interface{}
 	}
-}
-
-func (ac *controller) Show(context *Context) {
-	if context.checkResourcePermission(roles.Read) {
-		result, err := context.FindOne()
-		context.AddError(err)
-
-		var templateName string
-		if context.Resource.IsSetShowAttrs {
-			templateName = "show"
-		} else {
-			templateName = "edit"
+	var searchResults []searchResult
+	for _, res := range context.Admin.searchResources {
+		resourceName := context.Request.URL.Query().Get("resource_name")
+		if resourceName == "" || res.ToParam() == resourceName {
+			ctx := context.clone().setResource(res)
+			if results, err := ctx.FindMany(); err == nil {
+				searchResults = append(searchResults, searchResult{
+					Context:  ctx,
+					Resource: res,
+					Results:  results,
+				})
+			}
 		}
-
-		responder.With("html", func() {
-			context.Execute(templateName, result)
-		}).With("json", func() {
-			res := context.Resource
-			js, _ := json.Marshal(res.convertObjectToMap(context, result, templateName))
-			context.Writer.Write(js)
-		}).Respond(context.Writer, context.Request)
 	}
+	context.Execute("search_center", searchResults)
 }
 
 func (ac *controller) New(context *Context) {
@@ -155,6 +118,43 @@ func (ac *controller) Create(context *Context) {
 				context.Writer.Write(js)
 			}).Respond(context.Writer, context.Request)
 		}
+	}
+}
+
+func (ac *controller) Show(context *Context) {
+	if context.checkResourcePermission(roles.Read) {
+		result, err := context.FindOne()
+		context.AddError(err)
+
+		var templateName string
+		if context.Resource.IsSetShowAttrs {
+			templateName = "show"
+		} else {
+			templateName = "edit"
+		}
+
+		responder.With("html", func() {
+			context.Execute(templateName, result)
+		}).With("json", func() {
+			res := context.Resource
+			js, _ := json.Marshal(res.convertObjectToMap(context, result, templateName))
+			context.Writer.Write(js)
+		}).Respond(context.Writer, context.Request)
+	}
+}
+
+func (ac *controller) Edit(context *Context) {
+	if context.checkResourcePermission(roles.Read) {
+		result, err := context.FindOne()
+		context.AddError(err)
+
+		responder.With("html", func() {
+			context.Execute("edit", result)
+		}).With("json", func() {
+			res := context.Resource
+			js, _ := json.Marshal(res.convertObjectToMap(context, result, "edit"))
+			context.Writer.Write(js)
+		}).Respond(context.Writer, context.Request)
 	}
 }
 
