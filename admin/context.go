@@ -172,6 +172,6 @@ func (context *Context) Execute(name string, result interface{}) {
 }
 
 func (context *Context) JSON(name string, result interface{}) {
-	js, _ := json.Marshal(context.Resource.convertObjectToJSONMap(context, result, name))
+	js, _ := json.MarshalIndent(context.Resource.convertObjectToJSONMap(context, result, name), "", "\t")
 	context.Writer.Write(js)
 }
