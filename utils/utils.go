@@ -188,7 +188,7 @@ func filenameWithLineNum() string {
 	return ""
 }
 
-func ExitWithMsg(str string, value ...interface{}) {
-	fmt.Printf("\n"+filenameWithLineNum()+"\n"+str+"\n", value...)
+func ExitWithMsg(msg interface{}, value ...interface{}) {
+	fmt.Printf("\n"+filenameWithLineNum()+"\n%v\n", append([]interface{}{msg}, value...)...)
 	debug.PrintStack()
 }

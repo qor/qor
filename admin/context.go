@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/qor/qor"
+	"github.com/qor/qor/utils"
 )
 
 type Context struct {
@@ -97,13 +98,15 @@ func (context *Context) findFile(layout string) (string, error) {
 	return "", errors.New("file not found")
 }
 
-func (context *Context) FindTemplate(tmpl *template.Template, layout string) (*template.Template, error) {
-	for _, p := range context.getViewPaths() {
-		if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
-			if tmpl, err = tmpl.ParseFiles(path.Join(p, layout)); err != nil {
-				fmt.Println(err)
-			} else {
-				return tmpl, nil
+func (context *Context) FindTemplate(tmpl *template.Template, layouts ...string) (*template.Template, error) {
+	for _, layout := range layouts {
+		for _, p := range context.getViewPaths() {
+			if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
+				if tmpl, err = tmpl.ParseFiles(path.Join(p, layout)); err != nil {
+					utils.ExitWithMsg(err)
+				} else {
+					return tmpl, nil
+				}
 			}
 		}
 	}
@@ -121,7 +124,6 @@ func (context *Context) Render(name string, results ...interface{}) template.HTM
 	tmpl := template.New(names[len(names)-1] + ".tmpl").Funcs(clone.FuncMap())
 
 	if tmpl, err = context.FindTemplate(tmpl, name+".tmpl"); err == nil {
-
 		var result = bytes.NewBufferString("")
 		if err := tmpl.Execute(result, clone); err != nil {
 			fmt.Println(err)
