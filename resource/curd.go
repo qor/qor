@@ -59,7 +59,8 @@ func (res *Resource) saveHandler(result interface{}, context *qor.Context) error
 
 func (res *Resource) deleteHandler(result interface{}, context *qor.Context) error {
 	if res.HasPermission(roles.Delete, context) {
-		if !context.GetDB().First(result, context.ResourceID).RecordNotFound() {
+		scope := context.GetDB().NewScope(res.Value)
+		if !context.GetDB().First(result, fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName())), context.ResourceID).RecordNotFound() {
 			return context.GetDB().Delete(result).Error
 		} else {
 			return gorm.RecordNotFound
