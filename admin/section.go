@@ -97,6 +97,33 @@ func isContainsPositiveValue(values ...interface{}) bool {
 	return false
 }
 
+func (res *Resource) ConvertSectionToMetas(sections []*Section) []*Meta {
+	var metas []*Meta
+	for _, section := range sections {
+		for _, row := range section.Rows {
+			for _, col := range row {
+				meta := res.GetMetaOrNew(col)
+				if meta != nil {
+					metas = append(metas, meta)
+				}
+			}
+		}
+	}
+	return metas
+}
+
+func (res *Resource) ConvertSectionToStrings(sections []*Section) []string {
+	var columns []string
+	for _, section := range sections {
+		for _, row := range section.Rows {
+			for _, col := range row {
+				columns = append(columns, col)
+			}
+		}
+	}
+	return columns
+}
+
 func (res *Resource) setSections(sections *[]*Section, values ...interface{}) {
 	if len(*sections) > 0 && len(values) == 0 {
 		return

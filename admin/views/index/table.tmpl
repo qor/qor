@@ -3,7 +3,8 @@
   <thead>
     <tr>
       {{$order_by := .Context.Request.URL.Query.Get "order_by"}}
-      {{range $index, $meta := index_metas}}
+      {{$metas := convert_sections_to_metas $resource index_sections}}
+      {{range $index, $meta := $metas}}
         {{$is_sorted := eq $order_by $meta.DBName}}
         {{$is_desc_sorted := eq $order_by (print $meta.DBName "_desc")}}
         <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$meta.DBName}}_desc"{{else}}data-order-by="{{$meta.DBName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $resource.ToParam $meta.Label) $meta.Label}}</th>
@@ -14,7 +15,7 @@
   <tbody>
     {{range $result := .Result}}
       <tr data-primary-key="{{primary_key_of $result}}">
-        {{range $meta := index_metas}}
+        {{range $meta := $metas}}
           <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $resource $meta.Label}}">
             {{$value := render_index_meta $result $meta}}
             <div class="qor-table__content" title="{{$value}}">{{$value}}</div>

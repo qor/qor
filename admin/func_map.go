@@ -272,9 +272,9 @@ func (context *Context) allMetas(resources ...*Resource) []*Meta {
 	return context.getResource(resources...).allMetas()
 }
 
-func (context *Context) indexMetas(resources ...*Resource) []*Meta {
+func (context *Context) indexSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedMetas(res.indexMetas(), context, roles.Read)
+	return res.allowedSections(res.IndexAttrs(), context, roles.Read)
 }
 
 func (context *Context) editSections(resources ...*Resource) []*Section {
@@ -284,7 +284,7 @@ func (context *Context) editSections(resources ...*Resource) []*Section {
 
 func (context *Context) newSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedSections(res.EditAttrs(), context, roles.Update)
+	return res.allowedSections(res.NewAttrs(), context, roles.Update)
 }
 
 func (context *Context) showSections(resources ...*Resource) []*Section {
@@ -633,6 +633,10 @@ func (context *Context) isSortableMeta(meta *Meta) bool {
 	return false
 }
 
+func (context *Context) convertSectionToMetas(res *Resource, sections []*Section) []*Meta {
+	return res.ConvertSectionToMetas(sections)
+}
+
 type formatedError struct {
 	Label  string
 	Errors []string
@@ -705,12 +709,13 @@ func (context *Context) FuncMap() template.FuncMap {
 		"load_new_actions":       context.loadNewActions,
 		"pagination":             context.Pagination,
 
-		"all_metas":        context.allMetas,
-		"index_metas":      context.indexMetas,
-		"show_sections":    context.showSections,
-		"new_sections":     context.newSections,
-		"edit_sections":    context.editSections,
-		"is_sortable_meta": context.isSortableMeta,
+		"all_metas":                 context.allMetas,
+		"index_sections":            context.indexSections,
+		"show_sections":             context.showSections,
+		"new_sections":              context.newSections,
+		"edit_sections":             context.editSections,
+		"is_sortable_meta":          context.isSortableMeta,
+		"convert_sections_to_metas": context.convertSectionToMetas,
 
 		"has_create_permission": context.hasCreatePermission,
 		"has_read_permission":   context.hasReadPermission,

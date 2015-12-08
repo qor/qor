@@ -93,13 +93,13 @@ func (s *Sorting) ConfigureQorResource(res resource.Resourcer) {
 			})
 		}
 
-		var attrs []string
-		for _, attr := range res.IndexAttrs() {
+		attrs := res.ConvertSectionToStrings(res.IndexAttrs())
+		for _, attr := range attrs {
 			if attr != "Position" {
 				attrs = append(attrs, attr)
 			}
 		}
-		res.IndexAttrs(append(attrs, "Position")...)
+		res.IndexAttrs(res.IndexAttrs(), "Position")
 		res.NewAttrs(res.NewAttrs(), "-Position")
 		res.EditAttrs(res.EditAttrs(), "-Position")
 		res.TouchShowAttrs(res.ShowAttrs(), "-Position")

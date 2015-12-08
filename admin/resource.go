@@ -26,10 +26,10 @@ type Resource struct {
 	filters        map[string]*Filter
 	searchAttrs    *[]string
 	sortableAttrs  *[]string
-	indexAttrs     []string
-	newAttrs       []*Section
-	editAttrs      []*Section
-	showAttrs      []*Section
+	indexSections  []*Section
+	newSections    []*Section
+	editSections   []*Section
+	showSections   []*Section
 	IsSetShowAttrs bool
 	cachedMetas    *map[string][]*Meta
 	SearchHandler  func(keyword string, context *qor.Context) *gorm.DB
@@ -79,11 +79,11 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 	case reflect.Struct:
 		var metas []*Meta
 		if kind == "index" {
-			metas = res.indexMetas()
+			metas = res.ConvertSectionToMetas(res.allowedSections(res.IndexAttrs(), context, roles.Update))
 		} else if kind == "edit" {
-			metas = res.convertSectionToMetas(res.allowedSections(res.EditAttrs(), context, roles.Update))
+			metas = res.ConvertSectionToMetas(res.allowedSections(res.EditAttrs(), context, roles.Update))
 		} else if kind == "show" {
-			metas = res.convertSectionToMetas(res.allowedSections(res.ShowAttrs(), context, roles.Read))
+			metas = res.ConvertSectionToMetas(res.allowedSections(res.ShowAttrs(), context, roles.Read))
 		}
 
 		values := map[string]interface{}{}
@@ -104,21 +104,6 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 		utils.ExitWithMsg(fmt.Sprintf("Can't convert %v (%v) to map", reflectValue, reflectValue.Kind()))
 		return nil
 	}
-}
-
-func (res *Resource) convertSectionToMetas(sections []*Section) []*Meta {
-	var metas []*Meta
-	for _, section := range sections {
-		for _, row := range section.Rows {
-			for _, col := range row {
-				meta := res.GetMetaOrNew(col)
-				if meta != nil {
-					metas = append(metas, meta)
-				}
-			}
-		}
-	}
-	return metas
 }
 
 func (res *Resource) Decode(context *qor.Context, value interface{}) error {
@@ -211,40 +196,38 @@ func (res *Resource) getAttrs1(attrs []*Section) []*Section {
 	}
 }
 
-func (res *Resource) IndexAttrs(columns ...string) []string {
-	if len(columns) > 0 {
-		res.indexAttrs = columns
-	}
-	return res.getAttrs(res.indexAttrs)
+func (res *Resource) IndexAttrs(values ...interface{}) []*Section {
+	res.setSections(&res.indexSections, values...)
+	return res.indexSections
 }
 
 func (res *Resource) NewAttrs(values ...interface{}) []*Section {
-	res.setSections(&res.newAttrs, values...)
-	return res.newAttrs
+	res.setSections(&res.newSections, values...)
+	return res.newSections
 }
 
 func (res *Resource) EditAttrs(values ...interface{}) []*Section {
-	res.setSections(&res.editAttrs, values...)
-	return res.editAttrs
+	res.setSections(&res.editSections, values...)
+	return res.editSections
 }
 
 func (res *Resource) ShowAttrs(values ...interface{}) []*Section {
 	if len(values) > 0 {
 		res.IsSetShowAttrs = true
 	}
-	res.setSections(&res.showAttrs, values...)
-	return res.showAttrs
+	res.setSections(&res.showSections, values...)
+	return res.showSections
 }
 
 func (res *Resource) TouchShowAttrs(values ...interface{}) []*Section {
-	res.setSections(&res.showAttrs, values...)
-	return res.showAttrs
+	res.setSections(&res.showSections, values...)
+	return res.showSections
 }
 
 func (res *Resource) SortableAttrs(columns ...string) []string {
 	if len(columns) != 0 || res.sortableAttrs == nil {
 		if len(columns) == 0 {
-			columns = res.indexAttrs
+			columns = res.ConvertSectionToStrings(res.indexSections)
 		}
 		res.sortableAttrs = &[]string{}
 		scope := res.GetAdmin().Config.DB.NewScope(res.Value)
@@ -261,7 +244,7 @@ func (res *Resource) SortableAttrs(columns ...string) []string {
 func (res *Resource) SearchAttrs(columns ...string) []string {
 	if len(columns) != 0 || res.searchAttrs == nil {
 		if len(columns) == 0 {
-			columns = res.IndexAttrs()
+			columns = res.ConvertSectionToStrings(res.indexSections)
 		}
 
 		if len(columns) > 0 {
@@ -393,12 +376,12 @@ func (res *Resource) GetMetas(attrs []string) []resource.Metaor {
 	if len(attrs) == 0 {
 		attrs = res.allAttrs()
 	}
-	var showAttrs, ignoredAttrs []string
+	var showSections, ignoredAttrs []string
 	for _, attr := range attrs {
 		if strings.HasPrefix(attr, "-") {
 			ignoredAttrs = append(ignoredAttrs, strings.TrimLeft(attr, "-"))
 		} else {
-			showAttrs = append(showAttrs, attr)
+			showSections = append(showSections, attr)
 		}
 	}
 
@@ -407,7 +390,7 @@ func (res *Resource) GetMetas(attrs []string) []resource.Metaor {
 	metas := []resource.Metaor{}
 
 Attrs:
-	for _, attr := range showAttrs {
+	for _, attr := range showSections {
 		for _, a := range ignoredAttrs {
 			if attr == a {
 				continue Attrs
@@ -459,12 +442,6 @@ func (res *Resource) GetMetaOrNew(name string) *Meta {
 		}
 	}
 	return nil
-}
-
-func (res *Resource) indexMetas() []*Meta {
-	return res.getCachedMetas("index_metas", func() []resource.Metaor {
-		return res.GetMetas(res.IndexAttrs())
-	})
 }
 
 func (res *Resource) allMetas() []*Meta {

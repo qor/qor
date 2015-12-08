@@ -119,7 +119,7 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 				return template.HTML(results)
 			}})
 
-			attrs := res.IndexAttrs()
+			attrs := res.ConvertSectionToStrings(res.IndexAttrs())
 			var hasLocalization bool
 			for _, attr := range attrs {
 				if attr == "Localization" {
@@ -129,9 +129,9 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 			}
 
 			if hasLocalization {
-				res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode")...)
+				res.IndexAttrs(res.IndexAttrs(), "-LanguageCode")
 			} else {
-				res.IndexAttrs(append(res.IndexAttrs(), "-LanguageCode", "Localization")...)
+				res.IndexAttrs(res.IndexAttrs(), "-LanguageCode", "Localization")
 			}
 			res.NewAttrs(res.NewAttrs(), "-LanguageCode", "-Localization")
 			res.EditAttrs(res.EditAttrs(), "-LanguageCode", "-Localization")
