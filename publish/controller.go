@@ -127,10 +127,13 @@ func (publish *Publish) ConfigureQorResource(res resource.Resourcer) {
 			var result = bytes.NewBufferString("")
 			var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
 
-			if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/publish/%v.tmpl", meta.Type)); err != nil {
-				if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
-					tmpl, _ = tmpl.Parse("{{.Value}}")
-				}
+			if tmpl, err = context.FindTemplate(tmpl,
+				fmt.Sprintf("metas/publish/%v.tmpl", meta.Name),
+				fmt.Sprintf("metas/publish/%v.tmpl", meta.Type),
+				fmt.Sprintf("metas/index/%v.tmpl", meta.Name),
+				fmt.Sprintf("metas/index/%v.tmpl", meta.Type),
+			); err != nil {
+				tmpl, _ = tmpl.Parse("{{.Value}}")
 			}
 
 			data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}

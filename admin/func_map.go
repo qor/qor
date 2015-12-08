@@ -129,7 +129,7 @@ func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.
 	var result = bytes.NewBufferString("")
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
 
-	if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
+	if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Name), fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
 		tmpl, _ = tmpl.Parse("{{.Value}}")
 	}
 
@@ -204,7 +204,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 
 	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
 
-	if tmpl, err := context.FindTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
+	if tmpl, err := context.FindTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Name), fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
 		var scope = context.GetDB().NewScope(value)
 		var data = map[string]interface{}{
 			"Base":      meta.base,
