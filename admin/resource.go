@@ -64,7 +64,11 @@ func (res Resource) UseTheme(theme string) []string {
 }
 
 func (res *Resource) convertObjectToMap(context *Context, value interface{}, kind string) interface{} {
-	reflectValue := reflect.Indirect(reflect.ValueOf(value))
+	reflectValue := reflect.ValueOf(value)
+	for reflectValue.Kind() == reflect.Ptr {
+		reflectValue = reflectValue.Elem()
+	}
+
 	switch reflectValue.Kind() {
 	case reflect.Slice:
 		values := []interface{}{}
