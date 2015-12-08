@@ -68,7 +68,7 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 	case reflect.Slice:
 		values := []interface{}{}
 		for i := 0; i < reflectValue.Len(); i++ {
-			values = append(values, res.convertObjectToMap(context, reflectValue.Index(i).Interface(), kind))
+			values = append(values, res.convertObjectToMap(context, reflectValue.Index(i).Addr().Interface(), kind))
 		}
 		return values
 	case reflect.Struct:
@@ -84,7 +84,8 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 			if meta.HasPermission(roles.Read, context.Context) {
 				if valuer := meta.GetValuer(); valuer != nil {
 					value := valuer(value, context.Context)
-					if meta.Resource != nil {
+
+					if meta.GetResource() != nil && meta.Type != "rich_editor" {
 						value = meta.Resource.(*Resource).convertObjectToMap(context, value, kind)
 					}
 					values[meta.GetName()] = value
