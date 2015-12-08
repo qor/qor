@@ -589,18 +589,6 @@ func (context *Context) loadActions(action string) template.HTML {
 	return template.HTML(strings.TrimSpace(result.String()))
 }
 
-func (context *Context) loadIndexActions() template.HTML {
-	return context.loadActions("index")
-}
-
-func (context *Context) loadShowActions() template.HTML {
-	return context.loadActions("show")
-}
-
-func (context *Context) loadNewActions() template.HTML {
-	return context.loadActions("new")
-}
-
 func (context *Context) logoutURL() string {
 	if context.Admin.auth != nil {
 		return context.Admin.auth.LogoutURL(context)
@@ -709,9 +697,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"load_theme_javascripts": context.loadThemeJavaScripts,
 		"load_admin_stylesheets": context.loadAdminStyleSheets,
 		"load_admin_javascripts": context.loadAdminJavaScripts,
-		"load_index_actions":     context.loadIndexActions,
-		"load_show_actions":      context.loadShowActions,
-		"load_new_actions":       context.loadNewActions,
+		"load_actions":           context.loadActions,
 		"pagination":             context.Pagination,
 
 		"all_metas":                 context.allMetas,
