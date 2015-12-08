@@ -68,7 +68,7 @@ func (res Resource) UseTheme(theme string) []string {
 	return res.Config.Themes
 }
 
-func (res *Resource) convertObjectToMap(context *Context, value interface{}, kind string) interface{} {
+func (res *Resource) convertObjectToJSONMap(context *Context, value interface{}, kind string) interface{} {
 	reflectValue := reflect.ValueOf(value)
 	for reflectValue.Kind() == reflect.Ptr {
 		reflectValue = reflectValue.Elem()
@@ -78,7 +78,7 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 	case reflect.Slice:
 		values := []interface{}{}
 		for i := 0; i < reflectValue.Len(); i++ {
-			values = append(values, res.convertObjectToMap(context, reflectValue.Index(i).Addr().Interface(), kind))
+			values = append(values, res.convertObjectToJSONMap(context, reflectValue.Index(i).Addr().Interface(), kind))
 		}
 		return values
 	case reflect.Struct:
@@ -98,7 +98,7 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 					value := valuer(value, context.Context)
 
 					if meta.GetResource() != nil && meta.Type != "rich_editor" {
-						value = meta.Resource.(*Resource).convertObjectToMap(context, value, kind)
+						value = meta.Resource.(*Resource).convertObjectToJSONMap(context, value, kind)
 					}
 					values[meta.GetName()] = value
 				}
@@ -106,8 +106,7 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 		}
 		return values
 	default:
-		utils.ExitWithMsg(fmt.Sprintf("Can't convert %v (%v) to map", reflectValue, reflectValue.Kind()))
-		return nil
+		return value
 	}
 }
 

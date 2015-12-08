@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"path"
@@ -51,9 +50,7 @@ func (ac *controller) Index(context *Context) {
 			responder.With("html", func() {
 				context.Execute("index", result)
 			}).With("json", func() {
-				res := context.Resource
-				js, _ := json.Marshal(res.convertObjectToMap(context, result, "index"))
-				context.Writer.Write(js)
+				context.JSON("index", result)
 			}).Respond(context.Writer, context.Request)
 		}
 	}
@@ -102,8 +99,7 @@ func (ac *controller) Create(context *Context) {
 				context.Execute("new", result)
 			}).With("json", func() {
 				context.Writer.WriteHeader(HTTPUnprocessableEntity)
-				data, _ := json.Marshal(map[string]interface{}{"errors": context.GetErrors()})
-				context.Writer.Write(data)
+				context.JSON("index", map[string]interface{}{"errors": context.GetErrors()})
 			}).Respond(context.Writer, context.Request)
 		} else {
 			responder.With("html", func() {
@@ -114,8 +110,7 @@ func (ac *controller) Create(context *Context) {
 					http.Redirect(context.Writer, context.Request, context.editResourcePath(result, res), http.StatusFound)
 				}
 			}).With("json", func() {
-				js, _ := json.Marshal(context.Resource.convertObjectToMap(context, result, "show"))
-				context.Writer.Write(js)
+				context.JSON("show", result)
 			}).Respond(context.Writer, context.Request)
 		}
 	}
@@ -136,9 +131,7 @@ func (ac *controller) Show(context *Context) {
 		responder.With("html", func() {
 			context.Execute(templateName, result)
 		}).With("json", func() {
-			res := context.Resource
-			js, _ := json.Marshal(res.convertObjectToMap(context, result, templateName))
-			context.Writer.Write(js)
+			context.JSON(templateName, result)
 		}).Respond(context.Writer, context.Request)
 	}
 }
@@ -151,9 +144,7 @@ func (ac *controller) Edit(context *Context) {
 		responder.With("html", func() {
 			context.Execute("edit", result)
 		}).With("json", func() {
-			res := context.Resource
-			js, _ := json.Marshal(res.convertObjectToMap(context, result, "edit"))
-			context.Writer.Write(js)
+			context.JSON("edit", result)
 		}).Respond(context.Writer, context.Request)
 	}
 }
@@ -174,8 +165,7 @@ func (ac *controller) Update(context *Context) {
 			responder.With("html", func() {
 				context.Execute("show", result)
 			}).With("json", func() {
-				data, _ := json.Marshal(map[string]interface{}{"errors": context.GetErrors()})
-				context.Writer.Write(data)
+				context.JSON("edit", map[string]interface{}{"errors": context.GetErrors()})
 			}).Respond(context.Writer, context.Request)
 		} else {
 			responder.With("html", func() {
@@ -186,8 +176,7 @@ func (ac *controller) Update(context *Context) {
 					context.Execute("edit", result)
 				}
 			}).With("json", func() {
-				js, _ := json.Marshal(context.Resource.convertObjectToMap(context, result, "show"))
-				context.Writer.Write(js)
+				context.JSON("show", result)
 			}).Respond(context.Writer, context.Request)
 		}
 	}

@@ -2,6 +2,7 @@ package admin
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"html/template"
 	"os"
@@ -168,4 +169,9 @@ func (context *Context) Execute(name string, result interface{}) {
 	if err := tmpl.Execute(context.Writer, context); err != nil {
 		utils.ExitWithMsg(err)
 	}
+}
+
+func (context *Context) JSON(name string, result interface{}) {
+	js, _ := json.Marshal(context.Resource.convertObjectToJSONMap(context, result, name))
+	context.Writer.Write(js)
 }
