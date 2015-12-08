@@ -96,8 +96,7 @@ func (res *Resource) convertObjectToJSONMap(context *Context, value interface{},
 			if meta.HasPermission(roles.Read, context.Context) {
 				if valuer := meta.GetValuer(); valuer != nil {
 					value := valuer(value, context.Context)
-
-					if meta.GetResource() != nil && meta.Type != "rich_editor" {
+					if meta.GetResource() != nil {
 						value = meta.Resource.(*Resource).convertObjectToJSONMap(context, value, kind)
 					}
 					values[meta.GetName()] = value
