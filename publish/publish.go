@@ -47,7 +47,7 @@ func (s Status) ConfigureQorResource(res resource.Resourcer) {
 			res.IndexAttrs(res.IndexAttrs(), "-PublishStatus")
 			res.NewAttrs(res.NewAttrs(), "-PublishStatus")
 			res.EditAttrs(res.EditAttrs(), "-PublishStatus")
-			res.TouchShowAttrs(res.ShowAttrs(), "-PublishStatus")
+			res.ShowAttrs(res.ShowAttrs(), "-PublishStatus", false)
 		}
 	}
 }

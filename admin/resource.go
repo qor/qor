@@ -213,13 +213,12 @@ func (res *Resource) EditAttrs(values ...interface{}) []*Section {
 
 func (res *Resource) ShowAttrs(values ...interface{}) []*Section {
 	if len(values) > 0 {
-		res.IsSetShowAttrs = true
+		if values[len(values)-1] == false {
+			values = values[:len(values)-1]
+		} else {
+			res.IsSetShowAttrs = true
+		}
 	}
-	res.setSections(&res.showSections, values...)
-	return res.showSections
-}
-
-func (res *Resource) TouchShowAttrs(values ...interface{}) []*Section {
 	res.setSections(&res.showSections, values...)
 	return res.showSections
 }
