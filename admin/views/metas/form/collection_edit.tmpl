@@ -10,7 +10,7 @@
               <i class="material-icons md-18">delete</i>
             </button>
           {{end}}
-          {{render_form $meta.Resource (edit_sections $meta.Resource) $value $index}}
+          {{render_form (edit_sections $meta.Resource) $value $index}}
         </fieldset>
       {{end}}
     {{end}}
@@ -20,7 +20,7 @@
         <button class="mdl-button qor-button--muted mdl-button--icon mdl-js-button qor-fieldset__delete" type="button">
           <i class="material-icons md-18">delete</i>
         </button>
-        {{render_form $meta.Resource (new_sections $meta.Resource) $meta.Resource.GetResource.Value (len .Value)}}
+        {{render_form (new_sections $meta.Resource) $meta.Resource.GetResource.Value (len .Value)}}
       </fieldset>
       <button class="mdl-button mdl-button--fab mdl-button--mini-fab mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-fieldset__add" type="button">
         <i class="material-icons">add</i>

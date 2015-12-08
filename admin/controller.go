@@ -35,7 +35,7 @@ func (ac *controller) Index(context *Context) {
 		if context.Resource.Config.Singleton {
 			var result = context.Resource.NewStruct()
 			if err := context.Resource.CallFindMany(result, context.Context); err == nil {
-				context.Execute("show", result)
+				context.Execute("edit", result)
 			} else {
 				context.Execute("new", result)
 			}
