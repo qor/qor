@@ -125,12 +125,13 @@ func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML
 }
 
 func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.HTML {
-	var err error
 	var result = bytes.NewBufferString("")
-	var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
+	var tmpl *template.Template
 
-	if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Name), fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
-		tmpl, _ = tmpl.Parse("{{.Value}}")
+	if file, err := context.FindTemplate(fmt.Sprintf("metas/index/%v.tmpl", meta.Name), fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err == nil {
+		tmpl, err = template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file)
+	} else {
+		tmpl, err = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap()).Parse("{{.Value}}")
 	}
 
 	data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
@@ -180,8 +181,10 @@ func (context *Context) renderSection(section *Section, value interface{}, prefi
 		"Title": template.HTML(section.Title),
 		"Rows":  rows,
 	}
-	if tmpl, err := context.FindTemplate(template.New("section.tmpl"), "metas/section.tmpl"); err == nil {
-		tmpl.Execute(writer, data)
+	if file, err := context.FindTemplate("metas/section.tmpl"); err == nil {
+		if tmpl, err := template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
+			tmpl.Execute(writer, data)
+		}
 	}
 }
 
@@ -202,25 +205,27 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 		return template.HTML(result.String())
 	}
 
-	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
+	if file, err := context.FindTemplate(fmt.Sprintf("metas/form/%v.tmpl", meta.Name), fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
+		if tmpl, err := template.New(filepath.Base(file)).Funcs(funcsMap).ParseFiles(file); err == nil {
+			var scope = context.GetDB().NewScope(value)
+			var data = map[string]interface{}{
+				"Base":      meta.base,
+				"InputId":   fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
+				"Label":     meta.Label,
+				"InputName": strings.Join(prefix, "."),
+				"Result":    value,
+				"Value":     context.ValueOf(value, meta),
+				"Meta":      meta,
+			}
 
-	if tmpl, err := context.FindTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Name), fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
-		var scope = context.GetDB().NewScope(value)
-		var data = map[string]interface{}{
-			"Base":      meta.base,
-			"InputId":   fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
-			"Label":     meta.Label,
-			"InputName": strings.Join(prefix, "."),
-			"Result":    value,
-			"Value":     context.ValueOf(value, meta),
-			"Meta":      meta,
-		}
+			if meta.GetCollection != nil {
+				data["CollectionValue"] = meta.GetCollection(value, context.Context)
+			}
 
-		if meta.GetCollection != nil {
-			data["CollectionValue"] = meta.GetCollection(value, context.Context)
-		}
-
-		if err := tmpl.Execute(writer, data); err != nil {
+			if err := tmpl.Execute(writer, data); err != nil {
+				utils.ExitWithMsg(fmt.Sprintf("got error when parse template for %v(%v):%v", meta.Name, meta.Type, err))
+			}
+		} else {
 			utils.ExitWithMsg(fmt.Sprintf("got error when parse template for %v(%v):%v", meta.Name, meta.Type, err))
 		}
 	} else {

@@ -3,11 +3,10 @@ package admin
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"html/template"
 	"os"
 	"path"
-	"strings"
+	"path/filepath"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/utils"
@@ -98,35 +97,32 @@ func (context *Context) findFile(layout string) (string, error) {
 	return "", errors.New("file not found")
 }
 
-func (context *Context) FindTemplate(tmpl *template.Template, layouts ...string) (*template.Template, error) {
+func (context *Context) FindTemplate(layouts ...string) (string, error) {
 	for _, layout := range layouts {
 		for _, p := range context.getViewPaths() {
-			if _, err := os.Stat(path.Join(p, layout)); !os.IsNotExist(err) {
-				if tmpl, err = tmpl.ParseFiles(path.Join(p, layout)); err != nil {
-					utils.ExitWithMsg(err)
-				} else {
-					return tmpl, nil
-				}
+			if _, err := os.Stat(filepath.Join(p, layout)); !os.IsNotExist(err) {
+				return filepath.Join(p, layout), nil
 			}
 		}
 	}
-	return tmpl, errors.New("template not found")
+	return "", errors.New("template not found")
 }
 
 func (context *Context) Render(name string, results ...interface{}) template.HTML {
-	var clone = context.clone()
-	var err error
-
-	if len(results) > 0 {
-		clone.Result = results[0]
-	}
-	names := strings.Split(name, "/")
-	tmpl := template.New(names[len(names)-1] + ".tmpl").Funcs(clone.FuncMap())
-
-	if tmpl, err = context.FindTemplate(tmpl, name+".tmpl"); err == nil {
+	if file, err := context.FindTemplate(name + ".tmpl"); err == nil {
+		var clone = context.clone()
 		var result = bytes.NewBufferString("")
-		if err := tmpl.Execute(result, clone); err != nil {
-			fmt.Println(err)
+
+		if len(results) > 0 {
+			clone.Result = results[0]
+		}
+
+		if tmpl, err := template.New(filepath.Base(file)).Funcs(clone.FuncMap()).ParseFiles(file); err == nil {
+			if err := tmpl.Execute(result, clone); err != nil {
+				utils.ExitWithMsg(err)
+			}
+		} else {
+			utils.ExitWithMsg(err)
 		}
 		return template.HTML(result.String())
 	}
@@ -149,13 +145,19 @@ func (context *Context) Execute(name string, result interface{}) {
 	}
 
 	if t, ok := templates[cacheKey]; !ok || true {
-		var err error
-		tmpl = template.New("layout.tmpl").Funcs(context.FuncMap())
-		if tmpl, err = context.FindTemplate(tmpl, "layout.tmpl"); err == nil {
-			for _, name := range []string{"header", "footer"} {
-				if tmpl.Lookup(name) == nil {
-					tmpl, _ = context.FindTemplate(tmpl, name+".tmpl")
+		if file, err := context.FindTemplate("layout.tmpl"); err == nil {
+			if tmpl, err = template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
+				for _, name := range []string{"header", "footer"} {
+					if tmpl.Lookup(name) == nil {
+						if file, err := context.FindTemplate(name + ".tmpl"); err == nil {
+							tmpl.ParseFiles(file)
+						}
+					} else {
+						utils.ExitWithMsg(err)
+					}
 				}
+			} else {
+				utils.ExitWithMsg(err)
 			}
 		}
 	} else {
@@ -164,6 +166,6 @@ func (context *Context) Execute(name string, result interface{}) {
 
 	context.Content = context.Render(name, result)
 	if err := tmpl.Execute(context.Writer, context); err != nil {
-		fmt.Println(err)
+		utils.ExitWithMsg(err)
 	}
 }
