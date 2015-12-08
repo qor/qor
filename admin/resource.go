@@ -57,10 +57,15 @@ func (res Resource) ToParam() string {
 
 func (res Resource) UseTheme(theme string) []string {
 	if res.Config != nil {
+		for _, t := range res.Config.Themes {
+			if t == theme {
+				return res.Config.Themes
+			}
+		}
+
 		res.Config.Themes = append(res.Config.Themes, theme)
-		return res.Config.Themes
 	}
-	return []string{}
+	return res.Config.Themes
 }
 
 func (res *Resource) convertObjectToMap(context *Context, value interface{}, kind string) interface{} {
