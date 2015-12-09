@@ -1,1 +1,1 @@
-{{if .Resource.Config.Singleton}}{{rt .Resource .Resource.Name}}{{else}}{{rt .Resource (printf "View %v" (singular .Resource.Name))}}{{end}}
+{{if .Resource.Config.Singleton}}{{rt .Resource .Resource.Name}}{{else}}{{rt .Resource (printf "%v Details" (singular .Resource.Name))}}{{end}}
