@@ -172,33 +172,6 @@ func (res *Resource) getAttrs(attrs []string) []string {
 	}
 }
 
-func (res *Resource) getAttrs1(attrs []*Section) []*Section {
-	if len(attrs) == 0 {
-		var sections []*Section
-		for _, attr := range res.allAttrs() {
-			sections = append(sections, &Section{Rows: [][]string{{attr}}})
-		}
-		return sections
-	} else {
-		var onlyExcludeAttrs = true
-		for _, attr := range attrs {
-			attrName := attr.Rows[0][0]
-			if !strings.HasPrefix(attrName, "-") {
-				onlyExcludeAttrs = false
-				break
-			}
-		}
-		if onlyExcludeAttrs {
-			var sections []*Section
-			for _, attr := range res.allAttrs() {
-				sections = append(sections, &Section{Rows: [][]string{{attr}}})
-			}
-			return append(sections, attrs...)
-		}
-		return attrs
-	}
-}
-
 func (res *Resource) IndexAttrs(values ...interface{}) []*Section {
 	res.setSections(&res.indexSections, values...)
 	return res.indexSections
@@ -450,19 +423,6 @@ func (res *Resource) allMetas() []*Meta {
 	return res.getCachedMetas("all_metas", func() []resource.Metaor {
 		return res.GetMetas([]string{})
 	})
-}
-
-func (res *Resource) allowedMetas(attrs []*Meta, context *Context, roles ...roles.PermissionMode) []*Meta {
-	var metas = []*Meta{}
-	for _, meta := range attrs {
-		for _, role := range roles {
-			if meta.HasPermission(role, context.Context) {
-				metas = append(metas, meta)
-				break
-			}
-		}
-	}
-	return metas
 }
 
 func (res *Resource) allowedSections(sections []*Section, context *Context, roles ...roles.PermissionMode) []*Section {
