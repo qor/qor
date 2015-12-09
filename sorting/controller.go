@@ -93,13 +93,16 @@ func (s *Sorting) ConfigureQorResource(res resource.Resourcer) {
 			})
 		}
 
-		var attrs []string
-		for _, attr := range res.IndexAttrs() {
+		attrs := res.ConvertSectionToStrings(res.IndexAttrs())
+		for _, attr := range attrs {
 			if attr != "Position" {
 				attrs = append(attrs, attr)
 			}
 		}
-		res.IndexAttrs(append(attrs, "Position")...)
+		res.IndexAttrs(res.IndexAttrs(), "Position")
+		res.NewAttrs(res.NewAttrs(), "-Position")
+		res.EditAttrs(res.EditAttrs(), "-Position")
+		res.ShowAttrs(res.ShowAttrs(), "-Position", false)
 
 		router := Admin.GetRouter()
 		router.Post(fmt.Sprintf("^/%v/\\d+/sorting/update_position$", res.ToParam()), updatePosition)

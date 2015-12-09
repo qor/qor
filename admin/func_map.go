@@ -89,7 +89,7 @@ func (context *Context) newResourcePath(value interface{}) string {
 
 func (context *Context) editResourcePath(value interface{}, res *Resource) string {
 	primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
-	return path.Join(context.Admin.router.Prefix, res.ToParam(), primaryKey)
+	return path.Join(context.Admin.router.Prefix, res.ToParam(), primaryKey, "/edit")
 }
 
 func (context *Context) UrlFor(value interface{}, resources ...*Resource) string {
@@ -125,12 +125,13 @@ func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML
 }
 
 func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.HTML {
-	var err error
 	var result = bytes.NewBufferString("")
-	var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
+	var tmpl *template.Template
 
-	if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
-		tmpl, _ = tmpl.Parse("{{.Value}}")
+	if file, err := context.FindTemplate(fmt.Sprintf("metas/index/%v.tmpl", meta.Name), fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err == nil {
+		tmpl, err = template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file)
+	} else {
+		tmpl, err = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap()).Parse("{{.Value}}")
 	}
 
 	data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
@@ -140,15 +141,50 @@ func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.
 	return template.HTML(result.String())
 }
 
-func (context *Context) RenderForm(value interface{}, metas []*Meta) template.HTML {
+func (context *Context) RenderForm(value interface{}, sections []*Section) template.HTML {
 	var result = bytes.NewBufferString("")
-	context.renderForm(result, value, metas, []string{"QorResource"})
+	context.renderForm(value, sections, []string{"QorResource"}, result)
 	return template.HTML(result.String())
 }
 
-func (context *Context) renderForm(result *bytes.Buffer, value interface{}, metas []*Meta, prefix []string) {
-	for _, meta := range metas {
-		context.renderMeta(result, meta, value, prefix)
+func (context *Context) renderForm(value interface{}, sections []*Section, prefix []string, result *bytes.Buffer) {
+	for _, section := range sections {
+		context.renderSection(value, section, prefix, result)
+	}
+}
+
+func (context *Context) renderSection(value interface{}, section *Section, prefix []string, writer *bytes.Buffer) {
+	var rows []struct {
+		Length      int
+		ColumnsHTML template.HTML
+	}
+
+	for _, column := range section.Rows {
+		columnsHTML := bytes.NewBufferString("")
+		for _, col := range column {
+			meta := section.Resource.GetMetaOrNew(col)
+			if meta != nil {
+				context.renderMeta(columnsHTML, meta, value, prefix)
+			}
+		}
+
+		rows = append(rows, struct {
+			Length      int
+			ColumnsHTML template.HTML
+		}{
+			Length:      len(column),
+			ColumnsHTML: template.HTML(string(columnsHTML.Bytes())),
+		})
+	}
+
+	var data = map[string]interface{}{
+		"Title": template.HTML(section.Title),
+		"Rows":  rows,
+	}
+	if file, err := context.FindTemplate("metas/section.tmpl"); err == nil {
+		if tmpl, err := template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
+			tmpl.Execute(writer, data)
+		}
 	}
 }
 
@@ -156,7 +192,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := context.FuncMap()
-	funcsMap["render_form"] = func(value interface{}, metas []*Meta, index ...int) template.HTML {
+	funcsMap["render_form"] = func(value interface{}, sections []*Section, index ...int) template.HTML {
 		var result = bytes.NewBufferString("")
 		newPrefix := append([]string{}, prefix...)
 
@@ -165,29 +201,31 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 			newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
 		}
 
-		context.renderForm(result, value, metas, newPrefix)
+		context.renderForm(value, sections, newPrefix, result)
 		return template.HTML(result.String())
 	}
 
-	var tmpl = template.New(meta.Type + ".tmpl").Funcs(funcsMap)
+	if file, err := context.FindTemplate(fmt.Sprintf("metas/form/%v.tmpl", meta.Name), fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
+		if tmpl, err := template.New(filepath.Base(file)).Funcs(funcsMap).ParseFiles(file); err == nil {
+			var scope = context.GetDB().NewScope(value)
+			var data = map[string]interface{}{
+				"Base":      meta.base,
+				"InputId":   fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
+				"Label":     meta.Label,
+				"InputName": strings.Join(prefix, "."),
+				"Result":    value,
+				"Value":     context.ValueOf(value, meta),
+				"Meta":      meta,
+			}
 
-	if tmpl, err := context.FindTemplate(tmpl, fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
-		data := map[string]interface{}{}
-		data["Base"] = meta.base
-		scope := context.GetDB().NewScope(value)
-		data["InputId"] = fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name)
-		data["Label"] = meta.Label
-		data["InputName"] = strings.Join(prefix, ".")
-		data["Result"] = value
-		data["Value"] = context.ValueOf(value, meta)
+			if meta.GetCollection != nil {
+				data["CollectionValue"] = meta.GetCollection(value, context.Context)
+			}
 
-		if meta.GetCollection != nil {
-			data["CollectionValue"] = meta.GetCollection(value, context.Context)
-		}
-
-		data["Meta"] = meta
-
-		if err := tmpl.Execute(writer, data); err != nil {
+			if err := tmpl.Execute(writer, data); err != nil {
+				utils.ExitWithMsg(fmt.Sprintf("got error when parse template for %v(%v):%v", meta.Name, meta.Type, err))
+			}
+		} else {
 			utils.ExitWithMsg(fmt.Sprintf("got error when parse template for %v(%v):%v", meta.Name, meta.Type, err))
 		}
 	} else {
@@ -239,24 +277,24 @@ func (context *Context) allMetas(resources ...*Resource) []*Meta {
 	return context.getResource(resources...).allMetas()
 }
 
-func (context *Context) indexMetas(resources ...*Resource) []*Meta {
+func (context *Context) indexSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedMetas(res.indexMetas(), context, roles.Read)
+	return res.allowedSections(res.IndexAttrs(), context, roles.Read)
 }
 
-func (context *Context) editMetas(resources ...*Resource) []*Meta {
+func (context *Context) editSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedMetas(res.editMetas(), context, roles.Update)
+	return res.allowedSections(res.EditAttrs(), context, roles.Update)
 }
 
-func (context *Context) showMetas(resources ...*Resource) []*Meta {
+func (context *Context) newSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedMetas(res.showMetas(), context, roles.Read)
+	return res.allowedSections(res.NewAttrs(), context, roles.Update)
 }
 
-func (context *Context) newMetas(resources ...*Resource) []*Meta {
+func (context *Context) showSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedMetas(res.newMetas(), context, roles.Create)
+	return res.allowedSections(res.ShowAttrs(), context, roles.Read)
 }
 
 type menu struct {
@@ -551,18 +589,6 @@ func (context *Context) loadActions(action string) template.HTML {
 	return template.HTML(strings.TrimSpace(result.String()))
 }
 
-func (context *Context) loadIndexActions() template.HTML {
-	return context.loadActions("index")
-}
-
-func (context *Context) loadShowActions() template.HTML {
-	return context.loadActions("show")
-}
-
-func (context *Context) loadNewActions() template.HTML {
-	return context.loadActions("new")
-}
-
 func (context *Context) logoutURL() string {
 	if context.Admin.auth != nil {
 		return context.Admin.auth.LogoutURL(context)
@@ -598,6 +624,10 @@ func (context *Context) isSortableMeta(meta *Meta) bool {
 		}
 	}
 	return false
+}
+
+func (context *Context) convertSectionToMetas(res *Resource, sections []*Section) []*Meta {
+	return res.ConvertSectionToMetas(sections)
 }
 
 type formatedError struct {
@@ -667,17 +697,16 @@ func (context *Context) FuncMap() template.FuncMap {
 		"load_theme_javascripts": context.loadThemeJavaScripts,
 		"load_admin_stylesheets": context.loadAdminStyleSheets,
 		"load_admin_javascripts": context.loadAdminJavaScripts,
-		"load_index_actions":     context.loadIndexActions,
-		"load_show_actions":      context.loadShowActions,
-		"load_new_actions":       context.loadNewActions,
+		"load_actions":           context.loadActions,
 		"pagination":             context.Pagination,
 
-		"all_metas":        context.allMetas,
-		"index_metas":      context.indexMetas,
-		"edit_metas":       context.editMetas,
-		"show_metas":       context.showMetas,
-		"new_metas":        context.newMetas,
-		"is_sortable_meta": context.isSortableMeta,
+		"all_metas":                 context.allMetas,
+		"index_sections":            context.indexSections,
+		"show_sections":             context.showSections,
+		"new_sections":              context.newSections,
+		"edit_sections":             context.editSections,
+		"is_sortable_meta":          context.isSortableMeta,
+		"convert_sections_to_metas": context.convertSectionToMetas,
 
 		"has_create_permission": context.hasCreatePermission,
 		"has_read_permission":   context.hasReadPermission,

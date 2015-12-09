@@ -18,20 +18,21 @@ import (
 
 type Resource struct {
 	resource.Resource
-	admin         *Admin
-	Config        *Config
-	Metas         []*Meta
-	actions       []*Action
-	scopes        []*Scope
-	filters       map[string]*Filter
-	searchAttrs   *[]string
-	sortableAttrs *[]string
-	indexAttrs    []string
-	newAttrs      []string
-	editAttrs     []string
-	showAttrs     []string
-	cachedMetas   *map[string][]*Meta
-	SearchHandler func(keyword string, context *qor.Context) *gorm.DB
+	admin          *Admin
+	Config         *Config
+	Metas          []*Meta
+	actions        []*Action
+	scopes         []*Scope
+	filters        map[string]*Filter
+	searchAttrs    *[]string
+	sortableAttrs  *[]string
+	indexSections  []*Section
+	newSections    []*Section
+	editSections   []*Section
+	showSections   []*Section
+	IsSetShowAttrs bool
+	cachedMetas    *map[string][]*Meta
+	SearchHandler  func(keyword string, context *qor.Context) *gorm.DB
 }
 
 func (res *Resource) Meta(meta *Meta) {
@@ -56,27 +57,38 @@ func (res Resource) ToParam() string {
 
 func (res Resource) UseTheme(theme string) []string {
 	if res.Config != nil {
+		for _, t := range res.Config.Themes {
+			if t == theme {
+				return res.Config.Themes
+			}
+		}
+
 		res.Config.Themes = append(res.Config.Themes, theme)
-		return res.Config.Themes
 	}
-	return []string{}
+	return res.Config.Themes
 }
 
-func (res *Resource) convertObjectToMap(context *Context, value interface{}, kind string) interface{} {
-	reflectValue := reflect.Indirect(reflect.ValueOf(value))
+func (res *Resource) convertObjectToJSONMap(context *Context, value interface{}, kind string) interface{} {
+	reflectValue := reflect.ValueOf(value)
+	for reflectValue.Kind() == reflect.Ptr {
+		reflectValue = reflectValue.Elem()
+	}
+
 	switch reflectValue.Kind() {
 	case reflect.Slice:
 		values := []interface{}{}
 		for i := 0; i < reflectValue.Len(); i++ {
-			values = append(values, res.convertObjectToMap(context, reflectValue.Index(i).Addr().Interface(), kind))
+			values = append(values, res.convertObjectToJSONMap(context, reflectValue.Index(i).Addr().Interface(), kind))
 		}
 		return values
 	case reflect.Struct:
 		var metas []*Meta
 		if kind == "index" {
-			metas = res.indexMetas()
+			metas = res.ConvertSectionToMetas(res.allowedSections(res.IndexAttrs(), context, roles.Update))
+		} else if kind == "edit" {
+			metas = res.ConvertSectionToMetas(res.allowedSections(res.EditAttrs(), context, roles.Update))
 		} else if kind == "show" {
-			metas = res.showMetas()
+			metas = res.ConvertSectionToMetas(res.allowedSections(res.ShowAttrs(), context, roles.Read))
 		}
 
 		values := map[string]interface{}{}
@@ -84,9 +96,8 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 			if meta.HasPermission(roles.Read, context.Context) {
 				if valuer := meta.GetValuer(); valuer != nil {
 					value := valuer(value, context.Context)
-
-					if meta.GetResource() != nil && meta.Type != "rich_editor" {
-						value = meta.Resource.(*Resource).convertObjectToMap(context, value, kind)
+					if meta.GetResource() != nil {
+						value = meta.Resource.(*Resource).convertObjectToJSONMap(context, value, kind)
 					}
 					values[meta.GetName()] = value
 				}
@@ -94,7 +105,7 @@ func (res *Resource) convertObjectToMap(context *Context, value interface{}, kin
 		}
 		return values
 	default:
-		panic(fmt.Sprintf("Can't convert %v (%v) to map", reflectValue, reflectValue.Kind()))
+		return value
 	}
 }
 
@@ -161,38 +172,37 @@ func (res *Resource) getAttrs(attrs []string) []string {
 	}
 }
 
-func (res *Resource) IndexAttrs(columns ...string) []string {
-	if len(columns) > 0 {
-		res.indexAttrs = columns
-	}
-	return res.getAttrs(res.indexAttrs)
+func (res *Resource) IndexAttrs(values ...interface{}) []*Section {
+	res.setSections(&res.indexSections, values...)
+	return res.indexSections
 }
 
-func (res *Resource) NewAttrs(columns ...string) []string {
-	if len(columns) > 0 {
-		res.newAttrs = columns
-	}
-	return res.getAttrs(res.newAttrs)
+func (res *Resource) NewAttrs(values ...interface{}) []*Section {
+	res.setSections(&res.newSections, values...)
+	return res.newSections
 }
 
-func (res *Resource) EditAttrs(columns ...string) []string {
-	if len(columns) > 0 {
-		res.editAttrs = columns
-	}
-	return res.getAttrs(res.editAttrs)
+func (res *Resource) EditAttrs(values ...interface{}) []*Section {
+	res.setSections(&res.editSections, values...)
+	return res.editSections
 }
 
-func (res *Resource) ShowAttrs(columns ...string) []string {
-	if len(columns) > 0 {
-		res.showAttrs = columns
+func (res *Resource) ShowAttrs(values ...interface{}) []*Section {
+	if len(values) > 0 {
+		if values[len(values)-1] == false {
+			values = values[:len(values)-1]
+		} else {
+			res.IsSetShowAttrs = true
+		}
 	}
-	return res.getAttrs(res.showAttrs)
+	res.setSections(&res.showSections, values...)
+	return res.showSections
 }
 
 func (res *Resource) SortableAttrs(columns ...string) []string {
 	if len(columns) != 0 || res.sortableAttrs == nil {
 		if len(columns) == 0 {
-			columns = res.indexAttrs
+			columns = res.ConvertSectionToStrings(res.indexSections)
 		}
 		res.sortableAttrs = &[]string{}
 		scope := res.GetAdmin().Config.DB.NewScope(res.Value)
@@ -209,7 +219,7 @@ func (res *Resource) SortableAttrs(columns ...string) []string {
 func (res *Resource) SearchAttrs(columns ...string) []string {
 	if len(columns) != 0 || res.searchAttrs == nil {
 		if len(columns) == 0 {
-			columns = res.IndexAttrs()
+			columns = res.ConvertSectionToStrings(res.indexSections)
 		}
 
 		if len(columns) > 0 {
@@ -341,20 +351,21 @@ func (res *Resource) GetMetas(attrs []string) []resource.Metaor {
 	if len(attrs) == 0 {
 		attrs = res.allAttrs()
 	}
-	var showAttrs, ignoredAttrs []string
+	var showSections, ignoredAttrs []string
 	for _, attr := range attrs {
 		if strings.HasPrefix(attr, "-") {
 			ignoredAttrs = append(ignoredAttrs, strings.TrimLeft(attr, "-"))
 		} else {
-			showAttrs = append(showAttrs, attr)
+			showSections = append(showSections, attr)
 		}
 	}
 
 	primaryKey := res.PrimaryFieldName()
 
 	metas := []resource.Metaor{}
+
 Attrs:
-	for _, attr := range showAttrs {
+	for _, attr := range showSections {
 		for _, a := range ignoredAttrs {
 			if attr == a {
 				continue Attrs
@@ -394,28 +405,18 @@ func (res *Resource) GetMeta(name string) *Meta {
 	return nil
 }
 
-func (res *Resource) indexMetas() []*Meta {
-	return res.getCachedMetas("index_metas", func() []resource.Metaor {
-		return res.GetMetas(res.IndexAttrs())
-	})
-}
-
-func (res *Resource) newMetas() []*Meta {
-	return res.getCachedMetas("new_metas", func() []resource.Metaor {
-		return res.GetMetas(res.NewAttrs())
-	})
-}
-
-func (res *Resource) editMetas() []*Meta {
-	return res.getCachedMetas("edit_metas", func() []resource.Metaor {
-		return res.GetMetas(res.EditAttrs())
-	})
-}
-
-func (res *Resource) showMetas() []*Meta {
-	return res.getCachedMetas("show_metas", func() []resource.Metaor {
-		return res.GetMetas(res.ShowAttrs())
-	})
+func (res *Resource) GetMetaOrNew(name string) *Meta {
+	for _, meta := range res.Metas {
+		if meta.Name == name || meta.GetFieldName() == name {
+			return meta
+		}
+	}
+	for _, meta := range res.allMetas() {
+		if meta.Name == name || meta.GetFieldName() == name {
+			return meta
+		}
+	}
+	return nil
 }
 
 func (res *Resource) allMetas() []*Meta {
@@ -424,15 +425,25 @@ func (res *Resource) allMetas() []*Meta {
 	})
 }
 
-func (res *Resource) allowedMetas(attrs []*Meta, context *Context, roles ...roles.PermissionMode) []*Meta {
-	var metas = []*Meta{}
-	for _, meta := range attrs {
-		for _, role := range roles {
-			if meta.HasPermission(role, context.Context) {
-				metas = append(metas, meta)
-				break
+func (res *Resource) allowedSections(sections []*Section, context *Context, roles ...roles.PermissionMode) []*Section {
+	for _, section := range sections {
+		var editableRows [][]string
+		for _, row := range section.Rows {
+			var editableColumns []string
+			for _, column := range row {
+				for _, role := range roles {
+					meta := res.GetMetaOrNew(column)
+					if meta != nil && meta.HasPermission(role, context.Context) {
+						editableColumns = append(editableColumns, column)
+						break
+					}
+				}
+			}
+			if len(editableColumns) > 0 {
+				editableRows = append(editableRows, editableColumns)
 			}
 		}
+		section.Rows = editableRows
 	}
-	return metas
+	return sections
 }

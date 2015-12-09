@@ -2,7 +2,7 @@
 {{$resource := .Resource}}
 
 <form method="POST">
-  {{$actions := load_index_actions}}
+  {{$actions := load_actions "index"}}
   {{if $actions}}
   <div class="qor-page__header">
     {{$actions}}
@@ -14,6 +14,7 @@
     {{$res := $result.Resource}}
     {{$isPublishEvent := is_publish_event_resource $res}}
     {{$records := $result.Value}}
+    {{$metas := convert_sections_to_metas $res (index_sections $res)}}
     <div class="qor-section">
       <div class="qor-section__header">
         <h4 class="qor-section-title">{{rt $res (plural $res.Name)}}</h4>
@@ -28,7 +29,7 @@
                 </label>
               </th>
 
-              {{range $meta := (index_metas $res)}}
+              {{range $meta := $metas}}
               <th class="mdl-data-table__cell--non-numeric">{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</th>
               {{end}}
 
@@ -47,7 +48,7 @@
                 </label>
               </td>
 
-              {{range $index, $meta := index_metas $res}}
+              {{range $index, $meta := $metas}}
               <td class="mdl-data-table__cell--non-numeric">
                 {{if $isPublishEvent}}
                 <div class="qor-table__content">{{rt $res (printf "%v" (render_publish_meta $record $meta $context))}}</div>

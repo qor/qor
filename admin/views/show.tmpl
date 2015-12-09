@@ -1,4 +1,4 @@
-{{$actions := load_show_actions}}
+{{$actions := load_actions "show"}}
 {{if $actions}}
 <div class="qor-page__header">
   {{$actions}}
@@ -12,11 +12,7 @@
 
   <div class="qor-form-container">
     <form class="qor-form" action="{{edit_resource_path .Result .Resource}}" method="POST" enctype="multipart/form-data">
-      {{render_form .Result edit_metas}}
-      <div class="qor-form__actions">
-        <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Save Changes"}}</button>
-        <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "Cancel Edit"}}</a>
-      </div>
+      {{render_form .Result show_sections}}
     </form>
   </div>
 </div>

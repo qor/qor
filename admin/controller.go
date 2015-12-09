@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"path"
@@ -29,6 +28,34 @@ func (ac *controller) Dashboard(context *Context) {
 	context.Execute("dashboard", nil)
 }
 
+func (ac *controller) Index(context *Context) {
+	if context.checkResourcePermission(roles.Read) {
+		// Singleton Resource
+		if context.Resource.Config.Singleton {
+			var result = context.Resource.NewStruct()
+			if err := context.Resource.CallFindMany(result, context.Context); err == nil {
+				context.Execute("show", result)
+			} else {
+				context.Execute("new", result)
+			}
+			return
+		}
+
+		result, err := context.FindMany()
+		context.AddError(err)
+
+		if context.HasError() {
+			http.NotFound(context.Writer, context.Request)
+		} else {
+			responder.With("html", func() {
+				context.Execute("index", result)
+			}).With("json", func() {
+				context.JSON("index", result)
+			}).Respond(context.Writer, context.Request)
+		}
+	}
+}
+
 func (ac *controller) SearchCenter(context *Context) {
 	type searchResult struct {
 		Context  *Context
@@ -52,51 +79,6 @@ func (ac *controller) SearchCenter(context *Context) {
 	context.Execute("search_center", searchResults)
 }
 
-func (ac *controller) Index(context *Context) {
-	if context.checkResourcePermission(roles.Read) {
-		// Singleton Resource
-		if context.Resource.Config.Singleton {
-			var result = context.Resource.NewStruct()
-			if err := context.Resource.CallFindMany(result, context.Context); err == nil {
-				context.Execute("show", result)
-			} else {
-				context.Execute("new", result)
-			}
-			return
-		}
-
-		result, err := context.FindMany()
-		context.AddError(err)
-
-		if context.HasError() {
-			http.NotFound(context.Writer, context.Request)
-		} else {
-			responder.With("html", func() {
-				context.Execute("index", result)
-			}).With("json", func() {
-				res := context.Resource
-				js, _ := json.Marshal(res.convertObjectToMap(context, result, "index"))
-				context.Writer.Write(js)
-			}).Respond(context.Writer, context.Request)
-		}
-	}
-}
-
-func (ac *controller) Show(context *Context) {
-	if context.checkResourcePermission(roles.Read) {
-		result, err := context.FindOne()
-		context.AddError(err)
-
-		responder.With("html", func() {
-			context.Execute("show", result)
-		}).With("json", func() {
-			res := context.Resource
-			js, _ := json.Marshal(res.convertObjectToMap(context, result, "show"))
-			context.Writer.Write(js)
-		}).Respond(context.Writer, context.Request)
-	}
-}
-
 func (ac *controller) New(context *Context) {
 	if context.checkResourcePermission(roles.Create) {
 		context.Execute("new", context.Resource.NewStruct())
@@ -117,8 +99,7 @@ func (ac *controller) Create(context *Context) {
 				context.Execute("new", result)
 			}).With("json", func() {
 				context.Writer.WriteHeader(HTTPUnprocessableEntity)
-				data, _ := json.Marshal(map[string]interface{}{"errors": context.GetErrors()})
-				context.Writer.Write(data)
+				context.JSON("index", map[string]interface{}{"errors": context.GetErrors()})
 			}).Respond(context.Writer, context.Request)
 		} else {
 			responder.With("html", func() {
@@ -129,10 +110,35 @@ func (ac *controller) Create(context *Context) {
 					http.Redirect(context.Writer, context.Request, context.editResourcePath(result, res), http.StatusFound)
 				}
 			}).With("json", func() {
-				js, _ := json.Marshal(context.Resource.convertObjectToMap(context, result, "show"))
-				context.Writer.Write(js)
+				context.JSON("show", result)
 			}).Respond(context.Writer, context.Request)
 		}
+	}
+}
+
+func (ac *controller) Show(context *Context) {
+	if context.checkResourcePermission(roles.Read) {
+		result, err := context.FindOne()
+		context.AddError(err)
+
+		responder.With("html", func() {
+			context.Execute("show", result)
+		}).With("json", func() {
+			context.JSON("show", result)
+		}).Respond(context.Writer, context.Request)
+	}
+}
+
+func (ac *controller) Edit(context *Context) {
+	if context.checkResourcePermission(roles.Read) {
+		result, err := context.FindOne()
+		context.AddError(err)
+
+		responder.With("html", func() {
+			context.Execute("edit", result)
+		}).With("json", func() {
+			context.JSON("edit", result)
+		}).Respond(context.Writer, context.Request)
 	}
 }
 
@@ -150,10 +156,9 @@ func (ac *controller) Update(context *Context) {
 		if context.HasError() {
 			context.Writer.WriteHeader(HTTPUnprocessableEntity)
 			responder.With("html", func() {
-				context.Execute("show", result)
+				context.Execute("edit", result)
 			}).With("json", func() {
-				data, _ := json.Marshal(map[string]interface{}{"errors": context.GetErrors()})
-				context.Writer.Write(data)
+				context.JSON("edit", map[string]interface{}{"errors": context.GetErrors()})
 			}).Respond(context.Writer, context.Request)
 		} else {
 			responder.With("html", func() {
@@ -164,8 +169,7 @@ func (ac *controller) Update(context *Context) {
 					context.Execute("show", result)
 				}
 			}).With("json", func() {
-				js, _ := json.Marshal(context.Resource.convertObjectToMap(context, result, "show"))
-				context.Writer.Write(js)
+				context.JSON("show", result)
 			}).Respond(context.Writer, context.Request)
 		}
 	}

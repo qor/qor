@@ -108,7 +108,7 @@
       var options = this.options;
       var self = this;
       var $target = $(e.target).closest(this.options.addClass);
-      var targetRuleData = $target.data().ruleTarget;
+      var templateName = $target.data().template;
       var parents = $target.closest(this.$element);
       var parentsChildren = parents.children(options.childrenClass);
       var $item = this.$template;
@@ -119,14 +119,19 @@
           self.multipleTemplates[$(this).data().fieldsetName] = $(this);
         });
       }
-      var $muptipleTargetTempalte = this.multipleTemplates[targetRuleData];
+      var $muptipleTargetTempalte = this.multipleTemplates[templateName];
       if (this.isMultipleTemplate){
         // For multiple template
         if ($target.length) {
           this.template = $muptipleTargetTempalte.prop('outerHTML');
           this.parse(true);
           $item = $(this.template.replace(/\{\{index\}\}/g, ++this.index));
-          $item.children('input[type="hidden"]').val(targetRuleData);
+          for (var dataKey in $target.data()) {
+            if (dataKey.match(/^sync/)) {
+              var k = dataKey.replace(/^sync/, '');
+              $item.find('input[name*=\'.' + k + '\']').val($target.data(dataKey));
+            }
+          }
           if ($target.closest(options.childrenClass).children('fieldset').size()) {
             $target.closest(options.childrenClass).children('fieldset').last().after($item.show());
           } else {

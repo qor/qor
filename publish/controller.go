@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -123,14 +124,20 @@ func (publish *Publish) ConfigureQorResource(res resource.Resourcer) {
 		router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.PublishOrDiscard)
 
 		res.GetAdmin().RegisterFuncMap("render_publish_meta", func(value interface{}, meta *admin.Meta, context *admin.Context) template.HTML {
-			var err error
 			var result = bytes.NewBufferString("")
-			var tmpl = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap())
+			var tmpl *template.Template
 
-			if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/publish/%v.tmpl", meta.Type)); err != nil {
-				if tmpl, err = context.FindTemplate(tmpl, fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err != nil {
-					tmpl, _ = tmpl.Parse("{{.Value}}")
+			if file, err := context.FindTemplate(
+				fmt.Sprintf("metas/publish/%v.tmpl", meta.Name),
+				fmt.Sprintf("metas/publish/%v.tmpl", meta.Type),
+				fmt.Sprintf("metas/index/%v.tmpl", meta.Name),
+				fmt.Sprintf("metas/index/%v.tmpl", meta.Type),
+			); err == nil {
+				if tmpl, err = template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err != nil {
+					utils.ExitWithMsg(err)
 				}
+			} else {
+				tmpl, _ = template.New("publish.tmpl").Parse("{{.Value}}")
 			}
 
 			data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}

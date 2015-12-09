@@ -11,7 +11,7 @@
   {{$has_production := not (is_new_record $production)}}
   {{$res := .Result.Resource}}
 
-  {{range $meta := show_metas .Result.Resource}}
+  {{range $meta := convert_sections_to_metas .Result.Resource (show_sections .Result.Resource)}}
     {{$draft_value := render_publish_meta $draft $meta $context}}
     {{$production_value := render_publish_meta $production $meta $context}}
     {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}

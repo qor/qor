@@ -267,3 +267,19 @@
   padding-bottom: 8px;
   text-align: center;
 }
+
+// Section
+// ------------------------
+.qor-section-columns-2 .qor-field {
+  width: 50%;
+  float: left;
+  padding-right: 40px;
+  box-sizing: border-box;
+}
+
+.qor-section-columns-3 .qor-field {
+  width: 33.33%;
+  float: left;
+  padding-right: 20px;
+  box-sizing: border-box;
+}
