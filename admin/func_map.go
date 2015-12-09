@@ -141,19 +141,19 @@ func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.
 	return template.HTML(result.String())
 }
 
-func (context *Context) RenderForm(sections []*Section, value interface{}) template.HTML {
+func (context *Context) RenderForm(value interface{}, sections []*Section) template.HTML {
 	var result = bytes.NewBufferString("")
-	context.renderForm(sections, value, []string{"QorResource"}, result)
+	context.renderForm(value, sections, []string{"QorResource"}, result)
 	return template.HTML(result.String())
 }
 
-func (context *Context) renderForm(sections []*Section, value interface{}, prefix []string, result *bytes.Buffer) {
+func (context *Context) renderForm(value interface{}, sections []*Section, prefix []string, result *bytes.Buffer) {
 	for _, section := range sections {
-		context.renderSection(section, value, prefix, result)
+		context.renderSection(value, section, prefix, result)
 	}
 }
 
-func (context *Context) renderSection(section *Section, value interface{}, prefix []string, writer *bytes.Buffer) {
+func (context *Context) renderSection(value interface{}, section *Section, prefix []string, writer *bytes.Buffer) {
 	var rows []struct {
 		Length      int
 		ColumnsHTML template.HTML
@@ -192,7 +192,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := context.FuncMap()
-	funcsMap["render_form"] = func(sections []*Section, value interface{}, index ...int) template.HTML {
+	funcsMap["render_form"] = func(value interface{}, sections []*Section, index ...int) template.HTML {
 		var result = bytes.NewBufferString("")
 		newPrefix := append([]string{}, prefix...)
 
@@ -201,7 +201,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 			newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
 		}
 
-		context.renderForm(sections, value, newPrefix, result)
+		context.renderForm(value, sections, newPrefix, result)
 		return template.HTML(result.String())
 	}
 

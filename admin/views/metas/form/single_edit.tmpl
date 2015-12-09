@@ -3,7 +3,7 @@
   <div class="qor-field__block">
     {{if (or (and (is_new_record .Value) (has_create_permission .Meta)) (has_update_permission .Meta))}}
       <fieldset id="{{.InputId}}" class="qor-fieldset">
-        {{render_form (edit_sections .Meta.Resource) .Value}}
+        {{render_form .Value (edit_sections .Meta.Resource)}}
       </fieldset>
     {{end}}
   </div>
