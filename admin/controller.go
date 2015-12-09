@@ -34,7 +34,7 @@ func (ac *controller) Index(context *Context) {
 		if context.Resource.Config.Singleton {
 			var result = context.Resource.NewStruct()
 			if err := context.Resource.CallFindMany(result, context.Context); err == nil {
-				context.Execute("edit", result)
+				context.Execute("show", result)
 			} else {
 				context.Execute("new", result)
 			}
@@ -121,17 +121,10 @@ func (ac *controller) Show(context *Context) {
 		result, err := context.FindOne()
 		context.AddError(err)
 
-		var templateName string
-		if context.Resource.IsSetShowAttrs {
-			templateName = "show"
-		} else {
-			templateName = "edit"
-		}
-
 		responder.With("html", func() {
-			context.Execute(templateName, result)
+			context.Execute("show", result)
 		}).With("json", func() {
-			context.JSON(templateName, result)
+			context.JSON("show", result)
 		}).Respond(context.Writer, context.Request)
 	}
 }
@@ -163,7 +156,7 @@ func (ac *controller) Update(context *Context) {
 		if context.HasError() {
 			context.Writer.WriteHeader(HTTPUnprocessableEntity)
 			responder.With("html", func() {
-				context.Execute("show", result)
+				context.Execute("edit", result)
 			}).With("json", func() {
 				context.JSON("edit", map[string]interface{}{"errors": context.GetErrors()})
 			}).Respond(context.Writer, context.Request)
@@ -173,7 +166,7 @@ func (ac *controller) Update(context *Context) {
 				if res.Config.Singleton {
 					http.Redirect(context.Writer, context.Request, context.UrlFor(res), http.StatusFound)
 				} else {
-					context.Execute("edit", result)
+					context.Execute("show", result)
 				}
 			}).With("json", func() {
 				context.JSON("show", result)

@@ -135,6 +135,10 @@ func (context *Context) Execute(name string, result interface{}) {
 	var tmpl *template.Template
 	var cacheKey string
 
+	if name == "show" && !context.Resource.IsSetShowAttrs {
+		name = "edit"
+	}
+
 	if context.Action == "" {
 		context.Action = name
 	}
@@ -172,6 +176,10 @@ func (context *Context) Execute(name string, result interface{}) {
 }
 
 func (context *Context) JSON(name string, result interface{}) {
+	if name == "show" && !context.Resource.IsSetShowAttrs {
+		name = "edit"
+	}
+
 	js, _ := json.MarshalIndent(context.Resource.convertObjectToJSONMap(context, result, name), "", "\t")
 	context.Writer.Write(js)
 }
