@@ -20,6 +20,7 @@ type Metaor interface {
 	GetName() string
 	GetFieldName() string
 	GetSetter() func(resource interface{}, metaValue *MetaValue, context *qor.Context)
+	GetFormattedValuer() func(interface{}, *qor.Context) interface{}
 	GetValuer() func(interface{}, *qor.Context) interface{}
 	GetResource() Resourcer
 	GetMetas() []Metaor
@@ -37,13 +38,14 @@ type ConfigureMetaInterface interface {
 }
 
 type Meta struct {
-	Name        string
-	FieldName   string
-	Setter      func(resource interface{}, metaValue *MetaValue, context *qor.Context)
-	Valuer      func(interface{}, *qor.Context) interface{}
-	Permission  *roles.Permission
-	Resource    Resourcer
-	FieldStruct *gorm.StructField
+	Name            string
+	FieldName       string
+	Setter          func(resource interface{}, metaValue *MetaValue, context *qor.Context)
+	Valuer          func(interface{}, *qor.Context) interface{}
+	FormattedValuer func(interface{}, *qor.Context) interface{}
+	Permission      *roles.Permission
+	Resource        Resourcer
+	FieldStruct     *gorm.StructField
 }
 
 func (meta Meta) GetBaseResource() Resourcer {
@@ -76,6 +78,17 @@ func (meta Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
 
 func (meta *Meta) SetValuer(fc func(interface{}, *qor.Context) interface{}) {
 	meta.Valuer = fc
+}
+
+func (meta *Meta) GetFormattedValuer() func(interface{}, *qor.Context) interface{} {
+	if meta.FormattedValuer != nil {
+		return meta.FormattedValuer
+	}
+	return meta.Valuer
+}
+
+func (meta *Meta) SetFormattedValuer(fc func(interface{}, *qor.Context) interface{}) {
+	meta.FormattedValuer = fc
 }
 
 func (meta Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {

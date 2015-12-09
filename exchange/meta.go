@@ -26,7 +26,7 @@ func (meta *Meta) GetResource() resource.Resourcer {
 	return nil
 }
 
-func (meta *Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
+func (meta *Meta) GetFormattedValuer() func(interface{}, *qor.Context) interface{} {
 	return func(record interface{}, context *qor.Context) interface{} {
 		if valuer := meta.Meta.Valuer; valuer != nil {
 			result := valuer(record, context)

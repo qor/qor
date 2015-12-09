@@ -52,7 +52,7 @@ func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
 		value = reflectPtr.Interface()
 	}
 
-	if valuer := meta.GetValuer(); valuer != nil {
+	if valuer := meta.GetFormattedValuer(); valuer != nil {
 		result := valuer(value, context.Context)
 
 		if reflectValue := reflect.ValueOf(result); reflectValue.IsValid() {
