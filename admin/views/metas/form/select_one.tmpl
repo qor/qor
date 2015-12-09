@@ -1,5 +1,5 @@
 <div class="qor-field">
-  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
+  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .BaseResource.ToParam .Label) .Label}}</label>
   <div class="qor-field__block">
     <select class="qor-field__input" id="{{.InputId}}" data-toggle="qor.chooser" data-placeholder="{{t "Select an Option"}}" name="{{.InputName}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
       {{$current_values := .Value}}

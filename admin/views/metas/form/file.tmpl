@@ -1,6 +1,6 @@
 {{$value := .Value}}
 <div class="qor-field">
-  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .Base.ToParam .Label) .Label}}</label>
+  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .BaseResource.ToParam .Label) .Label}}</label>
   <div class="qor-field__block qor-file">
     <label class="mdl-button mdl-button--fab mdl-button--mini-fab mdl-button--primary mdl-js-button mdl-js-ripple-effect" title="{{t "Choose File"}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
       <input class="visuallyhidden qor-file__input" id="{{.InputId}}" data-text="{&quot;title&quot;: &quot;{{t "Crop the image"}}&quot;, &quot;ok&quot;: &quot;{{t "OK"}}&quot;, &quot;cancel&quot;: &quot;{{t "Cancel"}}&quot;}" name="{{.InputName}}" type="file">

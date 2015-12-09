@@ -209,13 +209,13 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 		if tmpl, err := template.New(filepath.Base(file)).Funcs(funcsMap).ParseFiles(file); err == nil {
 			var scope = context.GetDB().NewScope(value)
 			var data = map[string]interface{}{
-				"Base":      meta.base,
-				"InputId":   fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
-				"Label":     meta.Label,
-				"InputName": strings.Join(prefix, "."),
-				"Result":    value,
-				"Value":     context.ValueOf(value, meta),
-				"Meta":      meta,
+				"BaseResource":  meta.base,
+				"ResourceValue": value,
+				"InputId":       fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
+				"Label":         meta.Label,
+				"InputName":     strings.Join(prefix, "."),
+				"Value":         context.ValueOf(value, meta),
+				"Meta":          meta,
 			}
 
 			if meta.GetCollection != nil {
