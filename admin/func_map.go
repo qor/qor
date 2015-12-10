@@ -44,7 +44,7 @@ func (context *Context) isNewRecord(value interface{}) bool {
 	return context.GetDB().NewRecord(value)
 }
 
-func (context *Context) ValueOf(value interface{}, meta *Meta) interface{} {
+func (context *Context) FormattedValueOf(value interface{}, meta *Meta) interface{} {
 	reflectValue := reflect.ValueOf(value)
 	if reflectValue.Kind() != reflect.Ptr {
 		reflectPtr := reflect.New(reflectValue.Type())
@@ -134,7 +134,7 @@ func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.
 		tmpl, err = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap()).Parse("{{.Value}}")
 	}
 
-	data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
+	data := map[string]interface{}{"Value": context.FormattedValueOf(value, meta), "Meta": meta}
 	if err := tmpl.Execute(result, data); err != nil {
 		utils.ExitWithMsg(err.Error())
 	}
@@ -214,7 +214,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 				"InputId":       fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
 				"Label":         meta.Label,
 				"InputName":     strings.Join(prefix, "."),
-				"Value":         context.ValueOf(value, meta),
+				"Value":         context.FormattedValueOf(value, meta),
 				"Meta":          meta,
 			}
 
@@ -667,7 +667,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"is_new_record":        context.isNewRecord,
 		"is_included":          context.isIncluded,
 		"primary_key_of":       context.primaryKeyOf,
-		"value_of":             context.ValueOf,
+		"formatted_value_of":   context.FormattedValueOf,
 
 		"get_menus":            context.getMenus,
 		"get_scopes":           context.GetScopes,
