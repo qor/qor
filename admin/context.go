@@ -181,5 +181,6 @@ func (context *Context) JSON(name string, result interface{}) {
 	}
 
 	js, _ := json.MarshalIndent(context.Resource.convertObjectToJSONMap(context, result, name), "", "\t")
+	context.Writer.Header().Set("Content-Type", "application/json")
 	context.Writer.Write(js)
 }
