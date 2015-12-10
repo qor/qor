@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/qor/qor"
-	"github.com/qor/qor/responder"
 )
 
 func convertMapToMetaValues(values map[string]interface{}, metaors []Metaor) (*MetaValues, error) {
@@ -130,12 +129,12 @@ func Decode(context *qor.Context, result interface{}, res Resourcer) error {
 	var metaValues *MetaValues
 	metaors := res.GetMetas([]string{})
 
-	responder.With("html", func() {
-		metaValues, err = ConvertFormToMetaValues(context.Request, metaors, "QorResource.")
-	}).With("json", func() {
+	if strings.Contains(context.Request.Header.Get("Content-Type"), "json") {
 		metaValues, err = ConvertJSONToMetaValues(context.Request.Body, metaors)
 		context.Request.Body.Close()
-	}).Respond(nil, context.Request)
+	} else {
+		metaValues, err = ConvertFormToMetaValues(context.Request, metaors, "QorResource.")
+	}
 
 	errors.AddError(err)
 	errors.AddError(DecodeToResource(res, result, metaValues, context).Start())

@@ -46,7 +46,7 @@ func (rep *Responder) With(format interface{}, fc func()) *Responder {
 	return rep
 }
 
-func (rep *Responder) Respond(writer http.ResponseWriter, request *http.Request) {
+func (rep *Responder) Respond(request *http.Request) {
 	// get request format from url
 	if ext := filepath.Ext(request.URL.Path); ext != "" {
 		if respond, ok := rep.responds[strings.TrimPrefix(ext, ".")]; ok {
