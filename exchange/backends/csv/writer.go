@@ -52,7 +52,7 @@ func (writer *Writer) WriteHeader() error {
 func (writer *Writer) WriteRow(record interface{}) error {
 	var results []string
 	for _, meta := range writer.metas {
-		results = append(results, fmt.Sprint(meta.GetValuer()(record, writer.context)))
+		results = append(results, fmt.Sprint(meta.GetFormattedValuer()(record, writer.context)))
 	}
 	writer.Writer.Write(results)
 	return nil

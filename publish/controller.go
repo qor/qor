@@ -140,7 +140,7 @@ func (publish *Publish) ConfigureQorResource(res resource.Resourcer) {
 				tmpl, _ = template.New("publish.tmpl").Parse("{{.Value}}")
 			}
 
-			data := map[string]interface{}{"Value": context.ValueOf(value, meta), "Meta": meta}
+			data := map[string]interface{}{"Value": context.FormattedValueOf(value, meta), "Meta": meta}
 			if err := tmpl.Execute(result, data); err != nil {
 				utils.ExitWithMsg(err.Error())
 			}

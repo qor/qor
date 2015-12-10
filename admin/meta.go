@@ -15,19 +15,20 @@ import (
 )
 
 type Meta struct {
-	base          *Resource
-	Name          string
-	FieldName     string
-	DBName        string
-	Label         string
-	Type          string
-	Valuer        func(interface{}, *qor.Context) interface{}
-	Setter        func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context)
-	Metas         []resource.Metaor
-	Resource      resource.Resourcer
-	Collection    interface{}
-	GetCollection func(interface{}, *qor.Context) [][]string
-	Permission    *roles.Permission
+	base            *Resource
+	Name            string
+	FieldName       string
+	DBName          string
+	Label           string
+	Type            string
+	FormattedValuer func(interface{}, *qor.Context) interface{}
+	Valuer          func(interface{}, *qor.Context) interface{}
+	Setter          func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context)
+	Metas           []resource.Metaor
+	Resource        resource.Resourcer
+	Collection      interface{}
+	GetCollection   func(interface{}, *qor.Context) [][]string
+	Permission      *roles.Permission
 	resource.Meta
 }
 
@@ -56,12 +57,13 @@ func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool)
 
 func (meta *Meta) updateMeta() {
 	meta.Meta = resource.Meta{
-		Name:       meta.Name,
-		FieldName:  meta.FieldName,
-		Setter:     meta.Setter,
-		Valuer:     meta.Valuer,
-		Permission: meta.Permission,
-		Resource:   meta.base,
+		Name:            meta.Name,
+		FieldName:       meta.FieldName,
+		Setter:          meta.Setter,
+		FormattedValuer: meta.FormattedValuer,
+		Valuer:          meta.Valuer,
+		Permission:      meta.Permission,
+		Resource:        meta.base,
 	}
 
 	meta.PreInitialize()
