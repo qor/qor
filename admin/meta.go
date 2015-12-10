@@ -83,6 +83,8 @@ func (meta *Meta) updateMeta() {
 	var hasColumn = meta.FieldStruct != nil
 
 	if hasColumn {
+		meta.DBName = meta.FieldStruct.DBName
+
 		fieldType = meta.FieldStruct.Struct.Type
 		for fieldType.Kind() == reflect.Ptr {
 			fieldType = fieldType.Elem()
