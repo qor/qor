@@ -78,7 +78,7 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 			return path.Join(context.Admin.router.Prefix, res.ToParam(), fmt.Sprintf("%v", primaryKey))
 		}
 	}
-	return "#"
+	return ""
 }
 
 func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML {
