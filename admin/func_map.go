@@ -44,41 +44,6 @@ func (context *Context) isNewRecord(value interface{}) bool {
 	return context.GetDB().NewRecord(value)
 }
 
-func (context *Context) FormattedValueOf(value interface{}, meta *Meta) interface{} {
-	reflectValue := reflect.ValueOf(value)
-	if reflectValue.Kind() != reflect.Ptr {
-		reflectPtr := reflect.New(reflectValue.Type())
-		reflectPtr.Elem().Set(reflectValue)
-		value = reflectPtr.Interface()
-	}
-
-	if valuer := meta.GetFormattedValuer(); valuer != nil {
-		result := valuer(value, context.Context)
-
-		if reflectValue := reflect.ValueOf(result); reflectValue.IsValid() {
-			if reflectValue.Kind() == reflect.Ptr {
-				if reflectValue.IsNil() || !reflectValue.Elem().IsValid() {
-					return nil
-				}
-
-				result = reflectValue.Elem().Interface()
-			}
-
-			if meta.Type == "number" || meta.Type == "float" {
-				if context.isNewRecord(value) && equal(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
-					return nil
-				}
-			}
-			return result
-		} else {
-			return nil
-		}
-	}
-
-	utils.ExitWithMsg(fmt.Sprintf("No valuer found for meta %v of resource %v", meta.Name, meta.base.Name))
-	return nil
-}
-
 func (context *Context) newResourcePath(value interface{}) string {
 	if res, ok := value.(*Resource); ok {
 		return path.Join(context.Admin.router.Prefix, res.ToParam(), "new")
@@ -122,6 +87,49 @@ func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML
 		return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, linkStr, text))
 	}
 	return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, context.UrlFor(link), text))
+}
+
+func (context *Context) valueOf(valuer func(interface{}, *qor.Context) interface{}, value interface{}, meta *Meta) interface{} {
+	if valuer != nil {
+		reflectValue := reflect.ValueOf(value)
+		if reflectValue.Kind() != reflect.Ptr {
+			reflectPtr := reflect.New(reflectValue.Type())
+			reflectPtr.Elem().Set(reflectValue)
+			value = reflectPtr.Interface()
+		}
+
+		result := valuer(value, context.Context)
+
+		if reflectValue := reflect.ValueOf(result); reflectValue.IsValid() {
+			if reflectValue.Kind() == reflect.Ptr {
+				if reflectValue.IsNil() || !reflectValue.Elem().IsValid() {
+					return nil
+				}
+
+				result = reflectValue.Elem().Interface()
+			}
+
+			if meta.Type == "number" || meta.Type == "float" {
+				if context.isNewRecord(value) && equal(reflect.Zero(reflect.TypeOf(result)).Interface(), result) {
+					return nil
+				}
+			}
+			return result
+		} else {
+			return nil
+		}
+	}
+
+	utils.ExitWithMsg(fmt.Sprintf("No valuer found for meta %v of resource %v", meta.Name, meta.base.Name))
+	return nil
+}
+
+func (context *Context) RawValueOf(value interface{}, meta *Meta) interface{} {
+	return context.valueOf(meta.GetValuer(), value, meta)
+}
+
+func (context *Context) FormattedValueOf(value interface{}, meta *Meta) interface{} {
+	return context.valueOf(meta.GetFormattedValuer(), value, meta)
 }
 
 func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.HTML {
@@ -668,6 +676,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"is_included":          context.isIncluded,
 		"primary_key_of":       context.primaryKeyOf,
 		"formatted_value_of":   context.FormattedValueOf,
+		"raw_value_of":         context.RawValueOf,
 
 		"get_menus":            context.getMenus,
 		"get_scopes":           context.GetScopes,
