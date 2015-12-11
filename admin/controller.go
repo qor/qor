@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/qor/qor/responder"
 	"github.com/qor/qor/roles"
+	"github.com/qor/responder"
 )
 
 type controller struct {
