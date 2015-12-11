@@ -6,8 +6,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/qor/qor/responder"
 	"github.com/qor/qor/roles"
+	"github.com/qor/responder"
 )
 
 type controller struct {
@@ -51,7 +51,7 @@ func (ac *controller) Index(context *Context) {
 				context.Execute("index", result)
 			}).With("json", func() {
 				context.JSON("index", result)
-			}).Respond(context.Writer, context.Request)
+			}).Respond(context.Request)
 		}
 	}
 }
@@ -100,7 +100,7 @@ func (ac *controller) Create(context *Context) {
 			}).With("json", func() {
 				context.Writer.WriteHeader(HTTPUnprocessableEntity)
 				context.JSON("index", map[string]interface{}{"errors": context.GetErrors()})
-			}).Respond(context.Writer, context.Request)
+			}).Respond(context.Request)
 		} else {
 			responder.With("html", func() {
 				context.Flash(string(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res)), "success")
@@ -111,7 +111,7 @@ func (ac *controller) Create(context *Context) {
 				}
 			}).With("json", func() {
 				context.JSON("show", result)
-			}).Respond(context.Writer, context.Request)
+			}).Respond(context.Request)
 		}
 	}
 }
@@ -125,7 +125,7 @@ func (ac *controller) Show(context *Context) {
 			context.Execute("show", result)
 		}).With("json", func() {
 			context.JSON("show", result)
-		}).Respond(context.Writer, context.Request)
+		}).Respond(context.Request)
 	}
 }
 
@@ -138,7 +138,7 @@ func (ac *controller) Edit(context *Context) {
 			context.Execute("edit", result)
 		}).With("json", func() {
 			context.JSON("edit", result)
-		}).Respond(context.Writer, context.Request)
+		}).Respond(context.Request)
 	}
 }
 
@@ -159,7 +159,7 @@ func (ac *controller) Update(context *Context) {
 				context.Execute("edit", result)
 			}).With("json", func() {
 				context.JSON("edit", map[string]interface{}{"errors": context.GetErrors()})
-			}).Respond(context.Writer, context.Request)
+			}).Respond(context.Request)
 		} else {
 			responder.With("html", func() {
 				context.FlashNow(string(context.dt("resource_successfully_updated", "{{.Name}} was successfully updated", res)), "success")
@@ -170,7 +170,7 @@ func (ac *controller) Update(context *Context) {
 				}
 			}).With("json", func() {
 				context.JSON("show", result)
-			}).Respond(context.Writer, context.Request)
+			}).Respond(context.Request)
 		}
 	}
 }
@@ -187,7 +187,7 @@ func (ac *controller) Delete(context *Context) {
 			http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), status)
 		}).With("json", func() {
 			context.Writer.WriteHeader(status)
-		}).Respond(context.Writer, context.Request)
+		}).Respond(context.Request)
 	}
 }
 
@@ -217,7 +217,7 @@ func (ac *controller) Action(context *Context) {
 			context.Writer.WriteHeader(HTTPUnprocessableEntity)
 			context.Writer.Write([]byte(err.Error()))
 		}
-	}).Respond(context.Writer, context.Request)
+	}).Respond(context.Request)
 }
 
 func (ac *controller) Asset(context *Context) {
