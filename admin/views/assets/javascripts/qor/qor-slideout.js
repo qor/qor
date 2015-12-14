@@ -412,7 +412,7 @@
     var selector = '.qor-theme-slideout';
     var options = {
           title: '.qor-form-title, .mdl-layout-title',
-          content: '.qor-form-container',
+          content: '.qor-page',
         };
 
     $(document).
