@@ -1,6 +1,6 @@
 .qor-datepicker {
   .mdl-card {
-    width: 312px !important;
+    width: 360px !important;
   }
 
   .mdl-card__title {
@@ -92,3 +92,124 @@
     line-height: 70px;
   }
 }
+
+
+.dtpicker-overlay{
+    z-index: 2000;
+    display:none;
+    min-width: 300px;
+
+    background: rgba(0, 0, 0, 0.2);
+
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.dtpicker-mobile{
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+}
+
+.dtpicker-bg{
+    width: 100%;
+    height: 100%;
+}
+
+.dtpicker-mobile .dtpicker-cont{
+    position: relative;
+    top: 50%;
+
+    -webkit-transform: translateY(-50%);
+    -moz-transform: translateY(-50%);
+    -o-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+
+    border: none;
+}
+
+.dtpicker-subcontent{
+    position: relative;
+}
+
+
+.dtpicker-header .dtpicker-close{
+    position: absolute;
+    top: 16px;
+    right: 16px;
+}
+.dtpicker-components .dtpicker-compOutline{
+    float: left;
+}
+
+.dtpicker-comp2{
+    width: 50%;
+}
+
+.dtpicker-comp3{
+    width: 33.3%;
+}
+
+.dtpicker-comp4{
+    width: 25%;
+}
+
+.dtpicker-comp5{
+    width: 20%;
+}
+
+.dtpicker-comp6{
+    width: 16.66%;
+}
+
+.dtpicker-comp7{
+    width: 14.285%;
+}
+
+.dtpicker-components{
+  overflow: hidden;
+  margin: 40px 16px;
+  .dtpicker-comp{
+    text-align: center;
+  }
+  .dtpicker-compButtonEnable{
+    opacity: 1;
+  }
+  .dtpicker-compButtonDisable{
+    opacity: 0.5;
+  }
+  .dtpicker-compValue{
+    margin: 12px auto;
+    width: 80%;
+    border: none;
+    background: #fff;
+    text-align: center;
+    padding: 4px 0;
+
+    font-size: 100%;
+
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    &:hover{
+      color: unquote("rgb(#{$color-primary})");
+    }
+    &:focus{
+      outline: none;
+      background-color: unquote("rgb(#{$color-primary})");
+      color: #fff;
+    }
+  }
+}
+.dtpicker-buttonCont{
+    margin: 16px;
+    text-align: right;
+}
+
