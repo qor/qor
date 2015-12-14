@@ -295,7 +295,10 @@ func (i18n *I18n) ConfigureQorResource(res resource.Resourcer) {
 			if locale := context.Request.Form.Get("primary_locale"); locale != "" {
 				return locale
 			}
-			return getAvailableLocales(context.Request, context.CurrentUser)[0]
+			if availableLocales := getAvailableLocales(context.Request, context.CurrentUser); len(availableLocales) > 0 {
+				return availableLocales[0]
+			}
+			return ""
 		})
 
 		res.GetAdmin().RegisterFuncMap("i18n_editing_locale", func(context admin.Context) string {
