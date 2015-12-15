@@ -273,6 +273,10 @@
             }
           }, this),
           complete: $.proxy(function () {
+            var $header = $('.qor-slideout .qor-page__header');
+            if (!$header.find('*:visible').get(0)) {
+              $header.remove();
+            }
             this.disabled = false;
           }, this),
         });
