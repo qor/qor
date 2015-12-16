@@ -608,11 +608,11 @@ func (context *Context) dt(key string, value string, values ...interface{}) temp
 }
 
 func (context *Context) rt(resource *Resource, key string, values ...interface{}) template.HTML {
-	return context.dt(strings.Join([]string{resource.ToParam(), key}, "."), key, values)
+	return context.Admin.T(context.Context, strings.Join([]string{resource.ToParam(), key}, "."), key, values...)
 }
 
-func (context *Context) T(key string, values ...interface{}) template.HTML {
-	return context.dt(key, key, values...)
+func (context *Context) t(key string, values ...interface{}) template.HTML {
+	return context.Admin.T(context.Context, key, key, values...)
 }
 
 func (context *Context) isSortableMeta(meta *Meta) bool {
@@ -719,7 +719,7 @@ func (context *Context) FuncMap() template.FuncMap {
 			return template.JS(a)
 		},
 
-		"t":       context.T,
+		"t":       context.t,
 		"dt":      context.dt,
 		"rt":      context.rt,
 		"flashes": context.GetFlashes,
