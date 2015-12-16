@@ -7,17 +7,13 @@ import (
 	"github.com/jinzhu/inflection"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
+	"github.com/qor/qor/utils"
+	"github.com/theplant/cldr"
 )
 
 const (
 	DEFAULT_PAGE_COUNT = 20
 )
-
-type I18n interface {
-	Scope(scope string) I18n
-	Default(value string) I18n
-	T(locale string, key string, args ...interface{}) template.HTML
-}
 
 type Admin struct {
 	Config          *qor.Config
@@ -145,4 +141,24 @@ func (admin *Admin) GetResource(name string) *Resource {
 
 func (admin *Admin) GetResources() []*Resource {
 	return admin.resources
+}
+
+// I18n define admin's i18n interface
+type I18n interface {
+	Scope(scope string) I18n
+	Default(value string) I18n
+	T(locale string, key string, args ...interface{}) template.HTML
+}
+
+func (admin *Admin) T(context *qor.Context, key string, value string, values ...interface{}) template.HTML {
+	locale := utils.GetLocale(context)
+
+	if admin.I18n == nil {
+		if result, err := cldr.Parse(locale, value, values...); err == nil {
+			return template.HTML(result)
+		}
+		return template.HTML(key)
+	} else {
+		return admin.I18n.Scope("qor_admin").Default(value).T(locale, key, values...)
+	}
 }

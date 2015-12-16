@@ -19,7 +19,6 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
-	"github.com/theplant/cldr"
 )
 
 func (context *Context) NewResourceContext(name ...interface{}) *Context {
@@ -605,16 +604,7 @@ func (context *Context) logoutURL() string {
 }
 
 func (context *Context) dt(key string, value string, values ...interface{}) template.HTML {
-	locale := utils.GetLocale(context.Context)
-
-	if context.Admin.I18n == nil {
-		if result, err := cldr.Parse(locale, value, values...); err == nil {
-			return template.HTML(result)
-		}
-		return template.HTML(key)
-	} else {
-		return context.Admin.I18n.Scope("qor_admin").Default(value).T(locale, key, values...)
-	}
+	return context.Admin.T(context.Context, key, value, values...)
 }
 
 func (context *Context) rt(resource *Resource, key string, values ...interface{}) template.HTML {
