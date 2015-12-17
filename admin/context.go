@@ -33,6 +33,7 @@ func (context *Context) clone() *Context {
 		Admin:    context.Admin,
 		Result:   context.Result,
 		Content:  context.Content,
+		Action:   context.Action,
 	}
 }
 
