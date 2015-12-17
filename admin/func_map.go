@@ -208,7 +208,14 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 			newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
 		}
 
+		for _, field := range context.GetDB().NewScope(value).PrimaryFields() {
+			if meta := sections[0].Resource.GetMetaOrNew(field.Name); meta != nil {
+				context.renderMeta(result, meta, value, newPrefix)
+			}
+		}
+
 		context.renderForm(value, sections, newPrefix, result)
+
 		return template.HTML(result.String())
 	}
 
