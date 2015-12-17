@@ -1,5 +1,5 @@
-{{$meta := .Meta}}
-{{range $index, $value := .Value }}
+{{$values := (raw_value_of .ResourceValue .Meta)}}
+{{range $index, $value := $values}}
   {{$url := url_for $value}}
   {{if $url}}
     {{link_to (stringify $value) $url}}
