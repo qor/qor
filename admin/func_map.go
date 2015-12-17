@@ -171,7 +171,7 @@ func (context *Context) renderSection(value interface{}, section *Section, prefi
 		for _, col := range column {
 			meta := section.Resource.GetMetaOrNew(col)
 			if meta != nil {
-				context.renderMeta(columnsHTML, meta, value, prefix)
+				context.renderMeta(meta, value, prefix, columnsHTML)
 			}
 		}
 
@@ -195,7 +195,7 @@ func (context *Context) renderSection(value interface{}, section *Section, prefi
 	}
 }
 
-func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value interface{}, prefix []string) {
+func (context *Context) renderMeta(meta *Meta, value interface{}, prefix []string, writer *bytes.Buffer) {
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := context.FuncMap()
@@ -210,7 +210,7 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 
 		for _, field := range context.GetDB().NewScope(value).PrimaryFields() {
 			if meta := sections[0].Resource.GetMetaOrNew(field.Name); meta != nil {
-				context.renderMeta(result, meta, value, newPrefix)
+				context.renderMeta(meta, value, newPrefix, result)
 			}
 		}
 
