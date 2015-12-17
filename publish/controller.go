@@ -1,19 +1,15 @@
 package publish
 
 import (
-	"bytes"
 	"fmt"
-	"html/template"
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
 	"reflect"
 	"strings"
 
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/utils"
 )
 
 type publishController struct {
@@ -122,30 +118,6 @@ func (publish *Publish) ConfigureQorResource(res resource.Resourcer) {
 		router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
 		router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Preview)
 		router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.PublishOrDiscard)
-
-		res.GetAdmin().RegisterFuncMap("render_publish_meta", func(value interface{}, meta *admin.Meta, context *admin.Context) template.HTML {
-			var result = bytes.NewBufferString("")
-			var tmpl *template.Template
-
-			if file, err := context.FindTemplate(
-				fmt.Sprintf("metas/publish/%v.tmpl", meta.Name),
-				fmt.Sprintf("metas/publish/%v.tmpl", meta.Type),
-				fmt.Sprintf("metas/index/%v.tmpl", meta.Name),
-				fmt.Sprintf("metas/index/%v.tmpl", meta.Type),
-			); err == nil {
-				if tmpl, err = template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err != nil {
-					utils.ExitWithMsg(err)
-				}
-			} else {
-				tmpl, _ = template.New("publish.tmpl").Parse("{{.Value}}")
-			}
-
-			data := map[string]interface{}{"Value": context.FormattedValueOf(value, meta), "Meta": meta}
-			if err := tmpl.Execute(result, data); err != nil {
-				utils.ExitWithMsg(err.Error())
-			}
-			return template.HTML(result.String())
-		})
 
 		res.GetAdmin().RegisterFuncMap("publish_unique_key", func(res *admin.Resource, record interface{}, context *admin.Context) string {
 			return fmt.Sprintf("%s__%v", res.ToParam(), context.GetDB().NewScope(record).PrimaryKeyValue())

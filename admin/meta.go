@@ -165,6 +165,15 @@ func (meta *Meta) updateMeta() {
 				meta.SetFormattedValuer(func(value interface{}, context *qor.Context) interface{} {
 					return utils.Stringify(meta.GetValuer()(value, context))
 				})
+			} else if meta.Type == "select_many" {
+				meta.SetFormattedValuer(func(value interface{}, context *qor.Context) interface{} {
+					reflectValue := reflect.Indirect(reflect.ValueOf(meta.GetValuer()(value, context)))
+					var results []string
+					for i := 0; i < reflectValue.Len(); i++ {
+						results = append(results, utils.Stringify(reflectValue.Index(i).Interface()))
+					}
+					return results
+				})
 			}
 		}
 	}

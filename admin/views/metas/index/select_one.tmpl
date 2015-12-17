@@ -1,6 +1,7 @@
-{{$url := url_for .Value}}
+{{$value := (raw_value_of .ResourceValue .Meta)}}
+{{$url := url_for $value}}
 {{if $url}}
-  {{link_to (stringify .Value) $url}}
+  {{link_to .Value $url}}
 {{else}}
-  {{stringify .Value}}
+  {{.Value}}
 {{end}}
