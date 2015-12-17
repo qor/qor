@@ -5,9 +5,10 @@
       {{$order_by := .Context.Request.URL.Query.Get "order_by"}}
       {{$metas := convert_sections_to_metas $resource index_sections}}
       {{range $index, $meta := $metas}}
-        {{$is_sorted := eq $order_by $meta.DBName}}
-        {{$is_desc_sorted := eq $order_by (print $meta.DBName "_desc")}}
-        <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$meta.DBName}}_desc"{{else}}data-order-by="{{$meta.DBName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $resource.ToParam $meta.Label) $meta.Label}}</th>
+        {{$dbName := $meta.DBName}}
+        {{$is_sorted := eq $order_by $dbName}}
+        {{$is_desc_sorted := eq $order_by (print $dbName "_desc")}}
+        <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$dbName}}_desc"{{else}}data-order-by="{{$dbName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $resource.ToParam $meta.Label) $meta.Label}}</th>
       {{end}}
       <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
     </tr>
