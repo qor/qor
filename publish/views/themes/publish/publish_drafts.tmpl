@@ -51,9 +51,9 @@
               {{range $index, $meta := $metas}}
               <td class="mdl-data-table__cell--non-numeric">
                 {{if $isPublishEvent}}
-                <div class="qor-table__content">{{rt $res (printf "%v" (render_publish_meta $record $meta $context))}}</div>
+                <div class="qor-table__content">{{rt $res (printf "%v" (render_index_meta $record $meta))}}</div>
                 {{else}}
-                <div class="qor-table__content">{{render_publish_meta $record $meta $context}}</div>
+                <div class="qor-table__content">{{render_index_meta $record $meta}}</div>
                 {{end}}
 
               </td>
