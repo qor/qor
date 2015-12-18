@@ -277,6 +277,7 @@
             if (!$header.find('*:visible').get(0)) {
               $header.remove();
             }
+            window.QorTab.init();
             this.disabled = false;
           }, this),
         });

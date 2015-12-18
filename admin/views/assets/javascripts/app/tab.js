@@ -1,16 +1,35 @@
-$(function () {
+window.QorTab = {
+  init : function() {
+    this.initStatus();
+    this.bindingEvents();
+  },
 
-  'use strict';
+  initStatus : function() {
+    this.initTab();
+  },
 
-  $('.qor-page__body .qor-js-action-tabs').on('click', '.mdl-tabs__tab', function() {
-    var $scoped = $(this);
-    $scoped.find('.mdl-tabs__tab').removeClass('is-active');
+  bindingEvents : function() {
+    $(".qor-js-action-tabs").on("click", ".qor-js-action-tab", this.switchTab);
+  },
+
+  initTab : function() {
+    if(location.hash.match(/#tab-/)) {
+      var $tab = $(".qor-js-action-tabs").find(".qor-js-action-tab[href='" + location.hash + "']");
+      if($tab.get(0)) $.proxy(this.switchTab, $tab)();
+    }
+  },
+
+  switchTab : function() {
+    var $scoped = $(this).parents(".qor-js-action-tabs");
+    $scoped.find('.qor-js-action-tab').removeClass('is-active');
     $scoped.find('.mdl-tabs__panel').removeClass('is-active');
     $(this).addClass('is-active');
-    $scoped.find($(this).attr('href')).addClass('is-active');
-    var href = $('.mdl-tabs__tab.is-active').attr('href');
-    location.hash = href.replace('-panel', '');
+    $scoped.find($(this).attr('href').replace("tab-", "")).addClass('is-active');
+    location.hash = $('.qor-js-action-tab.is-active').attr('href');
     return false;
-  });
+  }
+}
 
+$(document).ready(function() {
+  window.QorTab.init();
 });
