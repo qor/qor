@@ -1,6 +1,10 @@
 package admin
 
-import "net/url"
+import (
+	"net/url"
+	"regexp"
+	"strings"
+)
 
 type requestHandler func(c *Context)
 
@@ -52,8 +56,28 @@ func (h routeHandler) try(path string) (url.Values, bool) {
 		case h.Path[j] == ':':
 			var name, val string
 			var nextc byte
+
 			name, nextc, j = match(h.Path, isAlnum, j+1)
 			val, _, i = match(path, matchPart(nextc), i)
+
+			if (j < len(h.Path)) && h.Path[j] == '[' {
+				var index int
+				if i := strings.Index(h.Path[j:], "]/"); i > 0 {
+					index = i
+				} else if h.Path[len(h.Path)-1] == ']' {
+					index = len(h.Path) - j - 1
+				}
+
+				if index > 0 {
+					match := strings.TrimSuffix(strings.TrimPrefix(h.Path[j:j+index+1], "["), "]")
+					if reg, err := regexp.Compile("^" + match + "$"); err == nil && reg.MatchString(val) {
+						j = j + index + 1
+					} else {
+						return nil, false
+					}
+				}
+			}
+
 			p.Add(":"+name, val)
 		case path[i] == h.Path[j]:
 			i++
