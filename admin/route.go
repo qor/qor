@@ -12,13 +12,6 @@ import (
 	"github.com/qor/qor/roles"
 )
 
-type requestHandler func(c *Context)
-
-type routeHandler struct {
-	Path   string
-	Handle requestHandler
-}
-
 // Middleware is a way to filter a request and response coming into your application
 // Register new middlewares with `admin.GetRouter().Use(func(*Context, *Middleware))`
 // It will be called in order, it need to be registered before `admin.MountTo`
