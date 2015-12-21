@@ -20,6 +20,28 @@ type (
 	}
 )
 
+// Middleware is a way to filter a request and response coming into your application
+// Register new middlewares with `admin.GetRouter().Use(func(*Context, *Middleware))`
+// It will be called in order, it need to be registered before `admin.MountTo`
+type Middleware struct {
+	Handler func(*Context, *Middleware)
+	next    *Middleware
+}
+
+// Next will call the next middleware
+func (middleware Middleware) Next(context *Context) {
+	if next := middleware.next; next != nil {
+		next.Handler(context, next)
+	}
+}
+
+// Router contains registered routers
+type Router struct {
+	Prefix      string
+	routers     map[string][]handler
+	middlewares []*Middleware
+}
+
 func newRouter() *Router {
 	return &Router{routers: map[string][]handler{
 		"GET":    []handler{},
@@ -29,23 +51,7 @@ func newRouter() *Router {
 	}}
 }
 
-type Router struct {
-	Prefix      string
-	routers     map[string][]handler
-	middlewares []*Middleware
-}
-
-type Middleware struct {
-	Handler func(*Context, *Middleware)
-	next    *Middleware
-}
-
-func (middleware Middleware) Next(context *Context) {
-	if next := middleware.next; next != nil {
-		next.Handler(context, next)
-	}
-}
-
+// Use reigster a middleware to the router
 func (r *Router) Use(handler func(*Context, *Middleware)) {
 	r.middlewares = append(r.middlewares, &Middleware{Handler: handler})
 }
@@ -195,18 +201,10 @@ func (admin *Admin) compile() {
 	})
 
 	for index, middleware := range router.middlewares {
-		var next *Middleware
 		if len(router.middlewares) > index+1 {
-			next = router.middlewares[index+1]
+			middleware.next = router.middlewares[index+1]
 		}
-		middleware.next = next
 	}
-}
-
-func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
-	context := Context{Context: &qor.Context{Config: admin.Config, Request: r, Writer: w}, Admin: admin}
-
-	return &context
 }
 
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {

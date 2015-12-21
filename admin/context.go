@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"html/template"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -22,6 +23,12 @@ type Context struct {
 	Content  template.HTML
 	Action   string
 	Result   interface{}
+}
+
+func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
+	context := Context{Context: &qor.Context{Config: admin.Config, Request: r, Writer: w}, Admin: admin}
+
+	return &context
 }
 
 func (context *Context) clone() *Context {
