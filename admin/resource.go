@@ -41,7 +41,7 @@ func (res *Resource) Meta(meta *Meta) {
 		utils.ExitWithMsg("Duplicated meta %v defined for resource %v", meta.Name, res.Name)
 	}
 	res.Metas = append(res.Metas, meta)
-	meta.base = res
+	meta.baseResource = res
 	meta.updateMeta()
 }
 
@@ -384,7 +384,7 @@ Attrs:
 		if meta == nil {
 			meta = &Meta{}
 			meta.Name = attr
-			meta.base = res
+			meta.baseResource = res
 			if attr == primaryKey {
 				meta.Type = "hidden"
 			}

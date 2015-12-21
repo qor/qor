@@ -119,7 +119,7 @@ func (context *Context) valueOf(valuer func(interface{}, *qor.Context) interface
 		}
 	}
 
-	utils.ExitWithMsg(fmt.Sprintf("No valuer found for meta %v of resource %v", meta.Name, meta.base.Name))
+	utils.ExitWithMsg(fmt.Sprintf("No valuer found for meta %v of resource %v", meta.Name, meta.baseResource.Name))
 	return nil
 }
 
@@ -213,7 +213,7 @@ func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []strin
 	if err == nil {
 		var scope = context.GetDB().NewScope(value)
 		var data = map[string]interface{}{
-			"BaseResource":  meta.base,
+			"BaseResource":  meta.baseResource,
 			"ResourceValue": value,
 			"InputId":       fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
 			"Label":         meta.Label,

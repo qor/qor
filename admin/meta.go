@@ -15,7 +15,6 @@ import (
 )
 
 type Meta struct {
-	base            *Resource
 	Name            string
 	FieldName       string
 	Label           string
@@ -29,6 +28,8 @@ type Meta struct {
 	GetCollection   func(interface{}, *qor.Context) [][]string
 	Permission      *roles.Permission
 	resource.Meta
+
+	baseResource *Resource
 }
 
 func (meta *Meta) GetMetas() []resource.Metaor {
@@ -69,7 +70,7 @@ func (meta *Meta) updateMeta() {
 		FormattedValuer: meta.FormattedValuer,
 		Valuer:          meta.Valuer,
 		Permission:      meta.Permission,
-		Resource:        meta.base,
+		Resource:        meta.baseResource,
 	}
 
 	meta.PreInitialize()
@@ -150,14 +151,14 @@ func (meta *Meta) updateMeta() {
 				result = reflect.New(refelectType).Interface()
 			}
 
-			res := meta.base.GetAdmin().NewResource(result)
+			res := meta.baseResource.GetAdmin().NewResource(result)
 			res.configure()
 			meta.Resource = res
 		}
 	} else {
 	}
 
-	scope := &gorm.Scope{Value: meta.base.Value}
+	scope := &gorm.Scope{Value: meta.baseResource.Value}
 	scopeField, _ := scope.FieldByName(meta.GetFieldName())
 
 	{ // Format Meta FormattedValueOf
@@ -195,7 +196,7 @@ func (meta *Meta) updateMeta() {
 			} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
 				meta.GetCollection = f
 			} else {
-				utils.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Value))
+				utils.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.baseResource.Value))
 			}
 		} else if meta.Type == "select_one" || meta.Type == "select_many" {
 			if scopeField.Relationship != nil {
