@@ -12,13 +12,12 @@ import (
 	"github.com/qor/qor/roles"
 )
 
-type (
-	handle  func(c *Context)
-	handler struct {
-		Path   *regexp.Regexp
-		Handle handle
-	}
-)
+type requestHandler func(c *Context)
+
+type routeHandler struct {
+	Path   string
+	Handle requestHandler
+}
 
 // Middleware is a way to filter a request and response coming into your application
 // Register new middlewares with `admin.GetRouter().Use(func(*Context, *Middleware))`
@@ -38,16 +37,16 @@ func (middleware Middleware) Next(context *Context) {
 // Router contains registered routers
 type Router struct {
 	Prefix      string
-	routers     map[string][]handler
+	routers     map[string][]routeHandler
 	middlewares []*Middleware
 }
 
 func newRouter() *Router {
-	return &Router{routers: map[string][]handler{
-		"GET":    []handler{},
-		"PUT":    []handler{},
-		"POST":   []handler{},
-		"DELETE": []handler{},
+	return &Router{routers: map[string][]routeHandler{
+		"GET":    []routeHandler{},
+		"PUT":    []routeHandler{},
+		"POST":   []routeHandler{},
+		"DELETE": []routeHandler{},
 	}}
 }
 
@@ -57,23 +56,23 @@ func (r *Router) Use(handler func(*Context, *Middleware)) {
 }
 
 // Get register a GET request handle with the given path
-func (r *Router) Get(path string, handle handle) {
-	r.routers["GET"] = append(r.routers["GET"], handler{Path: regexp.MustCompile(path), Handle: handle})
+func (r *Router) Get(path string, handle requestHandler) {
+	r.routers["GET"] = append(r.routers["GET"], routeHandler{Path: path, Handle: handle})
 }
 
 // Post register a POST request handle with the given path
-func (r *Router) Post(path string, handle handle) {
-	r.routers["POST"] = append(r.routers["POST"], handler{Path: regexp.MustCompile(path), Handle: handle})
+func (r *Router) Post(path string, handle requestHandler) {
+	r.routers["POST"] = append(r.routers["POST"], routeHandler{Path: path, Handle: handle})
 }
 
 // Put register a PUT request handle with the given path
-func (r *Router) Put(path string, handle handle) {
-	r.routers["PUT"] = append(r.routers["PUT"], handler{Path: regexp.MustCompile(path), Handle: handle})
+func (r *Router) Put(path string, handle requestHandler) {
+	r.routers["PUT"] = append(r.routers["PUT"], routeHandler{Path: path, Handle: handle})
 }
 
 // Delete register a DELETE request handle with the given path
-func (r *Router) Delete(path string, handle handle) {
-	r.routers["DELETE"] = append(r.routers["DELETE"], handler{Path: regexp.MustCompile(path), Handle: handle})
+func (r *Router) Delete(path string, handle requestHandler) {
+	r.routers["DELETE"] = append(r.routers["DELETE"], routeHandler{Path: path, Handle: handle})
 }
 
 // MountTo mount the service into mux (HTTP request multiplexer) with given path
@@ -196,7 +195,7 @@ func (admin *Admin) compile() {
 		handlers := router.routers[strings.ToUpper(request.Method)]
 		relativePath := strings.TrimPrefix(request.URL.Path, router.Prefix)
 		for _, handler := range handlers {
-			if handler.Path.MatchString(relativePath) {
+			if handler.Path == relativePath {
 				handler.Handle(context)
 				return
 			}
