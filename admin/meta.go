@@ -137,25 +137,29 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
-	// Set Meta Resource
-	if meta.Resource == nil {
-		if hasColumn && (meta.FieldStruct.Relationship != nil) {
-			var result interface{}
-			if fieldType.Kind() == reflect.Struct {
-				result = reflect.New(fieldType).Interface()
-			} else if fieldType.Kind() == reflect.Slice {
-				refelectType := fieldType.Elem()
-				for refelectType.Kind() == reflect.Ptr {
-					refelectType = refelectType.Elem()
+	{ // Set Meta Resource
+		if meta.Resource == nil {
+			if hasColumn && (meta.FieldStruct.Relationship != nil) {
+				var result interface{}
+				if fieldType.Kind() == reflect.Struct {
+					result = reflect.New(fieldType).Interface()
+				} else if fieldType.Kind() == reflect.Slice {
+					refelectType := fieldType.Elem()
+					for refelectType.Kind() == reflect.Ptr {
+						refelectType = refelectType.Elem()
+					}
+					result = reflect.New(refelectType).Interface()
 				}
-				result = reflect.New(refelectType).Interface()
-			}
 
-			res := meta.baseResource.GetAdmin().NewResource(result)
-			res.configure()
-			meta.Resource = res
+				res := meta.baseResource.GetAdmin().NewResource(result)
+				res.configure()
+				meta.Resource = res
+			}
 		}
-	} else {
+
+		if meta.Resource != nil {
+			meta.Resource.base = meta.baseResource
+		}
 	}
 
 	scope := &gorm.Scope{Value: meta.baseResource.Value}

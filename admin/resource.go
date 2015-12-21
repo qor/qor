@@ -23,6 +23,7 @@ type Resource struct {
 	SearchHandler func(keyword string, context *qor.Context) *gorm.DB
 
 	admin          *Admin
+	base           *Resource
 	actions        []*Action
 	scopes         []*Scope
 	filters        map[string]*Filter
