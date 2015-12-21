@@ -449,3 +449,18 @@ func (res *Resource) allowedSections(sections []*Section, context *Context, role
 	}
 	return sections
 }
+
+func (res *Resource) configure() {
+	modelType := res.GetAdmin().Config.DB.NewScope(res.Value).GetModelStruct().ModelType
+	for i := 0; i < modelType.NumField(); i++ {
+		if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
+			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourceInterface); ok {
+				injector.ConfigureQorResource(res)
+			}
+		}
+	}
+
+	if injector, ok := res.Value.(resource.ConfigureResourceInterface); ok {
+		injector.ConfigureQorResource(res)
+	}
+}

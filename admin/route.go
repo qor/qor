@@ -4,30 +4,21 @@ import (
 	"log"
 	"net/http"
 	"path"
-	"reflect"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 )
 
 type (
-	handle func(c *Context)
-
+	handle  func(c *Context)
 	handler struct {
 		Path   *regexp.Regexp
 		Handle handle
 	}
 )
-
-type Router struct {
-	Prefix      string
-	routers     map[string][]handler
-	middlewares []*Middleware
-}
 
 func newRouter() *Router {
 	return &Router{routers: map[string][]handler{
@@ -36,6 +27,12 @@ func newRouter() *Router {
 		"POST":   []handler{},
 		"DELETE": []handler{},
 	}}
+}
+
+type Router struct {
+	Prefix      string
+	routers     map[string][]handler
+	middlewares []*Middleware
 }
 
 type Middleware struct {
@@ -77,8 +74,8 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	admin.compile()
 
 	controller := &controller{admin}
-	router.Get("^/?$", controller.Dashboard)
-	router.Get("^/!search$", controller.SearchCenter)
+	router.Get("", controller.Dashboard)
+	router.Get("/!search", controller.SearchCenter)
 
 	var registerResourceToRouter func(*Resource, ...string)
 	registerResourceToRouter = func(res *Resource, modes ...string) {
@@ -117,7 +114,9 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 				router.Post(path.Join(prefix, ":id"), controller.Update)
 
 				// Action
-				// router.Post(fmt.Sprintf("/%v/action/[^/]+(\\?.*)?$", res.ToParam()), controller.Action)
+				for _, action := range res.actions {
+					router.Post(path.Join(prefix, ":id", action.Name), controller.Action)
+				}
 			}
 
 			if mode == "delete" {
@@ -154,21 +153,6 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
-}
-
-func (res *Resource) configure() {
-	modelType := res.GetAdmin().Config.DB.NewScope(res.Value).GetModelStruct().ModelType
-	for i := 0; i < modelType.NumField(); i++ {
-		if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
-			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourceInterface); ok {
-				injector.ConfigureQorResource(res)
-			}
-		}
-	}
-
-	if injector, ok := res.Value.(resource.ConfigureResourceInterface); ok {
-		injector.ConfigureQorResource(res)
-	}
 }
 
 func (admin *Admin) compile() {
