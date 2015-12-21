@@ -188,7 +188,12 @@ func (admin *Admin) compile() {
 		handlers := router.routers[strings.ToUpper(request.Method)]
 		relativePath := strings.TrimPrefix(request.URL.Path, router.Prefix)
 		for _, handler := range handlers {
-			if handler.Path == relativePath {
+			if params, ok := handler.try(relativePath); ok {
+				for key, values := range params {
+					for _, value := range values {
+						context.Request.URL.Query().Add(key, value)
+					}
+				}
 				handler.Handle(context)
 				return
 			}
