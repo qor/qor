@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"path"
@@ -79,15 +80,39 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	controller := &controller{admin}
 	router.Get("^/?$", controller.Dashboard)
 	router.Get("^/!search$", controller.SearchCenter)
-	router.Get("^/[^/]+/new$", controller.New)
-	router.Post("^/[^/]+$", controller.Create)
-	router.Post("^/[^/]+/action/[^/]+(\\?.*)?$", controller.Action)
-	router.Get("^/[^/]+/.*/edit$", controller.Edit)
-	router.Get("^/[^/]+/.*$", controller.Show)
-	router.Put("^/[^/]+/.*$", controller.Update)
-	router.Post("^/[^/]+/.*$", controller.Update)
-	router.Delete("^/[^/]+/.*$", controller.Delete)
-	router.Get("^/[^/]+$", controller.Index)
+
+	var registerToRouter = func(res *Resource) {
+		// New
+		router.Get(fmt.Sprintf("/%v/new", res.ToParam()), controller.New)
+
+		// Create
+		router.Post(fmt.Sprintf("/%v", res.ToParam()), controller.Create)
+
+		// Show
+		router.Get(fmt.Sprintf("/%v/:id", res.ToParam()), controller.Show)
+
+		// Edit
+		router.Get(fmt.Sprintf("/%v/:id/edit", res.ToParam()), controller.Edit)
+
+		// Update
+		router.Put(fmt.Sprintf("/%v/:id", res.ToParam()), controller.Update)
+		router.Post(fmt.Sprintf("/%v/:id", res.ToParam()), controller.Update)
+
+		// Delete
+		router.Delete(fmt.Sprintf("/%v/:id", res.ToParam()), controller.Delete)
+
+		// Index
+		router.Get(fmt.Sprintf("/%v", res.ToParam()), controller.Index)
+
+		// Action
+		router.Post(fmt.Sprintf("/%v/action/[^/]+(\\?.*)?$", res.ToParam()), controller.Action)
+	}
+
+	for _, res := range admin.resources {
+		if !res.Config.Invisible {
+			registerToRouter(res)
+		}
+	}
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
