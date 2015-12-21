@@ -106,6 +106,33 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 
 		// Action
 		router.Post(fmt.Sprintf("/%v/action/[^/]+(\\?.*)?$", res.ToParam()), controller.Action)
+
+		// Sub Resources
+		for _, meta := range res.ConvertSectionToMetas(res.ShowAttrs()) {
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
+				subParam := meta.Resource.(*Resource).ToParam()
+				router.Get(fmt.Sprintf("/%v/:id/%v", res.ToParam(), subParam), controller.Index)
+				router.Get(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Show)
+			}
+		}
+
+		for _, meta := range res.ConvertSectionToMetas(res.EditAttrs()) {
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
+				subParam := meta.Resource.(*Resource).ToParam()
+				router.Post(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Update)
+				router.Put(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Update)
+				router.Delete(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Delete)
+			}
+		}
+
+		for _, meta := range res.ConvertSectionToMetas(res.NewAttrs()) {
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
+				subParam := meta.Resource.(*Resource).ToParam()
+				router.Post(fmt.Sprintf("/%v/:id/%v", res.ToParam(), subParam), controller.Create)
+
+				router.Get(fmt.Sprintf("/%v/new", res.ToParam()), controller.New)
+			}
+		}
 	}
 
 	for _, res := range admin.resources {
