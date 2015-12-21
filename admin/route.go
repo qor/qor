@@ -180,9 +180,6 @@ func (admin *Admin) compile() {
 		var matches = pathMatch.FindStringSubmatch(request.URL.Path)
 		if len(matches) > 1 {
 			context.setResource(admin.GetResource(matches[1]))
-			if len(matches) > 2 {
-				context.ResourceID = matches[2]
-			}
 		}
 
 		handlers := router.routers[strings.ToUpper(request.Method)]
@@ -194,6 +191,11 @@ func (admin *Admin) compile() {
 						context.Request.URL.Query().Add(key, value)
 					}
 				}
+
+				if ids, ok := context.Request.URL.Query()[":id"]; ok {
+					context.ResourceID = ids[len(ids)-1]
+				}
+
 				handler.Handle(context)
 				return
 			}
