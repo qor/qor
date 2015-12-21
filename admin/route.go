@@ -56,24 +56,29 @@ func (r *Router) Use(handler func(*Context, *Middleware)) {
 	r.middlewares = append(r.middlewares, &Middleware{Handler: handler})
 }
 
+// Get register a GET request handle with the given path
 func (r *Router) Get(path string, handle handle) {
 	r.routers["GET"] = append(r.routers["GET"], handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
+// Post register a POST request handle with the given path
 func (r *Router) Post(path string, handle handle) {
 	r.routers["POST"] = append(r.routers["POST"], handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
+// Put register a PUT request handle with the given path
 func (r *Router) Put(path string, handle handle) {
 	r.routers["PUT"] = append(r.routers["PUT"], handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
+// Delete register a DELETE request handle with the given path
 func (r *Router) Delete(path string, handle handle) {
 	r.routers["DELETE"] = append(r.routers["DELETE"], handler{Path: regexp.MustCompile(path), Handle: handle})
 }
 
-func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
-	prefix = "/" + strings.Trim(prefix, "/")
+// MountTo mount the service into mux (HTTP request multiplexer) with given path
+func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
+	prefix := "/" + strings.Trim(mountTo, "/")
 	router := admin.router
 	router.Prefix = prefix
 
@@ -164,24 +169,23 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 func (admin *Admin) compile() {
 	admin.generateMenuLinks()
 
-	router := admin.GetRouter()
-
 	for _, res := range admin.resources {
 		res.configure()
 	}
 
+	router := admin.GetRouter()
 	router.Use(func(context *Context, middleware *Middleware) {
-		w := context.Writer
-		req := context.Request
+		writer := context.Writer
+		request := context.Request
 
 		// 128 MB
-		req.ParseMultipartForm(32 << 22)
-		if len(req.Form["_method"]) > 0 {
-			req.Method = strings.ToUpper(req.Form["_method"][0])
+		request.ParseMultipartForm(32 << 22)
+		if len(request.Form["_method"]) > 0 {
+			request.Method = strings.ToUpper(request.Form["_method"][0])
 		}
 
 		var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*`))
-		var matches = pathMatch.FindStringSubmatch(req.URL.Path)
+		var matches = pathMatch.FindStringSubmatch(request.URL.Path)
 		if len(matches) > 1 {
 			context.setResource(admin.GetResource(matches[1]))
 			if len(matches) > 2 {
@@ -189,15 +193,16 @@ func (admin *Admin) compile() {
 			}
 		}
 
-		handlers := router.routers[strings.ToUpper(req.Method)]
-		relativePath := strings.TrimPrefix(req.URL.Path, router.Prefix)
+		handlers := router.routers[strings.ToUpper(request.Method)]
+		relativePath := strings.TrimPrefix(request.URL.Path, router.Prefix)
 		for _, handler := range handlers {
 			if handler.Path.MatchString(relativePath) {
 				handler.Handle(context)
 				return
 			}
 		}
-		http.NotFound(w, req)
+
+		http.NotFound(writer, request)
 	})
 
 	for index, middleware := range router.middlewares {
@@ -207,6 +212,7 @@ func (admin *Admin) compile() {
 	}
 }
 
+// ServeHTTP dispatches the handler registered in the matched route
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var relativePath = strings.TrimPrefix(req.URL.Path, admin.router.Prefix)
 	var context = admin.NewContext(w, req)
@@ -237,6 +243,9 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	context.Roles = roles.MatchedRoles(req, currentUser)
 
-	firstStack := admin.router.middlewares[0]
-	firstStack.Handler(context, firstStack)
+	// Call first middleware
+	for _, middleware := range admin.router.middlewares {
+		middleware.Handler(context, middleware)
+		break
+	}
 }
