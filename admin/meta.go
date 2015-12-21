@@ -24,7 +24,7 @@ type Meta struct {
 	Valuer          func(interface{}, *qor.Context) interface{}
 	Setter          func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context)
 	Metas           []resource.Metaor
-	Resource        resource.Resourcer
+	Resource        *Resource
 	Collection      interface{}
 	GetCollection   func(interface{}, *qor.Context) [][]string
 	Permission      *roles.Permission

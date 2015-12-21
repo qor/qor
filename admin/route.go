@@ -110,7 +110,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 		// Sub Resources
 		for _, meta := range res.ConvertSectionToMetas(res.ShowAttrs()) {
 			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
-				subParam := meta.Resource.(*Resource).ToParam()
+				subParam := meta.Resource.ToParam()
 				router.Get(fmt.Sprintf("/%v/:id/%v", res.ToParam(), subParam), controller.Index)
 				router.Get(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Show)
 			}
@@ -118,7 +118,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 
 		for _, meta := range res.ConvertSectionToMetas(res.EditAttrs()) {
 			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
-				subParam := meta.Resource.(*Resource).ToParam()
+				subParam := meta.Resource.ToParam()
 				router.Post(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Update)
 				router.Put(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Update)
 				router.Delete(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Delete)
@@ -127,7 +127,7 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 
 		for _, meta := range res.ConvertSectionToMetas(res.NewAttrs()) {
 			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
-				subParam := meta.Resource.(*Resource).ToParam()
+				subParam := meta.Resource.ToParam()
 				router.Post(fmt.Sprintf("/%v/:id/%v", res.ToParam(), subParam), controller.Create)
 
 				router.Get(fmt.Sprintf("/%v/new", res.ToParam()), controller.New)

@@ -97,7 +97,7 @@ func (res *Resource) convertObjectToJSONMap(context *Context, value interface{},
 				if valuer := meta.GetFormattedValuer(); valuer != nil {
 					value := valuer(value, context.Context)
 					if meta.GetResource() != nil {
-						value = meta.Resource.(*Resource).convertObjectToJSONMap(context, value, kind)
+						value = meta.Resource.convertObjectToJSONMap(context, value, kind)
 					}
 					values[meta.GetName()] = value
 				}
