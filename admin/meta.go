@@ -154,6 +154,7 @@ func (meta *Meta) updateMeta() {
 			res.configure()
 			meta.Resource = res
 		}
+	} else {
 	}
 
 	scope := &gorm.Scope{Value: meta.base.Value}

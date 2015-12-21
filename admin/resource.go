@@ -18,9 +18,11 @@ import (
 
 type Resource struct {
 	resource.Resource
+	Config        *Config
+	Metas         []*Meta
+	SearchHandler func(keyword string, context *qor.Context) *gorm.DB
+
 	admin          *Admin
-	Config         *Config
-	Metas          []*Meta
 	actions        []*Action
 	scopes         []*Scope
 	filters        map[string]*Filter
@@ -30,9 +32,8 @@ type Resource struct {
 	newSections    []*Section
 	editSections   []*Section
 	showSections   []*Section
-	IsSetShowAttrs bool
+	isSetShowAttrs bool
 	cachedMetas    *map[string][]*Meta
-	SearchHandler  func(keyword string, context *qor.Context) *gorm.DB
 }
 
 func (res *Resource) Meta(meta *Meta) {
@@ -192,7 +193,7 @@ func (res *Resource) ShowAttrs(values ...interface{}) []*Section {
 		if values[len(values)-1] == false {
 			values = values[:len(values)-1]
 		} else {
-			res.IsSetShowAttrs = true
+			res.isSetShowAttrs = true
 		}
 	}
 	res.setSections(&res.showSections, values...)
