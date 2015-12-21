@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"path"
@@ -81,63 +80,75 @@ func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
 	router.Get("^/?$", controller.Dashboard)
 	router.Get("^/!search$", controller.SearchCenter)
 
-	var registerToRouter = func(res *Resource) {
-		// New
-		router.Get(fmt.Sprintf("/%v/new", res.ToParam()), controller.New)
+	var registerResourceToRouter func(*Resource, ...string)
+	registerResourceToRouter = func(res *Resource, modes ...string) {
+		var prefix = func(r *Resource) string {
+			p := r.ToParam()
+			for r.base != nil {
+				p = path.Join(r.base.ToParam(), ":id", p)
+				r = r.base
+			}
+			return "/" + strings.Trim(p, "/")
+		}(res)
 
-		// Create
-		router.Post(fmt.Sprintf("/%v", res.ToParam()), controller.Create)
+		for _, mode := range modes {
+			if mode == "create" {
+				// New
+				router.Get(path.Join(prefix, "new"), controller.New)
 
-		// Show
-		router.Get(fmt.Sprintf("/%v/:id", res.ToParam()), controller.Show)
+				// Create
+				router.Post(prefix, controller.Create)
+			}
 
-		// Edit
-		router.Get(fmt.Sprintf("/%v/:id/edit", res.ToParam()), controller.Edit)
+			if mode == "read" {
+				// Index
+				router.Get(prefix, controller.Index)
 
-		// Update
-		router.Put(fmt.Sprintf("/%v/:id", res.ToParam()), controller.Update)
-		router.Post(fmt.Sprintf("/%v/:id", res.ToParam()), controller.Update)
+				// Show
+				router.Get(path.Join(prefix, ":id"), controller.Show)
+			}
 
-		// Delete
-		router.Delete(fmt.Sprintf("/%v/:id", res.ToParam()), controller.Delete)
+			if mode == "update" {
+				// Edit
+				router.Get(path.Join(prefix, ":id", "edit"), controller.Edit)
 
-		// Index
-		router.Get(fmt.Sprintf("/%v", res.ToParam()), controller.Index)
+				// Update
+				router.Put(path.Join(prefix, ":id"), controller.Update)
+				router.Post(path.Join(prefix, ":id"), controller.Update)
 
-		// Action
-		router.Post(fmt.Sprintf("/%v/action/[^/]+(\\?.*)?$", res.ToParam()), controller.Action)
+				// Action
+				// router.Post(fmt.Sprintf("/%v/action/[^/]+(\\?.*)?$", res.ToParam()), controller.Action)
+			}
+
+			if mode == "delete" {
+				// Delete
+				router.Delete(path.Join(prefix, ":id"), controller.Delete)
+			}
+		}
 
 		// Sub Resources
+		for _, meta := range res.ConvertSectionToMetas(res.NewAttrs()) {
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
+				registerResourceToRouter(meta.Resource, "create")
+			}
+		}
+
 		for _, meta := range res.ConvertSectionToMetas(res.ShowAttrs()) {
 			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
-				subParam := meta.Resource.ToParam()
-				router.Get(fmt.Sprintf("/%v/:id/%v", res.ToParam(), subParam), controller.Index)
-				router.Get(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Show)
+				registerResourceToRouter(meta.Resource, "read")
 			}
 		}
 
 		for _, meta := range res.ConvertSectionToMetas(res.EditAttrs()) {
 			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
-				subParam := meta.Resource.ToParam()
-				router.Post(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Update)
-				router.Put(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Update)
-				router.Delete(fmt.Sprintf("/%v/:id/%v/:id", res.ToParam(), subParam), controller.Delete)
-			}
-		}
-
-		for _, meta := range res.ConvertSectionToMetas(res.NewAttrs()) {
-			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
-				subParam := meta.Resource.ToParam()
-				router.Post(fmt.Sprintf("/%v/:id/%v", res.ToParam(), subParam), controller.Create)
-
-				router.Get(fmt.Sprintf("/%v/new", res.ToParam()), controller.New)
+				registerResourceToRouter(meta.Resource, "update", "delete")
 			}
 		}
 	}
 
 	for _, res := range admin.resources {
 		if !res.Config.Invisible {
-			registerToRouter(res)
+			registerResourceToRouter(res, "create", "read", "update", "delete")
 		}
 	}
 
