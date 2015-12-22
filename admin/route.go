@@ -83,13 +83,23 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 	var registerResourceToRouter func(*Resource, ...string)
 	registerResourceToRouter = func(res *Resource, modes ...string) {
 		var prefix = func(r *Resource) string {
-			p := r.ToParam()
+			cp := r.ToParam()
+			p := cp
+
 			for r.base != nil {
-				p = path.Join(r.base.ToParam(), ":id", p)
+				bp := r.base.ToParam()
+				if bp == cp {
+					return ""
+				}
+				p = path.Join(bp, ":id", p)
 				r = r.base
 			}
 			return "/" + strings.Trim(p, "/")
 		}(res)
+
+		if prefix == "" {
+			return
+		}
 
 		for _, mode := range modes {
 			if mode == "create" {
