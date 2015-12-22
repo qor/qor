@@ -18,7 +18,6 @@ type Meta struct {
 	base            *Resource
 	Name            string
 	FieldName       string
-	DBName          string
 	Label           string
 	Type            string
 	FormattedValuer func(interface{}, *qor.Context) interface{}
@@ -44,6 +43,13 @@ func (meta *Meta) GetMetas() []resource.Metaor {
 
 func (meta *Meta) GetResource() resource.Resourcer {
 	return meta.Resource
+}
+
+func (meta *Meta) DBName() string {
+	if meta.FieldStruct != nil {
+		return meta.FieldStruct.DBName
+	}
+	return ""
 }
 
 func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool) {
@@ -153,44 +159,64 @@ func (meta *Meta) updateMeta() {
 	scope := &gorm.Scope{Value: meta.base.Value}
 	scopeField, _ := scope.FieldByName(meta.GetFieldName())
 
-	// Set Meta Collection
-	if meta.Collection != nil {
-		if maps, ok := meta.Collection.([]string); ok {
-			meta.GetCollection = func(interface{}, *qor.Context) (results [][]string) {
-				for _, value := range maps {
-					results = append(results, []string{value, value})
-				}
-				return
+	{ // Format Meta FormattedValueOf
+		if meta.FormattedValuer == nil {
+			if meta.Type == "select_one" {
+				meta.SetFormattedValuer(func(value interface{}, context *qor.Context) interface{} {
+					return utils.Stringify(meta.GetValuer()(value, context))
+				})
+			} else if meta.Type == "select_many" {
+				meta.SetFormattedValuer(func(value interface{}, context *qor.Context) interface{} {
+					reflectValue := reflect.Indirect(reflect.ValueOf(meta.GetValuer()(value, context)))
+					var results []string
+					for i := 0; i < reflectValue.Len(); i++ {
+						results = append(results, utils.Stringify(reflectValue.Index(i).Interface()))
+					}
+					return results
+				})
 			}
-		} else if maps, ok := meta.Collection.([][]string); ok {
-			meta.GetCollection = func(interface{}, *qor.Context) [][]string {
-				return maps
-			}
-		} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
-			meta.GetCollection = f
-		} else {
-			utils.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Value))
 		}
-	} else if meta.Type == "select_one" || meta.Type == "select_many" {
-		if scopeField.Relationship != nil {
-			fieldType := scopeField.StructField.Struct.Type
-			if fieldType.Kind() == reflect.Slice {
-				fieldType = fieldType.Elem()
-			}
+	}
 
-			meta.GetCollection = func(value interface{}, context *qor.Context) (results [][]string) {
-				values := reflect.New(reflect.SliceOf(fieldType)).Interface()
-				context.GetDB().Find(values)
-				reflectValues := reflect.Indirect(reflect.ValueOf(values))
-				for i := 0; i < reflectValues.Len(); i++ {
-					scope := scope.New(reflectValues.Index(i).Interface())
-					primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
-					results = append(results, []string{primaryKey, utils.Stringify(reflectValues.Index(i).Interface())})
+	{ // Format Meta Collection
+		if meta.Collection != nil {
+			if maps, ok := meta.Collection.([]string); ok {
+				meta.GetCollection = func(interface{}, *qor.Context) (results [][]string) {
+					for _, value := range maps {
+						results = append(results, []string{value, value})
+					}
+					return
 				}
-				return
+			} else if maps, ok := meta.Collection.([][]string); ok {
+				meta.GetCollection = func(interface{}, *qor.Context) [][]string {
+					return maps
+				}
+			} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
+				meta.GetCollection = f
+			} else {
+				utils.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Value))
 			}
-		} else {
-			utils.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
+		} else if meta.Type == "select_one" || meta.Type == "select_many" {
+			if scopeField.Relationship != nil {
+				fieldType := scopeField.StructField.Struct.Type
+				if fieldType.Kind() == reflect.Slice {
+					fieldType = fieldType.Elem()
+				}
+
+				meta.GetCollection = func(value interface{}, context *qor.Context) (results [][]string) {
+					values := reflect.New(reflect.SliceOf(fieldType)).Interface()
+					context.GetDB().Find(values)
+					reflectValues := reflect.Indirect(reflect.ValueOf(values))
+					for i := 0; i < reflectValues.Len(); i++ {
+						scope := scope.New(reflectValues.Index(i).Interface())
+						primaryKey := fmt.Sprintf("%v", scope.PrimaryKeyValue())
+						results = append(results, []string{primaryKey, utils.Stringify(reflectValues.Index(i).Interface())})
+					}
+					return
+				}
+			} else {
+				utils.ExitWithMsg("%v meta type %v needs Collection", meta.Name, meta.Type)
+			}
 		}
 	}
 

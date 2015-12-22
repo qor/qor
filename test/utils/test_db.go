@@ -22,6 +22,9 @@ func TestDB() *gorm.DB {
 	if os.Getenv("TEST_DB") == "postgres" {
 		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@localhost/%s?sslmode=disable", dbuser, dbpwd, dbname))
 	} else {
+		// CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
+		// CREATE DATABASE qor_test;
+		// GRANT ALL ON qor_test.* TO 'qor'@'localhost';
 		db, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@/%s?charset=utf8&parseTime=True&loc=Local", dbuser, dbpwd, dbname))
 	}
 

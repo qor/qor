@@ -19,7 +19,6 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
-	"github.com/theplant/cldr"
 )
 
 func (context *Context) NewResourceContext(name ...interface{}) *Context {
@@ -132,23 +131,6 @@ func (context *Context) FormattedValueOf(value interface{}, meta *Meta) interfac
 	return context.valueOf(meta.GetFormattedValuer(), value, meta)
 }
 
-func (context *Context) renderIndexMeta(value interface{}, meta *Meta) template.HTML {
-	var result = bytes.NewBufferString("")
-	var tmpl *template.Template
-
-	if file, err := context.FindTemplate(fmt.Sprintf("metas/index/%v.tmpl", meta.Name), fmt.Sprintf("metas/index/%v.tmpl", meta.Type)); err == nil {
-		tmpl, err = template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file)
-	} else {
-		tmpl, err = template.New(meta.Type + ".tmpl").Funcs(context.FuncMap()).Parse("{{.Value}}")
-	}
-
-	data := map[string]interface{}{"Value": context.FormattedValueOf(value, meta), "Meta": meta}
-	if err := tmpl.Execute(result, data); err != nil {
-		utils.ExitWithMsg(err.Error())
-	}
-	return template.HTML(result.String())
-}
-
 func (context *Context) RenderForm(value interface{}, sections []*Section) template.HTML {
 	var result = bytes.NewBufferString("")
 	context.renderForm(value, sections, []string{"QorResource"}, result)
@@ -172,7 +154,7 @@ func (context *Context) renderSection(value interface{}, section *Section, prefi
 		for _, col := range column {
 			meta := section.Resource.GetMetaOrNew(col)
 			if meta != nil {
-				context.renderMeta(columnsHTML, meta, value, prefix)
+				context.RenderMeta(meta, value, prefix, "form", columnsHTML)
 			}
 		}
 
@@ -196,7 +178,7 @@ func (context *Context) renderSection(value interface{}, section *Section, prefi
 	}
 }
 
-func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value interface{}, prefix []string) {
+func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []string, metaType string, writer *bytes.Buffer) {
 	prefix = append(prefix, meta.Name)
 
 	funcsMap := context.FuncMap()
@@ -209,35 +191,46 @@ func (context *Context) renderMeta(writer *bytes.Buffer, meta *Meta, value inter
 			newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
 		}
 
+		for _, field := range context.GetDB().NewScope(value).PrimaryFields() {
+			if meta := sections[0].Resource.GetMetaOrNew(field.Name); meta != nil {
+				context.RenderMeta(meta, value, newPrefix, "form", result)
+			}
+		}
+
 		context.renderForm(value, sections, newPrefix, result)
+
 		return template.HTML(result.String())
 	}
 
-	if file, err := context.FindTemplate(fmt.Sprintf("metas/form/%v.tmpl", meta.Name), fmt.Sprintf("metas/form/%v.tmpl", meta.Type)); err == nil {
-		if tmpl, err := template.New(filepath.Base(file)).Funcs(funcsMap).ParseFiles(file); err == nil {
-			var scope = context.GetDB().NewScope(value)
-			var data = map[string]interface{}{
-				"BaseResource":  meta.base,
-				"ResourceValue": value,
-				"InputId":       fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
-				"Label":         meta.Label,
-				"InputName":     strings.Join(prefix, "."),
-				"Value":         context.FormattedValueOf(value, meta),
-				"Meta":          meta,
-			}
-
-			if meta.GetCollection != nil {
-				data["CollectionValue"] = meta.GetCollection(value, context.Context)
-			}
-
-			if err := tmpl.Execute(writer, data); err != nil {
-				utils.ExitWithMsg(fmt.Sprintf("got error when parse template for %v(%v):%v", meta.Name, meta.Type, err))
-			}
-		} else {
-			utils.ExitWithMsg(fmt.Sprintf("got error when parse template for %v(%v):%v", meta.Name, meta.Type, err))
-		}
+	var tmpl *template.Template
+	var err error
+	if file, err := context.FindTemplate(fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Name), fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Type)); err == nil {
+		tmpl, err = template.New(filepath.Base(file)).Funcs(funcsMap).ParseFiles(file)
 	} else {
-		utils.ExitWithMsg(fmt.Sprintf("%v: form type %v not supported: got error %v", meta.Name, meta.Type, err))
+		tmpl, err = template.New(meta.Type + ".tmpl").Funcs(funcsMap).Parse("{{.Value}}")
+	}
+
+	if err == nil {
+		var scope = context.GetDB().NewScope(value)
+		var data = map[string]interface{}{
+			"BaseResource":  meta.base,
+			"ResourceValue": value,
+			"InputId":       fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
+			"Label":         meta.Label,
+			"InputName":     strings.Join(prefix, "."),
+			"Value":         context.FormattedValueOf(value, meta),
+			"Meta":          meta,
+		}
+
+		if meta.GetCollection != nil {
+			data["CollectionValue"] = meta.GetCollection(value, context.Context)
+		}
+
+		err = tmpl.Execute(writer, data)
+	}
+
+	if err != nil {
+		utils.ExitWithMsg(fmt.Sprintf("got error when render %v template for %v(%v):%v", metaType, meta.Name, meta.Type, err))
 	}
 }
 
@@ -605,29 +598,20 @@ func (context *Context) logoutURL() string {
 }
 
 func (context *Context) dt(key string, value string, values ...interface{}) template.HTML {
-	locale := utils.GetLocale(context.Context)
-
-	if context.Admin.I18n == nil {
-		if result, err := cldr.Parse(locale, value, values...); err == nil {
-			return template.HTML(result)
-		}
-		return template.HTML(key)
-	} else {
-		return context.Admin.I18n.Scope("qor_admin").Default(value).T(locale, key, values...)
-	}
+	return context.Admin.T(context.Context, key, value, values...)
 }
 
 func (context *Context) rt(resource *Resource, key string, values ...interface{}) template.HTML {
-	return context.dt(strings.Join([]string{resource.ToParam(), key}, "."), key, values)
+	return context.Admin.T(context.Context, strings.Join([]string{resource.ToParam(), key}, "."), key, values...)
 }
 
-func (context *Context) T(key string, values ...interface{}) template.HTML {
-	return context.dt(key, key, values...)
+func (context *Context) t(key string, values ...interface{}) template.HTML {
+	return context.Admin.T(context.Context, key, key, values...)
 }
 
 func (context *Context) isSortableMeta(meta *Meta) bool {
 	for _, attr := range context.Resource.SortableAttrs() {
-		if attr == meta.Name && meta.DBName != "" {
+		if attr == meta.Name && meta.FieldStruct != nil && meta.FieldStruct.DBName != "" {
 			return true
 		}
 	}
@@ -689,9 +673,13 @@ func (context *Context) FuncMap() template.FuncMap {
 		"plural":    inflection.Plural,
 		"singular":  inflection.Singular,
 
-		"render":                 context.Render,
-		"render_form":            context.RenderForm,
-		"render_index_meta":      context.renderIndexMeta,
+		"render":      context.Render,
+		"render_form": context.RenderForm,
+		"render_index_meta": func(value interface{}, meta *Meta) template.HTML {
+			var result = bytes.NewBufferString("")
+			context.RenderMeta(meta, value, []string{}, "index", result)
+			return template.HTML(result.String())
+		},
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
 		"search_center_path":     func() string { return path.Join(context.Admin.router.Prefix, "!search") },
@@ -729,7 +717,7 @@ func (context *Context) FuncMap() template.FuncMap {
 			return template.JS(a)
 		},
 
-		"t":       context.T,
+		"t":       context.t,
 		"dt":      context.dt,
 		"rt":      context.rt,
 		"flashes": context.GetFlashes,

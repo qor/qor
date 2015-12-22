@@ -136,7 +136,7 @@ func Stringify(object interface{}) string {
 			return fmt.Sprintf("%v#%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue())
 		}
 	} else {
-		return fmt.Sprintf("%v", object)
+		return fmt.Sprint(reflect.Indirect(reflect.ValueOf(object)).Interface())
 	}
 }
 
