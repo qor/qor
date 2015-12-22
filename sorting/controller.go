@@ -105,6 +105,6 @@ func (s *Sorting) ConfigureQorResource(res resource.Resourcer) {
 		res.ShowAttrs(res.ShowAttrs(), "-Position", false)
 
 		router := Admin.GetRouter()
-		router.Post(fmt.Sprintf("^/%v/\\d+/sorting/update_position$", res.ToParam()), updatePosition)
+		router.Post(fmt.Sprintf("/%v/:id/sorting/update_position", res.ToParam()), updatePosition)
 	}
 }

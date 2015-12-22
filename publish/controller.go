@@ -52,7 +52,7 @@ func (db *publishController) Preview(context *admin.Context) {
 }
 
 func (db *publishController) Diff(context *admin.Context) {
-	resourceID := strings.Split(context.Request.URL.Path, "/")[4]
+	resourceID := context.Request.URL.Query().Get(":publish_unique_key")
 	params := strings.Split(resourceID, "__")
 	name, id := params[0], params[1]
 	res := context.Admin.GetResource(name)
@@ -115,9 +115,9 @@ func (publish *Publish) ConfigureQorResource(res resource.Resourcer) {
 
 		controller := publishController{publish}
 		router := res.GetAdmin().GetRouter()
-		router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
-		router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Preview)
-		router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.PublishOrDiscard)
+		router.Get(fmt.Sprintf("/%v/diff/:publish_unique_key", res.ToParam()), controller.Diff)
+		router.Get(res.ToParam(), controller.Preview)
+		router.Post(res.ToParam(), controller.PublishOrDiscard)
 
 		res.GetAdmin().RegisterFuncMap("publish_unique_key", func(res *admin.Resource, record interface{}, context *admin.Context) string {
 			return fmt.Sprintf("%s__%v", res.ToParam(), context.GetDB().NewScope(record).PrimaryKeyValue())

@@ -6,7 +6,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/qor/qor/roles"
 	"github.com/qor/responder"
 )
 
@@ -16,43 +15,33 @@ type controller struct {
 
 const HTTPUnprocessableEntity = 422
 
-func (context *Context) checkResourcePermission(permission roles.PermissionMode) bool {
-	if context.Resource == nil || context.Resource.HasPermission(permission, context.Context) {
-		return true
-	}
-	context.Writer.Write([]byte("Permission denied"))
-	return false
-}
-
 func (ac *controller) Dashboard(context *Context) {
 	context.Execute("dashboard", nil)
 }
 
 func (ac *controller) Index(context *Context) {
-	if context.checkResourcePermission(roles.Read) {
-		// Singleton Resource
-		if context.Resource.Config.Singleton {
-			var result = context.Resource.NewStruct()
-			if err := context.Resource.CallFindMany(result, context.Context); err == nil {
-				context.Execute("show", result)
-			} else {
-				context.Execute("new", result)
-			}
-			return
-		}
-
-		result, err := context.FindMany()
-		context.AddError(err)
-
-		if context.HasError() {
-			http.NotFound(context.Writer, context.Request)
+	// Singleton Resource
+	if context.Resource.Config.Singleton {
+		var result = context.Resource.NewStruct()
+		if err := context.Resource.CallFindMany(result, context.Context); err == nil {
+			context.Execute("show", result)
 		} else {
-			responder.With("html", func() {
-				context.Execute("index", result)
-			}).With("json", func() {
-				context.JSON("index", result)
-			}).Respond(context.Request)
+			context.Execute("new", result)
 		}
+		return
+	}
+
+	result, err := context.FindMany()
+	context.AddError(err)
+
+	if context.HasError() {
+		http.NotFound(context.Writer, context.Request)
+	} else {
+		responder.With("html", func() {
+			context.Execute("index", result)
+		}).With("json", func() {
+			context.JSON("index", result)
+		}).Respond(context.Request)
 	}
 }
 
@@ -80,115 +69,103 @@ func (ac *controller) SearchCenter(context *Context) {
 }
 
 func (ac *controller) New(context *Context) {
-	if context.checkResourcePermission(roles.Create) {
-		context.Execute("new", context.Resource.NewStruct())
-	}
+	context.Execute("new", context.Resource.NewStruct())
 }
 
 func (ac *controller) Create(context *Context) {
-	if context.checkResourcePermission(roles.Create) {
-		res := context.Resource
-		result := res.NewStruct()
-		if context.AddError(res.Decode(context.Context, result)); !context.HasError() {
-			context.AddError(res.CallSave(result, context.Context))
-		}
-
-		if context.HasError() {
-			responder.With("html", func() {
-				context.Writer.WriteHeader(HTTPUnprocessableEntity)
-				context.Execute("new", result)
-			}).With("json", func() {
-				context.Writer.WriteHeader(HTTPUnprocessableEntity)
-				context.JSON("index", map[string]interface{}{"errors": context.GetErrors()})
-			}).Respond(context.Request)
-		} else {
-			responder.With("html", func() {
-				context.Flash(string(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res)), "success")
-				if res.Config.Singleton {
-					http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path), http.StatusFound)
-				} else {
-					http.Redirect(context.Writer, context.Request, context.editResourcePath(result, res), http.StatusFound)
-				}
-			}).With("json", func() {
-				context.JSON("show", result)
-			}).Respond(context.Request)
-		}
+	res := context.Resource
+	result := res.NewStruct()
+	if context.AddError(res.Decode(context.Context, result)); !context.HasError() {
+		context.AddError(res.CallSave(result, context.Context))
 	}
-}
 
-func (ac *controller) Show(context *Context) {
-	if context.checkResourcePermission(roles.Read) {
-		result, err := context.FindOne()
-		context.AddError(err)
-
+	if context.HasError() {
 		responder.With("html", func() {
-			context.Execute("show", result)
+			context.Writer.WriteHeader(HTTPUnprocessableEntity)
+			context.Execute("new", result)
+		}).With("json", func() {
+			context.Writer.WriteHeader(HTTPUnprocessableEntity)
+			context.JSON("index", map[string]interface{}{"errors": context.GetErrors()})
+		}).Respond(context.Request)
+	} else {
+		responder.With("html", func() {
+			context.Flash(string(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res)), "success")
+			if res.Config.Singleton {
+				http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path), http.StatusFound)
+			} else {
+				http.Redirect(context.Writer, context.Request, context.editResourcePath(result, res), http.StatusFound)
+			}
 		}).With("json", func() {
 			context.JSON("show", result)
 		}).Respond(context.Request)
 	}
 }
 
-func (ac *controller) Edit(context *Context) {
-	if context.checkResourcePermission(roles.Read) {
-		result, err := context.FindOne()
-		context.AddError(err)
+func (ac *controller) Show(context *Context) {
+	result, err := context.FindOne()
+	context.AddError(err)
 
-		responder.With("html", func() {
-			context.Execute("edit", result)
-		}).With("json", func() {
-			context.JSON("edit", result)
-		}).Respond(context.Request)
-	}
+	responder.With("html", func() {
+		context.Execute("show", result)
+	}).With("json", func() {
+		context.JSON("show", result)
+	}).Respond(context.Request)
+}
+
+func (ac *controller) Edit(context *Context) {
+	result, err := context.FindOne()
+	context.AddError(err)
+
+	responder.With("html", func() {
+		context.Execute("edit", result)
+	}).With("json", func() {
+		context.JSON("edit", result)
+	}).Respond(context.Request)
 }
 
 func (ac *controller) Update(context *Context) {
-	if context.checkResourcePermission(roles.Update) {
-		res := context.Resource
-		result, err := context.FindOne()
-		context.AddError(err)
-		if !context.HasError() {
-			if context.AddError(res.Decode(context.Context, result)); !context.HasError() {
-				context.AddError(res.CallSave(result, context.Context))
-			}
+	res := context.Resource
+	result, err := context.FindOne()
+	context.AddError(err)
+	if !context.HasError() {
+		if context.AddError(res.Decode(context.Context, result)); !context.HasError() {
+			context.AddError(res.CallSave(result, context.Context))
 		}
+	}
 
-		if context.HasError() {
-			context.Writer.WriteHeader(HTTPUnprocessableEntity)
-			responder.With("html", func() {
-				context.Execute("edit", result)
-			}).With("json", func() {
-				context.JSON("edit", map[string]interface{}{"errors": context.GetErrors()})
-			}).Respond(context.Request)
-		} else {
-			responder.With("html", func() {
-				context.FlashNow(string(context.dt("resource_successfully_updated", "{{.Name}} was successfully updated", res)), "success")
-				if res.Config.Singleton {
-					http.Redirect(context.Writer, context.Request, context.UrlFor(res), http.StatusFound)
-				} else {
-					context.Execute("show", result)
-				}
-			}).With("json", func() {
-				context.JSON("show", result)
-			}).Respond(context.Request)
-		}
+	if context.HasError() {
+		context.Writer.WriteHeader(HTTPUnprocessableEntity)
+		responder.With("html", func() {
+			context.Execute("edit", result)
+		}).With("json", func() {
+			context.JSON("edit", map[string]interface{}{"errors": context.GetErrors()})
+		}).Respond(context.Request)
+	} else {
+		responder.With("html", func() {
+			context.FlashNow(string(context.dt("resource_successfully_updated", "{{.Name}} was successfully updated", res)), "success")
+			if res.Config.Singleton {
+				http.Redirect(context.Writer, context.Request, context.UrlFor(res), http.StatusFound)
+			} else {
+				context.Execute("show", result)
+			}
+		}).With("json", func() {
+			context.JSON("show", result)
+		}).Respond(context.Request)
 	}
 }
 
 func (ac *controller) Delete(context *Context) {
-	if context.checkResourcePermission(roles.Delete) {
-		res := context.Resource
-		status := http.StatusOK
-		if context.AddError(res.CallDelete(res.NewStruct(), context.Context)); context.HasError() {
-			status = http.StatusNotFound
-		}
-
-		responder.With("html", func() {
-			http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), status)
-		}).With("json", func() {
-			context.Writer.WriteHeader(status)
-		}).Respond(context.Request)
+	res := context.Resource
+	status := http.StatusOK
+	if context.AddError(res.CallDelete(res.NewStruct(), context.Context)); context.HasError() {
+		status = http.StatusNotFound
 	}
+
+	responder.With("html", func() {
+		http.Redirect(context.Writer, context.Request, path.Join(ac.GetRouter().Prefix, res.ToParam()), status)
+	}).With("json", func() {
+		context.Writer.WriteHeader(status)
+	}).Respond(context.Request)
 }
 
 func (ac *controller) Action(context *Context) {

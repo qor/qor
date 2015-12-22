@@ -15,7 +15,6 @@ import (
 )
 
 type Meta struct {
-	base            *Resource
 	Name            string
 	FieldName       string
 	Label           string
@@ -24,11 +23,13 @@ type Meta struct {
 	Valuer          func(interface{}, *qor.Context) interface{}
 	Setter          func(resource interface{}, metaValue *resource.MetaValue, context *qor.Context)
 	Metas           []resource.Metaor
-	Resource        resource.Resourcer
+	Resource        *Resource
 	Collection      interface{}
 	GetCollection   func(interface{}, *qor.Context) [][]string
 	Permission      *roles.Permission
 	resource.Meta
+
+	baseResource *Resource
 }
 
 func (meta *Meta) GetMetas() []resource.Metaor {
@@ -69,7 +70,7 @@ func (meta *Meta) updateMeta() {
 		FormattedValuer: meta.FormattedValuer,
 		Valuer:          meta.Valuer,
 		Permission:      meta.Permission,
-		Resource:        meta.base,
+		Resource:        meta.baseResource,
 	}
 
 	meta.PreInitialize()
@@ -136,27 +137,32 @@ func (meta *Meta) updateMeta() {
 		}
 	}
 
-	// Set Meta Resource
-	if meta.Resource == nil {
-		if hasColumn && (meta.FieldStruct.Relationship != nil) {
-			var result interface{}
-			if fieldType.Kind() == reflect.Struct {
-				result = reflect.New(fieldType).Interface()
-			} else if fieldType.Kind() == reflect.Slice {
-				refelectType := fieldType.Elem()
-				for refelectType.Kind() == reflect.Ptr {
-					refelectType = refelectType.Elem()
+	{ // Set Meta Resource
+		if meta.Resource == nil {
+			if hasColumn && (meta.FieldStruct.Relationship != nil) {
+				var result interface{}
+				if fieldType.Kind() == reflect.Struct {
+					result = reflect.New(fieldType).Interface()
+				} else if fieldType.Kind() == reflect.Slice {
+					refelectType := fieldType.Elem()
+					for refelectType.Kind() == reflect.Ptr {
+						refelectType = refelectType.Elem()
+					}
+					result = reflect.New(refelectType).Interface()
 				}
-				result = reflect.New(refelectType).Interface()
-			}
 
-			res := meta.base.GetAdmin().NewResource(result)
-			res.configure()
-			meta.Resource = res
+				res := meta.baseResource.GetAdmin().NewResource(result)
+				res.configure()
+				meta.Resource = res
+			}
+		}
+
+		if meta.Resource != nil {
+			meta.Resource.base = meta.baseResource
 		}
 	}
 
-	scope := &gorm.Scope{Value: meta.base.Value}
+	scope := &gorm.Scope{Value: meta.baseResource.Value}
 	scopeField, _ := scope.FieldByName(meta.GetFieldName())
 
 	{ // Format Meta FormattedValueOf
@@ -194,7 +200,7 @@ func (meta *Meta) updateMeta() {
 			} else if f, ok := meta.Collection.(func(interface{}, *qor.Context) [][]string); ok {
 				meta.GetCollection = f
 			} else {
-				utils.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.base.Value))
+				utils.ExitWithMsg("Unsupported Collection format for meta %v of resource %v", meta.Name, reflect.TypeOf(meta.baseResource.Value))
 			}
 		} else if meta.Type == "select_one" || meta.Type == "select_many" {
 			if scopeField.Relationship != nil {
