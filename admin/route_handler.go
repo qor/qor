@@ -21,7 +21,23 @@ type RouteConfig struct {
 type routeHandler struct {
 	Path   string
 	Handle requestHandler
-	Config *RouteConfig
+	Config RouteConfig
+}
+
+func newRouteHandler(path string, handle requestHandler, configs ...RouteConfig) routeHandler {
+	handler := routeHandler{
+		Path:   path,
+		Handle: handle,
+	}
+
+	for _, config := range configs {
+		handler.Config = config
+	}
+
+	if handler.Config.Permission == nil || handler.Config.Resource != nil {
+		handler.Config.Permission = handler.Config.Resource.Permission
+	}
+	return handler
 }
 
 func (handler routeHandler) HasPermission(context *qor.Context) bool {

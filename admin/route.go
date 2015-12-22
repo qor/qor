@@ -49,23 +49,23 @@ func (r *Router) Use(handler func(*Context, *Middleware)) {
 }
 
 // Get register a GET request handle with the given path
-func (r *Router) Get(path string, handle requestHandler) {
-	r.routers["GET"] = append(r.routers["GET"], routeHandler{Path: path, Handle: handle})
+func (r *Router) Get(path string, handle requestHandler, config ...RouteConfig) {
+	r.routers["GET"] = append(r.routers["GET"], newRouteHandler(path, handle, config...))
 }
 
 // Post register a POST request handle with the given path
-func (r *Router) Post(path string, handle requestHandler) {
-	r.routers["POST"] = append(r.routers["POST"], routeHandler{Path: path, Handle: handle})
+func (r *Router) Post(path string, handle requestHandler, config ...RouteConfig) {
+	r.routers["POST"] = append(r.routers["POST"], newRouteHandler(path, handle, config...))
 }
 
 // Put register a PUT request handle with the given path
-func (r *Router) Put(path string, handle requestHandler) {
-	r.routers["PUT"] = append(r.routers["PUT"], routeHandler{Path: path, Handle: handle})
+func (r *Router) Put(path string, handle requestHandler, config ...RouteConfig) {
+	r.routers["PUT"] = append(r.routers["PUT"], newRouteHandler(path, handle, config...))
 }
 
 // Delete register a DELETE request handle with the given path
-func (r *Router) Delete(path string, handle requestHandler) {
-	r.routers["DELETE"] = append(r.routers["DELETE"], routeHandler{Path: path, Handle: handle})
+func (r *Router) Delete(path string, handle requestHandler, config ...RouteConfig) {
+	r.routers["DELETE"] = append(r.routers["DELETE"], newRouteHandler(path, handle, config...))
 }
 
 // MountTo mount the service into mux (HTTP request multiplexer) with given path
