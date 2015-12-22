@@ -34,7 +34,7 @@ func newRouteHandler(path string, handle requestHandler, configs ...RouteConfig)
 		handler.Config = config
 	}
 
-	if handler.Config.Permission == nil || handler.Config.Resource != nil {
+	if handler.Config.Permission == nil && handler.Config.Resource != nil {
 		handler.Config.Permission = handler.Config.Resource.Permission
 	}
 	return handler
