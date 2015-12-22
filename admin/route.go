@@ -214,7 +214,10 @@ func (admin *Admin) compile() {
 			request.Method = strings.ToUpper(request.Form["_method"][0])
 		}
 
-		relativePath := strings.TrimPrefix(request.URL.Path, router.Prefix)
+		relativePath := strings.TrimSuffix(
+			strings.TrimPrefix(request.URL.Path, router.Prefix),
+			path.Ext(request.URL.Path),
+		)
 
 		handlers := router.routers[strings.ToUpper(request.Method)]
 		for _, handler := range handlers {
