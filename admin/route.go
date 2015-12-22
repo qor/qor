@@ -195,7 +195,7 @@ func (admin *Admin) compile() {
 		handlers := router.routers[strings.ToUpper(request.Method)]
 		relativePath := strings.TrimPrefix(request.URL.Path, router.Prefix)
 		for _, handler := range handlers {
-			if params, ok := handler.try(relativePath); ok {
+			if params, ok := handler.try(relativePath); ok && handler.HasPermission(context.Context) {
 				for key, values := range params {
 					for _, value := range values {
 						context.Request.URL.Query().Add(key, value)

@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/qor/qor"
 	"github.com/qor/qor/roles"
 )
 
@@ -21,6 +22,13 @@ type routeHandler struct {
 	Path   string
 	Handle requestHandler
 	Config *RouteConfig
+}
+
+func (handler routeHandler) HasPermission(context *qor.Context) bool {
+	if handler.Config.Permission == nil || handler.Config.PermissionMode == 0 {
+		return true
+	}
+	return handler.Config.Permission.HasPermission(handler.Config.PermissionMode, context.Roles...)
 }
 
 func isAlpha(ch byte) bool {
