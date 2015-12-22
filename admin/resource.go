@@ -46,8 +46,27 @@ func (res *Resource) Meta(meta *Meta) {
 	meta.updateMeta()
 }
 
-func (res *Resource) setBaseResource(r *Resource) {
-	r.base = res
+func (res *Resource) setBaseResource(base *Resource) {
+	res.base = base
+	findOneHandle := res.FindOneHandler
+	res.FindOneHandler = func(value interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+		return findOneHandle(value, metaValues, context)
+	}
+
+	findManyHandle := res.FindManyHandler
+	res.FindManyHandler = func(value interface{}, context *qor.Context) error {
+		return findManyHandle(value, context)
+	}
+
+	saveHandle := res.SaveHandler
+	res.SaveHandler = func(value interface{}, context *qor.Context) error {
+		return saveHandle(value, context)
+	}
+
+	deleteHandle := res.DeleteHandler
+	res.DeleteHandler = func(value interface{}, context *qor.Context) error {
+		return deleteHandle(value, context)
+	}
 }
 
 func (res Resource) GetAdmin() *Admin {
