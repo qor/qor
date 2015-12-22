@@ -46,10 +46,8 @@ func (res *Resource) Meta(meta *Meta) {
 	meta.updateMeta()
 }
 
-func (res *Resource) NewResource(value interface{}, config ...*Config) *Resource {
-	subRes := res.GetAdmin().NewResource(value, config...)
-	subRes.base = res
-	return subRes
+func (res *Resource) setBaseResource(r *Resource) {
+	r.base = res
 }
 
 func (res Resource) GetAdmin() *Admin {

@@ -151,10 +151,14 @@ func (meta *Meta) updateMeta() {
 					result = reflect.New(refelectType).Interface()
 				}
 
-				res := meta.baseResource.NewResource(result)
+				res := meta.baseResource.GetAdmin().NewResource(result)
 				res.configure()
 				meta.Resource = res
 			}
+		}
+
+		if meta.Resource != nil {
+			meta.Resource.setBaseResource(meta.baseResource)
 		}
 	}
 
