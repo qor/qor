@@ -3,6 +3,7 @@ package admin
 import (
 	"log"
 	"net/http"
+	"net/url"
 	"path"
 	"regexp"
 	"strings"
@@ -218,10 +219,8 @@ func (admin *Admin) compile() {
 		handlers := router.routers[strings.ToUpper(request.Method)]
 		for _, handler := range handlers {
 			if params, ok := handler.try(relativePath); ok && handler.HasPermission(context.Context) {
-				for key, values := range params {
-					for _, value := range values {
-						context.Request.URL.Query().Add(key, value)
-					}
+				if len(params) > 0 {
+					context.Request.URL.RawQuery = url.Values(params).Encode() + "&" + context.Request.URL.RawQuery
 				}
 
 				context.setResource(handler.Config.Resource)
