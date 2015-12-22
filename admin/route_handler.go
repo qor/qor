@@ -4,13 +4,23 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/qor/qor/roles"
 )
 
 type requestHandler func(c *Context)
 
+type RouteConfig struct {
+	Resource       *Resource
+	Permission     *roles.Permission
+	PermissionMode roles.PermissionMode
+	Values         map[interface{}]interface{}
+}
+
 type routeHandler struct {
 	Path   string
 	Handle requestHandler
+	Config *RouteConfig
 }
 
 func isAlpha(ch byte) bool {
@@ -42,7 +52,7 @@ func match(s string, f func(byte) bool, i int) (matched string, next byte, j int
 	return s[i:j], next, j
 }
 
-// copied from pat https://github.com/bmizerany/pat
+// mostly copied from pat https://github.com/bmizerany/pat
 func (h routeHandler) try(path string) (url.Values, bool) {
 	p := make(url.Values)
 	var i, j int
