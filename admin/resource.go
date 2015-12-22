@@ -46,6 +46,12 @@ func (res *Resource) Meta(meta *Meta) {
 	meta.updateMeta()
 }
 
+func (res *Resource) NewResource(value interface{}, config ...*Config) *Resource {
+	subRes := res.GetAdmin().NewResource(value, config...)
+	subRes.base = res
+	return subRes
+}
+
 func (res Resource) GetAdmin() *Admin {
 	return res.admin
 }
@@ -68,6 +74,10 @@ func (res Resource) UseTheme(theme string) []string {
 		res.Config.Themes = append(res.Config.Themes, theme)
 	}
 	return res.Config.Themes
+}
+
+func (res *Resource) Decode(context *qor.Context, value interface{}) error {
+	return resource.Decode(context, value, res)
 }
 
 func (res *Resource) convertObjectToJSONMap(context *Context, value interface{}, kind string) interface{} {
@@ -109,10 +119,6 @@ func (res *Resource) convertObjectToJSONMap(context *Context, value interface{},
 	default:
 		return value
 	}
-}
-
-func (res *Resource) Decode(context *qor.Context, value interface{}) error {
-	return resource.Decode(context, value, res)
 }
 
 func (res *Resource) allAttrs() []string {
