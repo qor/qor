@@ -224,6 +224,12 @@ func (admin *Admin) compile() {
 				}
 
 				context.setResource(handler.Config.Resource)
+				if context.Resource == nil {
+					if matches := regexp.MustCompile(path.Join(router.Prefix, `([^/]+)`)).FindStringSubmatch(request.URL.Path); len(matches) > 1 {
+						context.setResource(admin.GetResource(matches[1]))
+					}
+				}
+
 				if ids, ok := context.Request.URL.Query()[":id"]; ok {
 					context.ResourceID = ids[len(ids)-1]
 				}

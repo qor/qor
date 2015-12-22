@@ -115,9 +115,9 @@ func (publish *Publish) ConfigureQorResource(res resource.Resourcer) {
 
 		controller := publishController{publish}
 		router := res.GetAdmin().GetRouter()
-		router.Get(fmt.Sprintf("^/%v/diff/", res.ToParam()), controller.Diff)
-		router.Get(fmt.Sprintf("^/%v", res.ToParam()), controller.Preview)
-		router.Post(fmt.Sprintf("^/%v", res.ToParam()), controller.PublishOrDiscard)
+		router.Get(fmt.Sprintf("/%v/diff", res.ToParam()), controller.Diff)
+		router.Get(res.ToParam(), controller.Preview)
+		router.Post(res.ToParam(), controller.PublishOrDiscard)
 
 		res.GetAdmin().RegisterFuncMap("publish_unique_key", func(res *admin.Resource, record interface{}, context *admin.Context) string {
 			return fmt.Sprintf("%s__%v", res.ToParam(), context.GetDB().NewScope(record).PrimaryKeyValue())

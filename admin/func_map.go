@@ -342,6 +342,10 @@ type scopeMenu struct {
 }
 
 func (context *Context) GetScopes() (menus []*scopeMenu) {
+	if context.Resource == nil {
+		return
+	}
+
 	scopes := context.Request.URL.Query()["scopes"]
 OUT:
 	for _, s := range context.Resource.scopes {
