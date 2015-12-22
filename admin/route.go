@@ -82,7 +82,8 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 	var registerResourceToRouter func(*Resource, ...string)
 	registerResourceToRouter = func(res *Resource, modes ...string) {
-		var prefix = func(r *Resource) string {
+		var prefix string
+		if prefix = func(r *Resource) string {
 			cp := r.ToParam()
 			p := cp
 
@@ -95,9 +96,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 				r = r.base
 			}
 			return "/" + strings.Trim(p, "/")
-		}(res)
-
-		if prefix == "" {
+		}(res); prefix == "" {
 			return
 		}
 
@@ -225,7 +224,7 @@ func (admin *Admin) compile() {
 					}
 				}
 
-				context.Resource = handler.Config.Resource
+				context.setResource(handler.Config.Resource)
 				if ids, ok := context.Request.URL.Query()[":id"]; ok {
 					context.ResourceID = ids[len(ids)-1]
 				}
