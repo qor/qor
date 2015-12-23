@@ -260,9 +260,16 @@
 
                 // Destroy all Qor components within the slideout
                 $(this).trigger('disable');
+
               });
 
               this.show();
+
+              // callback for after slider loaded HTML
+              if (options.afterShow){
+                options.afterShow.call(this, url);
+              }
+
             } else {
               if (data.returnUrl) {
                 this.disabled = false; // For reload
@@ -413,6 +420,7 @@
     var options = {
           title: '.qor-form-title, .mdl-layout-title',
           content: '.qor-form-container',
+          afterShow: $.fn.qorSliderAfterShow ? $.fn.qorSliderAfterShow : null
         };
 
     $(document).
