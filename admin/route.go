@@ -103,65 +103,93 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 		for _, mode := range modes {
 			if mode == "create" {
-				// New
-				router.Get(path.Join(prefix, "new"), controller.New, RouteConfig{
-					PermissionMode: roles.Create,
-					Resource:       res,
-				})
+				if !res.Config.Singleton {
+					// New
+					router.Get(path.Join(prefix, "new"), controller.New, RouteConfig{
+						PermissionMode: roles.Create,
+						Resource:       res,
+					})
 
-				// Create
-				router.Post(prefix, controller.Create, RouteConfig{
-					PermissionMode: roles.Create,
-					Resource:       res,
-				})
-			}
-
-			if mode == "read" {
-				// Index
-				router.Get(prefix, controller.Index, RouteConfig{
-					PermissionMode: roles.Read,
-					Resource:       res,
-				})
-
-				// Show
-				router.Get(path.Join(prefix, ":id"), controller.Show, RouteConfig{
-					PermissionMode: roles.Read,
-					Resource:       res,
-				})
-			}
-
-			if mode == "update" {
-				// Edit
-				router.Get(path.Join(prefix, ":id", "edit"), controller.Edit, RouteConfig{
-					PermissionMode: roles.Update,
-					Resource:       res,
-				})
-
-				// Update
-				router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
-					PermissionMode: roles.Update,
-					Resource:       res,
-				})
-				router.Post(path.Join(prefix, ":id"), controller.Update, RouteConfig{
-					PermissionMode: roles.Update,
-					Resource:       res,
-				})
-
-				// Action
-				for _, action := range res.actions {
-					router.Post(path.Join(prefix, ":id", action.Name), controller.Action, RouteConfig{
-						PermissionMode: roles.Update,
+					// Create
+					router.Post(prefix, controller.Create, RouteConfig{
+						PermissionMode: roles.Create,
 						Resource:       res,
 					})
 				}
 			}
 
+			if mode == "read" {
+				if res.Config.Singleton {
+					// Index
+					router.Get(prefix, controller.Show, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+				} else {
+					// Index
+					router.Get(prefix, controller.Index, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+
+					// Show
+					router.Get(path.Join(prefix, ":id"), controller.Show, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+				}
+			}
+
+			if mode == "update" {
+				if res.Config.Singleton {
+					// Update
+					router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+
+					// Action
+					for _, action := range res.actions {
+						router.Post(path.Join(prefix, action.Name), controller.Action, RouteConfig{
+							PermissionMode: roles.Update,
+							Resource:       res,
+						})
+					}
+				} else {
+					// Edit
+					router.Get(path.Join(prefix, ":id", "edit"), controller.Edit, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+
+					// Update
+					router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+					router.Post(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+
+					// Action
+					for _, action := range res.actions {
+						router.Post(path.Join(prefix, ":id", action.Name), controller.Action, RouteConfig{
+							PermissionMode: roles.Update,
+							Resource:       res,
+						})
+					}
+				}
+			}
+
 			if mode == "delete" {
-				// Delete
-				router.Delete(path.Join(prefix, ":id"), controller.Delete, RouteConfig{
-					PermissionMode: roles.Delete,
-					Resource:       res,
-				})
+				if !res.Config.Singleton {
+					// Delete
+					router.Delete(path.Join(prefix, ":id"), controller.Delete, RouteConfig{
+						PermissionMode: roles.Delete,
+						Resource:       res,
+					})
+				}
 			}
 		}
 

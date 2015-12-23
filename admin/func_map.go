@@ -51,6 +51,15 @@ func (context *Context) newResourcePath(value interface{}) string {
 	}
 }
 
+func (context *Context) showResourcePath(value interface{}, res *Resource) string {
+	if res.Config.Singleton {
+		return path.Join(context.Admin.router.Prefix, res.ToParam())
+	} else {
+		primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
+		return path.Join(context.Admin.router.Prefix, res.ToParam(), primaryKey)
+	}
+}
+
 func (context *Context) editResourcePath(value interface{}, res *Resource) string {
 	primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
 	return path.Join(context.Admin.router.Prefix, res.ToParam(), primaryKey, "/edit")

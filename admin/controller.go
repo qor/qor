@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/jinzhu/gorm"
 	"github.com/qor/responder"
 )
 
@@ -20,17 +21,6 @@ func (ac *controller) Dashboard(context *Context) {
 }
 
 func (ac *controller) Index(context *Context) {
-	// Singleton Resource
-	if context.Resource.Config.Singleton {
-		var result = context.Resource.NewStruct()
-		if err := context.Resource.CallFindMany(result, context.Context); err == nil {
-			context.Execute("show", result)
-		} else {
-			context.Execute("new", result)
-		}
-		return
-	}
-
 	result, err := context.FindMany()
 	context.AddError(err)
 
@@ -90,11 +80,7 @@ func (ac *controller) Create(context *Context) {
 	} else {
 		responder.With("html", func() {
 			context.Flash(string(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res)), "success")
-			if res.Config.Singleton {
-				http.Redirect(context.Writer, context.Request, path.Join(context.Request.URL.Path), http.StatusFound)
-			} else {
-				http.Redirect(context.Writer, context.Request, context.editResourcePath(result, res), http.StatusFound)
-			}
+			http.Redirect(context.Writer, context.Request, context.showResourcePath(result, res), http.StatusFound)
 		}).With("json", func() {
 			context.JSON("show", result)
 		}).Respond(context.Request)
@@ -103,7 +89,12 @@ func (ac *controller) Create(context *Context) {
 
 func (ac *controller) Show(context *Context) {
 	result, err := context.FindOne()
-	context.AddError(err)
+
+	// Singleton Resource & Failed to find record
+	if context.Resource.Config.Singleton && err == gorm.RecordNotFound {
+		context.Execute("new", result)
+		return
+	}
 
 	responder.With("html", func() {
 		context.Execute("show", result)
@@ -143,11 +134,7 @@ func (ac *controller) Update(context *Context) {
 	} else {
 		responder.With("html", func() {
 			context.FlashNow(string(context.dt("resource_successfully_updated", "{{.Name}} was successfully updated", res)), "success")
-			if res.Config.Singleton {
-				http.Redirect(context.Writer, context.Request, context.UrlFor(res), http.StatusFound)
-			} else {
-				context.Execute("show", result)
-			}
+			context.Execute("show", result)
 		}).With("json", func() {
 			context.JSON("show", result)
 		}).Respond(context.Request)
