@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"html/template"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -22,6 +23,12 @@ type Context struct {
 	Content  template.HTML
 	Action   string
 	Result   interface{}
+}
+
+func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
+	context := Context{Context: &qor.Context{Config: admin.Config, Request: r, Writer: w}, Admin: admin}
+
+	return &context
 }
 
 func (context *Context) clone() *Context {
@@ -136,7 +143,7 @@ func (context *Context) Execute(name string, result interface{}) {
 	var tmpl *template.Template
 	var cacheKey string
 
-	if name == "show" && !context.Resource.IsSetShowAttrs {
+	if name == "show" && !context.Resource.isSetShowAttrs {
 		name = "edit"
 	}
 
@@ -177,7 +184,7 @@ func (context *Context) Execute(name string, result interface{}) {
 }
 
 func (context *Context) JSON(name string, result interface{}) {
-	if name == "show" && !context.Resource.IsSetShowAttrs {
+	if name == "show" && !context.Resource.isSetShowAttrs {
 		name = "edit"
 	}
 

@@ -3,165 +3,256 @@ package admin
 import (
 	"log"
 	"net/http"
+	"net/url"
 	"path"
-	"reflect"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/qor/qor"
-	"github.com/qor/qor/resource"
 	"github.com/qor/qor/roles"
 )
 
-type (
-	handle func(c *Context)
-
-	handler struct {
-		Path   *regexp.Regexp
-		Handle handle
-	}
-)
-
-type Router struct {
-	Prefix      string
-	routers     map[string][]handler
-	middlewares []*Middleware
-}
-
-func newRouter() *Router {
-	return &Router{routers: map[string][]handler{
-		"GET":    []handler{},
-		"PUT":    []handler{},
-		"POST":   []handler{},
-		"DELETE": []handler{},
-	}}
-}
-
+// Middleware is a way to filter a request and response coming into your application
+// Register new middlewares with `admin.GetRouter().Use(func(*Context, *Middleware))`
+// It will be called in order, it need to be registered before `admin.MountTo`
 type Middleware struct {
 	Handler func(*Context, *Middleware)
 	next    *Middleware
 }
 
+// Next will call the next middleware
 func (middleware Middleware) Next(context *Context) {
 	if next := middleware.next; next != nil {
 		next.Handler(context, next)
 	}
 }
 
+// Router contains registered routers
+type Router struct {
+	Prefix      string
+	routers     map[string][]routeHandler
+	middlewares []*Middleware
+}
+
+func newRouter() *Router {
+	return &Router{routers: map[string][]routeHandler{
+		"GET":    []routeHandler{},
+		"PUT":    []routeHandler{},
+		"POST":   []routeHandler{},
+		"DELETE": []routeHandler{},
+	}}
+}
+
+// Use reigster a middleware to the router
 func (r *Router) Use(handler func(*Context, *Middleware)) {
 	r.middlewares = append(r.middlewares, &Middleware{Handler: handler})
 }
 
-func (r *Router) Get(path string, handle handle) {
-	r.routers["GET"] = append(r.routers["GET"], handler{Path: regexp.MustCompile(path), Handle: handle})
+// Get register a GET request handle with the given path
+func (r *Router) Get(path string, handle requestHandler, config ...RouteConfig) {
+	r.routers["GET"] = append(r.routers["GET"], newRouteHandler(path, handle, config...))
 }
 
-func (r *Router) Post(path string, handle handle) {
-	r.routers["POST"] = append(r.routers["POST"], handler{Path: regexp.MustCompile(path), Handle: handle})
+// Post register a POST request handle with the given path
+func (r *Router) Post(path string, handle requestHandler, config ...RouteConfig) {
+	r.routers["POST"] = append(r.routers["POST"], newRouteHandler(path, handle, config...))
 }
 
-func (r *Router) Put(path string, handle handle) {
-	r.routers["PUT"] = append(r.routers["PUT"], handler{Path: regexp.MustCompile(path), Handle: handle})
+// Put register a PUT request handle with the given path
+func (r *Router) Put(path string, handle requestHandler, config ...RouteConfig) {
+	r.routers["PUT"] = append(r.routers["PUT"], newRouteHandler(path, handle, config...))
 }
 
-func (r *Router) Delete(path string, handle handle) {
-	r.routers["DELETE"] = append(r.routers["DELETE"], handler{Path: regexp.MustCompile(path), Handle: handle})
+// Delete register a DELETE request handle with the given path
+func (r *Router) Delete(path string, handle requestHandler, config ...RouteConfig) {
+	r.routers["DELETE"] = append(r.routers["DELETE"], newRouteHandler(path, handle, config...))
 }
 
-func (admin *Admin) MountTo(prefix string, mux *http.ServeMux) {
-	prefix = "/" + strings.Trim(prefix, "/")
+// MountTo mount the service into mux (HTTP request multiplexer) with given path
+func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
+	prefix := "/" + strings.Trim(mountTo, "/")
 	router := admin.router
 	router.Prefix = prefix
 
 	admin.compile()
 
 	controller := &controller{admin}
-	router.Get("^/?$", controller.Dashboard)
-	router.Get("^/!search$", controller.SearchCenter)
-	router.Get("^/[^/]+/new$", controller.New)
-	router.Post("^/[^/]+$", controller.Create)
-	router.Post("^/[^/]+/action/[^/]+(\\?.*)?$", controller.Action)
-	router.Get("^/[^/]+/.*/edit$", controller.Edit)
-	router.Get("^/[^/]+/.*$", controller.Show)
-	router.Put("^/[^/]+/.*$", controller.Update)
-	router.Post("^/[^/]+/.*$", controller.Update)
-	router.Delete("^/[^/]+/.*$", controller.Delete)
-	router.Get("^/[^/]+$", controller.Index)
+	router.Get("", controller.Dashboard)
+	router.Get("/!search", controller.SearchCenter)
+
+	var registerResourceToRouter func(*Resource, ...string)
+	registerResourceToRouter = func(res *Resource, modes ...string) {
+		var prefix string
+		if prefix = func(r *Resource) string {
+			cp := r.ToParam()
+			p := cp
+
+			for r.base != nil {
+				bp := r.base.ToParam()
+				if bp == cp {
+					return ""
+				}
+				p = path.Join(bp, ":id", p)
+				r = r.base
+			}
+			return "/" + strings.Trim(p, "/")
+		}(res); prefix == "" {
+			return
+		}
+
+		for _, mode := range modes {
+			if mode == "create" {
+				// New
+				router.Get(path.Join(prefix, "new"), controller.New, RouteConfig{
+					PermissionMode: roles.Create,
+					Resource:       res,
+				})
+
+				// Create
+				router.Post(prefix, controller.Create, RouteConfig{
+					PermissionMode: roles.Create,
+					Resource:       res,
+				})
+			}
+
+			if mode == "read" {
+				// Index
+				router.Get(prefix, controller.Index, RouteConfig{
+					PermissionMode: roles.Read,
+					Resource:       res,
+				})
+
+				// Show
+				router.Get(path.Join(prefix, ":id"), controller.Show, RouteConfig{
+					PermissionMode: roles.Read,
+					Resource:       res,
+				})
+			}
+
+			if mode == "update" {
+				// Edit
+				router.Get(path.Join(prefix, ":id", "edit"), controller.Edit, RouteConfig{
+					PermissionMode: roles.Update,
+					Resource:       res,
+				})
+
+				// Update
+				router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+					PermissionMode: roles.Update,
+					Resource:       res,
+				})
+				router.Post(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+					PermissionMode: roles.Update,
+					Resource:       res,
+				})
+
+				// Action
+				for _, action := range res.actions {
+					router.Post(path.Join(prefix, ":id", action.Name), controller.Action, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+				}
+			}
+
+			if mode == "delete" {
+				// Delete
+				router.Delete(path.Join(prefix, ":id"), controller.Delete, RouteConfig{
+					PermissionMode: roles.Delete,
+					Resource:       res,
+				})
+			}
+		}
+
+		// Sub Resources
+		for _, meta := range res.ConvertSectionToMetas(res.NewAttrs()) {
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
+				registerResourceToRouter(meta.Resource, "create")
+			}
+		}
+
+		for _, meta := range res.ConvertSectionToMetas(res.ShowAttrs()) {
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
+				registerResourceToRouter(meta.Resource, "read")
+			}
+		}
+
+		for _, meta := range res.ConvertSectionToMetas(res.EditAttrs()) {
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
+				registerResourceToRouter(meta.Resource, "update", "delete")
+			}
+		}
+	}
+
+	for _, res := range admin.resources {
+		if !res.Config.Invisible {
+			registerResourceToRouter(res, "create", "read", "update", "delete")
+		}
+	}
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
 }
 
-func (res *Resource) configure() {
-	modelType := res.GetAdmin().Config.DB.NewScope(res.Value).GetModelStruct().ModelType
-	for i := 0; i < modelType.NumField(); i++ {
-		if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
-			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourceInterface); ok {
-				injector.ConfigureQorResource(res)
-			}
-		}
-	}
-
-	if injector, ok := res.Value.(resource.ConfigureResourceInterface); ok {
-		injector.ConfigureQorResource(res)
-	}
-}
-
 func (admin *Admin) compile() {
 	admin.generateMenuLinks()
-
-	router := admin.GetRouter()
 
 	for _, res := range admin.resources {
 		res.configure()
 	}
 
+	router := admin.GetRouter()
 	router.Use(func(context *Context, middleware *Middleware) {
-		w := context.Writer
-		req := context.Request
+		request := context.Request
 
 		// 128 MB
-		req.ParseMultipartForm(32 << 22)
-		if len(req.Form["_method"]) > 0 {
-			req.Method = strings.ToUpper(req.Form["_method"][0])
+		request.ParseMultipartForm(32 << 22)
+
+		// set request method
+		if len(request.Form["_method"]) > 0 {
+			request.Method = strings.ToUpper(request.Form["_method"][0])
 		}
 
-		var pathMatch = regexp.MustCompile(path.Join(router.Prefix, `(\w+)(?:/(\w+))?[^/]*`))
-		var matches = pathMatch.FindStringSubmatch(req.URL.Path)
-		if len(matches) > 1 {
-			context.setResource(admin.GetResource(matches[1]))
-			if len(matches) > 2 {
-				context.ResourceID = matches[2]
-			}
-		}
+		relativePath := strings.TrimSuffix(
+			strings.TrimPrefix(request.URL.Path, router.Prefix),
+			path.Ext(request.URL.Path),
+		)
 
-		handlers := router.routers[strings.ToUpper(req.Method)]
-		relativePath := strings.TrimPrefix(req.URL.Path, router.Prefix)
+		handlers := router.routers[strings.ToUpper(request.Method)]
 		for _, handler := range handlers {
-			if handler.Path.MatchString(relativePath) {
+			if params, ok := handler.try(relativePath); ok && handler.HasPermission(context.Context) {
+				if len(params) > 0 {
+					context.Request.URL.RawQuery = url.Values(params).Encode() + "&" + context.Request.URL.RawQuery
+				}
+
+				context.setResource(handler.Config.Resource)
+				if context.Resource == nil {
+					if matches := regexp.MustCompile(path.Join(router.Prefix, `([^/]+)`)).FindStringSubmatch(request.URL.Path); len(matches) > 1 {
+						context.setResource(admin.GetResource(matches[1]))
+					}
+				}
+
+				if ids, ok := context.Request.URL.Query()[":id"]; ok {
+					context.ResourceID = ids[len(ids)-1]
+				}
+
 				handler.Handle(context)
 				return
 			}
 		}
-		http.NotFound(w, req)
+
+		http.NotFound(context.Writer, request)
 	})
 
 	for index, middleware := range router.middlewares {
-		var next *Middleware
 		if len(router.middlewares) > index+1 {
-			next = router.middlewares[index+1]
+			middleware.next = router.middlewares[index+1]
 		}
-		middleware.next = next
 	}
 }
 
-func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
-	context := Context{Context: &qor.Context{Config: admin.Config, Request: r, Writer: w}, Admin: admin}
-
-	return &context
-}
-
+// ServeHTTP dispatches the handler registered in the matched route
 func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var relativePath = strings.TrimPrefix(req.URL.Path, admin.router.Prefix)
 	var context = admin.NewContext(w, req)
@@ -192,6 +283,9 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 	context.Roles = roles.MatchedRoles(req, currentUser)
 
-	firstStack := admin.router.middlewares[0]
-	firstStack.Handler(context, firstStack)
+	// Call first middleware
+	for _, middleware := range admin.router.middlewares {
+		middleware.Handler(context, middleware)
+		break
+	}
 }

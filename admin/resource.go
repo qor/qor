@@ -18,9 +18,12 @@ import (
 
 type Resource struct {
 	resource.Resource
+	Config        *Config
+	Metas         []*Meta
+	SearchHandler func(keyword string, context *qor.Context) *gorm.DB
+
 	admin          *Admin
-	Config         *Config
-	Metas          []*Meta
+	base           *Resource
 	actions        []*Action
 	scopes         []*Scope
 	filters        map[string]*Filter
@@ -30,9 +33,8 @@ type Resource struct {
 	newSections    []*Section
 	editSections   []*Section
 	showSections   []*Section
-	IsSetShowAttrs bool
+	isSetShowAttrs bool
 	cachedMetas    *map[string][]*Meta
-	SearchHandler  func(keyword string, context *qor.Context) *gorm.DB
 }
 
 func (res *Resource) Meta(meta *Meta) {
@@ -40,7 +42,7 @@ func (res *Resource) Meta(meta *Meta) {
 		utils.ExitWithMsg("Duplicated meta %v defined for resource %v", meta.Name, res.Name)
 	}
 	res.Metas = append(res.Metas, meta)
-	meta.base = res
+	meta.baseResource = res
 	meta.updateMeta()
 }
 
@@ -96,8 +98,8 @@ func (res *Resource) convertObjectToJSONMap(context *Context, value interface{},
 			if meta.HasPermission(roles.Read, context.Context) {
 				if valuer := meta.GetFormattedValuer(); valuer != nil {
 					value := valuer(value, context.Context)
-					if meta.GetResource() != nil {
-						value = meta.Resource.(*Resource).convertObjectToJSONMap(context, value, kind)
+					if meta.Resource != nil {
+						value = meta.Resource.convertObjectToJSONMap(context, value, kind)
 					}
 					values[meta.GetName()] = value
 				}
@@ -192,7 +194,7 @@ func (res *Resource) ShowAttrs(values ...interface{}) []*Section {
 		if values[len(values)-1] == false {
 			values = values[:len(values)-1]
 		} else {
-			res.IsSetShowAttrs = true
+			res.isSetShowAttrs = true
 		}
 	}
 	res.setSections(&res.showSections, values...)
@@ -383,7 +385,7 @@ Attrs:
 		if meta == nil {
 			meta = &Meta{}
 			meta.Name = attr
-			meta.base = res
+			meta.baseResource = res
 			if attr == primaryKey {
 				meta.Type = "hidden"
 			}
@@ -446,4 +448,19 @@ func (res *Resource) allowedSections(sections []*Section, context *Context, role
 		section.Rows = editableRows
 	}
 	return sections
+}
+
+func (res *Resource) configure() {
+	modelType := res.GetAdmin().Config.DB.NewScope(res.Value).GetModelStruct().ModelType
+	for i := 0; i < modelType.NumField(); i++ {
+		if fieldStruct := modelType.Field(i); fieldStruct.Anonymous {
+			if injector, ok := reflect.New(fieldStruct.Type).Interface().(resource.ConfigureResourceInterface); ok {
+				injector.ConfigureQorResource(res)
+			}
+		}
+	}
+
+	if injector, ok := res.Value.(resource.ConfigureResourceInterface); ok {
+		injector.ConfigureQorResource(res)
+	}
 }

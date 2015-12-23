@@ -2,74 +2,94 @@
 
 Qor admin provide easy-to-use interface for data management.
 
-## Quick example
-
-Use 35 lines of code to setup & run Qor admin.
-
-    package main
-
-    import (
-      "net/http"
-
-      "github.com/jinzhu/gorm"
-      _ "github.com/mattn/go-sqlite3"
-      "github.com/qor/qor"
-      "github.com/qor/qor/admin"
-    )
-
-    type User struct {
-      gorm.Model
-      Name string
-    }
-
-    type Product struct {
-      gorm.Model
-      Name        string
-      Description string
-    }
-
-    func main() {
-      DB, _ := gorm.Open("sqlite3", "demo.db")
-      DB.AutoMigrate(&User{}, &Product{})
-
-      Admin := admin.New(&qor.Config{DB: &DB})
-      Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
-      Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
-
-      mux := http.NewServeMux()
-      Admin.MountTo("/admin", mux)
-      http.ListenAndServe(":9000", mux)
-    }
-
-// TODO: add screenshot after QOR admin UI finished
-`go run main.go` and visit `localhost:9000/admin` to see the result !
-
-You can view [qor example](https://github.com/qor/qor-example) for a more detailed configuration example.
-
 ## Features
 
 - CRUD of any resource
-- Search and filtering
+- JSON API supported
 - Authentication
-- Authorization(detail)
+- Search and filtering
 - Custom actions
 - Customizable view
-- Rich editor
-- Image crop
-- Integrate-able with [Publish](https://github.com/qor/qor/tree/master/publish)
-- Integrate-able with [l10n](https://github.com/qor/qor/tree/master/l10n)
-- JSON API supported
 - Extendable
 
-## Search Center
+## Quick Example
 
-It provide feature set that let End User to be able to quickly find any resources Developer defnited, like Product, Order, User, etc. Developer define what field of information user can search on.
+```go
+package main
 
-### Developer side usage
+import (
+    "net/http"
 
-### End User side usage
+    "github.com/jinzhu/gorm"
+    _ "github.com/mattn/go-sqlite3"
+    "github.com/qor/qor"
+    "github.com/qor/qor/admin"
+)
 
+type User struct {
+  gorm.Model
+    Name string
+}
 
-## Documentation
+type Product struct {
+  gorm.Model
+    Name        string
+    Description string
+}
 
-https://github.com/qor/qor/wiki
+func main() {
+  DB, _ := gorm.Open("sqlite3", "demo.db")
+  DB.AutoMigrate(&User{}, &Product{})
+
+  Admin := admin.New(&qor.Config{DB: &DB})
+  Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
+  Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
+
+  mux := http.NewServeMux()
+  Admin.MountTo("/admin", mux)
+  http.ListenAndServe(":9000", mux)
+}
+
+// TODO: add screenshot after QOR admin UI finished
+`go run main.go` and visit `localhost:9000/admin` to see the result !
+```
+
+## Usage
+
+### Register route
+
+```go
+router := Admin.GetRouter()
+
+router.Get("/path", func(context *admin.Context) {
+    // do something here
+})
+
+router.Post("/path", func(context *admin.Context) {
+    // do something here
+})
+
+router.Put("/path", func(context *admin.Context) {
+    // do something here
+})
+
+router.Delete("/path", func(context *admin.Context) {
+    // do something here
+})
+
+// naming route
+router.Get("/path/:name", func(context *admin.Context) {
+    context.Request.URL.Query().Get(":name")
+})
+
+// regexp support
+router.Get("/path/:name[world]", func(context *admin.Context) { // "/hello/world"
+    context.Request.URL.Query().Get(":name")
+})
+
+router.Get("/path/:name[\\d+]", func(context *admin.Context) { // "/hello/123"
+    context.Request.URL.Query().Get(":name")
+})
+```
+
+You can view [qor example](https://github.com/qor/qor-example) for a more detailed configuration example.
