@@ -6,19 +6,22 @@ var moduleName = (function () {
       var args = process.argv;
       var length = args.length;
       var i = 0;
-      var matched;
       var name;
+      var isExternal;
 
       while (i++ < length) {
-        matched = String(args[i]).match(/^--+(\w+)$/i);
-
-        if (matched) {
-          name = matched[1];
+        if ((/^--+(\w+)/i).test(args[i])){
+          name = args[i].split('--');
+          if (name[2]){
+            isExternal = name[2];
+          }
+          name = name[1];
           break;
         }
       }
 
-      return name;
+      return { name,isExternal };
+
     })();
 
 
@@ -166,12 +169,19 @@ function adminTasks() {
 
 // Modules
 // Command: gulp [task] --moduleName
+// If Modules is external use --moduleName--external
 // -----------------------------------------------------------------------------
 
-function moduleTasks(moduleName) {
+function moduleTasks(moduleNames) {
   var pathto = function (file) {
-        return (moduleName + '/views/themes/' + moduleName + '/assets/' + file);
-      };
+    var moduleName = moduleNames.name;
+
+    if (moduleNames.isExternal){
+      moduleName =  '../' + moduleNames.name;
+    }
+    return (moduleName + '/views/themes/' + moduleNames.name + '/assets/' + file);
+  };
+
   var scripts = {
         src: pathto('javascripts/app/*.js'),
         dest: pathto('javascripts/')
@@ -179,7 +189,7 @@ function moduleTasks(moduleName) {
   var styles = {
         src: pathto('stylesheets/scss/*.scss'),
         dest: pathto('stylesheets/'),
-        main: pathto('stylesheets/' + moduleName + '.css'),
+        main: pathto('stylesheets/' + moduleNames.name + '.css'),
         scss: pathto('stylesheets/scss/**/*.scss')
       };
 
@@ -196,7 +206,7 @@ function moduleTasks(moduleName) {
 
   gulp.task('js', ['jshint', 'jscs'], function () {
     return gulp.src(scripts.src)
-    .pipe(plugins.concat(moduleName + '.js'))
+    .pipe(plugins.concat(moduleNames.name + '.js'))
     .pipe(plugins.uglify())
     .pipe(gulp.dest(scripts.dest));
   });
@@ -204,7 +214,7 @@ function moduleTasks(moduleName) {
   gulp.task('concat', function () {
     return gulp.src(scripts.src)
     .pipe(plugins.sourcemaps.init())
-    .pipe(plugins.concat(moduleName + '.js'))
+    .pipe(plugins.concat(moduleNames.name + '.js'))
     .pipe(plugins.sourcemaps.write('./'))
     .pipe(gulp.dest(scripts.dest));
   });
@@ -243,8 +253,12 @@ function moduleTasks(moduleName) {
 // Init
 // -----------------------------------------------------------------------------
 
-if (moduleName) {
-  console.log('Running "' + moduleName + '" task...');
+if (moduleName.name) {
+  var runModuleName = 'Running internal"' + moduleName.name + '" task...';
+  if (moduleName.isExternal){
+    runModuleName = 'Running external "' + moduleName.name + '" task...';
+  }
+  console.log(runModuleName);
   moduleTasks(moduleName);
 } else {
   console.log('Running "admin" task...');
