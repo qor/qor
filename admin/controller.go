@@ -122,9 +122,19 @@ func (ac *controller) Edit(context *Context) {
 }
 
 func (ac *controller) Update(context *Context) {
+	var result interface{}
+	var err error
+
+	// If singleton Resource
+	if context.Resource.Config.Singleton {
+		result = context.Resource.NewStruct()
+		context.Resource.CallFindMany(result, context.Context)
+	} else {
+		result, err = context.FindOne()
+		context.AddError(err)
+	}
+
 	res := context.Resource
-	result, err := context.FindOne()
-	context.AddError(err)
 	if !context.HasError() {
 		if context.AddError(res.Decode(context.Context, result)); !context.HasError() {
 			context.AddError(res.CallSave(result, context.Context))
