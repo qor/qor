@@ -163,6 +163,10 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 					})
 
 					// Update
+					router.Post(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
 					router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
