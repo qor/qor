@@ -46,6 +46,29 @@ func (res *Resource) Meta(meta *Meta) {
 	meta.updateMeta()
 }
 
+func (res *Resource) setBaseResource(base *Resource) {
+	res.base = base
+	findOneHandle := res.FindOneHandler
+	res.FindOneHandler = func(value interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+		return findOneHandle(value, metaValues, context)
+	}
+
+	findManyHandle := res.FindManyHandler
+	res.FindManyHandler = func(value interface{}, context *qor.Context) error {
+		return findManyHandle(value, context)
+	}
+
+	saveHandle := res.SaveHandler
+	res.SaveHandler = func(value interface{}, context *qor.Context) error {
+		return saveHandle(value, context)
+	}
+
+	deleteHandle := res.DeleteHandler
+	res.DeleteHandler = func(value interface{}, context *qor.Context) error {
+		return deleteHandle(value, context)
+	}
+}
+
 func (res Resource) GetAdmin() *Admin {
 	return res.admin
 }
@@ -68,6 +91,10 @@ func (res Resource) UseTheme(theme string) []string {
 		res.Config.Themes = append(res.Config.Themes, theme)
 	}
 	return res.Config.Themes
+}
+
+func (res *Resource) Decode(context *qor.Context, value interface{}) error {
+	return resource.Decode(context, value, res)
 }
 
 func (res *Resource) convertObjectToJSONMap(context *Context, value interface{}, kind string) interface{} {
@@ -109,10 +136,6 @@ func (res *Resource) convertObjectToJSONMap(context *Context, value interface{},
 	default:
 		return value
 	}
-}
-
-func (res *Resource) Decode(context *qor.Context, value interface{}) error {
-	return resource.Decode(context, value, res)
 }
 
 func (res *Resource) allAttrs() []string {

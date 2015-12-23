@@ -103,83 +103,111 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 		for _, mode := range modes {
 			if mode == "create" {
-				// New
-				router.Get(path.Join(prefix, "new"), controller.New, RouteConfig{
-					PermissionMode: roles.Create,
-					Resource:       res,
-				})
+				if !res.Config.Singleton {
+					// New
+					router.Get(path.Join(prefix, "new"), controller.New, RouteConfig{
+						PermissionMode: roles.Create,
+						Resource:       res,
+					})
 
-				// Create
-				router.Post(prefix, controller.Create, RouteConfig{
-					PermissionMode: roles.Create,
-					Resource:       res,
-				})
-			}
-
-			if mode == "read" {
-				// Index
-				router.Get(prefix, controller.Index, RouteConfig{
-					PermissionMode: roles.Read,
-					Resource:       res,
-				})
-
-				// Show
-				router.Get(path.Join(prefix, ":id"), controller.Show, RouteConfig{
-					PermissionMode: roles.Read,
-					Resource:       res,
-				})
-			}
-
-			if mode == "update" {
-				// Edit
-				router.Get(path.Join(prefix, ":id", "edit"), controller.Edit, RouteConfig{
-					PermissionMode: roles.Update,
-					Resource:       res,
-				})
-
-				// Update
-				router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
-					PermissionMode: roles.Update,
-					Resource:       res,
-				})
-				router.Post(path.Join(prefix, ":id"), controller.Update, RouteConfig{
-					PermissionMode: roles.Update,
-					Resource:       res,
-				})
-
-				// Action
-				for _, action := range res.actions {
-					router.Post(path.Join(prefix, ":id", action.Name), controller.Action, RouteConfig{
-						PermissionMode: roles.Update,
+					// Create
+					router.Post(prefix, controller.Create, RouteConfig{
+						PermissionMode: roles.Create,
 						Resource:       res,
 					})
 				}
 			}
 
+			if mode == "read" {
+				if res.Config.Singleton {
+					// Index
+					router.Get(prefix, controller.Show, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+				} else {
+					// Index
+					router.Get(prefix, controller.Index, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+
+					// Show
+					router.Get(path.Join(prefix, ":id"), controller.Show, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+				}
+			}
+
+			if mode == "update" {
+				if res.Config.Singleton {
+					// Update
+					router.Put(prefix, controller.Update, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+
+					// Action
+					for _, action := range res.actions {
+						router.Post(path.Join(prefix, action.Name), controller.Action, RouteConfig{
+							PermissionMode: roles.Update,
+							Resource:       res,
+						})
+					}
+				} else {
+					// Edit
+					router.Get(path.Join(prefix, ":id", "edit"), controller.Edit, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+
+					// Update
+					router.Post(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+					router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+
+					// Action
+					for _, action := range res.actions {
+						router.Post(path.Join(prefix, ":id", action.Name), controller.Action, RouteConfig{
+							PermissionMode: roles.Update,
+							Resource:       res,
+						})
+					}
+				}
+			}
+
 			if mode == "delete" {
-				// Delete
-				router.Delete(path.Join(prefix, ":id"), controller.Delete, RouteConfig{
-					PermissionMode: roles.Delete,
-					Resource:       res,
-				})
+				if !res.Config.Singleton {
+					// Delete
+					router.Delete(path.Join(prefix, ":id"), controller.Delete, RouteConfig{
+						PermissionMode: roles.Delete,
+						Resource:       res,
+					})
+				}
 			}
 		}
 
 		// Sub Resources
 		for _, meta := range res.ConvertSectionToMetas(res.NewAttrs()) {
-			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil && meta.Resource.base != nil {
 				registerResourceToRouter(meta.Resource, "create")
 			}
 		}
 
 		for _, meta := range res.ConvertSectionToMetas(res.ShowAttrs()) {
-			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil && meta.Resource.base != nil {
 				registerResourceToRouter(meta.Resource, "read")
 			}
 		}
 
 		for _, meta := range res.ConvertSectionToMetas(res.EditAttrs()) {
-			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil && meta.Resource.base != nil {
 				registerResourceToRouter(meta.Resource, "update", "delete")
 			}
 		}
@@ -214,9 +242,9 @@ func (admin *Admin) compile() {
 			request.Method = strings.ToUpper(request.Form["_method"][0])
 		}
 
-		relativePath := strings.TrimSuffix(
-			strings.TrimPrefix(request.URL.Path, router.Prefix),
-			path.Ext(request.URL.Path),
+		relativePath := "/" + strings.Trim(
+			strings.TrimSuffix(strings.TrimPrefix(request.URL.Path, router.Prefix), path.Ext(request.URL.Path)),
+			"/",
 		)
 
 		handlers := router.routers[strings.ToUpper(request.Method)]
