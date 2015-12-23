@@ -80,7 +80,7 @@ func (ac *controller) Create(context *Context) {
 	} else {
 		responder.With("html", func() {
 			context.Flash(string(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res)), "success")
-			http.Redirect(context.Writer, context.Request, context.showResourcePath(result, res), http.StatusFound)
+			http.Redirect(context.Writer, context.Request, context.UrlFor(result, res), http.StatusFound)
 		}).With("json", func() {
 			context.JSON("show", result)
 		}).Respond(context.Request)
@@ -88,13 +88,20 @@ func (ac *controller) Create(context *Context) {
 }
 
 func (ac *controller) Show(context *Context) {
-	result, err := context.FindOne()
+	var result interface{}
+	var err error
 
-	// Singleton Resource & Failed to find record
-	if context.Resource.Config.Singleton && err == gorm.RecordNotFound {
-		context.Execute("new", result)
-		return
+	// If singleton Resource
+	if context.Resource.Config.Singleton {
+		result = context.Resource.NewStruct()
+		if err = context.Resource.CallFindMany(result, context.Context); err == gorm.RecordNotFound {
+			context.Execute("new", result)
+			return
+		}
+	} else {
+		result, err = context.FindOne()
 	}
+	context.AddError(err)
 
 	responder.With("html", func() {
 		context.Execute("show", result)

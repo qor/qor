@@ -143,7 +143,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 			if mode == "update" {
 				if res.Config.Singleton {
 					// Update
-					router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+					router.Put(prefix, controller.Update, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
@@ -164,10 +164,6 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 					// Update
 					router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
-						PermissionMode: roles.Update,
-						Resource:       res,
-					})
-					router.Post(path.Join(prefix, ":id"), controller.Update, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
