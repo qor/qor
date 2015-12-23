@@ -1,0 +1,52 @@
+{{$context := .}}
+{{$action_mode := .Context.Request.URL.Query.Get "action_mode"}}
+<div class="qor-actions qor-js-action">
+  <select class="qor-js-selector qor-action--select qor-actions" data-toggle="qor.selector" data-clearable="true" name="action_mode" placeholder="{{t "Action"}}">
+    {{range $context.AllActions}}
+      <option {{if (eq $action_mode .Name)}}selected{{end}} value="{{.Name}}">{{t .Label}}</option>
+    {{end}}
+  </select>
+</div>
+
+<div class="qor-action-wrap">
+  {{range $context.AllActions}}
+    {{if .Resource}}
+      <div class="qor-js-form action-form" data-action="{{.Name}}" style="display:none;padding-top:54px;">
+        <form action="/admin/{{$context.Resource.ToParam}}/!update_stoc" method="POST">
+          {{render_form .Resource.NewStruct (edit_sections .Resource) }}
+
+          <div class="qor-form__actions" style="margin-top: 0;margin-bottom:10px;">
+            <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Submit"}}</button>
+          </div>
+        </form>
+      </div>
+    {{end}}
+  {{end}}
+</div>
+
+<script type="text/javascript">
+  QorAction = {
+    init : function() {
+      if($(".qor-action-wrap").get(0)) {
+        this.initStatus();
+        this.bindingEvents();
+      }
+    },
+
+    initStatus : function() {
+    },
+
+    bindingEvents : function() {
+      $(".qor-js-action .qor-js-selector").change(this.toggleForm);
+    },
+
+    toggleForm : function() {
+      $(".qor-action-wrap .qor-js-form").hide();
+      $(".qor-action-wrap .qor-js-form[data-action='" + $(this).val() + "']").show();
+    }
+  };
+
+  $(document).ready(function() {
+    QorAction.init();
+  });
+</script>

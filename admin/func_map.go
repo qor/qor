@@ -655,6 +655,10 @@ func (context *Context) getFormattedErrors() (formatedErrors []formatedError) {
 	return
 }
 
+func (context *Context) AllActions() []*Action {
+	return context.Resource.actions
+}
+
 func (context *Context) FuncMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
