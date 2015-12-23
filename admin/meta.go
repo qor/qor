@@ -158,7 +158,7 @@ func (meta *Meta) updateMeta() {
 		}
 
 		if meta.Resource != nil {
-			meta.Resource.base = meta.baseResource
+			meta.Resource.setBaseResource(meta.baseResource)
 		}
 	}
 
