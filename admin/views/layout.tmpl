@@ -45,8 +45,18 @@
       </main>
     </div>
 
+    <div id="dtBox" class="qor-modal qor-datepicker"></div>
+
+    <script>
+      document.QorI18n = document.QorI18n || {};
+      document.QorI18n = {
+        datetimePickerOKButton: {{t "OK"}},
+        datetimePickerCancelButton: {{t "Cancel"}},
+      }
+    </script>
+
     <!-- JavaScripts -->
-    {{javascript_tag "material.min" "redactor.min" "cropper.min" "chosen.jquery.min" "qor" "app"}}
+    {{javascript_tag "material.min" "redactor.min" "cropper.min" "chosen.jquery.min" "datetimepicker.min" "qor" "app"}}
     {{load_admin_javascripts}}
     {{load_theme_javascripts}}
   </body>
