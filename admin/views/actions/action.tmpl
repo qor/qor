@@ -10,17 +10,17 @@
 
 <div class="qor-action-wrap">
   {{range $context.AllActions}}
-    {{if .Resource}}
-      <div class="qor-js-form action-form" data-action="{{.Name}}" style="display:none;padding-top:54px;">
-        <form action="/admin/{{$context.Resource.ToParam}}/!update_stoc" method="POST">
+    <div class="qor-js-form action-form" data-action="{{.Name}}" style="display:none;padding-top:54px;">
+      <form action="/admin/{{$context.Resource.ToParam}}/!update_stoc" method="POST">
+        {{if .Resource}}
           {{render_form .Resource.NewStruct (edit_sections .Resource) }}
+        {{end}}
 
-          <div class="qor-form__actions" style="margin-top: 0;margin-bottom:10px;">
-            <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Submit"}}</button>
-          </div>
-        </form>
-      </div>
-    {{end}}
+        <div class="qor-form__actions" style="margin-top: 0;margin-bottom:10px;">
+          <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Submit"}}</button>
+        </div>
+      </form>
+    </div>
   {{end}}
 </div>
 
@@ -38,11 +38,29 @@
 
     bindingEvents : function() {
       $(".qor-js-action .qor-js-selector").change(this.toggleForm);
+      $(".qor-js-action .qor-js-selector").change(this.appendCheckbox);
+      $("body").on("click", ".qor-action-js-checkbox .qor-action-cb-all", this.toggleCheckbox);
     },
 
     toggleForm : function() {
       $(".qor-action-wrap .qor-js-form").hide();
       $(".qor-action-wrap .qor-js-form[data-action='" + $(this).val() + "']").show();
+    },
+
+    appendCheckbox : function() {
+      if($(this).val()) {
+        $(".qor-action-js-checkbox").remove();
+        var checkAllHTML = '<th class="mdl-data-table__cell--non-numeric qor-action-js-checkbox"><input class="qor-action-cb-all" type="checkbox" /></th>';
+        var checkHTML = '<td class="mdl-data-table__cell--non-numeric qor-action-js-checkbox"><input class="qor-action-cb" type="checkbox" /></td>';
+        $(".qor-table-container thead:visible tr").prepend(checkAllHTML);
+        $(".qor-table-container tbody:visible tr").prepend(checkHTML);
+      } else {
+        $(".qor-action-js-checkbox").remove();
+      }
+    },
+
+    toggleCheckbox : function() {
+      $(".qor-action-js-checkbox .qor-action-cb").prop("checked", $(this).prop("checked"));
     }
   };
 
