@@ -37,13 +37,14 @@ type Resource struct {
 	cachedMetas    *map[string][]*Meta
 }
 
-func (res *Resource) Meta(meta *Meta) {
+func (res *Resource) Meta(meta *Meta) *Meta {
 	if res.GetMeta(meta.Name) != nil {
 		utils.ExitWithMsg("Duplicated meta %v defined for resource %v", meta.Name, res.Name)
 	}
 	res.Metas = append(res.Metas, meta)
 	meta.baseResource = res
 	meta.updateMeta()
+	return meta
 }
 
 func (res *Resource) setBaseResource(base *Resource) {
