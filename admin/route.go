@@ -263,10 +263,6 @@ func (admin *Admin) compile() {
 					}
 				}
 
-				if ids, ok := context.Request.URL.Query()[":id"]; ok {
-					context.ResourceID = ids[len(ids)-1]
-				}
-
 				handler.Handle(context)
 				return
 			}

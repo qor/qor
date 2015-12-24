@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
@@ -72,6 +73,10 @@ func (res *Resource) setBaseResource(base *Resource) {
 
 func (res Resource) GetAdmin() *Admin {
 	return res.admin
+}
+
+func (res Resource) getPrimaryKeyFromParams(request *http.Request) string {
+	return request.URL.Query().Get(fmt.Sprintf(":%v_id", res.ToParam()))
 }
 
 func (res Resource) ToParam() string {
