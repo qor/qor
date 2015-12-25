@@ -91,14 +91,26 @@ func (meta *Meta) setBaseResource(base *Resource) {
 		}
 	}
 
-	saveHandle := res.SaveHandler
 	res.SaveHandler = func(value interface{}, context *qor.Context) error {
-		return saveHandle(value, context)
+		clone := context.Clone()
+		baseValue := base.NewStruct()
+		if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
+			base.FindOneHandler(baseValue, nil, clone)
+			return context.GetDB().Model(baseValue).Association(meta.FieldName).Append(value).Error
+		} else {
+			return err
+		}
 	}
 
-	deleteHandle := res.DeleteHandler
 	res.DeleteHandler = func(value interface{}, context *qor.Context) error {
-		return deleteHandle(value, context)
+		clone := context.Clone()
+		baseValue := base.NewStruct()
+		if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
+			base.FindOneHandler(baseValue, nil, clone)
+			return context.GetDB().Model(baseValue).Association(meta.FieldName).Delete(value).Error
+		} else {
+			return err
+		}
 	}
 }
 
