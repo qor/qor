@@ -65,15 +65,24 @@ func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool)
 func (meta *Meta) setBaseResource(base *Resource) {
 	res := meta.Resource
 	res.base = base
-	findOneHandle := res.FindOneHandler
+
+	findOneHandler := res.FindOneHandler
 	res.FindOneHandler = func(value interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
-		return findOneHandle(value, metaValues, context)
+		if primryKey := res.getPrimaryKeyFromParams(context.Request); primryKey != "" {
+			clone := context.Clone()
+			baseValue := base.NewStruct()
+			base.FindOneHandler(baseValue, nil, clone)
+			sql := fmt.Sprintf("%v = ?", res.PrimaryDBName())
+			return context.GetDB().Model(baseValue).Where(sql, primryKey).Related(value).Error
+		}
+		return findOneHandler(value, metaValues, context)
 	}
 
-	findManyHandle := res.FindManyHandler
 	res.FindManyHandler = func(value interface{}, context *qor.Context) error {
-		base.FindOneHandler(value, nil, context.Clone())
-		return findManyHandle(value, context)
+		clone := context.Clone()
+		baseValue := base.NewStruct()
+		base.FindOneHandler(baseValue, nil, clone)
+		return context.GetDB().Model(baseValue).Related(value).Error
 	}
 
 	saveHandle := res.SaveHandler
