@@ -66,23 +66,29 @@ func (meta *Meta) setBaseResource(base *Resource) {
 	res := meta.Resource
 	res.base = base
 
-	findOneHandler := res.FindOneHandler
 	res.FindOneHandler = func(value interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
 		if primryKey := res.getPrimaryKeyFromParams(context.Request); primryKey != "" {
 			clone := context.Clone()
 			baseValue := base.NewStruct()
-			base.FindOneHandler(baseValue, nil, clone)
-			sql := fmt.Sprintf("%v = ?", res.PrimaryDBName())
-			return context.GetDB().Model(baseValue).Where(sql, primryKey).Related(value).Error
+			if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
+				sql := fmt.Sprintf("%v = ?", res.PrimaryDBName())
+				return context.GetDB().Model(baseValue).Where(sql, primryKey).Related(value).Error
+			} else {
+				return err
+			}
 		}
-		return findOneHandler(value, metaValues, context)
+		return fmt.Errorf("no primary found for resource %v", res.ToParam())
 	}
 
 	res.FindManyHandler = func(value interface{}, context *qor.Context) error {
 		clone := context.Clone()
 		baseValue := base.NewStruct()
-		base.FindOneHandler(baseValue, nil, clone)
-		return context.GetDB().Model(baseValue).Related(value).Error
+		if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
+			base.FindOneHandler(baseValue, nil, clone)
+			return context.GetDB().Model(baseValue).Related(value).Error
+		} else {
+			return err
+		}
 	}
 
 	saveHandle := res.SaveHandler
