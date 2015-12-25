@@ -62,6 +62,31 @@ func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool)
 	return nil, false
 }
 
+func (meta *Meta) setBaseResource(base *Resource) {
+	res := meta.Resource
+	res.base = base
+	findOneHandle := res.FindOneHandler
+	res.FindOneHandler = func(value interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+		return findOneHandle(value, metaValues, context)
+	}
+
+	findManyHandle := res.FindManyHandler
+	res.FindManyHandler = func(value interface{}, context *qor.Context) error {
+		base.FindOneHandler(value, nil, context.Clone())
+		return findManyHandle(value, context)
+	}
+
+	saveHandle := res.SaveHandler
+	res.SaveHandler = func(value interface{}, context *qor.Context) error {
+		return saveHandle(value, context)
+	}
+
+	deleteHandle := res.DeleteHandler
+	res.DeleteHandler = func(value interface{}, context *qor.Context) error {
+		return deleteHandle(value, context)
+	}
+}
+
 func (meta *Meta) updateMeta() {
 	meta.Meta = resource.Meta{
 		Name:            meta.Name,
@@ -158,7 +183,7 @@ func (meta *Meta) updateMeta() {
 		}
 
 		if meta.Resource != nil {
-			meta.Resource.setBaseResource(meta.baseResource)
+			meta.setBaseResource(meta.baseResource)
 		}
 	}
 
