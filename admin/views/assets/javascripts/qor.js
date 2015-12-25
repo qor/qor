@@ -828,9 +828,11 @@
   var EVENT_CLICK = 'click.' + NAMESPACE;
   var EVENT_CHNAGE = 'change.' + NAMESPACE;
   var EVENT_SUBMIT = 'submit.' + NAMESPACE;
+  var ACTION_WRAP = '.qor-action-wrap';
 
   function QorAction(element, options) {
     this.$element = $(element);
+    this.$wrap = $(ACTION_WRAP);
     this.options = $.extend({}, QorAction.DEFAULTS, $.isPlainObject(options) && options);
     this.$clone = null;
     this.init();
@@ -848,7 +850,7 @@
     bind: function () {
       this.$element.on(EVENT_CLICK, $.proxy(this.check, this));
       this.$element.on(EVENT_CHNAGE, $.proxy(this.change, this));
-      this.$element.on(EVENT_SUBMIT, $.proxy(this.submit, this));
+      this.$wrap.on(EVENT_SUBMIT, "form", $.proxy(this.submit, this));
     },
 
     unbind: function () {
@@ -867,13 +869,14 @@
       }
     },
 
-    submit : function() {
+    submit : function(e) {
       var $form = $(e.target);
+      $.proxy(this.appendCheckInputs, $form)();
       var $submit = $form.find("button");
       $form.find("qor-js-loading").show();
       $.ajax($form.prop('action'), {
         method: $form.prop('method'),
-        data: new FormData(this),
+        data: new FormData($(form).get(0)),
         processData: false,
         contentType: false,
         beforeSend: function () {
@@ -917,6 +920,12 @@
       return false;
     },
 
+    destroy: function () {
+      this.unbind();
+      this.$element.removeData(NAMESPACE);
+    },
+
+    // Helper
     appendCheckbox : function() {
       // Only value change and the table isn't selectable will add checkboxes
       $(".qor-page__body .mdl-data-table__select").each(function(i, e) { $(e).parents("td").remove() });
@@ -944,11 +953,15 @@
       }
     },
 
-    destroy: function () {
-      this.unbind();
-      this.$element.removeData(NAMESPACE);
+    appendCheckInputs: function() {
+      var $form = $(this);
+      $form.find("input").remove();
+      $(".qor-page__body .mdl-checkbox__input:checked").each(function(i, e) {
+        var id = $(e).parents("tr").data("primary-key");
+        $form.prepend('<input type="hidden" name="IDs[]" value="' + id + '" />');
+      });
     },
-  };
+  },
 
   QorAction.DEFAULTS = {
   };

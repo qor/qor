@@ -13,9 +13,6 @@
   {{range $context.AllActions}}
     <div class="qor-js-form action-form" data-action="{{.Name}}" style="display:none;padding-top:54px;">
       <form action="/admin/{{$context.Resource.ToParam}}/{{.Name}}" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="IDs[]" value="1" />
-        <input type="hidden" name="IDs[]" value="2" />
-        <input type="hidden" name="IDs[]" value="3" />
         {{if .Resource}}
           {{render_form .Resource.NewStruct (edit_sections .Resource) }}
         {{end}}
