@@ -8,10 +8,14 @@
   </select>
 </div>
 
+
 <div class="qor-action-wrap">
   {{range $context.AllActions}}
     <div class="qor-js-form action-form" data-action="{{.Name}}" style="display:none;padding-top:54px;">
-      <form action="/admin/{{$context.Resource.ToParam}}/!update_stoc" method="POST">
+      <form action="/admin/{{$context.Resource.ToParam}}/{{.Name}}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="IDs[]" value="1" />
+        <input type="hidden" name="IDs[]" value="2" />
+        <input type="hidden" name="IDs[]" value="3" />
         {{if .Resource}}
           {{render_form .Resource.NewStruct (edit_sections .Resource) }}
         {{end}}
@@ -20,6 +24,7 @@
           <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Submit"}}</button>
         </div>
       </form>
+      <div class="qor-js-loading mdl-progress mdl-js-progress mdl-progress__indeterminate" style="width: 100%; display:none;"></div>
     </div>
   {{end}}
 </div>
@@ -40,6 +45,7 @@
       $(".qor-js-action .qor-js-selector").change(this.toggleForm);
       $(".qor-js-action .qor-js-selector").change(this.appendCheckbox);
       $("body").on("click", ".qor-action-js-checkbox .qor-action-cb-all", this.toggleCheckbox);
+      $(".qor-js-form form").submit(this.ajaxSubmit);
     },
 
     toggleForm : function() {
@@ -48,19 +54,84 @@
     },
 
     appendCheckbox : function() {
+      // Only value change and the table isn't selectable will add checkboxes
+      $(".qor-page__body .mdl-data-table__select").each(function(i, e) { $(e).parents("td").remove() });
+      $(".qor-page__body .mdl-data-table__select").each(function(i, e) { $(e).parents("th").remove() });
+
       if($(this).val()) {
-        $(".qor-action-js-checkbox").remove();
-        var checkAllHTML = '<th class="mdl-data-table__cell--non-numeric qor-action-js-checkbox"><input class="qor-action-cb-all" type="checkbox" /></th>';
-        var checkHTML = '<td class="mdl-data-table__cell--non-numeric qor-action-js-checkbox"><input class="qor-action-cb" type="checkbox" /></td>';
-        $(".qor-table-container thead:visible tr").prepend(checkAllHTML);
-        $(".qor-table-container tbody:visible tr").prepend(checkHTML);
+        $(".qor-page__body table").addClass("mdl-data-table--selectable");
+        new window.MaterialDataTable($(".qor-page__body table").get(0));
+
+        // The fixed head have checkbox but the visiual one doesn't, clone the head with checkbox from the fixed one
+        $("thead.is-hidden tr th:not('.mdl-data-table__cell--non-numeric')").clone().prependTo($("thead:not('.is-hidden') tr"));
+
+        // The clone one doesn't bind event, so binding event manual
+        var $fixedHeadCheckBox = $("thead:not('.is-fixed') .mdl-checkbox__input").parents("label");
+        $fixedHeadCheckBox.find("span").remove();
+        new MaterialCheckbox($fixedHeadCheckBox.get(0));
+        $fixedHeadCheckBox.click(function(e) {
+          $("thead.is-fixed tr th").eq(0).find("label").click();
+          $(this).toggleClass("is-checked");
+          return false;
+        });
       } else {
-        $(".qor-action-js-checkbox").remove();
+        $(".qor-page__body table.mdl-data-table--selectable").removeClass("mdl-data-table--selectable");
+        $(".qor-page__body tr.is-selected").removeClass("is-selected");
       }
     },
 
     toggleCheckbox : function() {
       $(".qor-action-js-checkbox .qor-action-cb").prop("checked", $(this).prop("checked"));
+    },
+
+    ajaxSubmit : function() {
+      var $form = $(this);
+      var $submit = $form.find("button");
+      $form.find("qor-js-loading").show();
+      $.ajax($form.prop('action'), {
+        method: $form.prop('method'),
+        data: new FormData(this),
+        processData: false,
+        contentType: false,
+        beforeSend: function () {
+          $submit.prop('disabled', true);
+        },
+        success: function () {
+          location.reload();
+        },
+        error: function (xhr, textStatus, errorThrown) {
+          var $error;
+
+          // Custom HTTP status code
+          if (xhr.status === 422) {
+
+            // Clear old errors
+            $form.find('.qor-field').removeClass('is-error').find('.qor-field__error').remove();
+
+            // Append new errors
+            $error = $(xhr.responseText).find('.qor-error');
+            $form.before($error);
+
+            $error.find('> li > label').each(function () {
+              var $label = $(this);
+              var id = $label.attr('for');
+
+              if (id) {
+                $form.find('#' + id).
+                  closest('.qor-field').
+                  addClass('is-error').
+                  append($label.clone().addClass('qor-field__error'));
+              }
+            });
+          } else {
+            window.alert([textStatus, errorThrown].join(': '));
+          }
+        },
+        complete: function () {
+          $submit.prop('disabled', false);
+        },
+      });
+      return false;
     }
   };
 

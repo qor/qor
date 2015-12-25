@@ -1,9 +1,9 @@
 package admin
 
 import (
-	"github.com/jinzhu/gorm"
-	"github.com/qor/qor"
+	"fmt"
 	"github.com/qor/qor/roles"
+	"reflect"
 )
 
 func (res *Resource) Action(action *Action) {
@@ -11,16 +11,14 @@ func (res *Resource) Action(action *Action) {
 }
 
 type ActionArgument struct {
-	IDs      []string
-	Argument interface{}
-	Context  *qor.Context
+	IDs     []string
+	Context *Context
 }
 
 type Action struct {
 	Name       string
 	Label      string
-	Handle     func(scope *gorm.DB, context *qor.Context) error
-	Handle1    func(arg *ActionArgument) error
+	Handle     func(arg *ActionArgument) error
 	Resource   *Resource
 	Permission *roles.Permission
 	Visibles   []string
@@ -28,4 +26,15 @@ type Action struct {
 
 func (action *Action) NewStruct() interface{} {
 	return action.Resource
+}
+
+func (arg *ActionArgument) AllRecords() []interface{} {
+	var records = []interface{}{}
+	results := arg.Context.Resource.NewSlice()
+	arg.Context.GetDB().Where(fmt.Sprintf("%v IN (?)", arg.Context.Resource.PrimaryField().DBName), arg.IDs).Find(results)
+	resultValues := reflect.Indirect(reflect.ValueOf(results))
+	for i := 0; i < resultValues.Len(); i++ {
+		records = append(records, resultValues.Index(i).Interface())
+	}
+	return records
 }

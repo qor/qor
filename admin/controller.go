@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"fmt"
 	"net/http"
 	"path"
 	"strings"
@@ -174,13 +173,15 @@ func (ac *controller) Delete(context *Context) {
 
 func (ac *controller) Action(context *Context) {
 	var err error
-	name := strings.Split(context.Request.URL.Path, "/")[4]
+	paths := strings.Split(context.Request.URL.Path, "/")
+	name := paths[len(paths)-1]
 
 	for _, action := range context.Resource.actions {
 		if action.Name == name {
-			ids := context.Request.Form.Get("ids")
-			scope := context.GetDB().Where(fmt.Sprintf("%v IN (?)", context.Resource.PrimaryField().DBName), ids)
-			err = action.Handle(scope, context.Context)
+			err = action.Handle(&ActionArgument{
+				IDs:     context.Request.Form["IDs[]"],
+				Context: context,
+			})
 		}
 	}
 

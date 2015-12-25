@@ -162,6 +162,14 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 						Resource:       res,
 					})
 
+					// Collection Action
+					for _, action := range res.actions {
+						// /admin/products/disabled
+						router.Post(path.Join(prefix, action.Name), controller.Action, RouteConfig{
+							Resource: res,
+						})
+					}
+
 					// Update
 					router.Post(path.Join(prefix, ":id"), controller.Update, RouteConfig{
 						PermissionMode: roles.Update,
