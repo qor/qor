@@ -57,6 +57,7 @@ func (res *Resource) setBaseResource(base *Resource) {
 
 	findManyHandle := res.FindManyHandler
 	res.FindManyHandler = func(value interface{}, context *qor.Context) error {
+		base.FindOneHandler(value, nil, context.Clone())
 		return findManyHandle(value, context)
 	}
 
