@@ -1,3 +1,5 @@
+$.fn.qorSliderAfterShow = {};
+
 (function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as anonymous module.
@@ -267,7 +269,13 @@
 
               // callback for after slider loaded HTML
               if (options.afterShow){
-                options.afterShow.call(this, url);
+                var qorSliderAfterShow = $.fn.qorSliderAfterShow;
+
+                for (var name in qorSliderAfterShow) {
+                  if (qorSliderAfterShow.hasOwnProperty(name)) {
+                    qorSliderAfterShow[name].call(this, url);
+                  }
+                }
               }
 
             } else {

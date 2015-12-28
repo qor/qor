@@ -24,6 +24,18 @@ var moduleName = (function () {
 
     })();
 
+// Task for compress js and css plugin assets
+gulp.task('compress_js_plugin', function () {
+  return gulp.src(['admin/views/assets/javascripts/plugins/jquery.min.js','admin/views/assets/javascripts/plugins/*.js'])
+  .pipe(plugins.concat('vendors.js'))
+  .pipe(gulp.dest('admin/views/assets/javascripts'));
+});
+
+gulp.task('compress_css_plugin', function () {
+  return gulp.src('admin/views/assets/stylesheets/plugins/*.css')
+  .pipe(plugins.concat('vendors.css'))
+  .pipe(gulp.dest('admin/views/assets/stylesheets'));
+});
 
 // Admin
 // Command: gulp [task]
