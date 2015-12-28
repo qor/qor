@@ -43,17 +43,8 @@ func (context *Context) isNewRecord(value interface{}) bool {
 	return context.GetDB().NewRecord(value)
 }
 
-func (context *Context) newResourcePath(value interface{}) string {
-	if res, ok := value.(*Resource); ok {
-		return path.Join(context.Admin.router.Prefix, res.ToParam(), "new")
-	} else {
-		return path.Join(context.Admin.router.Prefix, context.Resource.ToParam(), "new")
-	}
-}
-
-func (context *Context) editResourcePath(value interface{}, res *Resource) string {
-	primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
-	return path.Join(context.Admin.router.Prefix, res.ToParam(), primaryKey, "/edit")
+func (context *Context) newResourcePath(res *Resource) string {
+	return path.Join(context.UrlFor(res), "new")
 }
 
 func (context *Context) UrlFor(value interface{}, resources ...*Resource) string {
@@ -699,11 +690,10 @@ func (context *Context) FuncMap() template.FuncMap {
 		},
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
+		"new_resource_path":      context.newResourcePath,
 		"search_center_path":     func() string { return path.Join(context.Admin.router.Prefix, "!search") },
 		"patch_current_url":      context.patchCurrentURL,
 		"patch_url":              context.patchURL,
-		"new_resource_path":      context.newResourcePath,
-		"edit_resource_path":     context.editResourcePath,
 		"qor_theme_class":        context.themesClass,
 		"javascript_tag":         context.javaScriptTag,
 		"stylesheet_tag":         context.styleSheetTag,
