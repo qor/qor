@@ -57,10 +57,19 @@ func (context *Context) editResourcePath(value interface{}, res *Resource) strin
 }
 
 func (context *Context) UrlFor(value interface{}, resources ...*Resource) string {
+	getPrefix := func(res *Resource) string {
+		var prefix = res.GetAdmin().router.Prefix
+		for res.base != nil {
+			prefix = path.Join(prefix, res.base.ToParam(), res.base.getPrimaryKeyFromParams(context.Request))
+			res = res.base
+		}
+		return prefix
+	}
+
 	if admin, ok := value.(*Admin); ok {
 		return admin.router.Prefix
 	} else if res, ok := value.(*Resource); ok {
-		return path.Join(context.Admin.router.Prefix, res.ToParam())
+		return path.Join(getPrefix(res), res.ToParam())
 	} else {
 		var res *Resource
 
@@ -74,10 +83,10 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 
 		if res != nil {
 			if res.Config.Singleton {
-				return path.Join(context.Admin.router.Prefix, res.ToParam())
+				return path.Join(getPrefix(res), res.ToParam())
 			} else {
 				primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
-				return path.Join(context.Admin.router.Prefix, res.ToParam(), primaryKey)
+				return path.Join(getPrefix(res), res.ToParam(), primaryKey)
 			}
 		}
 	}
