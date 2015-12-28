@@ -290,8 +290,6 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	defer func() func() {
 		begin := time.Now()
-		log.Printf("Start [%s] %s\n", req.Method, req.RequestURI)
-
 		return func() {
 			log.Printf("Finish [%s] %s Took %.2fms\n", req.Method, req.RequestURI, time.Now().Sub(begin).Seconds()*1000)
 		}

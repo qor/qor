@@ -71,7 +71,8 @@ func (meta *Meta) setBaseResource(base *Resource) {
 			clone := context.Clone()
 			baseValue := base.NewStruct()
 			if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
-				sql := fmt.Sprintf("%v = ?", res.PrimaryDBName())
+				scope := clone.GetDB().NewScope(nil)
+				sql := fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName()))
 				return context.GetDB().Model(baseValue).Where(sql, primryKey).Related(value).Error
 			} else {
 				return err
@@ -102,15 +103,21 @@ func (meta *Meta) setBaseResource(base *Resource) {
 		}
 	}
 
-	res.DeleteHandler = func(value interface{}, context *qor.Context) error {
-		clone := context.Clone()
-		baseValue := base.NewStruct()
-		if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
-			base.FindOneHandler(baseValue, nil, clone)
-			return context.GetDB().Model(baseValue).Association(meta.FieldName).Delete(value).Error
-		} else {
-			return err
+	res.DeleteHandler = func(value interface{}, context *qor.Context) (err error) {
+		context.SetDB(context.GetDB().Debug())
+		var clone = context.Clone()
+		var baseValue = base.NewStruct()
+		if primryKey := res.getPrimaryKeyFromParams(context.Request); primryKey != "" {
+			var scope = clone.GetDB().NewScope(nil)
+			var sql = fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName()))
+			if err = context.GetDB().First(value, sql, primryKey).Error; err == nil {
+				if err = base.FindOneHandler(baseValue, nil, clone); err == nil {
+					base.FindOneHandler(baseValue, nil, clone)
+					return context.GetDB().Model(baseValue).Association(meta.FieldName).Delete(value).Error
+				}
+			}
 		}
+		return
 	}
 }
 
