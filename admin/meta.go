@@ -66,31 +66,19 @@ func (meta *Meta) setBaseResource(base *Resource) {
 	res := meta.Resource
 	res.base = base
 
+	findOneHandle := res.FindOneHandler
 	res.FindOneHandler = func(value interface{}, metaValues *resource.MetaValues, context *qor.Context) (err error) {
-		var primaryKey string
-		var primaryField = res.PrimaryField()
-		if metaValues == nil {
-			primaryKey = res.getPrimaryKeyFromParams(context.Request)
-		} else if id := metaValues.Get(primaryField.Name); id != nil {
-			primaryKey = utils.ToString(id.Value)
+		if metaValues != nil {
+			return findOneHandle(value, metaValues, context)
 		}
 
-		if primaryKey != "" {
+		if primaryKey := res.getPrimaryKeyFromParams(context.Request); primaryKey != "" {
 			clone := context.Clone()
 			baseValue := base.NewStruct()
 			if err = base.FindOneHandler(baseValue, nil, clone); err == nil {
 				scope := clone.GetDB().NewScope(nil)
 				sql := fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName()))
-				if err = context.GetDB().Model(baseValue).Where(sql, primaryKey).Related(value).Error; err == nil {
-					if metaValues != nil {
-						if destroy := metaValues.Get("_destroy"); destroy != nil {
-							if fmt.Sprint(destroy.Value) != "0" && res.HasPermission(roles.Delete, context) {
-								err = context.GetDB().Model(baseValue).Association(meta.FieldName).Delete(value).Error
-								return resource.ErrProcessorSkipLeft
-							}
-						}
-					}
-				}
+				err = context.GetDB().Model(baseValue).Where(sql, primaryKey).Related(value).Error
 			}
 		}
 		return
