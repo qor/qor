@@ -58,12 +58,12 @@ func (context *Context) editResourcePath(value interface{}, res *Resource) strin
 
 func (context *Context) UrlFor(value interface{}, resources ...*Resource) string {
 	getPrefix := func(res *Resource) string {
-		var prefix = res.GetAdmin().router.Prefix
+		var params string
 		for res.base != nil {
-			prefix = path.Join(prefix, res.base.ToParam(), res.base.getPrimaryKeyFromParams(context.Request))
+			params = path.Join(res.base.ToParam(), res.base.getPrimaryKeyFromParams(context.Request), params)
 			res = res.base
 		}
-		return prefix
+		return path.Join(res.GetAdmin().router.Prefix, params)
 	}
 
 	if admin, ok := value.(*Admin); ok {
