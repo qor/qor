@@ -67,7 +67,7 @@
       $form.find("qor-js-loading").show();
       $.ajax($form.prop('action'), {
         method: $form.prop('method'),
-        data: new FormData($(form).get(0)),
+        data: new FormData($form.get(0)),
         processData: false,
         contentType: false,
         beforeSend: function () {
@@ -146,7 +146,7 @@
 
     appendCheckInputs: function() {
       var $form = $(this);
-      $form.find("input").remove();
+      $form.find("input[type='hidden']").remove();
       $(".qor-page__body .mdl-checkbox__input:checked").each(function(i, e) {
         var id = $(e).parents("tr").data("primary-key");
         $form.prepend('<input type="hidden" name="IDs[]" value="' + id + '" />');
