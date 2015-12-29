@@ -1,3 +1,4 @@
+$.fn.qorSliderAfterShow = {};
 (function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as anonymous module.
@@ -260,9 +261,22 @@
 
                 // Destroy all Qor components within the slideout
                 $(this).trigger('disable');
+
               });
 
               this.show();
+
+              // callback for after slider loaded HTML
+              if (options.afterShow){
+                var qorSliderAfterShow = $.fn.qorSliderAfterShow;
+
+                for (var name in qorSliderAfterShow) {
+                  if (qorSliderAfterShow.hasOwnProperty(name)) {
+                    qorSliderAfterShow[name].call(this, url);
+                  }
+                }
+              }
+
             } else {
               if (data.returnUrl) {
                 this.disabled = false; // For reload
@@ -273,11 +287,6 @@
             }
           }, this),
           complete: $.proxy(function () {
-            var $header = $('.qor-slideout .qor-page__header');
-            if (!$header.find('*:visible').get(0)) {
-              $header.remove();
-            }
-            window.QorTab.init();
             this.disabled = false;
           }, this),
         });
@@ -417,7 +426,8 @@
     var selector = '.qor-theme-slideout';
     var options = {
           title: '.qor-form-title, .mdl-layout-title',
-          content: '.qor-page',
+          content: '.qor-form-container',
+          afterShow: $.fn.qorSliderAfterShow ? $.fn.qorSliderAfterShow : null
         };
 
     $(document).
