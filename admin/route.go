@@ -52,22 +52,22 @@ func (r *Router) Use(handler func(*Context, *Middleware)) {
 
 // Get register a GET request handle with the given path
 func (r *Router) Get(path string, handle requestHandler, config ...RouteConfig) {
-	r.routers["GET"] = append(r.routers["GET"], newRouteHandler(path, handle, config...))
+	r.routers["GET"] = append([]routeHandler{newRouteHandler(path, handle, config...)}, r.routers["GET"]...)
 }
 
 // Post register a POST request handle with the given path
 func (r *Router) Post(path string, handle requestHandler, config ...RouteConfig) {
-	r.routers["POST"] = append(r.routers["POST"], newRouteHandler(path, handle, config...))
+	r.routers["POST"] = append([]routeHandler{newRouteHandler(path, handle, config...)}, r.routers["POST"]...)
 }
 
 // Put register a PUT request handle with the given path
 func (r *Router) Put(path string, handle requestHandler, config ...RouteConfig) {
-	r.routers["PUT"] = append(r.routers["PUT"], newRouteHandler(path, handle, config...))
+	r.routers["PUT"] = append([]routeHandler{newRouteHandler(path, handle, config...)}, r.routers["PUT"]...)
 }
 
 // Delete register a DELETE request handle with the given path
 func (r *Router) Delete(path string, handle requestHandler, config ...RouteConfig) {
-	r.routers["DELETE"] = append(r.routers["DELETE"], newRouteHandler(path, handle, config...))
+	r.routers["DELETE"] = append([]routeHandler{newRouteHandler(path, handle, config...)}, r.routers["DELETE"]...)
 }
 
 // MountTo mount the service into mux (HTTP request multiplexer) with given path
@@ -219,6 +219,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 		if !res.Config.Invisible {
 			registerResourceToRouter(res, "create", "read", "update", "delete")
 		}
+		res.configure()
 	}
 
 	mux.Handle(prefix, admin)     // /:prefix
@@ -227,10 +228,6 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 func (admin *Admin) compile() {
 	admin.generateMenuLinks()
-
-	for _, res := range admin.resources {
-		res.configure()
-	}
 
 	router := admin.GetRouter()
 	router.Use(func(context *Context, middleware *Middleware) {
