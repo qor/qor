@@ -37,15 +37,33 @@
     },
 
     bind: function () {
-      this.$element.on(EVENT_CLICK, $.proxy(this.check, this));
+      this.$element.on(EVENT_CLICK, $.proxy(this.click, this));
       this.$element.on(EVENT_CHNAGE, $.proxy(this.change, this));
       this.$wrap.on(EVENT_SUBMIT, 'form', $.proxy(this.submit, this));
+      $('.qor-table-container').on(EVENT_CLICK, 'tr', this.click);
     },
 
     unbind: function () {
       this.$element.off(EVENT_CLICK, this.check);
       this.$element.off(EVENT_CHNAGE, this.change);
       this.$element.off(EVENT_SUBMIT, this.submit);
+    },
+
+    click : function (e) {
+      var $target = $(e.target);
+
+      // If is in bulk edit mode, click row should not open slideout
+      if ($(this).is('tr') && !$target.is('a')) {
+        var $firstTd = $(this).find('td').first();
+        if ($firstTd.find('.mdl-checkbox__input').get(0)) {
+          // Manual make checkbox checked or not
+          var $checkbox = $firstTd.find('.mdl-js-checkbox');
+          $checkbox.toggleClass('is-checked');
+          $firstTd.parents('tr').toggleClass('is-selected');
+          $firstTd.find('input').prop('checked', $checkbox.hasClass('is-checked'));
+          return false;
+        }
+      }
     },
 
     change : function (e) {
