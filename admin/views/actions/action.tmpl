@@ -1,27 +1,29 @@
 {{$context := .}}
 {{$action_mode := .Context.Request.URL.Query.Get "action_mode"}}
-<div class="qor-actions qor-js-action">
-  <select class="qor-js-selector qor-action--select qor-actions" data-toggle="qor.selector" data-clearable="true" name="action_mode" placeholder="{{t "Action"}}">
+{{if gt (len $context.AllActions) 0 }}
+  <div class="qor-actions qor-js-action">
+    <select class="qor-js-selector qor-action--select qor-actions" data-toggle="qor.selector" data-clearable="true" name="action_mode" placeholder="{{t "Action"}}">
+      {{range $context.AllActions}}
+        <option {{if (eq $action_mode .Name)}}selected{{end}} value="{{.Name}}">{{t .Label}}</option>
+      {{end}}
+    </select>
+  </div>
+
+
+  <div class="qor-action-wrap">
     {{range $context.AllActions}}
-      <option {{if (eq $action_mode .Name)}}selected{{end}} value="{{.Name}}">{{t .Label}}</option>
+      <div class="qor-js-form action-form" data-action="{{.Name}}" style="display:none;padding-top:54px;">
+        <form action="/admin/{{$context.Resource.ToParam}}/{{.Name}}" method="POST" enctype="multipart/form-data">
+          {{if .Resource}}
+            {{render_form .Resource.NewStruct (edit_sections .Resource) }}
+          {{end}}
+
+          <div class="qor-form__actions" style="margin-top: 0;margin-bottom:10px;">
+            <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Submit"}}</button>
+          </div>
+        </form>
+        <div class="qor-js-loading mdl-progress mdl-js-progress mdl-progress__indeterminate" style="width: 100%; display:none;"></div>
+      </div>
     {{end}}
-  </select>
-</div>
-
-
-<div class="qor-action-wrap">
-  {{range $context.AllActions}}
-    <div class="qor-js-form action-form" data-action="{{.Name}}" style="display:none;padding-top:54px;">
-      <form action="/admin/{{$context.Resource.ToParam}}/{{.Name}}" method="POST" enctype="multipart/form-data">
-        {{if .Resource}}
-          {{render_form .Resource.NewStruct (edit_sections .Resource) }}
-        {{end}}
-
-        <div class="qor-form__actions" style="margin-top: 0;margin-bottom:10px;">
-          <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Submit"}}</button>
-        </div>
-      </form>
-      <div class="qor-js-loading mdl-progress mdl-js-progress mdl-progress__indeterminate" style="width: 100%; display:none;"></div>
-    </div>
-  {{end}}
-</div>
+  </div>
+{{end}}
