@@ -86,7 +86,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 	registerResourceToRouter = func(res *Resource, modes ...string) {
 		var prefix string
 		var param = res.ToParam()
-		var primaryKey = fmt.Sprintf(":%v_id", param)
+		var primaryKey = res.ParamIDName()
 		if prefix = func(r *Resource) string {
 			p := param
 

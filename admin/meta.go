@@ -72,7 +72,7 @@ func (meta *Meta) setBaseResource(base *Resource) {
 			return findOneHandle(value, metaValues, context)
 		}
 
-		if primaryKey := res.getPrimaryKeyFromParams(context.Request); primaryKey != "" {
+		if primaryKey := res.GetPrimaryValue(context.Request); primaryKey != "" {
 			clone := context.Clone()
 			baseValue := base.NewStruct()
 			if err = base.FindOneHandler(baseValue, nil, clone); err == nil {
@@ -109,7 +109,7 @@ func (meta *Meta) setBaseResource(base *Resource) {
 	res.DeleteHandler = func(value interface{}, context *qor.Context) (err error) {
 		var clone = context.Clone()
 		var baseValue = base.NewStruct()
-		if primryKey := res.getPrimaryKeyFromParams(context.Request); primryKey != "" {
+		if primryKey := res.GetPrimaryValue(context.Request); primryKey != "" {
 			var scope = clone.GetDB().NewScope(nil)
 			var sql = fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName()))
 			if err = context.GetDB().First(value, sql, primryKey).Error; err == nil {
