@@ -660,7 +660,19 @@ func (context *Context) getFormattedErrors() (formatedErrors []formatedError) {
 }
 
 func (context *Context) AllActions() []*Action {
-	return context.Resource.actions
+	var filterActions []*Action
+	for _, action := range context.Resource.actions {
+		if len(action.Visibles) == 0 {
+			filterActions = append(filterActions, action)
+		} else {
+			for _, v := range action.Visibles {
+				if v == context.Action {
+					filterActions = append(filterActions, action)
+				}
+			}
+		}
+	}
+	return filterActions
 }
 
 func (context *Context) FuncMap() template.FuncMap {
