@@ -54,7 +54,7 @@ func (context *Context) resourcePath() string {
 func (context *Context) setResource(res *Resource) *Context {
 	if res != nil {
 		context.Resource = res
-		context.ResourceID = res.getPrimaryKeyFromParams(context.Request)
+		context.ResourceID = res.GetPrimaryValue(context.Request)
 	}
 	context.Searcher = &Searcher{Context: context}
 	return context

@@ -51,7 +51,7 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 	getPrefix := func(res *Resource) string {
 		var params string
 		for res.base != nil {
-			params = path.Join(res.base.ToParam(), res.base.getPrimaryKeyFromParams(context.Request), params)
+			params = path.Join(res.base.ToParam(), res.base.GetPrimaryValue(context.Request), params)
 			res = res.base
 		}
 		return path.Join(res.GetAdmin().router.Prefix, params)

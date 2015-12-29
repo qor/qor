@@ -52,7 +52,8 @@ func (res Resource) GetAdmin() *Admin {
 	return res.admin
 }
 
-func (res Resource) getPrimaryKeyFromParams(request *http.Request) string {
+// GetPrimaryValue get priamry value from request
+func (res Resource) GetPrimaryValue(request *http.Request) string {
 	return request.URL.Query().Get(fmt.Sprintf(":%v_id", res.ToParam()))
 }
 
