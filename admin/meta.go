@@ -10,7 +10,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/roles"
+	"github.com/qor/roles"
 	"github.com/qor/qor/utils"
 )
 

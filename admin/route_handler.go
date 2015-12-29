@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/qor/qor"
-	"github.com/qor/qor/roles"
+	"github.com/qor/roles"
 )
 
 type requestHandler func(c *Context)

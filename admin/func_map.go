@@ -17,7 +17,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
 	"github.com/qor/qor"
-	"github.com/qor/qor/roles"
+	"github.com/qor/roles"
 	"github.com/qor/qor/utils"
 )
 

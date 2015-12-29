@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/qor/qor"
-	"github.com/qor/qor/roles"
+	"github.com/qor/roles"
 )
 
 // Middleware is a way to filter a request and response coming into your application

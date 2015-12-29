@@ -10,8 +10,8 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 var Global = "en-US"
@@ -52,7 +52,7 @@ type editableLocalesInterface interface {
 	EditableLocales() []string
 }
 
-func getAvailableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
+func getAvailableLocales(req *http.Request, currentUser interface{}) []string {
 	if user, ok := currentUser.(viewableLocalesInterface); ok {
 		return user.ViewableLocales()
 	}
@@ -63,7 +63,7 @@ func getAvailableLocales(req *http.Request, currentUser qor.CurrentUser) []strin
 	return []string{}
 }
 
-func getEditableLocales(req *http.Request, currentUser qor.CurrentUser) []string {
+func getEditableLocales(req *http.Request, currentUser interface{}) []string {
 	if user, ok := currentUser.(editableLocalesInterface); ok {
 		return user.EditableLocales()
 	}
@@ -143,7 +143,7 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 		// Roles
 		role := res.Config.Permission.Role
 		if _, ok := role.Get("locale_admin"); !ok {
-			role.Register("locale_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			role.Register("locale_admin", func(req *http.Request, currentUser interface{}) bool {
 				currentLocale := getLocaleFromContext(&qor.Context{Request: req})
 				for _, locale := range getEditableLocales(req, currentUser) {
 					if locale == currentLocale {
@@ -155,13 +155,13 @@ func (l *Locale) ConfigureQorResource(res resource.Resourcer) {
 		}
 
 		if _, ok := role.Get("global_admin"); !ok {
-			role.Register("global_admin", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			role.Register("global_admin", func(req *http.Request, currentUser interface{}) bool {
 				return getLocaleFromContext(&qor.Context{Request: req}) == Global
 			})
 		}
 
 		if _, ok := role.Get("locale_reader"); !ok {
-			role.Register("locale_reader", func(req *http.Request, currentUser qor.CurrentUser) bool {
+			role.Register("locale_reader", func(req *http.Request, currentUser interface{}) bool {
 				currentLocale := getLocaleFromContext(&qor.Context{Request: req})
 				for _, locale := range getAvailableLocales(req, currentUser) {
 					if locale == currentLocale {
