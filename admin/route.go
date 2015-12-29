@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -84,16 +85,17 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 	var registerResourceToRouter func(*Resource, ...string)
 	registerResourceToRouter = func(res *Resource, modes ...string) {
 		var prefix string
+		var param = res.ToParam()
+		var primaryKey = fmt.Sprintf(":%v_id", param)
 		if prefix = func(r *Resource) string {
-			cp := r.ToParam()
-			p := cp
+			p := param
 
 			for r.base != nil {
 				bp := r.base.ToParam()
-				if bp == cp {
+				if bp == param {
 					return ""
 				}
-				p = path.Join(bp, ":id", p)
+				p = path.Join(bp, fmt.Sprintf(":%v_id", bp), p)
 				r = r.base
 			}
 			return "/" + strings.Trim(p, "/")
@@ -133,7 +135,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 					})
 
 					// Show
-					router.Get(path.Join(prefix, ":id"), controller.Show, RouteConfig{
+					router.Get(path.Join(prefix, primaryKey), controller.Show, RouteConfig{
 						PermissionMode: roles.Read,
 						Resource:       res,
 					})
@@ -157,7 +159,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 					}
 				} else {
 					// Edit
-					router.Get(path.Join(prefix, ":id", "edit"), controller.Edit, RouteConfig{
+					router.Get(path.Join(prefix, primaryKey, "edit"), controller.Edit, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
@@ -171,18 +173,18 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 					}
 
 					// Update
-					router.Post(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+					router.Post(path.Join(prefix, primaryKey), controller.Update, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
-					router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
+					router.Put(path.Join(prefix, primaryKey), controller.Update, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
 
 					// Action
 					for _, action := range res.actions {
-						router.Post(path.Join(prefix, ":id", action.Name), controller.Action, RouteConfig{
+						router.Post(path.Join(prefix, primaryKey, action.Name), controller.Action, RouteConfig{
 							PermissionMode: roles.Update,
 							Resource:       res,
 						})
@@ -193,7 +195,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 			if mode == "delete" {
 				if !res.Config.Singleton {
 					// Delete
-					router.Delete(path.Join(prefix, ":id"), controller.Delete, RouteConfig{
+					router.Delete(path.Join(prefix, primaryKey), controller.Delete, RouteConfig{
 						PermissionMode: roles.Delete,
 						Resource:       res,
 					})
@@ -269,10 +271,6 @@ func (admin *Admin) compile() {
 					}
 				}
 
-				if ids, ok := context.Request.URL.Query()[":id"]; ok {
-					context.ResourceID = ids[len(ids)-1]
-				}
-
 				handler.Handle(context)
 				return
 			}
@@ -300,8 +298,6 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	defer func() func() {
 		begin := time.Now()
-		log.Printf("Start [%s] %s\n", req.Method, req.RequestURI)
-
 		return func() {
 			log.Printf("Finish [%s] %s Took %.2fms\n", req.Method, req.RequestURI, time.Now().Sub(begin).Seconds()*1000)
 		}

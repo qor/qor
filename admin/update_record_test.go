@@ -135,17 +135,13 @@ func TestDestroyEmbeddedHasOneRecord(t *testing.T) {
 			t.Errorf("User request should be processed successfully")
 		}
 
-		if db.First(&User{}, "name = ?", user.Name+"_new").RecordNotFound() {
+		var newUser User
+		if db.First(&newUser, "name = ?", user.Name+"_new").RecordNotFound() {
 			t.Errorf("User should be updated successfully")
 		}
 
-		var creditCard CreditCard
-		if !db.Model(&user).Related(&creditCard).RecordNotFound() {
+		if !db.Model(&newUser).Related(&CreditCard{}).RecordNotFound() {
 			t.Errorf("Embedded struct should be destroyed successfully")
-		}
-
-		if !db.First(&CreditCard{}, "number = ? and issuer = ?", "1234567890", "JCB").RecordNotFound() {
-			t.Errorf("Old embedded struct should be destroyed")
 		}
 	} else {
 		t.Errorf(err.Error())

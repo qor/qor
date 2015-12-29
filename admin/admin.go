@@ -99,6 +99,13 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 	if injector, ok := res.Value.(resource.ConfigureResourceBeforeInitializeInterface); ok {
 		injector.ConfigureQorResourceBeforeInitialize(res)
 	}
+
+	findOneHandler := res.FindOneHandler
+	res.FindOneHandler = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
+		context.ResourceID = res.getPrimaryKeyFromParams(context.Request)
+		return findOneHandler(result, metaValues, context)
+	}
+
 	return res
 }
 

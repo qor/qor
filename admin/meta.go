@@ -62,6 +62,67 @@ func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool)
 	return nil, false
 }
 
+func (meta *Meta) setBaseResource(base *Resource) {
+	res := meta.Resource
+	res.base = base
+
+	findOneHandle := res.FindOneHandler
+	res.FindOneHandler = func(value interface{}, metaValues *resource.MetaValues, context *qor.Context) (err error) {
+		if metaValues != nil {
+			return findOneHandle(value, metaValues, context)
+		}
+
+		if primaryKey := res.getPrimaryKeyFromParams(context.Request); primaryKey != "" {
+			clone := context.Clone()
+			baseValue := base.NewStruct()
+			if err = base.FindOneHandler(baseValue, nil, clone); err == nil {
+				scope := clone.GetDB().NewScope(nil)
+				sql := fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName()))
+				err = context.GetDB().Model(baseValue).Where(sql, primaryKey).Related(value).Error
+			}
+		}
+		return
+	}
+
+	res.FindManyHandler = func(value interface{}, context *qor.Context) error {
+		clone := context.Clone()
+		baseValue := base.NewStruct()
+		if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
+			base.FindOneHandler(baseValue, nil, clone)
+			return context.GetDB().Model(baseValue).Related(value).Error
+		} else {
+			return err
+		}
+	}
+
+	res.SaveHandler = func(value interface{}, context *qor.Context) error {
+		clone := context.Clone()
+		baseValue := base.NewStruct()
+		if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
+			base.FindOneHandler(baseValue, nil, clone)
+			return context.GetDB().Model(baseValue).Association(meta.FieldName).Append(value).Error
+		} else {
+			return err
+		}
+	}
+
+	res.DeleteHandler = func(value interface{}, context *qor.Context) (err error) {
+		var clone = context.Clone()
+		var baseValue = base.NewStruct()
+		if primryKey := res.getPrimaryKeyFromParams(context.Request); primryKey != "" {
+			var scope = clone.GetDB().NewScope(nil)
+			var sql = fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName()))
+			if err = context.GetDB().First(value, sql, primryKey).Error; err == nil {
+				if err = base.FindOneHandler(baseValue, nil, clone); err == nil {
+					base.FindOneHandler(baseValue, nil, clone)
+					return context.GetDB().Model(baseValue).Association(meta.FieldName).Delete(value).Error
+				}
+			}
+		}
+		return
+	}
+}
+
 func (meta *Meta) updateMeta() {
 	meta.Meta = resource.Meta{
 		Name:            meta.Name,
@@ -158,7 +219,7 @@ func (meta *Meta) updateMeta() {
 		}
 
 		if meta.Resource != nil {
-			meta.Resource.setBaseResource(meta.baseResource)
+			meta.setBaseResource(meta.baseResource)
 		}
 	}
 
