@@ -78,7 +78,9 @@
 
     submit : function (e) {
       var $form = $(e.target);
-      $.proxy(this.appendCheckInputs, $form)();
+      if ($form.data("mode") == "index") {
+        $.proxy(this.appendCheckInputs, $form)();
+      }
       var $submit = $form.find('button');
       $form.find('qor-js-loading').show();
       $.ajax($form.prop('action'), {

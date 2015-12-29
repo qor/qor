@@ -22,7 +22,7 @@ import (
 )
 
 func (context *Context) NewResourceContext(name ...interface{}) *Context {
-	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result}
+	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result, Action: context.Action}
 	if len(name) > 0 {
 		if str, ok := name[0].(string); ok {
 			clone.setResource(context.Admin.GetResource(str))

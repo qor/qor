@@ -24,14 +24,10 @@ type Action struct {
 	Visibles   []string
 }
 
-func (action *Action) NewStruct() interface{} {
-	return action.Resource
-}
-
 func (arg *ActionArgument) AllRecords() []interface{} {
 	var records = []interface{}{}
 	results := arg.Context.Resource.NewSlice()
-	arg.Context.GetDB().Where(fmt.Sprintf("%v IN (?)", arg.Context.Resource.PrimaryField().DBName), arg.IDs).Find(results)
+	arg.Context.GetDB().Where(fmt.Sprintf("%v IN (?)", arg.Context.Resource.PrimaryDBName()), arg.IDs).Find(results)
 	resultValues := reflect.Indirect(reflect.ValueOf(results))
 	for i := 0; i < resultValues.Len(); i++ {
 		records = append(records, resultValues.Index(i).Interface())

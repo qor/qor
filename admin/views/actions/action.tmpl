@@ -13,7 +13,11 @@
   <div class="qor-action-wrap">
     {{range $context.AllActions}}
       <div class="qor-js-form action-form" data-action="{{.Name}}" style="display:none;padding-top:54px;">
-        <form action="/admin/{{$context.Resource.ToParam}}/{{.Name}}" method="POST" enctype="multipart/form-data">
+        <form action="/admin/{{$context.Resource.ToParam}}/{{.Name}}" method="POST" enctype="multipart/form-data" data-mode="{{$context.Action}}">
+          {{if or (eq $context.Action "edit") (eq $context.Action "show") }}
+            <input type="hidden" name="IDs[]" value="{{$context.Resource.GetPrimaryValue $context.Request}}" />
+          {{end}}
+
           {{if .Resource}}
             {{render_form .Resource.NewStruct (edit_sections .Resource) }}
           {{end}}
