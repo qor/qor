@@ -10,8 +10,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 type Meta struct {
@@ -199,8 +199,8 @@ func (meta *Meta) updateMeta() {
 	}
 
 	{ // Set Meta Resource
-		if meta.Resource == nil {
-			if hasColumn && (meta.FieldStruct.Relationship != nil) {
+		if hasColumn && (meta.FieldStruct.Relationship != nil) {
+			if meta.Resource == nil {
 				var result interface{}
 				if fieldType.Kind() == reflect.Struct {
 					result = reflect.New(fieldType).Interface()
@@ -216,10 +216,10 @@ func (meta *Meta) updateMeta() {
 				res.configure()
 				meta.Resource = res
 			}
-		}
 
-		if meta.Resource != nil {
-			meta.setBaseResource(meta.baseResource)
+			if meta.Resource != nil {
+				meta.setBaseResource(meta.baseResource)
+			}
 		}
 	}
 

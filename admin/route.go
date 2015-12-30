@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -95,7 +94,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 				if bp == param {
 					return ""
 				}
-				p = path.Join(bp, fmt.Sprintf(":%v_id", bp), p)
+				p = path.Join(bp, r.base.ParamIDName(), p)
 				r = r.base
 			}
 			return "/" + strings.Trim(p, "/")
@@ -198,19 +197,25 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 		// Sub Resources
 		for _, meta := range res.ConvertSectionToMetas(res.NewAttrs()) {
 			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil && meta.Resource.base != nil {
-				registerResourceToRouter(meta.Resource, "create")
+				if len(meta.Resource.newSections) > 0 {
+					registerResourceToRouter(meta.Resource, "create")
+				}
 			}
 		}
 
 		for _, meta := range res.ConvertSectionToMetas(res.ShowAttrs()) {
 			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil && meta.Resource.base != nil {
-				registerResourceToRouter(meta.Resource, "read")
+				if len(meta.Resource.showSections) > 0 {
+					registerResourceToRouter(meta.Resource, "read")
+				}
 			}
 		}
 
 		for _, meta := range res.ConvertSectionToMetas(res.EditAttrs()) {
 			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil && meta.Resource.base != nil {
-				registerResourceToRouter(meta.Resource, "update", "delete")
+				if len(meta.Resource.editSections) > 0 {
+					registerResourceToRouter(meta.Resource, "update", "delete")
+				}
 			}
 		}
 	}
