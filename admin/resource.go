@@ -13,8 +13,8 @@ import (
 	"github.com/jinzhu/now"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 type Resource struct {
@@ -440,7 +440,9 @@ func (res *Resource) allMetas() []*Meta {
 }
 
 func (res *Resource) allowedSections(sections []*Section, context *Context, roles ...roles.PermissionMode) []*Section {
+	var newSections []*Section
 	for _, section := range sections {
+		newSection := Section{Resource: section.Resource, Title: section.Title}
 		var editableRows [][]string
 		for _, row := range section.Rows {
 			var editableColumns []string
@@ -457,9 +459,10 @@ func (res *Resource) allowedSections(sections []*Section, context *Context, role
 				editableRows = append(editableRows, editableColumns)
 			}
 		}
-		section.Rows = editableRows
+		newSection.Rows = editableRows
+		newSections = append(newSections, &newSection)
 	}
-	return sections
+	return newSections
 }
 
 func (res *Resource) configure() {
