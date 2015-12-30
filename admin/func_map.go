@@ -289,12 +289,12 @@ func (context *Context) indexSections(resources ...*Resource) []*Section {
 
 func (context *Context) editSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedSections(res.EditAttrs(), context, roles.Update)
+	return res.allowedSections(res.EditAttrs(), context, roles.Read)
 }
 
 func (context *Context) newSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedSections(res.NewAttrs(), context, roles.Update)
+	return res.allowedSections(res.NewAttrs(), context, roles.Create)
 }
 
 func (context *Context) showSections(resources ...*Resource) []*Section {
