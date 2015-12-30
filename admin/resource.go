@@ -13,8 +13,8 @@ import (
 	"github.com/jinzhu/now"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 type Resource struct {
@@ -457,7 +457,6 @@ func (res *Resource) allowedSections(sections []*Section, context *Context, role
 				editableRows = append(editableRows, editableColumns)
 			}
 		}
-		section.Rows = editableRows
 	}
 	return sections
 }

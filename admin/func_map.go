@@ -17,8 +17,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
 	"github.com/qor/qor"
-	"github.com/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 func (context *Context) NewResourceContext(name ...interface{}) *Context {
