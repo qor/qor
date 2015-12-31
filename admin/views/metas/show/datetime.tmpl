@@ -4,6 +4,6 @@
       {{if not (has_update_permission .Meta)}} disabled{{end}}>
 
     <label class="mdl-textfield__label" for="{{.InputId}}">{{meta_label .Meta}}</label>
-    <span>{{if .Value}}{{if not .Value.IsZero}}{{.Value.Format "2006-01-02 15:04"}}{{end}}{{end}}</span>
+    <span class="qor-field__value">{{if .Value}}{{if not .Value.IsZero}}{{.Value.Format "2006-01-02 15:04"}}{{end}}{{end}}</span>
   </div>
 </div>
