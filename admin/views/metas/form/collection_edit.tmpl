@@ -1,5 +1,5 @@
 <div class="collection-edit qor-field qor-fieldset-container">
-  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .BaseResource.ToParam .Label) .Label}}</label>
+  <label class="qor-field__label" for="{{.InputId}}">{{meta_label .Meta}}</label>
   <div class="qor-field__block">
     {{$meta := .Meta}}
     {{if .Value}}
