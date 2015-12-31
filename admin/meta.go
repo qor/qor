@@ -28,7 +28,6 @@ type Meta struct {
 	GetCollection   func(interface{}, *qor.Context) [][]string
 	Permission      *roles.Permission
 	resource.Meta
-
 	baseResource *Resource
 }
 
@@ -130,7 +129,7 @@ func (meta *Meta) updateMeta() {
 		Setter:          meta.Setter,
 		FormattedValuer: meta.FormattedValuer,
 		Valuer:          meta.Valuer,
-		Permission:      meta.Permission,
+		Permission:      meta.Permission.Concat(meta.baseResource.Permission),
 		Resource:        meta.baseResource,
 	}
 
@@ -218,6 +217,9 @@ func (meta *Meta) updateMeta() {
 			}
 
 			if meta.Resource != nil {
+				permission := meta.Resource.Permission.Concat(meta.Meta.Permission)
+				meta.Resource.Permission = permission
+				meta.SetPermission(permission)
 				meta.setBaseResource(meta.baseResource)
 			}
 		}
