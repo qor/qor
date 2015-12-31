@@ -1,0 +1,22 @@
+<div class="collection-edit qor-field qor-fieldset-container">
+  <label class="qor-field__label" for="{{.InputId}}">{{meta_label .Meta}}</label>
+  <div class="qor-field__block">
+    {{$meta := .Meta}}
+    {{if .Value}}
+      {{range $index, $value := .Value }}
+        <fieldset class="qor-fieldset hidden">
+          {{if has_delete_permission $meta}}
+            <button class="mdl-button qor-button--muted mdl-button--icon mdl-js-button qor-fieldset__delete" type="button">
+              <i class="material-icons md-18">delete</i>
+            </button>
+          {{end}}
+          {{render_form $value (edit_sections $meta.Resource) $index}}
+        </fieldset>
+
+        <fieldset class="qor-fieldset">
+          {{render_show $value (edit_sections $meta.Resource) $index}}
+        </fieldset>
+      {{end}}
+    {{end}}
+  </div>
+</div>
