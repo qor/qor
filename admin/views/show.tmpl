@@ -11,8 +11,6 @@
   {{render "shared/errors"}}
 
   <div class="qor-form-container">
-    <form class="qor-form" action="{{url_for .Result .Resource}}" method="POST" enctype="multipart/form-data">
-      {{render_form .Result show_sections}}
-    </form>
+    {{render_show .Result show_sections}}
   </div>
 </div>
