@@ -47,6 +47,13 @@ func newRouter() *Router {
 // Use reigster a middleware to the router
 func (r *Router) Use(handler func(*Context, *Middleware)) {
 	r.middlewares = append(r.middlewares, &Middleware{Handler: handler})
+
+	// compile middleware
+	for index, middleware := range r.middlewares {
+		if len(r.middlewares) > index+1 {
+			middleware.next = r.middlewares[index+1]
+		}
+	}
 }
 
 // Get register a GET request handle with the given path
@@ -71,11 +78,11 @@ func (r *Router) Delete(path string, handle requestHandler, config ...RouteConfi
 
 // MountTo mount the service into mux (HTTP request multiplexer) with given path
 func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
+	admin.generateMenuLinks()
+
 	prefix := "/" + strings.Trim(mountTo, "/")
 	router := admin.router
 	router.Prefix = prefix
-
-	admin.compile()
 
 	controller := &controller{admin}
 	router.Get("", controller.Dashboard)
@@ -229,11 +236,11 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
+
+	admin.compile()
 }
 
 func (admin *Admin) compile() {
-	admin.generateMenuLinks()
-
 	router := admin.GetRouter()
 	router.Use(func(context *Context, middleware *Middleware) {
 		request := context.Request
@@ -272,12 +279,6 @@ func (admin *Admin) compile() {
 
 		http.NotFound(context.Writer, request)
 	})
-
-	for index, middleware := range router.middlewares {
-		if len(router.middlewares) > index+1 {
-			middleware.next = router.middlewares[index+1]
-		}
-	}
 }
 
 // ServeHTTP dispatches the handler registered in the matched route
