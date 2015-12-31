@@ -135,9 +135,15 @@ func (context *Context) FormattedValueOf(value interface{}, meta *Meta) interfac
 	return context.valueOf(meta.GetFormattedValuer(), value, meta)
 }
 
-func (context *Context) RenderForm(value interface{}, sections []*Section) template.HTML {
+func (context *Context) renderForm(value interface{}, sections []*Section) template.HTML {
 	var result = bytes.NewBufferString("")
 	context.renderSections(value, sections, []string{"QorResource"}, result, "form")
+	return template.HTML(result.String())
+}
+
+func (context *Context) renderShow(value interface{}, sections []*Section) template.HTML {
+	var result = bytes.NewBufferString("")
+	context.renderSections(value, sections, []string{"QorResource"}, result, "show")
 	return template.HTML(result.String())
 }
 
@@ -179,31 +185,40 @@ func (context *Context) renderSections(value interface{}, sections []*Section, p
 }
 
 func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []string, metaType string, writer *bytes.Buffer) {
+	var (
+		tmpl     *template.Template
+		err      error
+		funcsMap = context.FuncMap()
+	)
 	prefix = append(prefix, meta.Name)
 
-	funcsMap := context.FuncMap()
-	funcsMap["render_form"] = func(value interface{}, sections []*Section, index ...int) template.HTML {
-		var result = bytes.NewBufferString("")
-		newPrefix := append([]string{}, prefix...)
+	var generateNestedRenderSections = func(kind string) func(interface{}, []*Section, ...int) template.HTML {
+		return func(value interface{}, sections []*Section, index ...int) template.HTML {
+			var result = bytes.NewBufferString("")
+			var newPrefix = append([]string{}, prefix...)
 
-		if len(index) > 0 {
-			last := newPrefix[len(newPrefix)-1]
-			newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
-		}
-
-		for _, field := range context.GetDB().NewScope(value).PrimaryFields() {
-			if meta := sections[0].Resource.GetMetaOrNew(field.Name); meta != nil {
-				context.RenderMeta(meta, value, newPrefix, "form", result)
+			if len(index) > 0 {
+				last := newPrefix[len(newPrefix)-1]
+				newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
 			}
+
+			if len(sections) > 0 {
+				for _, field := range context.GetDB().NewScope(value).PrimaryFields() {
+					if meta := sections[0].Resource.GetMetaOrNew(field.Name); meta != nil {
+						context.RenderMeta(meta, value, newPrefix, kind, result)
+					}
+				}
+
+				context.renderSections(value, sections, newPrefix, result, kind)
+			}
+
+			return template.HTML(result.String())
 		}
-
-		context.renderSections(value, sections, newPrefix, result, "form")
-
-		return template.HTML(result.String())
 	}
 
-	var tmpl *template.Template
-	var err error
+	funcsMap["render_form"] = generateNestedRenderSections("form")
+	funcsMap["render_show"] = generateNestedRenderSections("show")
+
 	if file, err := context.FindTemplate(fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Name), fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Type)); err == nil {
 		tmpl, err = template.New(filepath.Base(file)).Funcs(funcsMap).ParseFiles(file)
 	} else {
@@ -695,7 +710,8 @@ func (context *Context) FuncMap() template.FuncMap {
 		"singular":  inflection.Singular,
 
 		"render":      context.Render,
-		"render_form": context.RenderForm,
+		"render_form": context.renderForm,
+		"render_show": context.renderShow,
 		"render_index_meta": func(value interface{}, meta *Meta) template.HTML {
 			var result = bytes.NewBufferString("")
 			context.RenderMeta(meta, value, []string{}, "index", result)
