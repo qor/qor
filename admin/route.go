@@ -246,10 +246,10 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 	}
 
 	for _, res := range admin.resources {
+		res.configure()
 		if !res.Config.Invisible {
 			registerResourceToRouter(res, "create", "read", "update", "delete")
 		}
-		res.configure()
 	}
 
 	mux.Handle(prefix, admin)     // /:prefix
