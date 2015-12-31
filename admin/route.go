@@ -14,9 +14,17 @@ import (
 )
 
 // Middleware is a way to filter a request and response coming into your application
-// Register new middlewares with `admin.GetRouter().Use(func(*Context, *Middleware))`
+// Register new middleware with `admin.GetRouter().Use(Middleware{
+//   Name: "middleware name", // use middleware with same name will overwrite old one
+//   Handler: func(*Context, *Middleware) {
+//     // do something
+//     // run next middleware
+//     middleware.Next(context)
+//   },
+// })`
 // It will be called in order, it need to be registered before `admin.MountTo`
 type Middleware struct {
+	Name    string
 	Handler func(*Context, *Middleware)
 	next    *Middleware
 }
@@ -45,15 +53,25 @@ func newRouter() *Router {
 }
 
 // Use reigster a middleware to the router
-func (r *Router) Use(handler func(*Context, *Middleware)) {
-	r.middlewares = append(r.middlewares, &Middleware{Handler: handler})
-
+func (r *Router) Use(middleware *Middleware) {
 	// compile middleware
-	for index, middleware := range r.middlewares {
-		if len(r.middlewares) > index+1 {
-			middleware.next = r.middlewares[index+1]
+	for index, m := range r.middlewares {
+		// replace middleware have same name
+		if m.Name == middleware.Name {
+			middleware.next = m.next
+			r.middlewares[index] = middleware
+			if index > 1 {
+				r.middlewares[index-1].next = middleware
+			}
+			return
+		} else if len(r.middlewares) > index+1 {
+			m.next = r.middlewares[index+1]
+		} else if len(r.middlewares) == index+1 {
+			m.next = middleware
 		}
 	}
+
+	r.middlewares = append(r.middlewares, middleware)
 }
 
 // Get register a GET request handle with the given path
@@ -78,11 +96,11 @@ func (r *Router) Delete(path string, handle requestHandler, config ...RouteConfi
 
 // MountTo mount the service into mux (HTTP request multiplexer) with given path
 func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
-	admin.generateMenuLinks()
-
 	prefix := "/" + strings.Trim(mountTo, "/")
 	router := admin.router
 	router.Prefix = prefix
+
+	admin.generateMenuLinks()
 
 	controller := &controller{admin}
 	router.Get("", controller.Dashboard)
@@ -242,42 +260,45 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 func (admin *Admin) compile() {
 	router := admin.GetRouter()
-	router.Use(func(context *Context, middleware *Middleware) {
-		request := context.Request
+	router.Use(&Middleware{
+		Name: "qor_handler",
+		Handler: func(context *Context, middleware *Middleware) {
+			request := context.Request
 
-		// 128 MB
-		request.ParseMultipartForm(32 << 22)
+			// 128 MB
+			request.ParseMultipartForm(32 << 22)
 
-		// set request method
-		if len(request.Form["_method"]) > 0 {
-			request.Method = strings.ToUpper(request.Form["_method"][0])
-		}
-
-		relativePath := "/" + strings.Trim(
-			strings.TrimSuffix(strings.TrimPrefix(request.URL.Path, router.Prefix), path.Ext(request.URL.Path)),
-			"/",
-		)
-
-		handlers := router.routers[strings.ToUpper(request.Method)]
-		for _, handler := range handlers {
-			if params, ok := handler.try(relativePath); ok && handler.HasPermission(context.Context) {
-				if len(params) > 0 {
-					context.Request.URL.RawQuery = url.Values(params).Encode() + "&" + context.Request.URL.RawQuery
-				}
-
-				context.setResource(handler.Config.Resource)
-				if context.Resource == nil {
-					if matches := regexp.MustCompile(path.Join(router.Prefix, `([^/]+)`)).FindStringSubmatch(request.URL.Path); len(matches) > 1 {
-						context.setResource(admin.GetResource(matches[1]))
-					}
-				}
-
-				handler.Handle(context)
-				return
+			// set request method
+			if len(request.Form["_method"]) > 0 {
+				request.Method = strings.ToUpper(request.Form["_method"][0])
 			}
-		}
 
-		http.NotFound(context.Writer, request)
+			relativePath := "/" + strings.Trim(
+				strings.TrimSuffix(strings.TrimPrefix(request.URL.Path, router.Prefix), path.Ext(request.URL.Path)),
+				"/",
+			)
+
+			handlers := router.routers[strings.ToUpper(request.Method)]
+			for _, handler := range handlers {
+				if params, ok := handler.try(relativePath); ok && handler.HasPermission(context.Context) {
+					if len(params) > 0 {
+						context.Request.URL.RawQuery = url.Values(params).Encode() + "&" + context.Request.URL.RawQuery
+					}
+
+					context.setResource(handler.Config.Resource)
+					if context.Resource == nil {
+						if matches := regexp.MustCompile(path.Join(router.Prefix, `([^/]+)`)).FindStringSubmatch(request.URL.Path); len(matches) > 1 {
+							context.setResource(admin.GetResource(matches[1]))
+						}
+					}
+
+					handler.Handle(context)
+					return
+				}
+			}
+
+			http.NotFound(context.Writer, request)
+		},
 	})
 }
 
