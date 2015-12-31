@@ -122,6 +122,17 @@ func (meta *Meta) setBaseResource(base *Resource) {
 	}
 }
 
+func (meta *Meta) SetPermission(permission *roles.Permission) {
+	meta.Permission = permission
+	meta.Meta.Permission = permission
+	if meta.Resource != nil {
+		meta.Resource.Permission = permission
+		for _, meta := range meta.Resource.Metas {
+			meta.SetPermission(permission.Concat(meta.Meta.Permission))
+		}
+	}
+}
+
 func (meta *Meta) updateMeta() {
 	meta.Meta = resource.Meta{
 		Name:            meta.Name,
