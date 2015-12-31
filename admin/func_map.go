@@ -217,6 +217,7 @@ func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []strin
 	if err == nil {
 		var scope = context.GetDB().NewScope(value)
 		var data = map[string]interface{}{
+			"Context":       context,
 			"BaseResource":  meta.baseResource,
 			"ResourceValue": value,
 			"InputId":       fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
