@@ -137,47 +137,43 @@ func (context *Context) FormattedValueOf(value interface{}, meta *Meta) interfac
 
 func (context *Context) RenderForm(value interface{}, sections []*Section) template.HTML {
 	var result = bytes.NewBufferString("")
-	context.renderForm(value, sections, []string{"QorResource"}, result)
+	context.renderSections(value, sections, []string{"QorResource"}, result, "form")
 	return template.HTML(result.String())
 }
 
-func (context *Context) renderForm(value interface{}, sections []*Section, prefix []string, result *bytes.Buffer) {
+func (context *Context) renderSections(value interface{}, sections []*Section, prefix []string, writer *bytes.Buffer, kind string) {
 	for _, section := range sections {
-		context.renderSection(value, section, prefix, result)
-	}
-}
-
-func (context *Context) renderSection(value interface{}, section *Section, prefix []string, writer *bytes.Buffer) {
-	var rows []struct {
-		Length      int
-		ColumnsHTML template.HTML
-	}
-
-	for _, column := range section.Rows {
-		columnsHTML := bytes.NewBufferString("")
-		for _, col := range column {
-			meta := section.Resource.GetMetaOrNew(col)
-			if meta != nil {
-				context.RenderMeta(meta, value, prefix, "form", columnsHTML)
-			}
-		}
-
-		rows = append(rows, struct {
+		var rows []struct {
 			Length      int
 			ColumnsHTML template.HTML
-		}{
-			Length:      len(column),
-			ColumnsHTML: template.HTML(string(columnsHTML.Bytes())),
-		})
-	}
+		}
 
-	var data = map[string]interface{}{
-		"Title": template.HTML(section.Title),
-		"Rows":  rows,
-	}
-	if file, err := context.FindTemplate("metas/section.tmpl"); err == nil {
-		if tmpl, err := template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
-			tmpl.Execute(writer, data)
+		for _, column := range section.Rows {
+			columnsHTML := bytes.NewBufferString("")
+			for _, col := range column {
+				meta := section.Resource.GetMetaOrNew(col)
+				if meta != nil {
+					context.RenderMeta(meta, value, prefix, kind, columnsHTML)
+				}
+			}
+
+			rows = append(rows, struct {
+				Length      int
+				ColumnsHTML template.HTML
+			}{
+				Length:      len(column),
+				ColumnsHTML: template.HTML(string(columnsHTML.Bytes())),
+			})
+		}
+
+		var data = map[string]interface{}{
+			"Title": template.HTML(section.Title),
+			"Rows":  rows,
+		}
+		if file, err := context.FindTemplate("metas/section.tmpl"); err == nil {
+			if tmpl, err := template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
+				tmpl.Execute(writer, data)
+			}
 		}
 	}
 }
@@ -201,7 +197,7 @@ func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []strin
 			}
 		}
 
-		context.renderForm(value, sections, newPrefix, result)
+		context.renderSections(value, sections, newPrefix, result, "form")
 
 		return template.HTML(result.String())
 	}
