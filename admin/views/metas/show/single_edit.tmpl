@@ -1,0 +1,14 @@
+<div class="signle-edit qor-field">
+  <label class="qor-field__label" for="{{.InputId}}">{{meta_label .Meta}}</label>
+
+  <div class="qor-field__block">
+    {{if (or (and (is_new_record .Value) (has_create_permission .Meta)) (has_update_permission .Meta))}}
+      <fieldset id="{{.InputId}}" class="qor-fieldset hidden">
+        {{render_form .Value (edit_sections .Meta.Resource)}}
+      </fieldset>
+    {{end}}
+    <fieldset class="qor-fieldset">
+      {{render_show .Value (show_sections .Meta.Resource)}}
+    </fieldset>
+  </div>
+</div>

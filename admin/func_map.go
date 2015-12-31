@@ -734,7 +734,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"pagination":             context.Pagination,
 
 		"meta_label": func(meta *Meta) template.HTML {
-			key := fmt.Sprintf("%v.attributes.%v", meta.Resource.ToParam(), meta.Label)
+			key := fmt.Sprintf("%v.attributes.%v", meta.baseResource.ToParam(), meta.Label)
 			return context.Admin.T(context.Context, key, meta.Label)
 		},
 		"all_metas":                 context.allMetas,

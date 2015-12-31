@@ -1,0 +1,18 @@
+<div class="qor-field">
+  <label class="qor-field__label" for="{{.InputId}}">{{meta_label .Meta}}</label>
+
+  {{$current_value := (raw_value_of .ResourceValue .Meta)}}
+  <div class="qor-field__block hidden">
+    <select class="qor-field__input" id="{{.InputId}}" data-toggle="qor.chooser" data-placeholder="{{t "Select an Option"}}" name="{{.InputName}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
+      {{range $values := .CollectionValue}}
+        {{if (is_included $current_value (index $values 0))}}
+          <option value="{{index $values 0}}" selected>{{index $values 1}}</option>
+        {{else}}
+          <option value="{{index $values 0}}">{{index $values 1}}</option>
+        {{end}}
+      {{end}}
+    </select>
+  </div>
+
+  <span>{{stringify $current_value}}</span>
+</div>
