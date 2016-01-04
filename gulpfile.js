@@ -49,6 +49,7 @@ function adminTasks() {
         src: pathto('javascripts/app/*.js'),
         dest: pathto('javascripts'),
         qor: pathto('javascripts/qor/*.js'),
+        qorInit: pathto('javascripts/qor/qor-init.js'),
         all: [
           'gulpfile.js',
           pathto('javascripts/qor/*.js')
@@ -65,7 +66,7 @@ function adminTasks() {
       };
 
   gulp.task('jshint', function () {
-    return gulp.src(scripts.all)
+    return gulp.src([scripts.qorInit,scripts.all])
     .pipe(plugins.jshint())
     .pipe(plugins.jshint.reporter('default'));
   });

@@ -1,4 +1,3 @@
-$.fn.qorSliderAfterShow = {};
 (function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as anonymous module.
