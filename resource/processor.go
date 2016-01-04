@@ -6,7 +6,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
-	"github.com/qor/qor/roles"
+	"github.com/qor/roles"
 )
 
 var (
@@ -93,8 +93,12 @@ func (processor *processor) decode() (errors []error) {
 
 		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
 		if field.Kind() == reflect.Struct {
-			association := field.Addr().Interface()
-			DecodeToResource(res, association, metaValue.MetaValues, processor.Context).Start()
+			value := reflect.New(field.Type())
+			associationProcessor := DecodeToResource(res, value.Interface(), metaValue.MetaValues, processor.Context)
+			associationProcessor.Start()
+			if !associationProcessor.SkipLeft {
+				field.Set(value.Elem())
+			}
 		} else if field.Kind() == reflect.Slice {
 			var fieldType = field.Type().Elem()
 			var isPtr bool

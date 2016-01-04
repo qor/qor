@@ -10,13 +10,21 @@ import (
 	"time"
 
 	"github.com/qor/qor"
-	"github.com/qor/qor/roles"
+	"github.com/qor/roles"
 )
 
 // Middleware is a way to filter a request and response coming into your application
-// Register new middlewares with `admin.GetRouter().Use(func(*Context, *Middleware))`
+// Register new middleware with `admin.GetRouter().Use(Middleware{
+//   Name: "middleware name", // use middleware with same name will overwrite old one
+//   Handler: func(*Context, *Middleware) {
+//     // do something
+//     // run next middleware
+//     middleware.Next(context)
+//   },
+// })`
 // It will be called in order, it need to be registered before `admin.MountTo`
 type Middleware struct {
+	Name    string
 	Handler func(*Context, *Middleware)
 	next    *Middleware
 }
@@ -45,8 +53,25 @@ func newRouter() *Router {
 }
 
 // Use reigster a middleware to the router
-func (r *Router) Use(handler func(*Context, *Middleware)) {
-	r.middlewares = append(r.middlewares, &Middleware{Handler: handler})
+func (r *Router) Use(middleware *Middleware) {
+	// compile middleware
+	for index, m := range r.middlewares {
+		// replace middleware have same name
+		if m.Name == middleware.Name {
+			middleware.next = m.next
+			r.middlewares[index] = middleware
+			if index > 1 {
+				r.middlewares[index-1].next = middleware
+			}
+			return
+		} else if len(r.middlewares) > index+1 {
+			m.next = r.middlewares[index+1]
+		} else if len(r.middlewares) == index+1 {
+			m.next = middleware
+		}
+	}
+
+	r.middlewares = append(r.middlewares, middleware)
 }
 
 // Get register a GET request handle with the given path
@@ -75,7 +100,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 	router := admin.router
 	router.Prefix = prefix
 
-	admin.compile()
+	admin.generateMenuLinks()
 
 	controller := &controller{admin}
 	router.Get("", controller.Dashboard)
@@ -84,16 +109,17 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 	var registerResourceToRouter func(*Resource, ...string)
 	registerResourceToRouter = func(res *Resource, modes ...string) {
 		var prefix string
+		var param = res.ToParam()
+		var primaryKey = res.ParamIDName()
 		if prefix = func(r *Resource) string {
-			cp := r.ToParam()
-			p := cp
+			p := param
 
 			for r.base != nil {
 				bp := r.base.ToParam()
-				if bp == cp {
+				if bp == param {
 					return ""
 				}
-				p = path.Join(bp, ":id", p)
+				p = path.Join(bp, r.base.ParamIDName(), p)
 				r = r.base
 			}
 			return "/" + strings.Trim(p, "/")
@@ -103,89 +129,124 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 		for _, mode := range modes {
 			if mode == "create" {
-				// New
-				router.Get(path.Join(prefix, "new"), controller.New, RouteConfig{
-					PermissionMode: roles.Create,
-					Resource:       res,
-				})
+				if !res.Config.Singleton {
+					// New
+					router.Get(path.Join(prefix, "new"), controller.New, RouteConfig{
+						PermissionMode: roles.Create,
+						Resource:       res,
+					})
 
-				// Create
-				router.Post(prefix, controller.Create, RouteConfig{
-					PermissionMode: roles.Create,
-					Resource:       res,
-				})
-			}
-
-			if mode == "read" {
-				// Index
-				router.Get(prefix, controller.Index, RouteConfig{
-					PermissionMode: roles.Read,
-					Resource:       res,
-				})
-
-				// Show
-				router.Get(path.Join(prefix, ":id"), controller.Show, RouteConfig{
-					PermissionMode: roles.Read,
-					Resource:       res,
-				})
-			}
-
-			if mode == "update" {
-				// Edit
-				router.Get(path.Join(prefix, ":id", "edit"), controller.Edit, RouteConfig{
-					PermissionMode: roles.Update,
-					Resource:       res,
-				})
-
-				// Update
-				router.Put(path.Join(prefix, ":id"), controller.Update, RouteConfig{
-					PermissionMode: roles.Update,
-					Resource:       res,
-				})
-				router.Post(path.Join(prefix, ":id"), controller.Update, RouteConfig{
-					PermissionMode: roles.Update,
-					Resource:       res,
-				})
-
-				// Action
-				for _, action := range res.actions {
-					router.Post(path.Join(prefix, ":id", action.Name), controller.Action, RouteConfig{
-						PermissionMode: roles.Update,
+					// Create
+					router.Post(prefix, controller.Create, RouteConfig{
+						PermissionMode: roles.Create,
 						Resource:       res,
 					})
 				}
 			}
 
+			if mode == "read" {
+				if res.Config.Singleton {
+					// Index
+					router.Get(prefix, controller.Show, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+				} else {
+					// Index
+					router.Get(prefix, controller.Index, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+
+					// Show
+					router.Get(path.Join(prefix, primaryKey), controller.Show, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+				}
+			}
+
+			if mode == "update" {
+				if res.Config.Singleton {
+					// Update
+					router.Put(prefix, controller.Update, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+
+					// Action
+					for _, action := range res.actions {
+						router.Post(path.Join(prefix, action.Name), controller.Action, RouteConfig{
+							PermissionMode: roles.Update,
+							Resource:       res,
+						})
+					}
+				} else {
+					// Edit
+					router.Get(path.Join(prefix, primaryKey, "edit"), controller.Edit, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+
+					// Update
+					router.Post(path.Join(prefix, primaryKey), controller.Update, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+					router.Put(path.Join(prefix, primaryKey), controller.Update, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+
+					// Action
+					for _, action := range res.actions {
+						router.Post(path.Join(prefix, primaryKey, action.Name), controller.Action, RouteConfig{
+							PermissionMode: roles.Update,
+							Resource:       res,
+						})
+					}
+				}
+			}
+
 			if mode == "delete" {
-				// Delete
-				router.Delete(path.Join(prefix, ":id"), controller.Delete, RouteConfig{
-					PermissionMode: roles.Delete,
-					Resource:       res,
-				})
+				if !res.Config.Singleton {
+					// Delete
+					router.Delete(path.Join(prefix, primaryKey), controller.Delete, RouteConfig{
+						PermissionMode: roles.Delete,
+						Resource:       res,
+					})
+				}
 			}
 		}
 
 		// Sub Resources
 		for _, meta := range res.ConvertSectionToMetas(res.NewAttrs()) {
-			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
-				registerResourceToRouter(meta.Resource, "create")
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil && meta.Resource.base != nil {
+				if len(meta.Resource.newSections) > 0 {
+					registerResourceToRouter(meta.Resource, "create")
+				}
 			}
 		}
 
 		for _, meta := range res.ConvertSectionToMetas(res.ShowAttrs()) {
-			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
-				registerResourceToRouter(meta.Resource, "read")
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil && meta.Resource.base != nil {
+				if len(meta.Resource.showSections) > 0 {
+					registerResourceToRouter(meta.Resource, "read")
+				}
 			}
 		}
 
 		for _, meta := range res.ConvertSectionToMetas(res.EditAttrs()) {
-			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil {
-				registerResourceToRouter(meta.Resource, "update", "delete")
+			if meta.FieldStruct != nil && meta.FieldStruct.Relationship != nil && meta.Resource.base != nil {
+				if len(meta.Resource.editSections) > 0 {
+					registerResourceToRouter(meta.Resource, "update", "delete")
+				}
 			}
 		}
 	}
 
 	for _, res := range admin.resources {
+		res.configure()
 		if !res.Config.Invisible {
 			registerResourceToRouter(res, "create", "read", "update", "delete")
 		}
@@ -193,63 +254,52 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 	mux.Handle(prefix, admin)     // /:prefix
 	mux.Handle(prefix+"/", admin) // /:prefix/:xxx
+
+	admin.compile()
 }
 
 func (admin *Admin) compile() {
-	admin.generateMenuLinks()
-
-	for _, res := range admin.resources {
-		res.configure()
-	}
-
 	router := admin.GetRouter()
-	router.Use(func(context *Context, middleware *Middleware) {
-		request := context.Request
+	router.Use(&Middleware{
+		Name: "qor_handler",
+		Handler: func(context *Context, middleware *Middleware) {
+			request := context.Request
 
-		// 128 MB
-		request.ParseMultipartForm(32 << 22)
+			// 128 MB
+			request.ParseMultipartForm(32 << 22)
 
-		// set request method
-		if len(request.Form["_method"]) > 0 {
-			request.Method = strings.ToUpper(request.Form["_method"][0])
-		}
-
-		relativePath := strings.TrimSuffix(
-			strings.TrimPrefix(request.URL.Path, router.Prefix),
-			path.Ext(request.URL.Path),
-		)
-
-		handlers := router.routers[strings.ToUpper(request.Method)]
-		for _, handler := range handlers {
-			if params, ok := handler.try(relativePath); ok && handler.HasPermission(context.Context) {
-				if len(params) > 0 {
-					context.Request.URL.RawQuery = url.Values(params).Encode() + "&" + context.Request.URL.RawQuery
-				}
-
-				context.setResource(handler.Config.Resource)
-				if context.Resource == nil {
-					if matches := regexp.MustCompile(path.Join(router.Prefix, `([^/]+)`)).FindStringSubmatch(request.URL.Path); len(matches) > 1 {
-						context.setResource(admin.GetResource(matches[1]))
-					}
-				}
-
-				if ids, ok := context.Request.URL.Query()[":id"]; ok {
-					context.ResourceID = ids[len(ids)-1]
-				}
-
-				handler.Handle(context)
-				return
+			// set request method
+			if len(request.Form["_method"]) > 0 {
+				request.Method = strings.ToUpper(request.Form["_method"][0])
 			}
-		}
 
-		http.NotFound(context.Writer, request)
+			relativePath := "/" + strings.Trim(
+				strings.TrimSuffix(strings.TrimPrefix(request.URL.Path, router.Prefix), path.Ext(request.URL.Path)),
+				"/",
+			)
+
+			handlers := router.routers[strings.ToUpper(request.Method)]
+			for _, handler := range handlers {
+				if params, ok := handler.try(relativePath); ok && handler.HasPermission(context.Context) {
+					if len(params) > 0 {
+						context.Request.URL.RawQuery = url.Values(params).Encode() + "&" + context.Request.URL.RawQuery
+					}
+
+					context.setResource(handler.Config.Resource)
+					if context.Resource == nil {
+						if matches := regexp.MustCompile(path.Join(router.Prefix, `([^/]+)`)).FindStringSubmatch(request.URL.Path); len(matches) > 1 {
+							context.setResource(admin.GetResource(matches[1]))
+						}
+					}
+
+					handler.Handle(context)
+					return
+				}
+			}
+
+			http.NotFound(context.Writer, request)
+		},
 	})
-
-	for index, middleware := range router.middlewares {
-		if len(router.middlewares) > index+1 {
-			middleware.next = router.middlewares[index+1]
-		}
-	}
 }
 
 // ServeHTTP dispatches the handler registered in the matched route
@@ -264,8 +314,6 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	defer func() func() {
 		begin := time.Now()
-		log.Printf("Start [%s] %s\n", req.Method, req.RequestURI)
-
 		return func() {
 			log.Printf("Finish [%s] %s Took %.2fms\n", req.Method, req.RequestURI, time.Now().Sub(begin).Seconds()*1000)
 		}

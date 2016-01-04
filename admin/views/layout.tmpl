@@ -16,10 +16,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Stylesheets -->
-    {{stylesheet_tag "material.min" "cropper.min" "chosen.min" "redactor" "qor" "app"}}
+    {{stylesheet_tag "vendors" "qor" "app"}}
     {{load_admin_stylesheets}}
     {{load_theme_stylesheets}}
-    {{javascript_tag "jquery.min"}}
   </head>
 
   <body class="{{if qor_theme_class}}{{qor_theme_class}}{{end}} qor-theme-slideout">
@@ -46,7 +45,7 @@
     </div>
 
     <!-- JavaScripts -->
-    {{javascript_tag "material.min" "redactor.min" "cropper.min" "chosen.jquery.min" "qor" "app"}}
+    {{javascript_tag "vendors" "qor" "app"}}
     {{load_admin_javascripts}}
     {{load_theme_javascripts}}
   </body>

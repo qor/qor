@@ -17,8 +17,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
 	"github.com/qor/qor"
-	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 func (context *Context) NewResourceContext(name ...interface{}) *Context {
@@ -43,24 +43,24 @@ func (context *Context) isNewRecord(value interface{}) bool {
 	return context.GetDB().NewRecord(value)
 }
 
-func (context *Context) newResourcePath(value interface{}) string {
-	if res, ok := value.(*Resource); ok {
-		return path.Join(context.Admin.router.Prefix, res.ToParam(), "new")
-	} else {
-		return path.Join(context.Admin.router.Prefix, context.Resource.ToParam(), "new")
-	}
-}
-
-func (context *Context) editResourcePath(value interface{}, res *Resource) string {
-	primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
-	return path.Join(context.Admin.router.Prefix, res.ToParam(), primaryKey, "/edit")
+func (context *Context) newResourcePath(res *Resource) string {
+	return path.Join(context.UrlFor(res), "new")
 }
 
 func (context *Context) UrlFor(value interface{}, resources ...*Resource) string {
+	getPrefix := func(res *Resource) string {
+		var params string
+		for res.base != nil {
+			params = path.Join(res.base.ToParam(), res.base.GetPrimaryValue(context.Request), params)
+			res = res.base
+		}
+		return path.Join(res.GetAdmin().router.Prefix, params)
+	}
+
 	if admin, ok := value.(*Admin); ok {
 		return admin.router.Prefix
 	} else if res, ok := value.(*Resource); ok {
-		return path.Join(context.Admin.router.Prefix, res.ToParam())
+		return path.Join(getPrefix(res), res.ToParam())
 	} else {
 		var res *Resource
 
@@ -73,8 +73,12 @@ func (context *Context) UrlFor(value interface{}, resources ...*Resource) string
 		}
 
 		if res != nil {
-			primaryKey := context.GetDB().NewScope(value).PrimaryKeyValue()
-			return path.Join(context.Admin.router.Prefix, res.ToParam(), fmt.Sprintf("%v", primaryKey))
+			if res.Config.Singleton {
+				return path.Join(getPrefix(res), res.ToParam())
+			} else {
+				primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
+				return path.Join(getPrefix(res), res.ToParam(), primaryKey)
+			}
 		}
 	}
 	return ""
@@ -213,6 +217,7 @@ func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []strin
 	if err == nil {
 		var scope = context.GetDB().NewScope(value)
 		var data = map[string]interface{}{
+			"Context":       context,
 			"BaseResource":  meta.baseResource,
 			"ResourceValue": value,
 			"InputId":       fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
@@ -285,12 +290,12 @@ func (context *Context) indexSections(resources ...*Resource) []*Section {
 
 func (context *Context) editSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedSections(res.EditAttrs(), context, roles.Update)
+	return res.allowedSections(res.EditAttrs(), context, roles.Read)
 }
 
 func (context *Context) newSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedSections(res.NewAttrs(), context, roles.Update)
+	return res.allowedSections(res.NewAttrs(), context, roles.Create)
 }
 
 func (context *Context) showSections(resources ...*Resource) []*Section {
@@ -615,7 +620,7 @@ func (context *Context) t(key string, values ...interface{}) template.HTML {
 
 func (context *Context) isSortableMeta(meta *Meta) bool {
 	for _, attr := range context.Resource.SortableAttrs() {
-		if attr == meta.Name && meta.FieldStruct != nil && meta.FieldStruct.DBName != "" {
+		if attr == meta.Name && meta.FieldStruct != nil && meta.FieldStruct.IsNormal && meta.FieldStruct.DBName != "" {
 			return true
 		}
 	}
@@ -686,11 +691,10 @@ func (context *Context) FuncMap() template.FuncMap {
 		},
 		"url_for":                context.UrlFor,
 		"link_to":                context.LinkTo,
+		"new_resource_path":      context.newResourcePath,
 		"search_center_path":     func() string { return path.Join(context.Admin.router.Prefix, "!search") },
 		"patch_current_url":      context.patchCurrentURL,
 		"patch_url":              context.patchURL,
-		"new_resource_path":      context.newResourcePath,
-		"edit_resource_path":     context.editResourcePath,
 		"qor_theme_class":        context.themesClass,
 		"javascript_tag":         context.javaScriptTag,
 		"stylesheet_tag":         context.styleSheetTag,

@@ -111,3 +111,23 @@
 .qor-page__footer {
   height: 40px;
 }
+
+.mdl-layout__content{
+  z-index: 4;
+}
+
+.qor-page-subnav__header{
+  padding: 0;
+  background-color: transparent;
+  .mdl-layout__tab-bar{
+    padding: 0;
+  }
+}
+
+@media screen and (min-width: 1025px){
+  .mdl-layout--fixed-drawer>.mdl-layout__header .mdl-layout__header-row {
+      padding-left: 24px;
+  }
+}
+
+

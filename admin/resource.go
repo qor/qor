@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
 	"strconv"
 	"strings"
@@ -12,8 +13,8 @@ import (
 	"github.com/jinzhu/now"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 type Resource struct {
@@ -37,17 +38,28 @@ type Resource struct {
 	cachedMetas    *map[string][]*Meta
 }
 
-func (res *Resource) Meta(meta *Meta) {
+func (res *Resource) Meta(meta *Meta) *Meta {
 	if res.GetMeta(meta.Name) != nil {
 		utils.ExitWithMsg("Duplicated meta %v defined for resource %v", meta.Name, res.Name)
 	}
 	res.Metas = append(res.Metas, meta)
 	meta.baseResource = res
 	meta.updateMeta()
+	return meta
 }
 
 func (res Resource) GetAdmin() *Admin {
 	return res.admin
+}
+
+// GetPrimaryValue get priamry value from request
+func (res Resource) GetPrimaryValue(request *http.Request) string {
+	return request.URL.Query().Get(res.ParamIDName())
+}
+
+// ParamIDName return param name for primary key like :product_id
+func (res Resource) ParamIDName() string {
+	return fmt.Sprintf(":%v_id", inflection.Singular(res.ToParam()))
 }
 
 func (res Resource) ToParam() string {
@@ -68,6 +80,10 @@ func (res Resource) UseTheme(theme string) []string {
 		res.Config.Themes = append(res.Config.Themes, theme)
 	}
 	return res.Config.Themes
+}
+
+func (res *Resource) Decode(context *qor.Context, value interface{}) error {
+	return resource.Decode(context, value, res)
 }
 
 func (res *Resource) convertObjectToJSONMap(context *Context, value interface{}, kind string) interface{} {
@@ -109,10 +125,6 @@ func (res *Resource) convertObjectToJSONMap(context *Context, value interface{},
 	default:
 		return value
 	}
-}
-
-func (res *Resource) Decode(context *qor.Context, value interface{}) error {
-	return resource.Decode(context, value, res)
 }
 
 func (res *Resource) allAttrs() []string {
@@ -428,7 +440,9 @@ func (res *Resource) allMetas() []*Meta {
 }
 
 func (res *Resource) allowedSections(sections []*Section, context *Context, roles ...roles.PermissionMode) []*Section {
+	var newSections []*Section
 	for _, section := range sections {
+		newSection := Section{Resource: section.Resource, Title: section.Title}
 		var editableRows [][]string
 		for _, row := range section.Rows {
 			var editableColumns []string
@@ -445,9 +459,10 @@ func (res *Resource) allowedSections(sections []*Section, context *Context, role
 				editableRows = append(editableRows, editableColumns)
 			}
 		}
-		section.Rows = editableRows
+		newSection.Rows = editableRows
+		newSections = append(newSections, &newSection)
 	}
-	return sections
+	return newSections
 }
 
 func (res *Resource) configure() {

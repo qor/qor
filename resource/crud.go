@@ -6,7 +6,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
-	"github.com/qor/qor/roles"
+	"github.com/qor/roles"
 	"github.com/qor/qor/utils"
 )
 
@@ -25,7 +25,7 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 		if primaryKey != "" {
 			if metaValues != nil {
 				if destroy := metaValues.Get("_destroy"); destroy != nil {
-					if fmt.Sprint(destroy.Value) != "0" {
+					if fmt.Sprint(destroy.Value) != "0" && res.HasPermission(roles.Delete, context) {
 						context.GetDB().Delete(result, fmt.Sprintf("%v = ?", scope.Quote(primaryField.DBName)), primaryKey)
 						return ErrProcessorSkipLeft
 					}

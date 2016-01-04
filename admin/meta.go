@@ -10,8 +10,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 type Meta struct {
@@ -28,7 +28,6 @@ type Meta struct {
 	GetCollection   func(interface{}, *qor.Context) [][]string
 	Permission      *roles.Permission
 	resource.Meta
-
 	baseResource *Resource
 }
 
@@ -62,6 +61,78 @@ func getField(fields []*gorm.StructField, name string) (*gorm.StructField, bool)
 	return nil, false
 }
 
+func (meta *Meta) setBaseResource(base *Resource) {
+	res := meta.Resource
+	res.base = base
+
+	findOneHandle := res.FindOneHandler
+	res.FindOneHandler = func(value interface{}, metaValues *resource.MetaValues, context *qor.Context) (err error) {
+		if metaValues != nil {
+			return findOneHandle(value, metaValues, context)
+		}
+
+		if primaryKey := res.GetPrimaryValue(context.Request); primaryKey != "" {
+			clone := context.Clone()
+			baseValue := base.NewStruct()
+			if err = base.FindOneHandler(baseValue, nil, clone); err == nil {
+				scope := clone.GetDB().NewScope(nil)
+				sql := fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName()))
+				err = context.GetDB().Model(baseValue).Where(sql, primaryKey).Related(value).Error
+			}
+		}
+		return
+	}
+
+	res.FindManyHandler = func(value interface{}, context *qor.Context) error {
+		clone := context.Clone()
+		baseValue := base.NewStruct()
+		if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
+			base.FindOneHandler(baseValue, nil, clone)
+			return context.GetDB().Model(baseValue).Related(value).Error
+		} else {
+			return err
+		}
+	}
+
+	res.SaveHandler = func(value interface{}, context *qor.Context) error {
+		clone := context.Clone()
+		baseValue := base.NewStruct()
+		if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
+			base.FindOneHandler(baseValue, nil, clone)
+			return context.GetDB().Model(baseValue).Association(meta.FieldName).Append(value).Error
+		} else {
+			return err
+		}
+	}
+
+	res.DeleteHandler = func(value interface{}, context *qor.Context) (err error) {
+		var clone = context.Clone()
+		var baseValue = base.NewStruct()
+		if primryKey := res.GetPrimaryValue(context.Request); primryKey != "" {
+			var scope = clone.GetDB().NewScope(nil)
+			var sql = fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName()))
+			if err = context.GetDB().First(value, sql, primryKey).Error; err == nil {
+				if err = base.FindOneHandler(baseValue, nil, clone); err == nil {
+					base.FindOneHandler(baseValue, nil, clone)
+					return context.GetDB().Model(baseValue).Association(meta.FieldName).Delete(value).Error
+				}
+			}
+		}
+		return
+	}
+}
+
+func (meta *Meta) SetPermission(permission *roles.Permission) {
+	meta.Permission = permission
+	meta.Meta.Permission = permission
+	if meta.Resource != nil {
+		meta.Resource.Permission = permission
+		for _, meta := range meta.Resource.Metas {
+			meta.SetPermission(permission.Concat(meta.Meta.Permission))
+		}
+	}
+}
+
 func (meta *Meta) updateMeta() {
 	meta.Meta = resource.Meta{
 		Name:            meta.Name,
@@ -69,7 +140,7 @@ func (meta *Meta) updateMeta() {
 		Setter:          meta.Setter,
 		FormattedValuer: meta.FormattedValuer,
 		Valuer:          meta.Valuer,
-		Permission:      meta.Permission,
+		Permission:      meta.Permission.Concat(meta.baseResource.Permission),
 		Resource:        meta.baseResource,
 	}
 
@@ -138,8 +209,8 @@ func (meta *Meta) updateMeta() {
 	}
 
 	{ // Set Meta Resource
-		if meta.Resource == nil {
-			if hasColumn && (meta.FieldStruct.Relationship != nil) {
+		if hasColumn && (meta.FieldStruct.Relationship != nil) {
+			if meta.Resource == nil {
 				var result interface{}
 				if fieldType.Kind() == reflect.Struct {
 					result = reflect.New(fieldType).Interface()
@@ -155,10 +226,13 @@ func (meta *Meta) updateMeta() {
 				res.configure()
 				meta.Resource = res
 			}
-		}
 
-		if meta.Resource != nil {
-			meta.Resource.base = meta.baseResource
+			if meta.Resource != nil {
+				permission := meta.Resource.Permission.Concat(meta.Meta.Permission)
+				meta.Resource.Permission = permission
+				meta.SetPermission(permission)
+				meta.setBaseResource(meta.baseResource)
+			}
 		}
 	}
 

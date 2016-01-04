@@ -21,6 +21,11 @@ type Context struct {
 	Errors
 }
 
+func (context *Context) Clone() *Context {
+	var clone = *context
+	return &clone
+}
+
 func (context *Context) GetDB() *gorm.DB {
 	if context.DB != nil {
 		return context.DB
