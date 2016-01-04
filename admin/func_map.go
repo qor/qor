@@ -17,8 +17,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/inflection"
 	"github.com/qor/qor"
-	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 func (context *Context) NewResourceContext(name ...interface{}) *Context {
@@ -217,6 +217,7 @@ func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []strin
 	if err == nil {
 		var scope = context.GetDB().NewScope(value)
 		var data = map[string]interface{}{
+			"Context":       context,
 			"BaseResource":  meta.baseResource,
 			"ResourceValue": value,
 			"InputId":       fmt.Sprintf("%v_%v_%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue(), meta.Name),
@@ -289,12 +290,12 @@ func (context *Context) indexSections(resources ...*Resource) []*Section {
 
 func (context *Context) editSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedSections(res.EditAttrs(), context, roles.Update)
+	return res.allowedSections(res.EditAttrs(), context, roles.Read)
 }
 
 func (context *Context) newSections(resources ...*Resource) []*Section {
 	res := context.getResource(resources...)
-	return res.allowedSections(res.NewAttrs(), context, roles.Update)
+	return res.allowedSections(res.NewAttrs(), context, roles.Create)
 }
 
 func (context *Context) showSections(resources ...*Resource) []*Section {
@@ -619,7 +620,7 @@ func (context *Context) t(key string, values ...interface{}) template.HTML {
 
 func (context *Context) isSortableMeta(meta *Meta) bool {
 	for _, attr := range context.Resource.SortableAttrs() {
-		if attr == meta.Name && meta.FieldStruct != nil && meta.FieldStruct.DBName != "" {
+		if attr == meta.Name && meta.FieldStruct != nil && meta.FieldStruct.IsNormal && meta.FieldStruct.DBName != "" {
 			return true
 		}
 	}

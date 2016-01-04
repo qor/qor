@@ -1,6 +1,6 @@
 package admin
 
-import "github.com/qor/qor/roles"
+import "github.com/qor/roles"
 
 type Config struct {
 	Name       string

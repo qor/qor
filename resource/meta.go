@@ -12,8 +12,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
 	"github.com/qor/qor"
-	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 type Metaor interface {
@@ -96,6 +96,10 @@ func (meta Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) 
 		return true
 	}
 	return meta.Permission.HasPermission(mode, context.Roles...)
+}
+
+func (meta *Meta) SetPermission(permission *roles.Permission) {
+	meta.Permission = permission
 }
 
 func (meta *Meta) PreInitialize() error {

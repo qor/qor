@@ -10,8 +10,8 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 type Meta struct {
@@ -28,7 +28,6 @@ type Meta struct {
 	GetCollection   func(interface{}, *qor.Context) [][]string
 	Permission      *roles.Permission
 	resource.Meta
-
 	baseResource *Resource
 }
 
@@ -123,6 +122,17 @@ func (meta *Meta) setBaseResource(base *Resource) {
 	}
 }
 
+func (meta *Meta) SetPermission(permission *roles.Permission) {
+	meta.Permission = permission
+	meta.Meta.Permission = permission
+	if meta.Resource != nil {
+		meta.Resource.Permission = permission
+		for _, meta := range meta.Resource.Metas {
+			meta.SetPermission(permission.Concat(meta.Meta.Permission))
+		}
+	}
+}
+
 func (meta *Meta) updateMeta() {
 	meta.Meta = resource.Meta{
 		Name:            meta.Name,
@@ -130,7 +140,7 @@ func (meta *Meta) updateMeta() {
 		Setter:          meta.Setter,
 		FormattedValuer: meta.FormattedValuer,
 		Valuer:          meta.Valuer,
-		Permission:      meta.Permission,
+		Permission:      meta.Permission.Concat(meta.baseResource.Permission),
 		Resource:        meta.baseResource,
 	}
 
@@ -199,8 +209,8 @@ func (meta *Meta) updateMeta() {
 	}
 
 	{ // Set Meta Resource
-		if meta.Resource == nil {
-			if hasColumn && (meta.FieldStruct.Relationship != nil) {
+		if hasColumn && (meta.FieldStruct.Relationship != nil) {
+			if meta.Resource == nil {
 				var result interface{}
 				if fieldType.Kind() == reflect.Struct {
 					result = reflect.New(fieldType).Interface()
@@ -216,10 +226,13 @@ func (meta *Meta) updateMeta() {
 				res.configure()
 				meta.Resource = res
 			}
-		}
 
-		if meta.Resource != nil {
-			meta.setBaseResource(meta.baseResource)
+			if meta.Resource != nil {
+				permission := meta.Resource.Permission.Concat(meta.Meta.Permission)
+				meta.Resource.Permission = permission
+				meta.SetPermission(permission)
+				meta.setBaseResource(meta.baseResource)
+			}
 		}
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/qor/qor/admin"
 	"github.com/qor/qor/audited"
 	"github.com/qor/qor/resource"
-	"github.com/qor/qor/roles"
+	"github.com/qor/roles"
 )
 
 type Transition struct {
