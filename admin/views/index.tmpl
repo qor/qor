@@ -11,9 +11,9 @@
   </div>
 
   {{if has_create_permission .Resource}}
-    <a class="mdl-button mdl-button--fab mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--new" href="{{new_resource_path .Resource}}">
+    <button class="mdl-button mdl-button--fab mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--new" data-url="{{new_resource_path .Resource}}">
       <i class="material-icons">add</i>
-    </a>
+    </button>
   {{end}}
 
   {{render "index/pagination"}}

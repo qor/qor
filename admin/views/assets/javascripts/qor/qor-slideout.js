@@ -114,29 +114,24 @@ $.fn.qorSliderAfterShow = {};
 
         if (target === slideout) {
           break;
+        } else if ($target.data('dismiss') === 'slideout') {
+          this.hide();
+          break;
+        } else if ($target.is('table.qor-table > tbody > tr[data-url]')) {
+          if ($(e.target).parents(".qor-table__actions").size() > 0) {
+            return;
+          }
+          e.preventDefault();
+          data = $target.data();
+          this.load(data.url, data);
+          break;
         } else if ($target.data('url')) {
           e.preventDefault();
           data = $target.data();
           this.load(data.url, data);
           break;
-        } else if ($target.data('dismiss') === 'slideout') {
-          this.hide();
-          break;
-        } else if ($target.is('tbody > tr')) {
-          if (!this.disabled && !$target.hasClass(CLASS_IS_SELECTED)) {
-            $this.one(EVENT_SHOW, toggleClass);
-            this.load($target.find('.qor-button--edit').attr('href'));
-          }
-
-          break;
-        } else if ($target.is('.qor-button--new')) {
-          e.preventDefault();
-          this.load($target.attr('href'));
-          break;
         } else {
-          if ($target.is('.qor-button--edit') || $target.is('.qor-button--delete')) {
-            e.preventDefault();
-          } else if ($target.is('a')) {
+          if ($target.is('a')) {
             break;
           }
 

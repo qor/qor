@@ -16,7 +16,7 @@
   <tbody>
     {{range $result := .Result}}
       {{$primaryKey := primary_key_of $result}}
-      <tr data-primary-key="{{$primaryKey}}">
+      <tr data-primary-key="{{$primaryKey}}" data-url="{{url_for $result $resource}}">
         {{range $meta := $metas}}
           <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $resource $meta.Label}}">
             {{$value := render_index_meta $result $meta}}
@@ -28,22 +28,13 @@
             <i class="material-icons">more_vert</i>
           </button>
           <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="actions-for-{{$primaryKey}}">
-            {{if has_read_permission $resource}}
-            <li class="mdl-menu__item">
-              <a class="mdl-button--icon qor-button--muted qor-button--read" href="{{url_for $result $resource}}">
-                <i class="material-icons md-18">read</i> {{t "View"}}
-              </a>
-            </li>
-            {{end}}
             {{if has_update_permission $resource}}
-            <li class="mdl-menu__item">
-              <a class="mdl-button--icon qor-button--muted qor-button--edit" href="{{url_for $result $resource}}/edit">
-                <i class="material-icons md-18">edit</i> {{t "Edit"}}
-              </a>
+            <li class="mdl-menu__item qor-button--edit" data-url="{{url_for $result $resource}}/edit">
+              <i class="material-icons md-18">edit</i> {{t "Edit"}}
             </li>
             {{end}}
             {{if has_delete_permission $resource}}
-            <li>
+            <li class="mdl-menu__item">
               <a class="mdl-button--icon qor-button--muted qor-button--delete" href="{{url_for $result $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
                 <i class="material-icons md-18">delete</i> {{t "Delete"}}
               </a>

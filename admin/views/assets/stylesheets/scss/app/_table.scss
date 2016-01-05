@@ -61,5 +61,7 @@
 .qor-table-container {
   position: relative;
   margin: 24px;
+  overflow-x: auto;
+  overflow-y: hidden;
   @include shadow-2dp();
 }
