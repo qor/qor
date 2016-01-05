@@ -2,8 +2,9 @@ package admin
 
 import (
 	"fmt"
-	"github.com/qor/qor/roles"
 	"reflect"
+
+	"github.com/qor/roles"
 )
 
 func (res *Resource) Action(action *Action) {
