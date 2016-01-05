@@ -2,6 +2,6 @@
   <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="{{.InputId}}">
     <input type="checkbox" id="{{.InputId}}" name="{{.InputName}}" class="mdl-checkbox__input" value="true" type="checkbox" {{if .Value}}checked{{end}} {{if not (has_update_permission .Meta)}}disabled{{end}}>
     <input type="hidden" name="{{.InputName}}" value="false">
-    <span class="mdl-checkbox__label">{{.Label}}</span>
+    <span class="mdl-checkbox__label">{{meta_label .Meta}}</span>
   </label>
 </div>

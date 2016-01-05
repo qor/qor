@@ -10,12 +10,13 @@
         {{$is_desc_sorted := eq $order_by (print $dbName "_desc")}}
         <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$dbName}}_desc"{{else}}data-order-by="{{$dbName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $resource.ToParam $meta.Label) $meta.Label}}</th>
       {{end}}
-      <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
+      <th class="mdl-data-table__cell--non-numeric qor-table__actions"></th>
     </tr>
   </thead>
   <tbody>
     {{range $result := .Result}}
-      <tr data-primary-key="{{primary_key_of $result}}">
+      {{$primaryKey := primary_key_of $result}}
+      <tr data-primary-key="{{$primaryKey}}">
         {{range $meta := $metas}}
           <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $resource $meta.Label}}">
             {{$value := render_index_meta $result $meta}}
@@ -23,16 +24,32 @@
           </td>
         {{end}}
         <td class="mdl-data-table__cell--non-numeric qor-table__actions">
-          {{if has_update_permission $resource}}
-            <a class="mdl-button mdl-js-button mdl-button--icon qor-button--muted qor-button--edit" href="{{url_for $result $resource}}">
-              <i class="material-icons md-18">edit</i>
-            </a>
-          {{end}}
-          {{if has_delete_permission $resource}}
-            <a class="mdl-button mdl-js-button mdl-button--icon qor-button--muted qor-button--delete" href="{{url_for $result $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
-              <i class="material-icons md-18">delete</i>
-            </a>
-          {{end}}
+          <button id="actions-for-{{$primaryKey}}" class="mdl-button mdl-js-button mdl-button--icon">
+            <i class="material-icons">more_vert</i>
+          </button>
+          <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="actions-for-{{$primaryKey}}">
+            {{if has_read_permission $resource}}
+            <li class="mdl-menu__item">
+              <a class="mdl-button--icon qor-button--muted qor-button--read" href="{{url_for $result $resource}}">
+                <i class="material-icons md-18">read</i> {{t "View"}}
+              </a>
+            </li>
+            {{end}}
+            {{if has_update_permission $resource}}
+            <li class="mdl-menu__item">
+              <a class="mdl-button--icon qor-button--muted qor-button--edit" href="{{url_for $result $resource}}/edit">
+                <i class="material-icons md-18">edit</i> {{t "Edit"}}
+              </a>
+            </li>
+            {{end}}
+            {{if has_delete_permission $resource}}
+            <li>
+              <a class="mdl-button--icon qor-button--muted qor-button--delete" href="{{url_for $result $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
+                <i class="material-icons md-18">delete</i> {{t "Delete"}}
+              </a>
+            </li>
+            {{end}}
+          </ul>
         </td>
       </tr>
     {{end}}

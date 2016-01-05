@@ -90,11 +90,16 @@
 // -------------------------
 
 .qor-field__label {
-  display: inline-block;
+  display: block;
   max-width: 100%;
   margin-bottom: 8px;
   font-size: 12px;
   color: unquote("rgba(#{$color-black}, 0.54)");
+}
+
+.qor-field__value {
+  display: block;
+  padding: 4px 0;
 }
 
 .qor-field__input {
