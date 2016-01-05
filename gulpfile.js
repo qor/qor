@@ -26,13 +26,13 @@ var moduleName = (function () {
 
 // Task for compress js and css plugin assets
 gulp.task('compress_js_plugin', function () {
-  return gulp.src(['admin/views/assets/javascripts/plugins/jquery.min.js','admin/views/assets/javascripts/plugins/*.js'])
+  return gulp.src(['admin/views/assets/javascripts/vendors/jquery.min.js','admin/views/assets/javascripts/vendors/*.js'])
   .pipe(plugins.concat('vendors.js'))
   .pipe(gulp.dest('admin/views/assets/javascripts'));
 });
 
 gulp.task('compress_css_plugin', function () {
-  return gulp.src('admin/views/assets/stylesheets/plugins/*.css')
+  return gulp.src('admin/views/assets/stylesheets/vendors/*.css')
   .pipe(plugins.concat('vendors.css'))
   .pipe(gulp.dest('admin/views/assets/stylesheets'));
 });
@@ -57,6 +57,7 @@ function adminTasks() {
   var styles = {
         src: pathto('stylesheets/scss/{app,qor}.scss'),
         dest: pathto('stylesheets'),
+        vendors: pathto('stylesheets/vendors'),
         main: pathto('stylesheets/{qor,app}.css'),
         scss: pathto('stylesheets/scss/**/*.scss')
       };
@@ -114,7 +115,7 @@ function adminTasks() {
       'bower_components/cropper/dist/cropper.min.js',
       'bower_components/chosen/chosen.jquery.min.js'
     ])
-    .pipe(gulp.dest(scripts.dest));
+    .pipe(gulp.dest(scripts.vendors));
   });
 
   gulp.task('sass', function () {
