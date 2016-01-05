@@ -26,7 +26,7 @@ var moduleName = (function () {
 
 // Task for compress js and css plugin assets
 gulp.task('compress_js_plugin', function () {
-  return gulp.src(['admin/views/assets/javascripts/vendors/jquery.min.js','admin/views/assets/javascripts/vendors/*.js'])
+  return gulp.src(['!admin/views/assets/javascripts/vendors/jquery.min.js','admin/views/assets/javascripts/vendors/*.js'])
   .pipe(plugins.concat('vendors.js'))
   .pipe(gulp.dest('admin/views/assets/javascripts'));
 });
