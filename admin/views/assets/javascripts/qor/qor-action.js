@@ -78,7 +78,7 @@
 
     submit : function (e) {
       var $form = $(e.target);
-      if ($form.data("mode") == "index") {
+      if ($form.data('mode') == 'index') {
         $.proxy(this.appendCheckInputs, $form)();
       }
       var $submit = $form.find('button');
@@ -139,7 +139,7 @@
       // Only value change and the table isn't selectable will add checkboxes
       $('.qor-page__body .mdl-data-table__select').each(function (i, e) { $(e).parents('td').remove(); });
       $('.qor-page__body .mdl-data-table__select').each(function (i, e) { $(e).parents('th').remove(); });
-      $(".qor-table-container tr.is-selected").removeClass("is-selected");
+      $('.qor-table-container tr.is-selected').removeClass('is-selected');
 
       if ($(this).val()) {
         $('.qor-page__body table').addClass('mdl-data-table--selectable');

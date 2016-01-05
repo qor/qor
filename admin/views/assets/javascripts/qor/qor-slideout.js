@@ -118,7 +118,7 @@ $.fn.qorSliderAfterShow = {};
           this.hide();
           break;
         } else if ($target.is('table.qor-table > tbody > tr[data-url]')) {
-          if ($(e.target).parents(".qor-table__actions").size() > 0) {
+          if ($(e.target).parents('.qor-table__actions').size() > 0) {
             return;
           }
           // only load when not under loading and not activated
