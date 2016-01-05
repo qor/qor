@@ -28,7 +28,11 @@ func ToArray(value interface{}) (values []string) {
 		if len(value) == 1 && value[0] == "" {
 			return []string{}
 		}
-		values = value
+		for _, v := range value {
+			if v != "" {
+				values = append(values, v)
+			}
+		}
 	case []interface{}:
 		for _, v := range value {
 			values = append(values, fmt.Sprintf("%v", v))
