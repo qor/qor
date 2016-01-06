@@ -155,7 +155,7 @@
 }
 
 // Custom modifier for .mdl-textfield
-.qor-textfield--static-label {
+.qor-field {
   .mdl-textfield__label {
     color: unquote("rgba(#{$color-black}, 0.54)");
     font-size: 12px;
@@ -166,7 +166,7 @@
     font-size: 14px;
   }
 
-  &.is-dirty .mdl-textfield__label {
+  .mdl-textfield.is-dirty .mdl-textfield__label {
     visibility: visible;
   }
 }
