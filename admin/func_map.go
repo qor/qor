@@ -185,6 +185,12 @@ func (context *Context) renderSections(value interface{}, sections []*Section, p
 }
 
 func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []string, metaType string, writer *bytes.Buffer) {
+	defer func() {
+		if r := recover(); r != nil {
+			writer.Write([]byte(fmt.Sprintf("Get error when render meta %v: %v", meta.Name, r)))
+		}
+	}()
+
 	var (
 		tmpl     *template.Template
 		err      error
