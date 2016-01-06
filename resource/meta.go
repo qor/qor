@@ -171,11 +171,7 @@ func (meta *Meta) Initialize() error {
 						context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.FieldName)
 					}
 
-					if f.Field.CanAddr() {
-						return f.Field.Addr().Interface()
-					} else {
-						return f.Field.Interface()
-					}
+					return f.Field.Interface()
 				}
 
 				return ""

@@ -11,13 +11,19 @@ var metaConfigorMaps = map[string]func(*Meta){
 		if meta.FormattedValuer == nil {
 			meta.SetFormattedValuer(func(value interface{}, context *qor.Context) interface{} {
 				switch date := meta.GetValuer()(value, context).(type) {
-				case time.Time, *time.Time:
-					return date.Format("2006-01-02")
-				case **time.Time:
-					if *date == nil {
+				case *time.Time:
+					if date == nil {
 						return ""
 					}
-					return (*date).Format("2006-01-02")
+					if date.IsZero() {
+						return ""
+					}
+					return date.Format("2006-01-02")
+				case time.Time:
+					if date.IsZero() {
+						return ""
+					}
+					return date.Format("2006-01-02")
 				default:
 					return date
 				}
@@ -29,13 +35,19 @@ var metaConfigorMaps = map[string]func(*Meta){
 		if meta.FormattedValuer == nil {
 			meta.SetFormattedValuer(func(value interface{}, context *qor.Context) interface{} {
 				switch date := meta.GetValuer()(value, context).(type) {
-				case time.Time, *time.Time:
-					return date.Format("2006-01-02 15:04")
-				case **time.Time:
-					if *date == nil {
+				case *time.Time:
+					if date == nil {
 						return ""
 					}
-					return (*date).Format("2006-01-02 15:04")
+					if date.IsZero() {
+						return ""
+					}
+					return date.Format("2006-01-02 15:04")
+				case time.Time:
+					if date.IsZero() {
+						return ""
+					}
+					return date.Format("2006-01-02 15:04")
 				default:
 					return date
 				}
@@ -46,9 +58,15 @@ var metaConfigorMaps = map[string]func(*Meta){
 	"string": func(meta *Meta) {
 		if meta.FormattedValuer == nil {
 			meta.SetFormattedValuer(func(value interface{}, context *qor.Context) interface{} {
-				if str := meta.GetValuer()(value, context).(type); str == nil {
+				switch str := meta.GetValuer()(value, context).(type) {
+				case *string:
+					if str != nil {
+						return *str
+					}
 					return ""
-				} else {
+				case string:
+					return str
+				default:
 					return str
 				}
 			})
@@ -58,9 +76,15 @@ var metaConfigorMaps = map[string]func(*Meta){
 	"text": func(meta *Meta) {
 		if meta.FormattedValuer == nil {
 			meta.SetFormattedValuer(func(value interface{}, context *qor.Context) interface{} {
-				if str := meta.GetValuer()(value, context).(type); str == nil {
+				switch str := meta.GetValuer()(value, context).(type) {
+				case *string:
+					if str != nil {
+						return *str
+					}
 					return ""
-				} else {
+				case string:
+					return str
+				default:
 					return str
 				}
 			})

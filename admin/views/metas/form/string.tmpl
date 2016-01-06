@@ -9,7 +9,7 @@
     </div>
 
     <div class="qor-field__edit">
-      <input class="mdl-textfield__input" type="text" id="{{.InputId}}" name="{{.InputName}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
+      <input class="mdl-textfield__input" type="text" id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
     </div>
   </div>
 </div>
