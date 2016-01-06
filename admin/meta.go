@@ -302,9 +302,19 @@ func (meta *Meta) updateMeta() {
 
 	meta.FieldName = meta.GetFieldName()
 
+	// call ConfigureMetaInterface
 	if meta.FieldStruct != nil {
 		if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaInterface); ok {
 			injector.ConfigureQorMeta(meta)
+		}
+	}
+
+	// run meta configors
+	if baseResource := meta.baseResource; baseResource != nil {
+		for key, fc := range baseResource.GetAdmin().metaConfigorMaps {
+			if key == meta.Type {
+				fc(meta)
+			}
 		}
 	}
 }

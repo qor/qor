@@ -37,7 +37,7 @@ func New(config *qor.Config) *Admin {
 		funcMaps:         make(template.FuncMap),
 		Config:           config,
 		router:           newRouter(),
-		metaConfigorMaps: map[string]func(*Meta){},
+		metaConfigorMaps: metaConfigorMaps,
 	}
 	return &admin
 }
