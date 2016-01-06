@@ -1,5 +1,5 @@
-{{$current_values := (raw_value_of .ResourceValue .Meta)}}
 <div class="qor-field">
+  {{$current_values := (raw_value_of .ResourceValue .Meta)}}
   <label class="qor-field__label" for="{{.InputId}}">
     {{meta_label .Meta}}
   </label>

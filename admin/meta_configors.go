@@ -42,4 +42,28 @@ var metaConfigorMaps = map[string]func(*Meta){
 			})
 		}
 	},
+
+	"string": func(meta *Meta) {
+		if meta.FormattedValuer == nil {
+			meta.SetFormattedValuer(func(value interface{}, context *qor.Context) interface{} {
+				if str := meta.GetValuer()(value, context).(type); str == nil {
+					return ""
+				} else {
+					return str
+				}
+			})
+		}
+	},
+
+	"text": func(meta *Meta) {
+		if meta.FormattedValuer == nil {
+			meta.SetFormattedValuer(func(value interface{}, context *qor.Context) interface{} {
+				if str := meta.GetValuer()(value, context).(type); str == nil {
+					return ""
+				} else {
+					return str
+				}
+			})
+		}
+	},
 }
