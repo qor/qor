@@ -11,6 +11,7 @@ import (
 
 type controller struct {
 	*Admin
+	action *Action
 }
 
 const HTTPUnprocessableEntity = 422
@@ -172,50 +173,26 @@ func (ac *controller) Delete(context *Context) {
 }
 
 func (ac *controller) Action(context *Context) {
-	var err error
-	paths := strings.Split(context.Request.URL.Path, "/")
-	name := paths[len(paths)-1]
+	var action = ac.action
+	if context.Request.Method == "GET" {
+		context.Execute("action", action)
+	} else {
+		var err = action.Handle(&ActionArgument{
+			IDs:     context.Request.Form["IDs[]"],
+			Context: context,
+		})
 
-	for _, action := range context.Resource.Actions {
-		if action.Name == name {
-			err = action.Handle(&ActionArgument{
-				IDs:     context.Request.Form["IDs[]"],
-				Context: context,
-			})
-		}
-	}
-
-	responder.With("html", func() {
 		if err == nil {
-			http.Redirect(context.Writer, context.Request, context.Request.Referer(), http.StatusFound)
+			responder.With("html", func() {
+				http.Redirect(context.Writer, context.Request, context.Request.Referer(), http.StatusFound)
+			}).With("json", func() {
+				context.Writer.Write([]byte("OK"))
+			}).Respond(context.Request)
 		} else {
 			context.Writer.WriteHeader(HTTPUnprocessableEntity)
 			context.Writer.Write([]byte(err.Error()))
 		}
-	}).With("json", func() {
-		if err == nil {
-			context.Writer.Write([]byte("OK"))
-		} else {
-			context.Writer.WriteHeader(HTTPUnprocessableEntity)
-			context.Writer.Write([]byte(err.Error()))
-		}
-	}).Respond(context.Request)
-}
-
-func (ac *controller) ActionForm(context *Context) {
-	paths := strings.Split(context.Request.URL.Path, "/")
-	name := paths[len(paths)-2]
-
-	var action *Action
-	for _, act := range context.Resource.Actions {
-		if act.Name == name {
-			action = act
-		}
 	}
-
-	responder.With("html", func() {
-		context.Execute("actions/shared/form", action)
-	}).Respond(context.Request)
 }
 
 func (ac *controller) Asset(context *Context) {

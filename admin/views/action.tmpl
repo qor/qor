@@ -1,4 +1,3 @@
-{{$context := .}}
 {{$action := .Result}}
 
 <div class="qor-page__body qor-page__edit">
@@ -6,15 +5,16 @@
   {{render "shared/errors"}}
 
   <div class="qor-form-container">
-    <form action="/admin/{{$context.Resource.ToParam}}/{{$action.Name}}" method="POST" enctype="multipart/form-data">
-      <input type="hidden" name="IDs[]" value="{{$context.Resource.GetPrimaryValue $context.Request}}" />
+    <form action="{{.Context.Request.URL}}" method="POST" enctype="multipart/form-data">
+      <input name="_method" value="PUT" type="hidden">
 
       {{if $action.Resource}}
-        {{render_form $action.Resource.NewStruct (edit_sections $action.Resource) }}
+        {{render_form $action.Resource.NewStruct (edit_sections $action.Resource)}}
       {{end}}
 
       <div class="qor-form__actions" style="margin-top: 0;margin-bottom:10px;">
         <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Submit"}}</button>
+        <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "Cancel"}}</a>
       </div>
     </form>
   </div>

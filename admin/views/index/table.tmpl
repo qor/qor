@@ -50,7 +50,7 @@
             {{end}}
             {{range $action := $resource.Actions}}
             <li class="mdl-menu__item" qor-icon-name="{{$action.Name}}">
-              <a href="{{url_for $result $resource}}/{{$action.ToParam}}" data-method="PUT">
+              <a data-url="{{url_for $result $resource}}/{{$action.ToParam}}" href="{{url_for $result $resource}}/{{$action.ToParam}}">
                 {{t $action.Name}}
               </a>
             </li>
