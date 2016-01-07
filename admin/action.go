@@ -31,7 +31,7 @@ func (action Action) ToParam() string {
 	return utils.ToParamString(action.Name)
 }
 
-func (actionArgument *ActionArgument) AllRecords() []interface{} {
+func (actionArgument *ActionArgument) FindSelectedRecords() []interface{} {
 	var (
 		context  = actionArgument.Context
 		resource = context.Resource
