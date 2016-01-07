@@ -13,8 +13,9 @@ func (res *Resource) Action(action *Action) {
 }
 
 type ActionArgument struct {
-	IDs     []string
-	Context *Context
+	PrimaryValues []string
+	Context       *Context
+	Argument      interface{}
 }
 
 type Action struct {
@@ -30,10 +31,17 @@ func (action Action) ToParam() string {
 	return utils.ToParamString(action.Name)
 }
 
-func (arg *ActionArgument) AllRecords() []interface{} {
-	var records = []interface{}{}
-	results := arg.Context.Resource.NewSlice()
-	arg.Context.GetDB().Where(fmt.Sprintf("%v IN (?)", arg.Context.Resource.PrimaryDBName()), arg.IDs).Find(results)
+func (actionArgument *ActionArgument) AllRecords() []interface{} {
+	var (
+		context  = actionArgument.Context
+		resource = context.Resource
+		records  = []interface{}{}
+	)
+
+	clone := context.clone()
+	clone.SetDB(clone.GetDB().Where(fmt.Sprintf("%v IN (?)", resource.PrimaryDBName()), actionArgument.PrimaryValues))
+	results, _ := clone.FindMany()
+
 	resultValues := reflect.Indirect(reflect.ValueOf(results))
 	for i := 0; i < resultValues.Len(); i++ {
 		records = append(records, resultValues.Index(i).Interface())

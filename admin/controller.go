@@ -177,12 +177,22 @@ func (ac *controller) Action(context *Context) {
 	if context.Request.Method == "GET" {
 		context.Execute("action", action)
 	} else {
-		var err = action.Handle(&ActionArgument{
-			IDs:     context.Request.Form["IDs[]"],
-			Context: context,
-		})
+		var actionArgument = ActionArgument{
+			PrimaryValues: context.Request.Form["primary_values[]"],
+			Context:       context,
+		}
 
-		if err == nil {
+		if primaryValue := context.Resource.GetPrimaryValue(context.Request); primaryValue != "" {
+			actionArgument.PrimaryValues = append(actionArgument.PrimaryValues, primaryValue)
+		}
+
+		if action.Resource != nil {
+			result := action.Resource.NewStruct()
+			action.Resource.Decode(context.Context, result)
+			actionArgument.Argument = result
+		}
+
+		if err := action.Handle(&actionArgument); err == nil {
 			responder.With("html", func() {
 				http.Redirect(context.Writer, context.Request, context.Request.Referer(), http.StatusFound)
 			}).With("json", func() {
