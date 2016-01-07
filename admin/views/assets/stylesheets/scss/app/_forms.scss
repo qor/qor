@@ -128,7 +128,7 @@
 
 .qor-page__show {
   .qor-field__show {
-    display: inline-block;
+    display: block;
   }
 
   .qor-field__edit, .qor-fieldset__delete, .qor-fieldset__add {
@@ -141,7 +141,10 @@
     display: none;
   }
 
-  .qor-field__edit, .qor-fieldset__delete, .qor-fieldset__add {
+  .qor-field__edit, .qor-fieldset__delete {
+    display: block;
+  }
+  .qor-fieldset__add{
     display: inline-block;
   }
 }
@@ -291,7 +294,7 @@
   position: relative;
   margin-top: 16px;
   margin-bottom: 16px;
-  padding: 8px 24px;
+  padding: 16px 32px;
   border: 1px solid unquote("rgba(#{$color-black}, 0.12)");
   background-color: unquote("rgb(#{$palette-grey-50})");
 }

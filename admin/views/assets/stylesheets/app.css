@@ -517,7 +517,7 @@ a {
   margin-bottom: 0; }
 
 .qor-page__show .qor-field__show {
-  display: inline-block; }
+  display: block; }
 
 .qor-page__show .qor-field__edit, .qor-page__show .qor-fieldset__delete, .qor-page__show .qor-fieldset__add {
   display: none; }
@@ -525,7 +525,10 @@ a {
 .qor-page__edit .qor-field__show {
   display: none; }
 
-.qor-page__edit .qor-field__edit, .qor-page__edit .qor-fieldset__delete, .qor-page__edit .qor-fieldset__add {
+.qor-page__edit .qor-field__edit, .qor-page__edit .qor-fieldset__delete {
+  display: block; }
+
+.qor-page__edit .qor-fieldset__add {
   display: inline-block; }
 
 .qor-field {
@@ -621,7 +624,7 @@ a {
   position: relative;
   margin-top: 16px;
   margin-bottom: 16px;
-  padding: 8px 24px;
+  padding: 16px 32px;
   border: 1px solid rgba(0,0,0, 0.12);
   background-color: rgb(250,250,250); }
 
