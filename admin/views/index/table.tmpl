@@ -30,15 +30,15 @@
           </button>
           <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="actions-for-{{$primaryKey}}">
             {{if has_update_permission $resource}}
-            <li class="mdl-menu__item">
-              <a class="mdl-button--icon qor-button--muted qor-action--edit" data-url="{{url_for $result $resource}}/edit" href="{{url_for $result $resource}}/edit">
+            <li class="mdl-menu__item" qor-icon-name="Edit">
+              <a class="qor-button--edit" data-url="{{url_for $result $resource}}/edit" href="{{url_for $result $resource}}/edit">
               {{t "Edit"}}
               </a>
             </li>
             {{end}}
             {{if has_delete_permission $resource}}
-            <li class="mdl-menu__item">
-              <a class="mdl-button--icon qor-button--muted qor-action--delete" href="{{url_for $result $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
+            <li class="mdl-menu__item" qor-icon-name="Delete">
+              <a class="qor-button--delete" href="{{url_for $result $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
                 {{t "Delete"}}
               </a>
             </li>
