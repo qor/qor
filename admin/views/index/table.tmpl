@@ -1,4 +1,7 @@
 {{$resource := .Resource}}
+{{$has_update_permission := has_update_permission $resource}}
+{{$has_delete_permission := has_delete_permission $resource}}
+
 <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp qor-table qor-js-table">
   <thead>
     <tr>
@@ -24,22 +27,31 @@
             <div class="qor-table__content" title="{{$value}}">{{$value}}</div>
           </td>
         {{end}}
+
         <td class="mdl-data-table__cell--non-numeric qor-table__actions">
           <button id="actions-for-{{$primaryKey}}" class="mdl-button mdl-js-button mdl-button--icon qor-button--actions">
             <i class="material-icons">more_vert</i>
           </button>
+
           <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="actions-for-{{$primaryKey}}">
-            {{if has_update_permission $resource}}
+            {{if $has_update_permission}}
             <li class="mdl-menu__item" qor-icon-name="Edit">
               <a class="qor-action--edit" data-url="{{url_for $result $resource}}/edit" href="{{url_for $result $resource}}/edit">
               {{t "Edit"}}
               </a>
             </li>
             {{end}}
-            {{if has_delete_permission $resource}}
+            {{if $has_delete_permission}}
             <li class="mdl-menu__item" qor-icon-name="Delete">
               <a class="qor-action--delete" href="{{url_for $result $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
                 {{t "Delete"}}
+              </a>
+            </li>
+            {{end}}
+            {{range $action := $resource.Actions}}
+            <li class="mdl-menu__item" qor-icon-name="{{$action.Name}}">
+              <a href="{{url_for $result $resource}}/{{$action.ToParam}}" data-method="PUT">
+                {{t $action.Name}}
               </a>
             </li>
             {{end}}

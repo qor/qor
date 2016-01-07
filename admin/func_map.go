@@ -672,7 +672,7 @@ func (context *Context) getFormattedErrors() (formatedErrors []formatedError) {
 
 func (context *Context) AllActions() []*Action {
 	var filterActions []*Action
-	for _, action := range context.Resource.actions {
+	for _, action := range context.Resource.Actions {
 		if len(action.Visibles) == 0 {
 			filterActions = append(filterActions, action)
 		} else {

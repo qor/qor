@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/qor/qor/utils"
 	"github.com/qor/roles"
 )
 
 func (res *Resource) Action(action *Action) {
-	res.actions = append(res.actions, action)
+	res.Actions = append(res.Actions, action)
 }
 
 type ActionArgument struct {
@@ -23,6 +24,10 @@ type Action struct {
 	Resource   *Resource
 	Permission *roles.Permission
 	Visibles   []string
+}
+
+func (action Action) ToParam() string {
+	return utils.ToParamString(action.Name)
 }
 
 func (arg *ActionArgument) AllRecords() []interface{} {

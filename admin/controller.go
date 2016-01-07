@@ -176,7 +176,7 @@ func (ac *controller) Action(context *Context) {
 	paths := strings.Split(context.Request.URL.Path, "/")
 	name := paths[len(paths)-1]
 
-	for _, action := range context.Resource.actions {
+	for _, action := range context.Resource.Actions {
 		if action.Name == name {
 			err = action.Handle(&ActionArgument{
 				IDs:     context.Request.Form["IDs[]"],
@@ -207,7 +207,7 @@ func (ac *controller) ActionForm(context *Context) {
 	name := paths[len(paths)-2]
 
 	var action *Action
-	for _, act := range context.Resource.actions {
+	for _, act := range context.Resource.Actions {
 		if act.Name == name {
 			action = act
 		}

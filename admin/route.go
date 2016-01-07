@@ -165,7 +165,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 					})
 
 					// Action Form
-					for _, action := range res.actions {
+					for _, action := range res.Actions {
 						router.Get(path.Join(prefix, action.Name, "form"), controller.ActionForm, RouteConfig{
 							PermissionMode: roles.Update,
 							Resource:       res,
@@ -180,7 +180,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 			if mode == "update" {
 				// Action
-				for _, action := range res.actions {
+				for _, action := range res.Actions {
 					router.Post(path.Join(prefix, action.Name), controller.Action, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
