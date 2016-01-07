@@ -3613,6 +3613,7 @@ $.fn.qorSliderAfterShow = {};
   var CLASS_IS_SLIDED = 'is-slided';
   var CLASS_IS_SELECTED = 'is-selected';
   var CLASS_MAIN_CONTENT = '.mdl-layout__content.qor-page';
+  var CLASS_HEADER_LOCALE = '.qor-actions__locale';
 
   function QorSlideout(element, options) {
     this.$element = $(element);
@@ -3829,6 +3830,7 @@ $.fn.qorSliderAfterShow = {};
               $content.find('.qor-button--cancel').attr('data-dismiss', 'slideout').removeAttr('href');
               this.$title.html($response.find(options.title).html());
               this.$body.html($content.html());
+              this.$body.find(CLASS_HEADER_LOCALE).remove();
 
               this.$slideout.one(EVENT_SHOWN, function () {
 

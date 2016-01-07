@@ -95,7 +95,6 @@
   display: block;
   max-width: 100%;
   font-size: 12px;
-  line-height: 1;
   color: unquote("rgba(#{$color-black}, 0.54)");
 }
 
@@ -129,7 +128,7 @@
 
 .qor-page__show {
   .qor-field__show {
-    display: block;
+    display: inline-block;
   }
 
   .qor-field__edit, .qor-fieldset__delete, .qor-fieldset__add {
@@ -143,7 +142,7 @@
   }
 
   .qor-field__edit, .qor-fieldset__delete, .qor-fieldset__add {
-    display: block;
+    display: inline-block;
   }
 }
 
@@ -231,6 +230,7 @@
 .qor-file {
   position: relative;
   display: block;
+  margin-top: 8px;
 }
 
 .qor-file__list {

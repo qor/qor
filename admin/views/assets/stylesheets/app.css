@@ -491,7 +491,6 @@ a {
   display: block;
   max-width: 100%;
   font-size: 12px;
-  line-height: 1;
   color: rgba(0,0,0, 0.54); }
 
 .qor-field__value {
@@ -518,7 +517,7 @@ a {
   margin-bottom: 0; }
 
 .qor-page__show .qor-field__show {
-  display: block; }
+  display: inline-block; }
 
 .qor-page__show .qor-field__edit, .qor-page__show .qor-fieldset__delete, .qor-page__show .qor-fieldset__add {
   display: none; }
@@ -527,7 +526,7 @@ a {
   display: none; }
 
 .qor-page__edit .qor-field__edit, .qor-page__edit .qor-fieldset__delete, .qor-page__edit .qor-fieldset__add {
-  display: block; }
+  display: inline-block; }
 
 .qor-field {
   padding-top: 4px;
@@ -576,7 +575,8 @@ a {
 
 .qor-file {
   position: relative;
-  display: block; }
+  display: block;
+  margin-top: 8px; }
 
 .qor-file__list {
   overflow: hidden; }

@@ -65,4 +65,10 @@
 
 .qor-slideout__body {
   padding: 16px 24px;
+  .qor-page__header{
+    margin: -16px -24px 32px -24px;
+    &:empty{
+      display: none;
+    }
+  }
 }
