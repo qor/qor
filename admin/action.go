@@ -9,6 +9,9 @@ import (
 )
 
 func (res *Resource) Action(action *Action) {
+	if action.Label == "" {
+		action.Label = utils.HumanizeString(action.Name)
+	}
 	res.Actions = append(res.Actions, action)
 }
 

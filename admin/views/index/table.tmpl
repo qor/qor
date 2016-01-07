@@ -51,7 +51,7 @@
             {{range $action := $resource.Actions}}
             <li class="mdl-menu__item" qor-icon-name="{{$action.Name}}">
               <a data-url="{{url_for $result $resource}}/{{$action.ToParam}}" href="{{url_for $result $resource}}/{{$action.ToParam}}">
-                {{t $action.Name}}
+                {{t $action.Label}}
               </a>
             </li>
             {{end}}
