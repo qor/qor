@@ -141,12 +141,6 @@ func (context *Context) renderForm(value interface{}, sections []*Section) templ
 	return template.HTML(result.String())
 }
 
-func (context *Context) renderShow(value interface{}, sections []*Section) template.HTML {
-	var result = bytes.NewBufferString("")
-	context.renderSections(value, sections, []string{"QorResource"}, result, "form")
-	return template.HTML(result.String())
-}
-
 func (context *Context) renderSections(value interface{}, sections []*Section, prefix []string, writer *bytes.Buffer, kind string) {
 	for _, section := range sections {
 		var rows []struct {
@@ -217,7 +211,6 @@ func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []strin
 	}
 
 	funcsMap["render_form"] = generateNestedRenderSections("form")
-	funcsMap["render_show"] = generateNestedRenderSections("form")
 
 	if file, err := context.FindTemplate(fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Name), fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Type)); err == nil {
 		defer func() {
@@ -717,7 +710,6 @@ func (context *Context) FuncMap() template.FuncMap {
 
 		"render":      context.Render,
 		"render_form": context.renderForm,
-		"render_show": context.renderShow,
 		"render_index_meta": func(value interface{}, meta *Meta) template.HTML {
 			var result = bytes.NewBufferString("")
 			context.RenderMeta(meta, value, []string{}, "index", result)
