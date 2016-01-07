@@ -116,6 +116,26 @@
   display: none;
 }
 
+.qor-page__show {
+  .qor-field__show {
+    display: initial;
+  }
+
+  .qor-field__edit, .qor-fieldset__delete, .qor-fieldset__add {
+    display: none;
+  }
+}
+
+.qor-page__edit {
+  .qor-field__show {
+    display: none;
+  }
+
+  .qor-field__edit, .qor-fieldset__delete, .qor-fieldset__add {
+    display: initial;
+  }
+}
+
 .qor-field {
   padding-top: 4px;
   padding-bottom: 4px;
