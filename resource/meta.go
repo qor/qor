@@ -104,7 +104,7 @@ func (meta *Meta) SetPermission(permission *roles.Permission) {
 
 func (meta *Meta) PreInitialize() error {
 	if meta.Name == "" {
-		utils.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
+		utils.ExitWithMsg("Meta should have name: %v", reflect.TypeOf(meta))
 	} else if meta.FieldName == "" {
 		meta.FieldName = meta.Name
 	}

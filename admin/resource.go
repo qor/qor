@@ -54,7 +54,10 @@ func (res Resource) GetAdmin() *Admin {
 
 // GetPrimaryValue get priamry value from request
 func (res Resource) GetPrimaryValue(request *http.Request) string {
-	return request.URL.Query().Get(res.ParamIDName())
+	if request != nil {
+		return request.URL.Query().Get(res.ParamIDName())
+	}
+	return ""
 }
 
 // ParamIDName return param name for primary key like :product_id
