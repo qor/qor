@@ -8,11 +8,12 @@
         {{$dbName := $meta.DBName}}
         {{$is_sorted := eq $order_by $dbName}}
         {{$is_desc_sorted := eq $order_by (print $dbName "_desc")}}
-        <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$dbName}}_desc"{{else}}data-order-by="{{$dbName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $resource.ToParam $meta.Label) $meta.Label}}</th>
+        <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$dbName}}_desc"{{else}}data-order-by="{{$dbName}}"{{end}}{{end}}>{{meta_label $meta}}</th>
       {{end}}
       <th class="mdl-data-table__cell--non-numeric qor-table__actions"></th>
     </tr>
   </thead>
+
   <tbody>
     {{range $result := .Result}}
       {{$primaryKey := primary_key_of $result}}
