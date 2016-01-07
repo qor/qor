@@ -32,6 +32,7 @@ $.fn.qorSliderAfterShow = {};
   var CLASS_IS_SHOWN = 'is-shown';
   var CLASS_IS_SLIDED = 'is-slided';
   var CLASS_IS_SELECTED = 'is-selected';
+  var CLASS_MAIN_CONTENT = '.mdl-layout__content.qor-page';
 
   function QorSlideout(element, options) {
     this.$element = $(element);
@@ -239,11 +240,7 @@ $.fn.qorSliderAfterShow = {};
             if (method === 'GET') {
               $response = $(response);
 
-              if ($response.is(options.content)) {
-                $content = $response;
-              } else {
-                $content = $response.find(options.content);
-              }
+              $content = $response.find(CLASS_MAIN_CONTENT);
 
               if (!$content.length) {
                 return;
@@ -426,7 +423,6 @@ $.fn.qorSliderAfterShow = {};
     var selector = '.qor-theme-slideout';
     var options = {
           title: '.qor-form-title, .mdl-layout-title',
-          content: '.qor-form-container',
           afterShow: $.fn.qorSliderAfterShow ? $.fn.qorSliderAfterShow : null
         };
 

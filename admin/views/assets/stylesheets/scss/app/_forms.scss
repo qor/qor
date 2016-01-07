@@ -11,9 +11,11 @@
   background-color: #fff;
   @include shadow-2dp();
 }
-
-.qor-form {}
-
+.qor-slideout__body .qor-form-container{
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+}
 .qor-form__actions {
   margin-top: 24px;
   @include clearfix();
@@ -92,8 +94,8 @@
 .qor-field__label {
   display: block;
   max-width: 100%;
-  margin-bottom: 8px;
   font-size: 12px;
+  line-height: 1;
   color: unquote("rgba(#{$color-black}, 0.54)");
 }
 
@@ -112,13 +114,22 @@
   position: relative;
 }
 
+.chosen-container{
+  margin-top: 8px;
+}
+
 .qor-field__show {
   display: none;
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+[data-upgraded] > .qor-field__show{
+  margin-bottom: 0;
 }
 
 .qor-page__show {
   .qor-field__show {
-    display: initial;
+    display: block;
   }
 
   .qor-field__edit, .qor-fieldset__delete, .qor-fieldset__add {
@@ -132,7 +143,7 @@
   }
 
   .qor-field__edit, .qor-fieldset__delete, .qor-fieldset__add {
-    display: initial;
+    display: block;
   }
 }
 

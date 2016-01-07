@@ -12,9 +12,9 @@
 
   <div class="qor-form-container">
     {{if has_update_permission .Resource}}
-      <button class="mdl-button mdl-button--fab mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--edit" data-url="{{url_for .Result .Resource}}/edit">
+      <a href="{{url_for .Result .Resource}}/edit" class="mdl-button mdl-button--fab mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--edit" data-url="{{url_for .Result .Resource}}/edit">
         <i class="material-icons">edit</i>
-      </button>
+      </a>
     {{end}}
 
     <form class="qor-form" action="{{url_for .Result .Resource}}" method="POST" enctype="multipart/form-data">
