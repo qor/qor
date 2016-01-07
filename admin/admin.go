@@ -102,7 +102,9 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 
 	findOneHandler := res.FindOneHandler
 	res.FindOneHandler = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
-		context.ResourceID = res.GetPrimaryValue(context.Request)
+		if context.ResourceID == "" {
+			context.ResourceID = res.GetPrimaryValue(context.Request)
+		}
 		return findOneHandler(result, metaValues, context)
 	}
 
