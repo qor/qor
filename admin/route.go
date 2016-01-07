@@ -163,38 +163,41 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 						PermissionMode: roles.Read,
 						Resource:       res,
 					})
+
+					// Action Form
+					for _, action := range res.actions {
+						router.Get(path.Join(prefix, action.Name, "form"), controller.ActionForm, RouteConfig{
+							PermissionMode: roles.Update,
+							Resource:       res,
+						})
+						router.Get(path.Join(prefix, primaryKey, action.Name, "form"), controller.ActionForm, RouteConfig{
+							PermissionMode: roles.Update,
+							Resource:       res,
+						})
+					}
 				}
 			}
 
 			if mode == "update" {
+				// Action
+				for _, action := range res.actions {
+					router.Post(path.Join(prefix, action.Name), controller.Action, RouteConfig{
+						PermissionMode: roles.Update,
+						Resource:       res,
+					})
+				}
 				if res.Config.Singleton {
 					// Update
 					router.Put(prefix, controller.Update, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
-
-					// Action
-					for _, action := range res.actions {
-						router.Post(path.Join(prefix, action.Name), controller.Action, RouteConfig{
-							PermissionMode: roles.Update,
-							Resource:       res,
-						})
-					}
 				} else {
 					// Edit
 					router.Get(path.Join(prefix, primaryKey, "edit"), controller.Edit, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
-
-					// Collection Action
-					for _, action := range res.actions {
-						// /admin/products/disabled
-						router.Post(path.Join(prefix, action.Name), controller.Action, RouteConfig{
-							Resource: res,
-						})
-					}
 
 					// Update
 					router.Post(path.Join(prefix, primaryKey), controller.Update, RouteConfig{
@@ -205,14 +208,6 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
-
-					// Action
-					for _, action := range res.actions {
-						router.Post(path.Join(prefix, primaryKey, action.Name), controller.Action, RouteConfig{
-							PermissionMode: roles.Update,
-							Resource:       res,
-						})
-					}
 				}
 			}
 

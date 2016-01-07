@@ -202,6 +202,22 @@ func (ac *controller) Action(context *Context) {
 	}).Respond(context.Request)
 }
 
+func (ac *controller) ActionForm(context *Context) {
+	paths := strings.Split(context.Request.URL.Path, "/")
+	name := paths[len(paths)-2]
+
+	var action *Action
+	for _, act := range context.Resource.actions {
+		if act.Name == name {
+			action = act
+		}
+	}
+
+	responder.With("html", func() {
+		context.Execute("actions/shared/form", action)
+	}).Respond(context.Request)
+}
+
 func (ac *controller) Asset(context *Context) {
 	file := strings.TrimPrefix(context.Request.URL.Path, ac.GetRouter().Prefix)
 	if filename, err := context.findFile(file); err == nil {
