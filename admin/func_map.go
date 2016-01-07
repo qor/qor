@@ -143,7 +143,7 @@ func (context *Context) renderForm(value interface{}, sections []*Section) templ
 
 func (context *Context) renderShow(value interface{}, sections []*Section) template.HTML {
 	var result = bytes.NewBufferString("")
-	context.renderSections(value, sections, []string{"QorResource"}, result, "show")
+	context.renderSections(value, sections, []string{"QorResource"}, result, "form")
 	return template.HTML(result.String())
 }
 
@@ -217,7 +217,7 @@ func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []strin
 	}
 
 	funcsMap["render_form"] = generateNestedRenderSections("form")
-	funcsMap["render_show"] = generateNestedRenderSections("show")
+	funcsMap["render_show"] = generateNestedRenderSections("form")
 
 	if file, err := context.FindTemplate(fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Name), fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Type)); err == nil {
 		defer func() {
