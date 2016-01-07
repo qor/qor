@@ -809,8 +809,10 @@ a {
 [qor-icon-name="Delete"] > a::before {
   content: "\e872"; }
 
-[qor-icon-name="Edit"] > a::before {
-  content: "\e254"; }
+[qor-icon-name="Edit"] {
+  border-bottom: 1px solid rgba(0,0,0, 0.12); }
+  [qor-icon-name="Edit"] > a::before {
+    content: "\e254"; }
 
 /*sidebar menu*/
 .qor-menu-container > ul > li[qor-icon-name] > a::before, .qor-menu-container > ul > li[qor-icon-name] > a::after {
