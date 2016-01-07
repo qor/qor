@@ -185,12 +185,6 @@ func (context *Context) renderSections(value interface{}, sections []*Section, p
 }
 
 func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []string, metaType string, writer *bytes.Buffer) {
-	defer func() {
-		if r := recover(); r != nil {
-			writer.Write([]byte(fmt.Sprintf("Get error when render meta %v: %v", meta.Name, r)))
-		}
-	}()
-
 	var (
 		tmpl     *template.Template
 		err      error
@@ -226,6 +220,12 @@ func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []strin
 	funcsMap["render_show"] = generateNestedRenderSections("show")
 
 	if file, err := context.FindTemplate(fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Name), fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Type)); err == nil {
+		defer func() {
+			if r := recover(); r != nil {
+				writer.Write([]byte(fmt.Sprintf("Get error when render template %v meta %v: %v", file, meta.Name, r)))
+			}
+		}()
+
 		tmpl, err = template.New(filepath.Base(file)).Funcs(funcsMap).ParseFiles(file)
 	} else {
 		tmpl, err = template.New(meta.Type + ".tmpl").Funcs(funcsMap).Parse("{{.Value}}")
