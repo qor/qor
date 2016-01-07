@@ -719,6 +719,8 @@ a {
 
 .qor-table__actions {
   text-align: center !important; }
+  .qor-table__actions .mdl-menu {
+    min-width: 160px; }
   .qor-table__actions .mdl-button {
     margin: -4px 0; }
     .qor-table__actions .mdl-button + .mdl-button {
@@ -788,12 +790,12 @@ a {
 
 [qor-icon-name] > a {
   display: block;
-  padding: 0 16px 0 40px;
+  padding: 0 20px 0 54px;
   position: relative; }
   [qor-icon-name] > a::before, [qor-icon-name] > a::after {
     position: absolute;
     top: 11px;
-    left: 8px;
+    left: 20px;
     width: 24px;
     height: 24px;
     font-size: 18px;

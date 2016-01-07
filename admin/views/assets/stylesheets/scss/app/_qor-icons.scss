@@ -1,13 +1,13 @@
 [qor-icon-name]{
   > a{
     display: block;
-    padding: 0 16px 0 40px;
+    padding: 0 20px 0 54px;
     position: relative;
     &::before,
     &::after {
       position: absolute;
       top: 11px;
-      left: 8px;
+      left: 20px;
       width: 24px;
       height: 24px;
       font-size: 18px;
