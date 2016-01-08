@@ -66,6 +66,10 @@
 .qor-table-container {
   position: relative;
   margin: 24px;
-  overflow: visible;
+  overflow-y: hidden;
+  overflow-x: auto;
   @include shadow-2dp();
+  &.with-menu{
+    overflow: visible;
+  }
 }
