@@ -126,7 +126,6 @@ $.fn.qorSliderAfterShow = {};
           // only load when not under loading and not activated
           if (!this.loading && !$target.hasClass(CLASS_IS_SELECTED)) {
             $this.one(EVENT_SHOW, toggleClass);
-            e.preventDefault();
             data = $target.data();
             this.load(data.url, data);
           }
@@ -285,15 +284,16 @@ $.fn.qorSliderAfterShow = {};
               }
             }
           }, this),
-          error: $.proxy(function (response) {
-            if ($(".qor-error span").size() > 0) {
-              var errors = $(".qor-error span").map(function(){
+          error: $.proxy (function (response) {
+            var errors;
+            if ($('.qor-error span').size() > 0) {
+              errors = $('.qor-error span').map(function () {
                 return $(this).text();
-              }).get().join(", ");
+              }).get().join(', ');
             } else {
-              var errors = response.responseText;
+              errors = response.responseText;
             }
-            alert(response.responseText);
+            window.alert(response.responseText);
           }, this),
           complete: $.proxy(function () {
             this.loading = false;

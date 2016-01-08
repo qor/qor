@@ -78,7 +78,7 @@
 
     submit : function (e) {
       var $form = $(e.target);
-      if ($form.data('mode') == 'index') {
+      if ($form.data('mode') === 'index') {
         $.proxy(this.appendCheckInputs, $form)();
       }
       var $submit = $form.find('button');
