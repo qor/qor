@@ -227,7 +227,7 @@ func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []strin
 			"Meta":          meta,
 		}
 
-		if meta.GetCollection != nil {
+		if meta.GetCollection != nil && metaType == "form" {
 			data["CollectionValue"] = meta.GetCollection(value, context.Context)
 		}
 
