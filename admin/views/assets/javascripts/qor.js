@@ -3865,6 +3865,16 @@ $.fn.qorSliderAfterShow = {};
               }
             }
           }, this),
+          error: $.proxy(function (response) {
+            if ($(".qor-error span").size() > 0) {
+              var errors = $(".qor-error span").map(function(){
+                return $(this).text();
+              }).get().join(", ");
+            } else {
+              var errors = response.responseText;
+            }
+            alert(response.responseText);
+          }, this),
           complete: $.proxy(function () {
             this.loading = false;
           }, this),
