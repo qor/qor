@@ -127,7 +127,7 @@ $.fn.qorSliderAfterShow = {};
           if (!this.loading && !$target.hasClass(CLASS_IS_SELECTED)) {
             $this.one(EVENT_SHOW, toggleClass);
             data = $target.data();
-            this.load(data.url, data);
+            this.load(data.url);
           }
           break;
         } else if ($target.data('url')) {
@@ -219,6 +219,7 @@ $.fn.qorSliderAfterShow = {};
     load: function (url, data) {
       var options = this.options;
       var method;
+      var data_type;
       var load;
 
       if (!url || this.loading) {
@@ -227,12 +228,19 @@ $.fn.qorSliderAfterShow = {};
 
       this.loading = true;
       data = $.isPlainObject(data) ? data : {};
+
       method = data.method ? data.method : 'GET';
+      data_type = data.data_type ? data.data_type : 'html';
+
+      delete data['url'];
+      delete data['method'];
+      delete data['data_type'];
 
       load = $.proxy(function () {
         $.ajax(url, {
           method: method,
           data: data,
+          dataType: data_type,
           success: $.proxy(function (response) {
             var $response;
             var $content;
