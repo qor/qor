@@ -670,20 +670,20 @@ func (context *Context) getFormattedErrors() (formatedErrors []formatedError) {
 	return
 }
 
-func (context *Context) AllActions() []*Action {
-	var filterActions []*Action
-	for _, action := range context.Resource.Actions {
+func (context *Context) AllowedActions(actions []*Action, mode string) []*Action {
+	var allowedActions []*Action
+	for _, action := range actions {
 		if len(action.Visibles) == 0 {
-			filterActions = append(filterActions, action)
+			allowedActions = append(allowedActions, action)
 		} else {
 			for _, v := range action.Visibles {
-				if v == context.Action {
-					filterActions = append(filterActions, action)
+				if v == mode {
+					allowedActions = append(allowedActions, action)
 				}
 			}
 		}
 	}
-	return filterActions
+	return allowedActions
 }
 
 func (context *Context) FuncMap() template.FuncMap {
@@ -729,6 +729,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"load_admin_stylesheets": context.loadAdminStyleSheets,
 		"load_admin_javascripts": context.loadAdminJavaScripts,
 		"load_actions":           context.loadActions,
+		"allowed_actions":        context.AllowedActions,
 		"pagination":             context.Pagination,
 
 		"meta_label": func(meta *Meta) template.HTML {

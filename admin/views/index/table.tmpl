@@ -48,7 +48,7 @@
               </a>
             </li>
             {{end}}
-            {{range $action := $resource.Actions}}
+            {{range $action := (allowed_actions $resource.Actions "menu_item")}}
             <li class="mdl-menu__item" qor-icon-name="{{$action.Name}}">
               <a data-url="{{url_for $result $resource}}/{{$action.ToParam}}" href="{{url_for $result $resource}}/{{$action.ToParam}}" {{if not $action.Resource}}data-data_type="json" data-confirm="{{t "Are you sure?"}}" data-method="PUT"{{end}}>
                 {{t $action.Label}}
