@@ -143,15 +143,22 @@ $(function () {
     }
   });
 
+  // @Jason weng
+  // Reset dropdown menu position in MDL Table
+  // Normal is Bottom Right
+  // If button top position + dropdown menu height > table height
+  // will display dropdown as Top Right
   $('td > .qor-button--actions').on('mouseover',function(){
       var $this = $(this);
-      var viewHeight = $(window).height();
-      var buttonOffsetTop = $this.offset().top;
+      var tableHeight = $this.closest("table").height();
+      var buttonTop = $this.closest("td").position().top;
       var $buttonDropdown = $this.closest("td").find('.mdl-menu');
+      var isNeedChangePosition = buttonTop + $buttonDropdown.height() > tableHeight * 0.9;
+
       var CLASS_TOP = 'mdl-menu--top-right';
       var CLASS_BOTTOM = 'mdl-menu--bottom-right';
 
-      if (buttonOffsetTop > viewHeight * 0.6){
+      if (isNeedChangePosition){
         if ($this.hasClass(CLASS_TOP)){
           return;
         }

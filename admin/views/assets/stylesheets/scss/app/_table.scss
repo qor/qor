@@ -5,6 +5,10 @@
     color: unquote("rgba(#{$color-black}, 0.54)");
   }
 
+  tbody tr{
+    position: static;
+  }
+
   img {
     width: auto !important;
     height: 24px !important;

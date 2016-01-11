@@ -690,6 +690,8 @@ a {
   width: 100%; }
   .qor-table a:not([class*="mdl-button"]) {
     color: rgba(0,0,0, 0.54); }
+  .qor-table tbody tr {
+    position: static; }
   .qor-table img {
     width: auto !important;
     height: 24px !important; }
