@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/qor/qor"
 	"github.com/qor/qor/utils"
 	"github.com/qor/roles"
 )
@@ -32,6 +33,13 @@ type Action struct {
 
 func (action Action) ToParam() string {
 	return utils.ToParamString(action.Name)
+}
+
+func (action Action) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
+	if action.Permission == nil {
+		return true
+	}
+	return action.Permission.HasPermission(mode, context.Roles...)
 }
 
 func (actionArgument *ActionArgument) FindSelectedRecords() []interface{} {
