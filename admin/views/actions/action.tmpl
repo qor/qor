@@ -5,7 +5,7 @@
   <div class="qor-actions qor-js-action">
     <select class="qor-js-selector qor-action--select qor-actions" data-toggle="qor.selector" data-clearable="true" name="action_mode" placeholder="{{t "Action"}}">
       {{range $allowed_actions}}
-        <option {{if (eq $action_mode .Name)}}selected{{end}} value="{{.Name}}">{{t .Label}}</option>
+        <option {{if (eq $action_mode .Name)}}selected{{end}} value="{{.ToParam}}">{{t .Label}}</option>
       {{end}}
     </select>
   </div>
@@ -13,7 +13,7 @@
 
   <div class="qor-action-wrap">
     {{range $allowed_actions}}
-      <div class="qor-js-form action-form" data-action="{{.Name}}" style="display:none;padding-top:54px;">
+      <div class="qor-js-form action-form" data-action="{{.ToParam}}" style="display:none;padding-top:54px;">
         <form action="/admin/{{$context.Resource.ToParam}}/{{.Name}}" method="POST" enctype="multipart/form-data" data-mode="{{$context.Action}}">
           {{if or (eq $context.Action "edit") (eq $context.Action "show") }}
             <input type="hidden" name="IDs[]" value="{{$context.Resource.GetPrimaryValue $context.Request}}" />
