@@ -196,7 +196,7 @@ func (ac *controller) Action(context *Context) {
 			responder.With("html", func() {
 				http.Redirect(context.Writer, context.Request, context.Request.Referer(), http.StatusFound)
 			}).With("json", func() {
-				context.Writer.Write([]byte("OK"))
+				context.JSON("OK", map[string]string{"redirect": context.Request.Referer(), "status": "ok"})
 			}).Respond(context.Request)
 		} else {
 			context.Writer.WriteHeader(HTTPUnprocessableEntity)

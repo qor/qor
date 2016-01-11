@@ -22,10 +22,12 @@
 
       {{render_form .Result show_sections}}
 
-      <div class="qor-form__actions qor-field__edit">
-        <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Save Changes"}}</button>
-        <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "Cancel Edit"}}</a>
-      </div>
+      {{if has_update_permission .Resource}}
+        <div class="qor-form__actions qor-field__edit">
+          <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Save Changes"}}</button>
+          <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "Cancel Edit"}}</a>
+        </div>
+      {{end}}
     </form>
   </div>
 </div>
