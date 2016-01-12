@@ -5,6 +5,10 @@
     color: unquote("rgba(#{$color-black}, 0.54)");
   }
 
+  tbody tr{
+    position: static;
+  }
+
   img {
     width: auto !important;
     height: 24px !important;
@@ -48,19 +52,28 @@
 
 .qor-table__actions {
   text-align: center !important;
-
+  .mdl-menu{
+    min-width: 160px;
+  }
   .mdl-button {
     margin: -4px 0;
-
     + .mdl-button {
       margin-left: 8px;
     }
+  }
+  .mdl-menu__item a{
+    color: unquote("rgba(#{$color-black}, 0.87)");
+    text-decoration: none;
   }
 }
 
 .qor-table-container {
   position: relative;
   margin: 24px;
+  overflow-y: hidden;
   overflow-x: auto;
   @include shadow-2dp();
+  &.with-menu{
+    overflow: visible;
+  }
 }

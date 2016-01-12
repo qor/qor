@@ -77,7 +77,7 @@
     parse: function (hasIndex) {
       var i = 0;
       if (!this.template){
-        return
+        return;
       }
 
       this.template = this.template.replace(/(\w+)\="(\S*\[\d+\]\S*)"/g, function (attribute, name, value) {

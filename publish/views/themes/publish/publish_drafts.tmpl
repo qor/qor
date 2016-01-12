@@ -41,7 +41,7 @@
           <tbody>
             {{range $record := $records}}
             {{$key := publish_unique_key $res $record $context}}
-            <tr{{if $record.DeletedAt}} class="is-deleted"{{end}} data-primary-key="{{$key}}">
+            <tr{{if $record.DeletedAt}} class="is-deleted"{{end}} data-primary-key="{{$key}}" data-url="{{url_for $resource}}/diff/{{$key}}">
               <td>
                 <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
                   <input type="checkbox" class="mdl-checkbox__input" name="checked_ids[]" value="{{$key}}">
