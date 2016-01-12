@@ -70,8 +70,9 @@
       var $target = $(e.target);
 
       if ($target.is('.qor-js-selector')) {
-        $('.qor-action-wrap .qor-js-form').hide();
-        $('.qor-action-wrap .qor-js-form[data-action="' + $target.val() + '"]').show();
+        var $scoped = $target.parents('.qor-slideout').get(0) ? $target.parents('.qor-slideout') : $('body');
+        $scoped.find('.qor-action-wrap .qor-js-form').hide();
+        $scoped.find('.qor-action-wrap .qor-js-form[data-action="' + $target.val() + '"]').show();
         $.proxy(this.appendCheckbox, $target)();
       }
     },
@@ -165,10 +166,10 @@
 
     appendCheckInputs: function () {
       var $form = $(this);
-      $form.find('input[type="hidden"]').remove();
+      $form.find('input.js-primary-value').remove();
       $('.qor-page__body .mdl-checkbox__input:checked').each(function (i, e) {
         var id = $(e).parents('tr').data('primary-key');
-        $form.prepend('<input type="hidden" name="IDs[]" value="' + id + '" />');
+        $form.prepend('<input class="js-primary-value" type="hidden" name="primary_values[]" value="' + id + '" />');
       });
     }
   };

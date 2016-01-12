@@ -219,7 +219,7 @@ $.fn.qorSliderAfterShow = {};
     load: function (url, data) {
       var options = this.options;
       var method;
-      var data_type;
+      var dataType;
       var load;
 
       if (!url || this.loading) {
@@ -230,17 +230,17 @@ $.fn.qorSliderAfterShow = {};
       data = $.isPlainObject(data) ? data : {};
 
       method = data.method ? data.method : 'GET';
-      data_type = data.data_type ? data.data_type : 'html';
+      dataType = data.datatype ? data.datatype : 'html';
 
-      delete data['url'];
-      delete data['method'];
-      delete data['data_type'];
+      delete data.url;
+      delete data.method;
+      delete data.datatype;
 
       load = $.proxy(function () {
         $.ajax(url, {
           method: method,
           data: data,
-          dataType: data_type,
+          dataType: dataType,
           success: $.proxy(function (response) {
             var $response;
             var $content;

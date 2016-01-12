@@ -14,9 +14,10 @@
   <div class="qor-action-wrap">
     {{range $allowed_actions}}
       <div class="qor-js-form action-form" data-action="{{.ToParam}}" style="display:none;padding-top:54px;">
-        <form action="/admin/{{$context.Resource.ToParam}}/{{.Name}}" method="POST" enctype="multipart/form-data" data-mode="{{$context.Action}}">
+        <form action="/admin/{{$context.Resource.ToParam}}/{{.ToParam}}" method="POST" enctype="multipart/form-data" data-mode="{{$context.Action}}">
+          <input name="_method" value="PUT" type="hidden">
           {{if or (eq $context.Action "edit") (eq $context.Action "show") }}
-            <input type="hidden" name="IDs[]" value="{{$context.Resource.GetPrimaryValue $context.Request}}" />
+            <input type="hidden" name="primary_values[]" value="{{$context.Resource.GetPrimaryValue $context.Request}}" />
           {{end}}
 
           {{if .Resource}}
