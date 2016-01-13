@@ -1,6 +1,10 @@
 .qor-layout {
   width: 100%;
 
+  .mdl-layout__content{
+    overflow: auto;
+  }
+
   .mdl-layout-text {
     color: unquote("rgba(#{$color-white}, 0.54)");
   }
@@ -96,13 +100,21 @@
 }
 
 .qor-page__header {
-  position: relative;
+  position: fixed;
   min-height: 40px;
   margin-bottom: 24px;
   padding: 8px 24px;
+  width: calc(100% - 300px);
   background-color: #fff;
+  z-index: 2;
   @include shadow-2dp();
   @include clearfix();
+  + .qor-page__body{
+    padding-top: 80px;
+    .qor-table-container{
+      margin-top: 0;
+    }
+  }
 }
 
 .qor-page__body {
