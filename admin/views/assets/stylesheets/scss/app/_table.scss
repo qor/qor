@@ -1,5 +1,6 @@
 .qor-table {
   width: 100%;
+  margin: 0 24px;
 
   a:not([class*="mdl-button"]) {
     color: unquote("rgba(#{$color-black}, 0.54)");
@@ -69,11 +70,5 @@
 
 .qor-table-container {
   position: relative;
-  margin: 24px;
-  overflow-y: hidden;
-  overflow-x: auto;
-  @include shadow-2dp();
-  &.with-menu{
-    overflow: visible;
-  }
+  margin-top: 24px;
 }
