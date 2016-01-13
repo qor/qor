@@ -1,6 +1,8 @@
 {{$resource := .Resource}}
 {{$has_update_permission := has_update_permission $resource}}
 {{$has_delete_permission := has_delete_permission $resource}}
+{{$allowed_actions := allowed_actions $resource.Actions "menu_item"}}
+{{$has_actions := not (and (not $has_update_permission) (not $has_delete_permission) (not $allowed_actions))}}
 
 <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp qor-table qor-js-table">
   <thead>
@@ -29,6 +31,7 @@
         {{end}}
 
         <td class="mdl-data-table__cell--non-numeric qor-table__actions">
+          {{if $has_actions}}
           <button id="actions-for-{{$primaryKey}}" class="mdl-button mdl-js-button mdl-button--icon qor-button--actions">
             <i class="material-icons">more_vert</i>
           </button>
@@ -37,7 +40,7 @@
             {{if $has_update_permission}}
             <li class="mdl-menu__item" qor-icon-name="Edit">
               <a class="qor-action--edit" data-url="{{url_for $result $resource}}/edit" href="{{url_for $result $resource}}/edit">
-              {{t "Edit"}}
+                {{t "Edit"}}
               </a>
             </li>
             {{end}}
@@ -48,7 +51,7 @@
               </a>
             </li>
             {{end}}
-            {{range $action := (allowed_actions $resource.Actions "menu_item")}}
+            {{range $action := $allowed_actions}}
             <li class="mdl-menu__item" qor-icon-name="{{$action.Name}}">
               <a data-url="{{url_for $result $resource}}/{{$action.ToParam}}" href="{{url_for $result $resource}}/{{$action.ToParam}}" {{if not $action.Resource}}data-dataType="json" data-confirm="{{t "Are you sure?"}}" data-method="PUT"{{end}}>
                 {{t $action.Label}}
@@ -56,6 +59,7 @@
             </li>
             {{end}}
           </ul>
+          {{end}}
         </td>
       </tr>
     {{end}}
