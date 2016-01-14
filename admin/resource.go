@@ -130,7 +130,7 @@ func (res *Resource) convertObjectToJSONMap(context *Context, value interface{},
 	}
 }
 
-func (res *Resource) allAttrs() []string {
+func (res *Resource) allAttrs(exculdeFields ...string) []string {
 	var attrs []string
 	scope := &gorm.Scope{Value: res.Value}
 
@@ -147,7 +147,7 @@ Fields:
 			continue
 		}
 
-		for _, value := range []string{"CreatedAt", "UpdatedAt", "DeletedAt"} {
+		for _, value := range exculdeFields {
 			if value == field.Name {
 				continue Fields
 			}
@@ -169,24 +169,6 @@ MetaIncluded:
 	}
 
 	return attrs
-}
-
-func (res *Resource) getAttrs(attrs []string) []string {
-	if len(attrs) == 0 {
-		return res.allAttrs()
-	} else {
-		var onlyExcludeAttrs = true
-		for _, attr := range attrs {
-			if !strings.HasPrefix(attr, "-") {
-				onlyExcludeAttrs = false
-				break
-			}
-		}
-		if onlyExcludeAttrs {
-			return append(res.allAttrs(), attrs...)
-		}
-		return attrs
-	}
 }
 
 func (res *Resource) IndexAttrs(values ...interface{}) []*Section {
