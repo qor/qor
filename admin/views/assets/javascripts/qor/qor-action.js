@@ -73,6 +73,12 @@
         var $scoped = $target.parents('.qor-slideout').get(0) ? $target.parents('.qor-slideout') : $('body');
         $scoped.find('.qor-action-wrap .qor-js-form').hide();
         $scoped.find('.qor-action-wrap .qor-js-form[data-action="' + $target.val() + '"]').show();
+
+        if (!$target.parents('.qor-slideout').get(0)){
+          var actionWrapHeight = $('.qor-page__header').outerHeight() + 24;
+          $('.qor-page__body').css({ 'padding-top':actionWrapHeight });
+
+        }
         $.proxy(this.appendCheckbox, $target)();
       }
     },

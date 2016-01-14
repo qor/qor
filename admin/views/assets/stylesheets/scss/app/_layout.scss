@@ -95,18 +95,14 @@
           transition: left 0.35s ease;
 }
 
-.qor-page {
-
-}
-
 .qor-page__header {
   position: fixed;
   min-height: 40px;
   margin-bottom: 24px;
-  padding: 8px 24px;
-  width: calc(100% - 300px);
+  padding: 8px 24px 8px 26px;
+  width: calc(100% - 288px);
   background-color: #fff;
-  z-index: 2;
+  z-index: 999;
   @include shadow-2dp();
   @include clearfix();
   + .qor-page__body{
