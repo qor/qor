@@ -128,8 +128,9 @@ func (res *Resource) setSections(sections *[]*Section, values ...interface{}) {
 	if len(*sections) > 0 && len(values) == 0 {
 		return
 	}
+	var excludedColumns = []string{"CreatedAt", "UpdatedAt", "DeletedAt"}
 	if len(*sections) == 0 && len(values) == 0 {
-		*sections = res.generateSections(res.allAttrs())
+		*sections = res.generateSections(res.allAttrs(excludedColumns...))
 	} else {
 		var flattenValues []interface{}
 		for _, value := range values {
@@ -150,8 +151,10 @@ func (res *Resource) setSections(sections *[]*Section, values ...interface{}) {
 			}
 		}
 		if isContainsPositiveValue(flattenValues...) {
+			// Contains Positive attributes will not get attribute from allAttrs
 			*sections = res.generateSections(flattenValues...)
 		} else {
+			// All attributes are negative, will get attributes from allAttrs then minus negative attributes
 			var valueStrs []string
 			var availbleColumns []string
 			for _, value := range flattenValues {
@@ -160,7 +163,7 @@ func (res *Resource) setSections(sections *[]*Section, values ...interface{}) {
 				}
 			}
 
-			for _, column := range res.allAttrs() {
+			for _, column := range res.allAttrs(excludedColumns...) {
 				if !isContainsColumn(valueStrs, column) {
 					availbleColumns = append(availbleColumns, column)
 				}
