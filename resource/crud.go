@@ -6,18 +6,22 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
-	"github.com/qor/roles"
 	"github.com/qor/qor/utils"
+	"github.com/qor/roles"
 )
 
 func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, context *qor.Context) error {
 	if res.HasPermission(roles.Read, context) {
-		primaryField := res.PrimaryField()
-		scope := context.GetDB().NewScope(res.Value)
+		var (
+			scope        = context.GetDB().NewScope(res.Value)
+			primaryField = res.PrimaryField()
+			primaryKey   string
+		)
 
-		var primaryKey string
 		if metaValues == nil {
 			primaryKey = context.ResourceID
+		} else if primaryField == nil {
+			return nil
 		} else if id := metaValues.Get(primaryField.Name); id != nil {
 			primaryKey = utils.ToString(id.Value)
 		}

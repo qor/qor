@@ -102,9 +102,9 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 
 	admin.generateMenuLinks()
 
-	controller := &controller{admin}
-	router.Get("", controller.Dashboard)
-	router.Get("/!search", controller.SearchCenter)
+	adminController := &controller{Admin: admin}
+	router.Get("", adminController.Dashboard)
+	router.Get("/!search", adminController.SearchCenter)
 
 	var registerResourceToRouter func(*Resource, ...string)
 	registerResourceToRouter = func(res *Resource, modes ...string) {
@@ -131,13 +131,13 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 			if mode == "create" {
 				if !res.Config.Singleton {
 					// New
-					router.Get(path.Join(prefix, "new"), controller.New, RouteConfig{
+					router.Get(path.Join(prefix, "new"), adminController.New, RouteConfig{
 						PermissionMode: roles.Create,
 						Resource:       res,
 					})
 
 					// Create
-					router.Post(prefix, controller.Create, RouteConfig{
+					router.Post(prefix, adminController.Create, RouteConfig{
 						PermissionMode: roles.Create,
 						Resource:       res,
 					})
@@ -147,19 +147,19 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 			if mode == "read" {
 				if res.Config.Singleton {
 					// Index
-					router.Get(prefix, controller.Show, RouteConfig{
+					router.Get(prefix, adminController.Show, RouteConfig{
 						PermissionMode: roles.Read,
 						Resource:       res,
 					})
 				} else {
 					// Index
-					router.Get(prefix, controller.Index, RouteConfig{
+					router.Get(prefix, adminController.Index, RouteConfig{
 						PermissionMode: roles.Read,
 						Resource:       res,
 					})
 
 					// Show
-					router.Get(path.Join(prefix, primaryKey), controller.Show, RouteConfig{
+					router.Get(path.Join(prefix, primaryKey), adminController.Show, RouteConfig{
 						PermissionMode: roles.Read,
 						Resource:       res,
 					})
@@ -169,38 +169,48 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 			if mode == "update" {
 				if res.Config.Singleton {
 					// Update
-					router.Put(prefix, controller.Update, RouteConfig{
+					router.Put(prefix, adminController.Update, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
-
+				} else {
 					// Action
-					for _, action := range res.actions {
-						router.Post(path.Join(prefix, action.Name), controller.Action, RouteConfig{
+					for _, action := range res.Actions {
+						actionController := &controller{Admin: admin, action: action}
+						router.Get(path.Join(prefix, action.ToParam()), actionController.Action, RouteConfig{
+							PermissionMode: roles.Update,
+							Resource:       res,
+						})
+						router.Put(path.Join(prefix, action.ToParam()), actionController.Action, RouteConfig{
 							PermissionMode: roles.Update,
 							Resource:       res,
 						})
 					}
-				} else {
+
 					// Edit
-					router.Get(path.Join(prefix, primaryKey, "edit"), controller.Edit, RouteConfig{
+					router.Get(path.Join(prefix, primaryKey, "edit"), adminController.Edit, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
 
 					// Update
-					router.Post(path.Join(prefix, primaryKey), controller.Update, RouteConfig{
+					router.Post(path.Join(prefix, primaryKey), adminController.Update, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
-					router.Put(path.Join(prefix, primaryKey), controller.Update, RouteConfig{
+					router.Put(path.Join(prefix, primaryKey), adminController.Update, RouteConfig{
 						PermissionMode: roles.Update,
 						Resource:       res,
 					})
 
 					// Action
-					for _, action := range res.actions {
-						router.Post(path.Join(prefix, primaryKey, action.Name), controller.Action, RouteConfig{
+					for _, action := range res.Actions {
+						actionController := &controller{Admin: admin, action: action}
+						router.Get(path.Join(prefix, primaryKey, action.ToParam()), actionController.Action, RouteConfig{
+							PermissionMode: roles.Update,
+							Resource:       res,
+						})
+						router.Put(path.Join(prefix, primaryKey, action.ToParam()), actionController.Action, RouteConfig{
 							PermissionMode: roles.Update,
 							Resource:       res,
 						})
@@ -211,7 +221,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 			if mode == "delete" {
 				if !res.Config.Singleton {
 					// Delete
-					router.Delete(path.Join(prefix, primaryKey), controller.Delete, RouteConfig{
+					router.Delete(path.Join(prefix, primaryKey), adminController.Delete, RouteConfig{
 						PermissionMode: roles.Delete,
 						Resource:       res,
 					})
@@ -308,7 +318,7 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var context = admin.NewContext(w, req)
 
 	if regexp.MustCompile("^/assets/.*$").MatchString(relativePath) {
-		(&controller{admin}).Asset(context)
+		(&controller{Admin: admin}).Asset(context)
 		return
 	}
 

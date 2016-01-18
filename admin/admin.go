@@ -16,15 +16,16 @@ const (
 )
 
 type Admin struct {
-	Config          *qor.Config
-	SiteName        string
-	I18n            I18n
-	menus           []*Menu
-	resources       []*Resource
-	searchResources []*Resource
-	auth            Auth
-	router          *Router
-	funcMaps        template.FuncMap
+	Config           *qor.Config
+	SiteName         string
+	I18n             I18n
+	menus            []*Menu
+	resources        []*Resource
+	searchResources  []*Resource
+	auth             Auth
+	router           *Router
+	funcMaps         template.FuncMap
+	metaConfigorMaps map[string]func(*Meta)
 }
 
 type ResourceNamer interface {
@@ -33,9 +34,10 @@ type ResourceNamer interface {
 
 func New(config *qor.Config) *Admin {
 	admin := Admin{
-		funcMaps: make(template.FuncMap),
-		Config:   config,
-		router:   newRouter(),
+		funcMaps:         make(template.FuncMap),
+		Config:           config,
+		router:           newRouter(),
+		metaConfigorMaps: metaConfigorMaps,
 	}
 	return &admin
 }
@@ -48,6 +50,12 @@ func (admin *Admin) SetAuth(auth Auth) {
 	admin.auth = auth
 }
 
+// RegisterMetaConfigor register configor for a kind, it will be called when register those kind of metas
+func (admin *Admin) RegisterMetaConfigor(kind string, fc func(*Meta)) {
+	admin.metaConfigorMaps[kind] = fc
+}
+
+// RegisterFuncMap register view funcs, it could be used in view templates
 func (admin *Admin) RegisterFuncMap(name string, fc interface{}) {
 	admin.funcMaps[name] = fc
 }
@@ -102,7 +110,9 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 
 	findOneHandler := res.FindOneHandler
 	res.FindOneHandler = func(result interface{}, metaValues *resource.MetaValues, context *qor.Context) error {
-		context.ResourceID = res.GetPrimaryValue(context.Request)
+		if context.ResourceID == "" {
+			context.ResourceID = res.GetPrimaryValue(context.Request)
+		}
 		return findOneHandler(result, metaValues, context)
 	}
 

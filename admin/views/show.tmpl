@@ -5,14 +5,29 @@
 </div>
 {{end}}
 
-<div class="qor-page__body">
+<div class="qor-page__body qor-page__show">
 
   {{render "shared/flashes"}}
   {{render "shared/errors"}}
 
   <div class="qor-form-container">
+    {{if has_update_permission .Resource}}
+      <a href="{{url_for .Result .Resource}}/edit" class="mdl-button mdl-button--fab mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--edit" data-url="{{url_for .Result .Resource}}/edit">
+        <i class="material-icons">edit</i>
+      </a>
+    {{end}}
+
     <form class="qor-form" action="{{url_for .Result .Resource}}" method="POST" enctype="multipart/form-data">
+      <input name="_method" value="PUT" type="hidden">
+
       {{render_form .Result show_sections}}
+
+      {{if has_update_permission .Resource}}
+        <div class="qor-form__actions qor-field__edit">
+          <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Save Changes"}}</button>
+          <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "Cancel Edit"}}</a>
+        </div>
+      {{end}}
     </form>
   </div>
 </div>

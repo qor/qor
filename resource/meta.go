@@ -104,7 +104,7 @@ func (meta *Meta) SetPermission(permission *roles.Permission) {
 
 func (meta *Meta) PreInitialize() error {
 	if meta.Name == "" {
-		utils.ExitWithMsg("Meta should have name: %v", reflect.ValueOf(meta).Type())
+		utils.ExitWithMsg("Meta should have name: %v", reflect.TypeOf(meta))
 	} else if meta.FieldName == "" {
 		meta.FieldName = meta.Name
 	}
@@ -171,11 +171,7 @@ func (meta *Meta) Initialize() error {
 						context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.FieldName)
 					}
 
-					if f.Field.CanAddr() {
-						return f.Field.Addr().Interface()
-					} else {
-						return f.Field.Interface()
-					}
+					return f.Field.Interface()
 				}
 
 				return ""
