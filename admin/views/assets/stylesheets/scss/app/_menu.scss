@@ -63,68 +63,11 @@
 
       &::before {
         left: 8px;
-        content: "\e5d2";
       }
 
       &::after {
         right: 8px;
       }
-    }
-
-    > [data-menu-item*="Dashboard"] > a::before {
-      content: "\e871";
-    }
-
-    > [data-menu-item*="Asset"] > a::before {
-      content: "\e2c7";
-    }
-
-    > [data-menu-item*="Product"] > a::before {
-      content: "\e1db";
-    }
-
-    > [data-menu-item*="Site"] > a::before {
-      content: "\e051";
-    }
-
-    > [data-menu-item*="Store"] > a::before {
-      content: "\e8d1";
-    }
-
-    > [data-menu-item*="Newsletter"] > a::before, > [data-menu-item*="Email"] > a::before {
-      content: "\e0be";
-    }
-
-    > [data-menu-item*="Translate"] > a::before, > [data-menu-item*="Translation"] > a::before {
-      content: "\e8e2";
-    }
-
-    > [data-menu-item*="Report"] > a::before, > [data-menu-item*="Chart"] > a::before {
-      content: "\e24b";
-    }
-
-    > [data-menu-item*="Order"] > a::before {
-      content: "\e8cc";
-    }
-
-    > [data-menu-item*="User"] > a::before {
-      content: "\e7fd";
-    }
-
-    > [data-menu-item*="Translation"] > a::before {
-      content: "\e894";
-    }
-
-    > [data-menu-item*="Publish"] > a::before {
-      content: "\e255";
-    }
-
-    > [data-menu-item*="Setting"] > a::before {
-      content: "\e8b8";
-    }
-
-    > [data-menu-item*="Search"] > a::before {
-      content: "\e8b6";
     }
 
     > .has-menu > a {

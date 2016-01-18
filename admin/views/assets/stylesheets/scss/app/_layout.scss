@@ -1,6 +1,10 @@
 .qor-layout {
   width: 100%;
 
+  .mdl-layout__content{
+    overflow: auto;
+  }
+
   .mdl-layout-text {
     color: unquote("rgba(#{$color-white}, 0.54)");
   }
@@ -91,18 +95,22 @@
           transition: left 0.35s ease;
 }
 
-.qor-page {
-
-}
-
 .qor-page__header {
-  position: relative;
+  position: fixed;
   min-height: 40px;
   margin-bottom: 24px;
-  padding: 8px 24px;
+  padding: 8px 24px 8px 26px;
+  width: calc(100% - 288px);
   background-color: #fff;
+  z-index: 999;
   @include shadow-2dp();
   @include clearfix();
+  + .qor-page__body{
+    padding-top: 80px;
+    .qor-table-container{
+      margin-top: 0;
+    }
+  }
 }
 
 .qor-page__body {

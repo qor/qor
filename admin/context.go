@@ -40,6 +40,7 @@ func (context *Context) clone() *Context {
 		Admin:    context.Admin,
 		Result:   context.Result,
 		Content:  context.Content,
+		Action:   context.Action,
 	}
 }
 
@@ -179,6 +180,7 @@ func (context *Context) Execute(name string, result interface{}) {
 		tmpl = t
 	}
 
+	context.Result = result
 	context.Content = context.Render(name, result)
 	if err := tmpl.Execute(context.Writer, context); err != nil {
 		utils.ExitWithMsg(err)

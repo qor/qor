@@ -21,11 +21,11 @@ type Resource struct {
 	resource.Resource
 	Config        *Config
 	Metas         []*Meta
+	Actions       []*Action
 	SearchHandler func(keyword string, context *qor.Context) *gorm.DB
 
 	admin          *Admin
 	base           *Resource
-	actions        []*Action
 	scopes         []*Scope
 	filters        map[string]*Filter
 	searchAttrs    *[]string
@@ -54,7 +54,10 @@ func (res Resource) GetAdmin() *Admin {
 
 // GetPrimaryValue get priamry value from request
 func (res Resource) GetPrimaryValue(request *http.Request) string {
-	return request.URL.Query().Get(res.ParamIDName())
+	if request != nil {
+		return request.URL.Query().Get(res.ParamIDName())
+	}
+	return ""
 }
 
 // ParamIDName return param name for primary key like :product_id

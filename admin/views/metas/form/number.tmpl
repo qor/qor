@@ -1,6 +1,15 @@
 <div class="qor-field">
-  <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield qor-textfield--static-label">
-    <input class="mdl-textfield__input" type="number" id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
-    <label class="mdl-textfield__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .BaseResource.ToParam .Label) .Label}}</label>
+  <div class="mdl-textfield mdl-textfield--full-width mdl-js-textfield">
+    <label class="qor-field__label mdl-textfield__label" for="{{.InputId}}">
+      {{meta_label .Meta}}
+    </label>
+
+    <div class="qor-field__show">
+      {{.Value}}
+    </div>
+
+    <div class="qor-field__edit">
+      <input class="mdl-textfield__input" type="number" id="{{.InputId}}" name="{{.InputName}}" value="{{.Value}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
+    </div>
   </div>
 </div>

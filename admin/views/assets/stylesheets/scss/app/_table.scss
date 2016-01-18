@@ -1,8 +1,13 @@
 .qor-table {
   width: 100%;
+  margin: 0 24px;
 
   a:not([class*="mdl-button"]) {
     color: unquote("rgba(#{$color-black}, 0.54)");
+  }
+
+  tbody tr{
+    position: static;
   }
 
   img {
@@ -48,19 +53,22 @@
 
 .qor-table__actions {
   text-align: center !important;
-
+  .mdl-menu{
+    min-width: 160px;
+  }
   .mdl-button {
     margin: -4px 0;
-
     + .mdl-button {
       margin-left: 8px;
     }
+  }
+  .mdl-menu__item a{
+    color: unquote("rgba(#{$color-black}, 0.87)");
+    text-decoration: none;
   }
 }
 
 .qor-table-container {
   position: relative;
-  margin: 24px;
-  overflow-x: auto;
-  @include shadow-2dp();
+  margin-top: 24px;
 }

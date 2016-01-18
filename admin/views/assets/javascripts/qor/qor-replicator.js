@@ -40,6 +40,12 @@
         return;
       }
 
+      // @Jason weng
+      // If user have NO Create and Delete permission, return;
+      if (!$all.filter(options.addClass).size() && !$all.filter(options.delClass).size()){
+        return;
+      }
+
       $template = $all.filter(options.newClass);
 
       if (!$template.length) {
@@ -70,6 +76,9 @@
 
     parse: function (hasIndex) {
       var i = 0;
+      if (!this.template){
+        return;
+      }
 
       this.template = this.template.replace(/(\w+)\="(\S*\[\d+\]\S*)"/g, function (attribute, name, value) {
         value = value.replace(/^(\S*)\[(\d+)\]([^\[\]]*)$/, function (input, prefix, index, suffix) {

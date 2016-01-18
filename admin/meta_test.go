@@ -94,7 +94,7 @@ func TestGetStringMetaValue(t *testing.T) {
 	db.Create(&userRecord)
 	value := stringMeta.GetValuer()(userRecord, &qor.Context{Config: &qor.Config{DB: db}})
 
-	if *value.(*string) != UserName {
+	if value.(string) != UserName {
 		t.Error("resource's value doesn't get")
 	}
 }
@@ -251,8 +251,8 @@ func TestNestedField(t *testing.T) {
 
 	userModel.Profile = Profile{}
 	valx := phoneNumMeta.GetValuer()(userModel, &qor.Context{Config: &qor.Config{DB: db}})
-	if val, ok := valx.(*string); !ok || *val != profileModel.Phone.Num {
-		t.Errorf("Profile.Phone.Num: got %q; expect %q", *val, profileModel.Phone.Num)
+	if val, ok := valx.(string); !ok || val != profileModel.Phone.Num {
+		t.Errorf("Profile.Phone.Num: got %q; expect %q", val, profileModel.Phone.Num)
 	}
 	if userModel.Profile.Name != profileModel.Name {
 		t.Errorf("Profile.Name: got %q; expect %q", userModel.Profile.Name, profileModel.Name)

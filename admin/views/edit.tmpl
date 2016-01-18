@@ -1,11 +1,9 @@
 {{$actions := load_actions "edit"}}
 {{if $actions}}
-<div class="qor-page__header">
-  {{$actions}}
-</div>
+<div class="qor-page__header">{{$actions}}</div>
 {{end}}
 
-<div class="qor-page__body">
+<div class="qor-page__body qor-page__edit">
 
   {{render "shared/flashes"}}
   {{render "shared/errors"}}
@@ -15,6 +13,7 @@
       <input name="_method" value="PUT" type="hidden">
 
       {{render_form .Result edit_sections}}
+
       <div class="qor-form__actions">
         <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "Save Changes"}}</button>
         <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "Cancel Edit"}}</a>

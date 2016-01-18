@@ -1,5 +1,8 @@
-<div class="collection-edit qor-field qor-fieldset-container">
-  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .BaseResource.ToParam .Label) .Label}}</label>
+<div class="qor-field collection-edit qor-fieldset-container">
+  <label class="qor-field__label" for="{{.InputId}}">
+    {{meta_label .Meta}}
+  </label>
+
   <div class="qor-field__block">
     {{$meta := .Meta}}
     {{if .Value}}
@@ -22,6 +25,7 @@
         </button>
         {{render_form $meta.Resource.GetResource.Value (new_sections $meta.Resource) (len .Value)}}
       </fieldset>
+
       <button class="mdl-button mdl-button--fab mdl-button--mini-fab mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-fieldset__add" type="button">
         <i class="material-icons">add</i>
       </button>
