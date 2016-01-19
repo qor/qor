@@ -131,10 +131,6 @@ $qor-picker-clock-coordinate-left:
       font-weight: 400;
       font-size: 14px;
       text-align: center;
-      & > .qor-select-day {
-        color: #BDBDBD !important;
-      }
-
       > a{
         color: unquote("rgba(#{$color-black}, 0.54)");
         text-decoration: none;
@@ -275,16 +271,16 @@ $qor-picker-clock-coordinate-left:
 
   .qor-hour-hand{
     height: 80px;
-    left: 145px;
-    margin-top: 64px;
+    left: 141px;
+    margin-top: 62px;
   }
 
   .qor-minute-hand {
     width: 2px;
     margin-left: -1px;
     height: 100px;
-    left: 142px;
-    margin-top: 45px;
+    left: 140px;
+    margin-top: 42px;
   }
 
   .qor-hand.on {
