@@ -8,7 +8,7 @@
   </div>
 
   <div class="qor-field__block qor-field__edit">
-    <select class="qor-field__input" id="{{.InputId}}" data-toggle="qor.chooser" data-placeholder="{{t "Select an Option"}}" name="{{.InputName}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
+    <select class="qor-field__input" id="{{.InputId}}" data-toggle="qor.chooser" data-placeholder="{{t "qor_admin.form.select_an_option" "Select an Option"}}" name="{{.InputName}}" {{if not (has_update_permission .Meta)}}disabled{{end}}>
       {{$current_values := (raw_value_of .ResourceValue .Meta)}}
       {{range $values := .CollectionValue}}
         {{if (is_included $current_values (index $values 0))}}

@@ -624,8 +624,18 @@ func (context *Context) rt(resource *Resource, key string, values ...interface{}
 	return context.Admin.T(context.Context, strings.Join([]string{resource.ToParam(), key}, "."), key, values...)
 }
 
-func (context *Context) t(key string, values ...interface{}) template.HTML {
-	return context.Admin.T(context.Context, key, key, values...)
+func (context *Context) t(values ...interface{}) template.HTML {
+	switch len(values) {
+	case 1:
+		return context.Admin.T(context.Context, values[0].(string), "")
+	case 2:
+		return context.Admin.T(context.Context, values[0].(string), values[1].(string))
+	case 3:
+		return context.Admin.T(context.Context, values[0].(string), values[1].(string), values[2:len(values)]...)
+	default:
+		utils.ExitWithMsg("T have a wrong params")
+	}
+	return ""
 }
 
 func (context *Context) isSortableMeta(meta *Meta) bool {

@@ -19,7 +19,7 @@
     {{range .Result}}
     {{if (len .Results)}}
     <div class="search-result">
-      <h2>{{.Resource.Name}} <a href="{{patch_url (url_for .Resource) "keyword" $keyword}}">{{t "View All"}}</a></h2>
+      <h2>{{.Resource.Name}} <a href="{{patch_url (url_for .Resource) "keyword" $keyword}}">{{t "qor_admin.layout.view_all" "View All"}}</a></h2>
       <ul>
       {{range $result := .Results}}
         <li>
