@@ -9,7 +9,7 @@
   ENTERPRISE CONTENT MANAGEMENT SYSTEM
   -->
   <head>
-    {{$title := (render "title")}}
+    {{$title := page_title}}
     <title>{{if $title}}{{$title}} - {{end}}{{if .Admin.SiteName}}{{t .Admin.SiteName}}{{else}}{{t "Qor Admin"}}{{end}}</title>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
@@ -31,7 +31,7 @@
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header qor-layout">
       <header class="mdl-layout__header">
         <div class="mdl-layout__header-row">
-          <span class="mdl-layout-title">{{render "title"}}</span>
+          <span class="mdl-layout-title">{{page_title}}</span>
           {{render "shared/navbar"}}
         </div>
       </header>

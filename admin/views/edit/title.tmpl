@@ -1,1 +1,0 @@
-{{if .Resource.Config.Singleton}}{{rt .Resource .Resource.Name}}{{else}}{{rt .Resource (printf "Edit %v" (singular .Resource.Name))}}{{end}}
