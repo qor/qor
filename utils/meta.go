@@ -25,9 +25,6 @@ func NewValue(t reflect.Type) (v reflect.Value) {
 func ToArray(value interface{}) (values []string) {
 	switch value := value.(type) {
 	case []string:
-		if len(value) == 1 && value[0] == "" {
-			return []string{}
-		}
 		for _, v := range value {
 			if v != "" {
 				values = append(values, v)
