@@ -288,7 +288,7 @@ func (meta *Meta) Initialize() error {
 							var buf = bytes.NewBufferString("")
 							json.NewEncoder(buf).Encode(value)
 							if err := json.NewDecoder(strings.NewReader(buf.String())).Decode(field.Addr().Interface()); err != nil {
-								utils.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.ValueOf(value).Type(), field.Type(), meta)
+								utils.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.TypeOf(value), field.Type(), meta)
 							}
 						}
 					}
