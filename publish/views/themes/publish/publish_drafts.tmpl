@@ -20,21 +20,21 @@
         <h4 class="qor-section-title">{{rt $res (plural $res.Name)}}</h4>
       </div>
       <div class="qor-section__body qor-table-container">
-        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp qor-table qor-js-table" data-text="{&quot;title&quot;: &quot;{{t "Changes"}}&quot;, &quot;close&quot;: &quot;{{t "Close"}}&quot;}">
+        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp qor-table qor-js-table" data-text="{&quot;title&quot;: &quot;{{t "qor_admin.publish.changes" "Changes"}}&quot;, &quot;close&quot;: &quot;{{t "qor_admin.publish.close" "Close"}}&quot;}">
           <thead>
             <tr>
               <th>
-                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" title="{{t "Check All"}}">
+                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" title="{{t "qor_admin.publish.check_all" "Check All"}}">
                   <input type="checkbox" class="mdl-checkbox__input qor-js-check-all">
                 </label>
               </th>
 
               {{range $meta := $metas}}
-              <th class="mdl-data-table__cell--non-numeric">{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</th>
+              <th class="mdl-data-table__cell--non-numeric">{{meta_label $meta}}</th>
               {{end}}
 
               {{if not $isPublishEvent}}
-              <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
+              <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "qor_admin.publish.actions" "Actions"}}</th>
               {{end}}
             </tr>
           </thead>
@@ -61,7 +61,7 @@
 
               {{if not $isPublishEvent}}
               <td class="mdl-data-table__cell--non-numeric qor-table__actions">
-                <a class="qor-action__view qor-js-view" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a>
+                <a class="qor-action__view qor-js-view" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "qor_admin.publish.view_changes" "View Changes"}}</a>
               </td>
               {{end}}
             </tr>

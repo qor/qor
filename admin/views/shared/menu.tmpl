@@ -7,7 +7,7 @@
       </li>
     {{else}}
       <li qor-icon-name="{{.Name}}" {{if .Active}}class="active"{{end}}>
-        {{link_to (t .Name) .Link}}
+        {{link_to (t (printf "qor_admin.menus.%v" .Name) .Name) .Link}}
       </li>
     {{end}}
   {{end}}

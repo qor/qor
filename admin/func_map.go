@@ -616,10 +616,6 @@ func (context *Context) logoutURL() string {
 	return ""
 }
 
-func (context *Context) dt(key string, value string, values ...interface{}) template.HTML {
-	return context.Admin.T(context.Context, key, value, values...)
-}
-
 func (context *Context) rt(resource *Resource, key string, values ...interface{}) template.HTML {
 	return context.Admin.T(context.Context, strings.Join([]string{resource.ToParam(), key}, "."), key, values...)
 }
@@ -701,20 +697,20 @@ func (context *Context) AllowedActions(actions []*Action, mode string) []*Action
 
 func (context *Context) pageTitle() template.HTML {
 	if context.Resource == nil {
-		return context.dt("qor_admin.layout.title", "Admin")
+		return context.t("qor_admin.layout.title", "Admin")
 	}
 	if context.Action == "action" {
-		return context.dt(fmt.Sprintf("%v.actions.%v", context.Resource.ToParam(), context.Result.(*Action).Label), context.Result.(*Action).Label)
+		return context.t(fmt.Sprintf("%v.actions.%v", context.Resource.ToParam(), context.Result.(*Action).Label), context.Result.(*Action).Label)
 	}
 	var value string
 	var resourceKey, resourceName string
 	titleKey := fmt.Sprintf("qor_admin.form.%v_title", context.Action)
 	if context.Resource.Config.Singleton {
 		resourceKey = fmt.Sprintf("%v.name", context.Resource.ToParam())
-		resourceName = string(context.dt(resourceKey, context.Resource.Name))
+		resourceName = string(context.t(resourceKey, context.Resource.Name))
 	} else {
 		resourceKey = fmt.Sprintf("%v.name.plural", context.Resource.ToParam())
-		resourceName = string(context.dt(resourceKey, inflection.Plural(context.Resource.Name)))
+		resourceName = string(context.t(resourceKey, inflection.Plural(context.Resource.Name)))
 	}
 	switch context.Action {
 	case "new":
@@ -726,7 +722,7 @@ func (context *Context) pageTitle() template.HTML {
 	default:
 		value = "{{$1}}"
 	}
-	return context.dt(titleKey, value, resourceName)
+	return context.t(titleKey, value, resourceName)
 }
 
 func (context *Context) FuncMap() template.FuncMap {
@@ -801,7 +797,6 @@ func (context *Context) FuncMap() template.FuncMap {
 		},
 
 		"t":       context.t,
-		"dt":      context.dt,
 		"rt":      context.rt,
 		"flashes": context.GetFlashes,
 	}
