@@ -91,3 +91,19 @@
     margin-left: 8px;
   }
 }
+
+.qor-action-forms{
+  margin-top: 24px;
+  > .action-form{
+    margin-right: 48px;
+  }
+  > .action-form, .qor-form-section, .qor-form__actions{
+    display: inline-block;
+    vertical-align: baseline;
+  }
+  .qor-form__actions{
+    .mdl-button{
+      float: none;
+    }
+  }
+}

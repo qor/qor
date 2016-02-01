@@ -6,6 +6,9 @@
     &.has-header{
       margin-top: 48px;
     }
+    &.bluking{
+      margin-top: 120px;
+    }
     &::-webkit-scrollbar {
       width: 8px;
       height: 8px;
@@ -152,6 +155,10 @@
   z-index: 999;
   @include shadow-2dp-bottom();
   @include clearfix();
+  .mdl-button{
+    height: 32px;
+    line-height: 32px;
+  }
   .qor-search{
     height: 48px;
   }
