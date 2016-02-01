@@ -674,14 +674,10 @@ func (context *Context) AllowedActions(actions []*Action, mode string) []*Action
 	var allowedActions []*Action
 	for _, action := range actions {
 		if action.HasPermission(roles.Update, context.Context) {
-			if len(action.Visibles) == 0 {
-				allowedActions = append(allowedActions, action)
-			} else {
-				for _, v := range action.Visibles {
-					if v == mode {
-						allowedActions = append(allowedActions, action)
-						break
-					}
+			for _, visible := range action.Visibles {
+				if visible == mode {
+					allowedActions = append(allowedActions, action)
+					break
 				}
 			}
 		}
