@@ -99,7 +99,11 @@ func (res *Resource) convertObjectToJSONMap(context *Context, value interface{},
 	case reflect.Slice:
 		values := []interface{}{}
 		for i := 0; i < reflectValue.Len(); i++ {
-			values = append(values, res.convertObjectToJSONMap(context, reflectValue.Index(i).Addr().Interface(), kind))
+			if reflectValue.Index(i).Kind() == reflect.Ptr {
+				values = append(values, res.convertObjectToJSONMap(context, reflectValue.Index(i).Interface(), kind))
+			} else {
+				values = append(values, res.convertObjectToJSONMap(context, reflectValue.Index(i).Addr().Interface(), kind))
+			}
 		}
 		return values
 	case reflect.Struct:

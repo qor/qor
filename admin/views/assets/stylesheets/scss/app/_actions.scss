@@ -4,7 +4,8 @@
 .qor-actions {
   float: left;
   min-height: 32px;
-  margin: 4px 8px 4px 0;
+  margin-right: 8px;
+  padding: 8px 0;
   @include clearfix();
 
   &:first-child {

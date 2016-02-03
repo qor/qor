@@ -180,8 +180,8 @@ func (meta *Meta) updateMeta() {
 				meta.Type = "select_many"
 			}
 		} else {
-			switch fieldType.Kind().String() {
-			case "string":
+			switch fieldType.Kind() {
+			case reflect.String:
 				var tag = meta.FieldStruct.Tag
 				if size, ok := utils.ParseTagOption(tag.Get("sql"))["SIZE"]; ok {
 					if i, _ := strconv.Atoi(size); i > 255 {
@@ -194,7 +194,7 @@ func (meta *Meta) updateMeta() {
 				} else {
 					meta.Type = "string"
 				}
-			case "bool":
+			case reflect.Bool:
 				meta.Type = "checkbox"
 			default:
 				if regexp.MustCompile(`^(.*)?(u)?(int)(\d+)?`).MatchString(fieldType.Kind().String()) {

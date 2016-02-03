@@ -232,9 +232,7 @@ $.fn.qorSliderAfterShow = {};
       method = data.method ? data.method : 'GET';
       dataType = data.datatype ? data.datatype : 'html';
 
-      delete data.url;
-      delete data.method;
-      delete data.datatype;
+      data.url = data.method = data.datatype = undefined;
 
       load = $.proxy(function () {
         $.ajax(url, {

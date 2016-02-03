@@ -104,4 +104,13 @@
   &[qor-icon-name*="Search"] > a::before {
     content: "\e8b6";
   }
+  &[qor-icon-name*="Client Services"] > a::before {
+    content: "\e5c3";
+  }
+  &[qor-icon-name*="Transaction Logs"] > a::before {
+    content: "\e889";
+  }
+  &[qor-icon-name*="Notification"] > a::before {
+    content: "\e7f4";
+  }
 }

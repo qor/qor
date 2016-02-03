@@ -1,9 +1,14 @@
 {{if .Resource.SearchHandler}}
   {{ $keyword := .Context.Request.URL.Query.Get "keyword" }}
-  <form class="qor-search-container">
-    {{range $scope := (index .Context.Request.URL.Query "scopes")}}
-      <input name="scopes" value="{{ $scope }}" type="hidden">
+  <form class="qor-search-container" method="GET">
+    {{range $key, $values := .Context.Request.URL.Query}}
+      {{if (not (eq $key "keyword"))}}
+      {{range $value := $values}}
+        <input name="{{$key}}" value="{{$value}}" type="hidden">
+      {{end}}
+      {{end}}
     {{end}}
+
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable qor-search">
       <label class="mdl-button mdl-js-button mdl-button--icon qor-search__label" for="inputSearch">
         <i class="material-icons">search</i>

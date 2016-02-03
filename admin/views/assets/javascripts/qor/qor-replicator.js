@@ -40,12 +40,6 @@
         return;
       }
 
-      // @Jason weng
-      // If user have NO Create and Delete permission, return;
-      if (!$all.filter(options.addClass).size() && !$all.filter(options.delClass).size()){
-        return;
-      }
-
       $template = $all.filter(options.newClass);
 
       if (!$template.length) {
