@@ -616,16 +616,18 @@ func (context *Context) logoutURL() string {
 	return ""
 }
 
-func (context *Context) dt(key string, value string, values ...interface{}) template.HTML {
-	return context.Admin.T(context.Context, key, value, values...)
-}
-
-func (context *Context) rt(resource *Resource, key string, values ...interface{}) template.HTML {
-	return context.Admin.T(context.Context, strings.Join([]string{resource.ToParam(), key}, "."), key, values...)
-}
-
-func (context *Context) t(key string, values ...interface{}) template.HTML {
-	return context.Admin.T(context.Context, key, key, values...)
+func (context *Context) t(values ...interface{}) template.HTML {
+	switch len(values) {
+	case 1:
+		return context.Admin.T(context.Context, values[0].(string), "")
+	case 2:
+		return context.Admin.T(context.Context, values[0].(string), values[1].(string))
+	case 3:
+		return context.Admin.T(context.Context, values[0].(string), values[1].(string), values[2:len(values)]...)
+	default:
+		utils.ExitWithMsg("T have a wrong params")
+	}
+	return ""
 }
 
 func (context *Context) isSortableMeta(meta *Meta) bool {
@@ -689,6 +691,36 @@ func (context *Context) AllowedActions(actions []*Action, mode string) []*Action
 	return allowedActions
 }
 
+func (context *Context) pageTitle() template.HTML {
+	if context.Resource == nil {
+		return context.t("qor_admin.layout.title", "Admin")
+	}
+	if context.Action == "action" {
+		return context.t(fmt.Sprintf("%v.actions.%v", context.Resource.ToParam(), context.Result.(*Action).Label), context.Result.(*Action).Label)
+	}
+	var value string
+	var resourceKey, resourceName string
+	titleKey := fmt.Sprintf("qor_admin.form.%v_title", context.Action)
+	if context.Resource.Config.Singleton {
+		resourceKey = fmt.Sprintf("%v.name", context.Resource.ToParam())
+		resourceName = string(context.t(resourceKey, context.Resource.Name))
+	} else {
+		resourceKey = fmt.Sprintf("%v.name.plural", context.Resource.ToParam())
+		resourceName = string(context.t(resourceKey, inflection.Plural(context.Resource.Name)))
+	}
+	switch context.Action {
+	case "new":
+		value = "Add {{$1}}"
+	case "edit":
+		value = "Edit {{$1}}"
+	case "show":
+		value = "{{$1}} Details"
+	default:
+		value = "{{$1}}"
+	}
+	return context.t(titleKey, value, resourceName)
+}
+
 func (context *Context) FuncMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
@@ -735,6 +767,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"allowed_actions":        context.AllowedActions,
 		"pagination":             context.Pagination,
 
+		"page_title": context.pageTitle,
 		"meta_label": func(meta *Meta) template.HTML {
 			key := fmt.Sprintf("%v.attributes.%v", meta.baseResource.ToParam(), meta.Label)
 			return context.Admin.T(context.Context, key, meta.Label)
@@ -760,8 +793,6 @@ func (context *Context) FuncMap() template.FuncMap {
 		},
 
 		"t":       context.t,
-		"dt":      context.dt,
-		"rt":      context.rt,
 		"flashes": context.GetFlashes,
 	}
 

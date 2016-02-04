@@ -1,16 +1,17 @@
 {{$scopes := get_scopes}}
+{{$resource := .Resource}}
 {{if $scopes}}
   <div class="qor-actions" data-toggle="qor.filter">
     {{range $scope := $scopes}}
       {{if $scope.Group}}
         <select class="qor-action--select" data-toggle="qor.selector" data-clearable="true" name="scopes" placeholder="{{$scope.Group}}">
           {{range $s := $scope.Scopes}}
-            <option value="{{$s.Name}}" {{if $s.Active}}selected{{end}}>{{t $s.Label}}</option>
+            <option value="{{$s.Name}}" {{if $s.Active}}selected{{end}}>{{t (printf "%v.actions.scopes_%v" $resource.ToParam $s.Label) $s.Label}}</option>
           {{end}}
         </select>
       {{else}}
         {{range $s := $scope.Scopes}}
-          <a class="qor-action--label {{if $s.Active}}is-active{{end}}" href="{{patch_current_url "scopes" $s.Name}}">{{t $s.Label}} {{if $s.Active}}<i class="material-icons">clear</i>{{end}}</a>
+          <a class="qor-action--label {{if $s.Active}}is-active{{end}}" href="{{patch_current_url "scopes" $s.Name}}">{{t (printf "%v.actions.scopes_%v" $resource.ToParam $s.Label) $s.Label}} {{if $s.Active}}<i class="material-icons">clear</i>{{end}}</a>
         {{end}}
       {{end}}
     {{end}}
