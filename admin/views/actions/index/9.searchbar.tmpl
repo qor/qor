@@ -3,9 +3,9 @@
   <form class="qor-search-container" method="GET">
     {{range $key, $values := .Context.Request.URL.Query}}
       {{if (not (eq $key "keyword"))}}
-      {{range $value := $values}}
-        <input name="{{$key}}" value="{{$value}}" type="hidden">
-      {{end}}
+        {{range $value := $values}}
+          <input name="{{$key}}" value="{{$value}}" type="hidden">
+        {{end}}
       {{end}}
     {{end}}
 
