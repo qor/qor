@@ -616,10 +616,6 @@ func (context *Context) logoutURL() string {
 	return ""
 }
 
-func (context *Context) rt(resource *Resource, key string, values ...interface{}) template.HTML {
-	return context.Admin.T(context.Context, strings.Join([]string{resource.ToParam(), key}, "."), key, values...)
-}
-
 func (context *Context) t(values ...interface{}) template.HTML {
 	switch len(values) {
 	case 1:
@@ -797,7 +793,6 @@ func (context *Context) FuncMap() template.FuncMap {
 		},
 
 		"t":       context.t,
-		"rt":      context.rt,
 		"flashes": context.GetFlashes,
 	}
 
