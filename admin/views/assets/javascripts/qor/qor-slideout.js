@@ -163,17 +163,25 @@ $.fn.qorSliderAfterShow = {};
         $.ajax($form.prop('action'), {
           method: $form.prop('method'),
           data: new FormData(form),
+          dataType: 'html',
           processData: false,
           contentType: false,
           beforeSend: function () {
             $submit.prop('disabled', true);
           },
-          success: function () {
+          success: function (html) {
             var returnUrl = $form.data('returnUrl');
 
             if (returnUrl) {
               _this.load(returnUrl);
             } else {
+              var prefix = '/' + location.pathname.split('/')[1];
+              var $flash = $(html).find('.qor-alert');
+              $flash.find('button').remove();
+              if ($flash.text().trim() !== '') {
+                var flashStruct = btoa('[{"Type":"success","Message":"' + $flash.text().trim() + '","Keep":true}]');
+                document.cookie = 'qor-flashes=' + flashStruct + '; path=' + prefix;
+              }
               _this.refresh();
             }
           },
