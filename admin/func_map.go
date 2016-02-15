@@ -619,13 +619,13 @@ func (context *Context) logoutURL() string {
 func (context *Context) t(values ...interface{}) template.HTML {
 	switch len(values) {
 	case 1:
-		return context.Admin.T(context.Context, values[0].(string), "")
+		return context.Admin.T(context.Context, fmt.Sprint(values[0]), "")
 	case 2:
-		return context.Admin.T(context.Context, values[0].(string), values[1].(string))
+		return context.Admin.T(context.Context, fmt.Sprint(values[0]), fmt.Sprint(values[1]))
 	case 3:
-		return context.Admin.T(context.Context, values[0].(string), values[1].(string), values[2:len(values)]...)
+		return context.Admin.T(context.Context, fmt.Sprint(values[0]), fmt.Sprint(values[1]), values[2:len(values)]...)
 	default:
-		utils.ExitWithMsg("T have a wrong params")
+		utils.ExitWithMsg("passed wrong params for T")
 	}
 	return ""
 }
