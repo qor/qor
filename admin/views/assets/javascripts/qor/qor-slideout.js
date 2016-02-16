@@ -176,11 +176,16 @@ $.fn.qorSliderAfterShow = {};
               _this.load(returnUrl);
             } else {
               var prefix = '/' + location.pathname.split('/')[1];
-              var $flash = $(html).find('.qor-alert');
-              $flash.find('button').remove();
-              if ($flash.text().trim() !== '') {
-                var flashStruct = btoa('[{"Type":"success","Message":"' + $flash.text().trim() + '","Keep":true}]');
-                document.cookie = 'qor-flashes=' + flashStruct + '; path=' + prefix;
+              var flashStructs = [];
+              $(html).find('.qor-alert').each(function (i, e) {
+                var message = $(e).find('.qor-alert-message').text().trim();
+                var type = $(e).data('type');
+                if (message !== '') {
+                  flashStructs.push({ Type: type, Message: message, Keep: true });
+                }
+              });
+              if (flashStructs.length > 0) {
+                document.cookie = 'qor-flashes=' + btoa(JSON.stringify(flashStructs)) + '; path=' + prefix;
               }
               _this.refresh();
             }
