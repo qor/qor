@@ -4,72 +4,78 @@
 <form method="POST">
   {{$actions := load_actions "index"}}
   {{if $actions}}
-  <div class="qor-page__header">
-    {{$actions}}
-  </div>
+    <div class="qor-page__header">
+      {{$actions}}
+    </div>
   {{end}}
 
   <div class="qor-page__body">
     {{range $result := .Result}}
-    {{$res := $result.Resource}}
-    {{$isPublishEvent := is_publish_event_resource $res}}
-    {{$records := $result.Value}}
-    {{$metas := convert_sections_to_metas $res (index_sections $res)}}
-    <div class="qor-section">
-      <div class="qor-section__header">
-        <h4 class="qor-section-title">{{rt $res (plural $res.Name)}}</h4>
-      </div>
-      <div class="qor-section__body qor-table-container">
-        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp qor-table qor-js-table" data-text="{&quot;title&quot;: &quot;{{t "Changes"}}&quot;, &quot;close&quot;: &quot;{{t "Close"}}&quot;}">
-          <thead>
-            <tr>
-              <th>
-                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" title="{{t "Check All"}}">
-                  <input type="checkbox" class="mdl-checkbox__input qor-js-check-all">
-                </label>
-              </th>
+      {{$res := $result.Resource}}
+      {{$isPublishEvent := is_publish_event_resource $res}}
+      {{$records := $result.Value}}
+      {{$metas := convert_sections_to_metas $res (index_sections $res)}}
+      <div class="qor-section">
+        <div class="qor-section__header">
+          {{if $res.Config.Singleton}}
+            <h4 class="qor-section-title">{{t (printf "%v.name" $res.ToParam) $res.Name}}</h4>
+          {{else}}
+            <h4 class="qor-section-title">{{t (printf "%v.name" $res.ToParam) (plural $res.Name)}}</h4>
+          {{end}}
+        </div>
+        <div class="qor-section__body qor-table-container">
+          <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp qor-table qor-js-table" data-text="{&quot;title&quot;: &quot;{{t "qor_admin.publish.changes" "Changes"}}&quot;, &quot;close&quot;: &quot;{{t "qor_admin.publish.close" "Close"}}&quot;}">
+            <thead>
+              <tr>
+                <th>
+                  <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" title="{{t "qor_admin.publish.check_all" "Check All"}}">
+                    <input type="checkbox" class="mdl-checkbox__input qor-js-check-all">
+                  </label>
+                </th>
 
-              {{range $meta := $metas}}
-              <th class="mdl-data-table__cell--non-numeric">{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</th>
-              {{end}}
-
-              {{if not $isPublishEvent}}
-              <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
-              {{end}}
-            </tr>
-          </thead>
-          <tbody>
-            {{range $record := $records}}
-            {{$key := publish_unique_key $res $record $context}}
-            <tr{{if $record.DeletedAt}} class="is-deleted"{{end}} data-primary-key="{{$key}}">
-              <td>
-                <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
-                  <input type="checkbox" class="mdl-checkbox__input" name="checked_ids[]" value="{{$key}}">
-                </label>
-              </td>
-
-              {{range $index, $meta := $metas}}
-              <td class="mdl-data-table__cell--non-numeric">
-                {{if $isPublishEvent}}
-                <div class="qor-table__content">{{rt $res (printf "%v" (render_index_meta $record $meta))}}</div>
-                {{else}}
-                <div class="qor-table__content">{{render_index_meta $record $meta}}</div>
+                {{range $meta := $metas}}
+                  <th class="mdl-data-table__cell--non-numeric">{{meta_label $meta}}</th>
                 {{end}}
 
-              </td>
-              {{end}}
+                {{if not $isPublishEvent}}
+                  <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "qor_admin.publish.actions" "Actions"}}</th>
+                {{end}}
+              </tr>
+            </thead>
+            <tbody>
+              {{range $record := $records}}
+                {{$key := publish_unique_key $res $record $context}}
+                <tr{{if $record.DeletedAt}} class="is-deleted"{{end}} data-primary-key="{{$key}}" data-url="{{url_for $resource}}/diff/{{$key}}">
+                  <td>
+                    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect">
+                      <input type="checkbox" class="mdl-checkbox__input" name="checked_ids[]" value="{{$key}}">
+                    </label>
+                  </td>
 
-              {{if not $isPublishEvent}}
-              <td class="mdl-data-table__cell--non-numeric qor-table__actions">
-                <a class="qor-action__view qor-js-view" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "View Changes"}}</a>
-              </td>
+                  {{range $index, $meta := $metas}}
+                    <td class="mdl-data-table__cell--non-numeric">
+                      {{if $isPublishEvent}}
+                        <div class="qor-table__content">
+                          {{$event := render_index_meta $record $meta}}
+                          {{t (printf "qor_publish.events.%v" $event) $event}}
+                        </div>
+                      {{else}}
+                        <div class="qor-table__content">{{render_index_meta $record $meta}}</div>
+                      {{end}}
+                    </td>
+                  {{end}}
+
+                  {{if not $isPublishEvent}}
+                    <td class="mdl-data-table__cell--non-numeric qor-table__actions">
+                      <a class="qor-action__view qor-js-view" data-url="{{url_for $resource}}/diff/{{$key}}" href="javascript:void(0);">{{t "qor_admin.publish.view_changes" "View Changes"}}</a>
+                    </td>
+                  {{end}}
+                </tr>
               {{end}}
-            </tr>
-            {{end}}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
     {{end}}
   </div>
 </form>

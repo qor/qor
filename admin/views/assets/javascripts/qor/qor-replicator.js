@@ -70,6 +70,9 @@
 
     parse: function (hasIndex) {
       var i = 0;
+      if (!this.template){
+        return;
+      }
 
       this.template = this.template.replace(/(\w+)\="(\S*\[\d+\]\S*)"/g, function (attribute, name, value) {
         value = value.replace(/^(\S*)\[(\d+)\]([^\[\]]*)$/, function (input, prefix, index, suffix) {

@@ -1,34 +1,33 @@
 {{ $keyword := .Context.Request.URL.Query.Get "keyword" }}
 <div class="qor-page__header">
-<form action="{{search_center_path}}" method="GET">
-  <input name="keyword" value="{{$keyword}}">
-</form>
+  <form action="{{search_center_path}}" method="GET">
+    <input name="keyword" value="{{$keyword}}">
+  </form>
 </div>
 
 <div class="qor-page__body">
   <ul class="search-headers">
     <li>{{t "All"}}</li>
     {{range .Result}}
-    <li data-resource="{{.Resource.ToParam}}">
-      {{.Resource.Name}}
-    </li>
+      <li data-resource="{{.Resource.ToParam}}">
+        {{.Resource.Name}}
+      </li>
     {{end}}
   </ul>
 
   <div class="search-results">
     {{range .Result}}
-    {{if (len .Results)}}
-    <div class="search-result">
-      <h2>{{.Resource.Name}} <a href="{{patch_url (url_for .Resource) "keyword" $keyword}}">{{t "View All"}}</a></h2>
-      <ul>
-      {{range $result := .Results}}
-        <li>
-          {{$result}}
-        </li>
+      {{if (len .Results)}}
+        <div class="search-result">
+          <h2>{{.Resource.Name}} <a href="{{patch_url (url_for .Resource) "keyword" $keyword}}">{{t "qor_admin.layout.view_all" "View All"}}</a></h2>
+
+          <ul>
+            {{range $result := .Results}}
+              <li>{{$result}}</li>
+            {{end}}
+          </ul>
+        </div>
       {{end}}
-      </ul>
-    </div>
-    {{end}}
     {{end}}
   </div>
 </div>

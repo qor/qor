@@ -1,9 +1,9 @@
 {{$context := .}}
 <div class="qor-grid-container">
   <div class="mdl-grid">
-    <div class="mdl-cell mdl-cell--2-col">{{t "Column"}}</div>
-    <div class="mdl-cell mdl-cell--5-col">{{t "Draft"}}</div>
-    <div class="mdl-cell mdl-cell--5-col">{{t "Live"}}</div>
+    <div class="mdl-cell mdl-cell--2-col">{{t "qor_admin.publish.column" "Column"}}</div>
+    <div class="mdl-cell mdl-cell--5-col">{{t "qor_admin.publish.draft" "Draft"}}</div>
+    <div class="mdl-cell mdl-cell--5-col">{{t "qor_admin.publish.live" "Live"}}</div>
   </div>
 
   {{$production := .Result.Production}}
@@ -17,7 +17,7 @@
     {{$diff := or (not $has_production) (not (equal $production_value $draft_value))}}
 
     <div class="mdl-grid{{if $diff}} is-changed{{end}}">
-      <div class="mdl-cell mdl-cell--2-col">{{dt (printf "%v.attributes.%v" $res.ToParam $meta.Label) $meta.Label}}</div>
+      <div class="mdl-cell mdl-cell--2-col">{{meta_label $meta}}</div>
       <div class="mdl-cell mdl-cell--5-col">{{$draft_value}}</div>
       <div class="mdl-cell mdl-cell--5-col">{{if $has_production}}{{$production_value}}{{end}}</div>
     </div>

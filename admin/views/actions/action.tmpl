@@ -1,0 +1,35 @@
+{{$context := .}}
+{{$action_mode := .Context.Request.URL.Query.Get "action_mode"}}
+{{$allowed_actions := (allowed_actions $context.Resource.Actions $context.Action)}}
+{{if gt (len $allowed_actions) 0 }}
+  <div class="qor-actions qor-js-action">
+    <select class="qor-js-selector qor-action--select qor-actions" data-toggle="qor.selector" data-clearable="true" name="action_mode" placeholder="{{t "qor_admin.actions.action_placeholder" "Action"}}">
+      {{range $allowed_actions}}
+        <option {{if (eq $action_mode .Name)}}selected{{end}} value="{{.ToParam}}">{{t (printf "%v.actions.%v" .Resource.ToParam .Label) .Label}}</option>
+      {{end}}
+    </select>
+  </div>
+
+
+  <div class="qor-action-wrap">
+    {{range $allowed_actions}}
+      <div class="qor-js-form action-form" data-action="{{.ToParam}}" style="display:none;padding-top:54px;">
+        <form action="/admin/{{$context.Resource.ToParam}}/{{.ToParam}}" method="POST" enctype="multipart/form-data" data-mode="{{$context.Action}}">
+          <input name="_method" value="PUT" type="hidden">
+          {{if or (eq $context.Action "edit") (eq $context.Action "show") }}
+            <input type="hidden" name="primary_values[]" value="{{$context.Resource.GetPrimaryValue $context.Request}}" />
+          {{end}}
+
+          {{if .Resource}}
+            {{render_form .Resource.NewStruct (edit_sections .Resource) }}
+          {{end}}
+
+          <div class="qor-form__actions" style="margin-top: 0;margin-bottom:10px;">
+            <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "qor_admin.actions.submit" "Submit"}}</button>
+          </div>
+        </form>
+        <div class="qor-js-loading mdl-progress mdl-js-progress mdl-progress__indeterminate" style="width: 100%; display:none;"></div>
+      </div>
+    {{end}}
+  </div>
+{{end}}

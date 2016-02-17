@@ -4,7 +4,8 @@
     {{$actions}}
   </div>
 {{end}}
-<div class="qor-page__body">
+
+<div class="qor-page__body qor-page__new">
 
   {{render "shared/alerts"}}
   {{render "shared/errors"}}
@@ -13,9 +14,9 @@
     <form class="qor-form" action="{{url_for .Resource}}" method="POST" enctype="multipart/form-data">
       {{render_form .Result new_sections }}
       <div class="qor-form__actions">
-        <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{rt .Resource (printf "Add %v" (singular .Resource.Name))}}</button>
+        <button class="mdl-button mdl-button--colored mdl-button--raised mdl-js-button mdl-js-ripple-effect qor-button--save" type="submit">{{t "qor_admin.form.add_resource" "Add {{$1}}" (t (printf "%v.name" .Resource.ToParam))}}</button>
         </button>
-        <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "Cancel"}}</a>
+        <a class="mdl-button mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--cancel" href="javascript:history.back();">{{t "qor_admin.form.cancel" "Cancel"}}</a>
       </div>
     </form>
   </div>

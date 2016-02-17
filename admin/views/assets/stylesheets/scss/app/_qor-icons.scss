@@ -1,0 +1,116 @@
+[qor-icon-name]{
+  > a{
+    display: block;
+    padding: 0 20px 0 54px;
+    position: relative;
+    &::before,
+    &::after {
+      position: absolute;
+      top: 11px;
+      left: 20px;
+      width: 24px;
+      height: 24px;
+      font-size: 18px;
+      line-height: 24px;
+      text-align: center;
+      color: inherit;
+      @extend .material-icons;
+    }
+  }
+  &.mdl-menu__item{
+    padding: 0;
+  }
+}
+[qor-icon-name="Delete"] > a::before{
+  content: "\e872";
+}
+[qor-icon-name="Edit"]{
+  border-bottom: 1px solid unquote("rgba(#{$color-black}, 0.12)") ;
+  > a::before{
+    content: "\e254";
+  }
+}
+
+
+/*sidebar menu*/
+.qor-menu-container > ul> li{
+  &[qor-icon-name] > a {
+    &::before,
+    &::after {
+      top: 8px;
+    }
+    &::before {
+      left: 8px;
+    }
+
+    &::after {
+      right: 8px;
+      left: auto;
+    }
+  }
+
+  &[qor-icon-name*="Dashboard"] > a::before {
+    content: "\e871";
+  }
+
+  &[qor-icon-name*="Asset"] > a::before {
+    content: "\e2c7";
+  }
+
+  &[qor-icon-name*="Product"] > a::before {
+    content: "\e1db";
+  }
+
+  &[qor-icon-name*="Site"] > a::before {
+    content: "\e051";
+  }
+
+  &[qor-icon-name*="Store"] > a::before {
+    content: "\e8d1";
+  }
+
+  &[qor-icon-name*="Newsletter"] > a::before, &[qor-icon-name*="Email"] > a::before {
+    content: "\e0be";
+  }
+
+  &[qor-icon-name*="Translate"] > a::before, &[qor-icon-name*="Translation"] > a::before {
+    content: "\e8e2";
+  }
+
+  &[qor-icon-name*="Report"] > a::before, &[qor-icon-name*="Chart"] > a::before {
+    content: "\e24b";
+  }
+
+  &[qor-icon-name*="Order"] > a::before {
+    content: "\e8cc";
+  }
+
+  &[qor-icon-name*="User"] > a::before {
+    content: "\e7fd";
+  }
+
+  &[qor-icon-name*="Translation"] > a::before {
+    content: "\e894";
+  }
+
+  &[qor-icon-name*="Publish"] > a::before {
+    content: "\e255";
+  }
+
+  &[qor-icon-name*="Setting"] > a::before {
+    content: "\e8b8";
+  }
+
+  &[qor-icon-name*="Search"] > a::before {
+    content: "\e8b6";
+  }
+  &[qor-icon-name*="Client Services"] > a::before {
+    content: "\e5c3";
+  }
+  &[qor-icon-name*="Transaction Logs"] > a::before {
+    content: "\e889";
+  }
+  &[qor-icon-name*="Notification"] > a::before {
+    content: "\e7f4";
+  }
+}

@@ -6,12 +6,15 @@
 {{end}}
 
 <div class="qor-page__body">
+  {{render "shared/flashes"}}
+  {{render "shared/errors"}}
+
   <div class="qor-table-container">
     {{render "index/table"}}
   </div>
 
   {{if has_create_permission .Resource}}
-    <a class="mdl-button mdl-button--fab mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--new" href="{{new_resource_path .Resource}}">
+    <a class="mdl-button mdl-button--fab mdl-button--primary mdl-js-button mdl-js-ripple-effect qor-button--new" href="{{new_resource_path .Resource}}" data-url="{{new_resource_path .Resource}}">
       <i class="material-icons">add</i>
     </a>
   {{end}}

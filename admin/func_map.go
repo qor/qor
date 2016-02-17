@@ -135,80 +135,90 @@ func (context *Context) FormattedValueOf(value interface{}, meta *Meta) interfac
 	return context.valueOf(meta.GetFormattedValuer(), value, meta)
 }
 
-func (context *Context) RenderForm(value interface{}, sections []*Section) template.HTML {
+func (context *Context) renderForm(value interface{}, sections []*Section) template.HTML {
 	var result = bytes.NewBufferString("")
-	context.renderForm(value, sections, []string{"QorResource"}, result)
+	context.renderSections(value, sections, []string{"QorResource"}, result, "form")
 	return template.HTML(result.String())
 }
 
-func (context *Context) renderForm(value interface{}, sections []*Section, prefix []string, result *bytes.Buffer) {
+func (context *Context) renderSections(value interface{}, sections []*Section, prefix []string, writer *bytes.Buffer, kind string) {
 	for _, section := range sections {
-		context.renderSection(value, section, prefix, result)
-	}
-}
-
-func (context *Context) renderSection(value interface{}, section *Section, prefix []string, writer *bytes.Buffer) {
-	var rows []struct {
-		Length      int
-		ColumnsHTML template.HTML
-	}
-
-	for _, column := range section.Rows {
-		columnsHTML := bytes.NewBufferString("")
-		for _, col := range column {
-			meta := section.Resource.GetMetaOrNew(col)
-			if meta != nil {
-				context.RenderMeta(meta, value, prefix, "form", columnsHTML)
-			}
-		}
-
-		rows = append(rows, struct {
+		var rows []struct {
 			Length      int
 			ColumnsHTML template.HTML
-		}{
-			Length:      len(column),
-			ColumnsHTML: template.HTML(string(columnsHTML.Bytes())),
-		})
-	}
+		}
 
-	var data = map[string]interface{}{
-		"Title": template.HTML(section.Title),
-		"Rows":  rows,
-	}
-	if file, err := context.FindTemplate("metas/section.tmpl"); err == nil {
-		if tmpl, err := template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
-			tmpl.Execute(writer, data)
+		for _, column := range section.Rows {
+			columnsHTML := bytes.NewBufferString("")
+			for _, col := range column {
+				meta := section.Resource.GetMetaOrNew(col)
+				if meta != nil {
+					context.RenderMeta(meta, value, prefix, kind, columnsHTML)
+				}
+			}
+
+			rows = append(rows, struct {
+				Length      int
+				ColumnsHTML template.HTML
+			}{
+				Length:      len(column),
+				ColumnsHTML: template.HTML(string(columnsHTML.Bytes())),
+			})
+		}
+
+		var data = map[string]interface{}{
+			"Title": template.HTML(section.Title),
+			"Rows":  rows,
+		}
+		if file, err := context.FindTemplate("metas/section.tmpl"); err == nil {
+			if tmpl, err := template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
+				tmpl.Execute(writer, data)
+			}
 		}
 	}
 }
 
 func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []string, metaType string, writer *bytes.Buffer) {
+	var (
+		tmpl     *template.Template
+		err      error
+		funcsMap = context.FuncMap()
+	)
 	prefix = append(prefix, meta.Name)
 
-	funcsMap := context.FuncMap()
-	funcsMap["render_form"] = func(value interface{}, sections []*Section, index ...int) template.HTML {
-		var result = bytes.NewBufferString("")
-		newPrefix := append([]string{}, prefix...)
+	var generateNestedRenderSections = func(kind string) func(interface{}, []*Section, ...int) template.HTML {
+		return func(value interface{}, sections []*Section, index ...int) template.HTML {
+			var result = bytes.NewBufferString("")
+			var newPrefix = append([]string{}, prefix...)
 
-		if len(index) > 0 {
-			last := newPrefix[len(newPrefix)-1]
-			newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
-		}
-
-		for _, field := range context.GetDB().NewScope(value).PrimaryFields() {
-			if meta := sections[0].Resource.GetMetaOrNew(field.Name); meta != nil {
-				context.RenderMeta(meta, value, newPrefix, "form", result)
+			if len(index) > 0 {
+				last := newPrefix[len(newPrefix)-1]
+				newPrefix = append(newPrefix[:len(newPrefix)-1], fmt.Sprintf("%v[%v]", last, index[0]))
 			}
+
+			if len(sections) > 0 {
+				for _, field := range context.GetDB().NewScope(value).PrimaryFields() {
+					if meta := sections[0].Resource.GetMetaOrNew(field.Name); meta != nil {
+						context.RenderMeta(meta, value, newPrefix, kind, result)
+					}
+				}
+
+				context.renderSections(value, sections, newPrefix, result, kind)
+			}
+
+			return template.HTML(result.String())
 		}
-
-		context.renderForm(value, sections, newPrefix, result)
-
-		return template.HTML(result.String())
 	}
 
-	var tmpl *template.Template
-	var err error
+	funcsMap["render_form"] = generateNestedRenderSections("form")
+
 	if file, err := context.FindTemplate(fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Name), fmt.Sprintf("metas/%v/%v.tmpl", metaType, meta.Type)); err == nil {
+		defer func() {
+			if r := recover(); r != nil {
+				writer.Write([]byte(fmt.Sprintf("Get error when render template %v meta %v: %v", file, meta.Name, r)))
+			}
+		}()
+
 		tmpl, err = template.New(filepath.Base(file)).Funcs(funcsMap).ParseFiles(file)
 	} else {
 		tmpl, err = template.New(meta.Type + ".tmpl").Funcs(funcsMap).Parse("{{.Value}}")
@@ -606,16 +616,18 @@ func (context *Context) logoutURL() string {
 	return ""
 }
 
-func (context *Context) dt(key string, value string, values ...interface{}) template.HTML {
-	return context.Admin.T(context.Context, key, value, values...)
-}
-
-func (context *Context) rt(resource *Resource, key string, values ...interface{}) template.HTML {
-	return context.Admin.T(context.Context, strings.Join([]string{resource.ToParam(), key}, "."), key, values...)
-}
-
-func (context *Context) t(key string, values ...interface{}) template.HTML {
-	return context.Admin.T(context.Context, key, key, values...)
+func (context *Context) t(values ...interface{}) template.HTML {
+	switch len(values) {
+	case 1:
+		return context.Admin.T(context.Context, fmt.Sprint(values[0]), "")
+	case 2:
+		return context.Admin.T(context.Context, fmt.Sprint(values[0]), fmt.Sprint(values[1]))
+	case 3:
+		return context.Admin.T(context.Context, fmt.Sprint(values[0]), fmt.Sprint(values[1]), values[2:len(values)]...)
+	default:
+		utils.ExitWithMsg("passed wrong params for T")
+	}
+	return ""
 }
 
 func (context *Context) isSortableMeta(meta *Meta) bool {
@@ -660,6 +672,55 @@ func (context *Context) getFormattedErrors() (formatedErrors []formatedError) {
 	return
 }
 
+func (context *Context) AllowedActions(actions []*Action, mode string) []*Action {
+	var allowedActions []*Action
+	for _, action := range actions {
+		if action.HasPermission(roles.Update, context.Context) {
+			if len(action.Visibles) == 0 {
+				allowedActions = append(allowedActions, action)
+			} else {
+				for _, v := range action.Visibles {
+					if v == mode {
+						allowedActions = append(allowedActions, action)
+						break
+					}
+				}
+			}
+		}
+	}
+	return allowedActions
+}
+
+func (context *Context) pageTitle() template.HTML {
+	if context.Resource == nil {
+		return context.t("qor_admin.layout.title", "Admin")
+	}
+	if context.Action == "action" {
+		return context.t(fmt.Sprintf("%v.actions.%v", context.Resource.ToParam(), context.Result.(*Action).Label), context.Result.(*Action).Label)
+	}
+	var value string
+	var resourceKey, resourceName string
+	titleKey := fmt.Sprintf("qor_admin.form.%v_title", context.Action)
+	if context.Resource.Config.Singleton {
+		resourceKey = fmt.Sprintf("%v.name", context.Resource.ToParam())
+		resourceName = string(context.t(resourceKey, context.Resource.Name))
+	} else {
+		resourceKey = fmt.Sprintf("%v.name.plural", context.Resource.ToParam())
+		resourceName = string(context.t(resourceKey, inflection.Plural(context.Resource.Name)))
+	}
+	switch context.Action {
+	case "new":
+		value = "Add {{$1}}"
+	case "edit":
+		value = "Edit {{$1}}"
+	case "show":
+		value = "{{$1}} Details"
+	default:
+		value = "{{$1}}"
+	}
+	return context.t(titleKey, value, resourceName)
+}
+
 func (context *Context) FuncMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
@@ -683,7 +744,7 @@ func (context *Context) FuncMap() template.FuncMap {
 		"singular":  inflection.Singular,
 
 		"render":      context.Render,
-		"render_form": context.RenderForm,
+		"render_form": context.renderForm,
 		"render_index_meta": func(value interface{}, meta *Meta) template.HTML {
 			var result = bytes.NewBufferString("")
 			context.RenderMeta(meta, value, []string{}, "index", result)
@@ -703,8 +764,14 @@ func (context *Context) FuncMap() template.FuncMap {
 		"load_admin_stylesheets": context.loadAdminStyleSheets,
 		"load_admin_javascripts": context.loadAdminJavaScripts,
 		"load_actions":           context.loadActions,
+		"allowed_actions":        context.AllowedActions,
 		"pagination":             context.Pagination,
 
+		"page_title": context.pageTitle,
+		"meta_label": func(meta *Meta) template.HTML {
+			key := fmt.Sprintf("%v.attributes.%v", meta.baseResource.ToParam(), meta.Label)
+			return context.Admin.T(context.Context, key, meta.Label)
+		},
 		"all_metas":                 context.allMetas,
 		"index_sections":            context.indexSections,
 		"show_sections":             context.showSections,
@@ -726,8 +793,6 @@ func (context *Context) FuncMap() template.FuncMap {
 		},
 
 		"t":       context.t,
-		"dt":      context.dt,
-		"rt":      context.rt,
 		"flashes": context.GetFlashes,
 	}
 

@@ -1,10 +1,17 @@
 <div class="qor-field">
-  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .BaseResource.ToParam .Label) .Label}}</label>
-  <div class="qor-field__block">
+  <label class="qor-field__label" for="{{.InputId}}">
+    {{meta_label .Meta}}
+  </label>
+
+  <div class="qor-field__show">
+    {{raw .Value}}
+  </div>
+
+  <div class="qor-field__edit qor-field__block">
     {{if .Meta.Resource}}
-      <textarea class="qor-field__input" id="{{.InputId}}" data-toggle="qor.redactor" data-upload-url="{{url_for .Meta.Resource}}/upload" data-crop-url="{{url_for .Meta.Resource}}/crop" data-text="{&quot;title&quot;: &quot;{{t "Crop the image"}}&quot;, &quot;ok&quot;: &quot;{{t "OK"}}&quot;, &quot;cancel&quot;: &quot;{{t "Cancel"}}&quot;}" name="{{.InputName}}" rows="10" {{if not (has_update_permission .Meta)}}disabled{{end}}>{{if .Value}}{{.Value}}{{end}}</textarea>
+      <textarea class="qor-field__input" id="{{.InputId}}" data-toggle="qor.redactor" data-upload-url="{{url_for .Meta.Resource}}/upload" data-crop-url="{{url_for .Meta.Resource}}/crop" data-text="{&quot;title&quot;: &quot;{{t "qor_admin.form.crop_the_image" "Crop the image"}}&quot;, &quot;ok&quot;: &quot;{{t "qor_admin.form.ok" "OK"}}&quot;, &quot;cancel&quot;: &quot;{{t "qor_admin.form.cancel" "Cancel"}}&quot;}" name="{{.InputName}}" rows="10" {{if not (has_update_permission .Meta)}}disabled{{end}}>{{.Value}}</textarea>
     {{else}}
-      <textarea class="qor-field__input" id="{{.InputId}}" data-toggle="qor.redactor" name="{{.InputName}}" rows="10" {{if not (has_update_permission .Meta)}}disabled{{end}}>{{if .Value}}{{.Value}}{{end}}</textarea>
+      <textarea class="qor-field__input" id="{{.InputId}}" data-toggle="qor.redactor" name="{{.InputName}}" rows="10" {{if not (has_update_permission .Meta)}}disabled{{end}}>{{.Value}}</textarea>
     {{end}}
   </div>
 </div>

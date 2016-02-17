@@ -180,8 +180,8 @@ func (meta *Meta) updateMeta() {
 				meta.Type = "select_many"
 			}
 		} else {
-			switch fieldType.Kind().String() {
-			case "string":
+			switch fieldType.Kind() {
+			case reflect.String:
 				var tag = meta.FieldStruct.Tag
 				if size, ok := utils.ParseTagOption(tag.Get("sql"))["SIZE"]; ok {
 					if i, _ := strconv.Atoi(size); i > 255 {
@@ -194,7 +194,7 @@ func (meta *Meta) updateMeta() {
 				} else {
 					meta.Type = "string"
 				}
-			case "bool":
+			case reflect.Bool:
 				meta.Type = "checkbox"
 			default:
 				if regexp.MustCompile(`^(.*)?(u)?(int)(\d+)?`).MatchString(fieldType.Kind().String()) {
@@ -302,9 +302,19 @@ func (meta *Meta) updateMeta() {
 
 	meta.FieldName = meta.GetFieldName()
 
+	// call ConfigureMetaInterface
 	if meta.FieldStruct != nil {
 		if injector, ok := reflect.New(meta.FieldStruct.Struct.Type).Interface().(resource.ConfigureMetaInterface); ok {
 			injector.ConfigureQorMeta(meta)
+		}
+	}
+
+	// run meta configors
+	if baseResource := meta.baseResource; baseResource != nil {
+		for key, fc := range baseResource.GetAdmin().metaConfigorMaps {
+			if key == meta.Type {
+				fc(meta)
+			}
 		}
 	}
 }

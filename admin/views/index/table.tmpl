@@ -1,4 +1,9 @@
 {{$resource := .Resource}}
+{{$has_update_permission := has_update_permission $resource}}
+{{$has_delete_permission := has_delete_permission $resource}}
+{{$allowed_actions := allowed_actions $resource.Actions "menu_item"}}
+{{$has_actions := not (and (not $has_update_permission) (not $has_delete_permission) (not $allowed_actions))}}
+
 <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp qor-table qor-js-table">
   <thead>
     <tr>
@@ -8,30 +13,52 @@
         {{$dbName := $meta.DBName}}
         {{$is_sorted := eq $order_by $dbName}}
         {{$is_desc_sorted := eq $order_by (print $dbName "_desc")}}
-        <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$dbName}}_desc"{{else}}data-order-by="{{$dbName}}"{{end}}{{end}}>{{dt (printf "%v.attributes.%v" $resource.ToParam $meta.Label) $meta.Label}}</th>
+        <th class="mdl-data-table__cell--non-numeric {{if is_sortable_meta $meta}}{{if (or $is_sorted $is_desc_sorted)}}is-sorted{{end}}{{end}}" {{if is_sortable_meta $meta}}{{if $is_sorted}}data-order-by="{{$dbName}}_desc"{{else}}data-order-by="{{$dbName}}"{{end}}{{end}}>{{meta_label $meta}}</th>
       {{end}}
-      <th class="mdl-data-table__cell--non-numeric qor-table__actions">{{t "Actions"}}</th>
+      <th class="mdl-data-table__cell--non-numeric qor-table__actions"></th>
     </tr>
   </thead>
+
   <tbody>
     {{range $result := .Result}}
-      <tr data-primary-key="{{primary_key_of $result}}">
+      {{$primaryKey := primary_key_of $result}}
+      <tr data-primary-key="{{$primaryKey}}" data-url="{{url_for $result $resource}}">
         {{range $meta := $metas}}
-          <td class="mdl-data-table__cell--non-numeric" data-heading="{{rt $resource $meta.Label}}">
+          <td class="mdl-data-table__cell--non-numeric" data-heading="{{meta_label $meta}}">
             {{$value := render_index_meta $result $meta}}
             <div class="qor-table__content" title="{{$value}}">{{$value}}</div>
           </td>
         {{end}}
+
         <td class="mdl-data-table__cell--non-numeric qor-table__actions">
-          {{if has_update_permission $resource}}
-            <a class="mdl-button mdl-js-button mdl-button--icon qor-button--muted qor-button--edit" href="{{url_for $result $resource}}">
-              <i class="material-icons md-18">edit</i>
-            </a>
-          {{end}}
-          {{if has_delete_permission $resource}}
-            <a class="mdl-button mdl-js-button mdl-button--icon qor-button--muted qor-button--delete" href="{{url_for $result $resource}}" data-method="DELETE" data-confirm="{{t "Are you sure?"}}">
-              <i class="material-icons md-18">delete</i>
-            </a>
+          {{if $has_actions}}
+            <button id="actions-for-{{$primaryKey}}" class="mdl-button mdl-js-button mdl-button--icon qor-button--actions">
+              <i class="material-icons">more_vert</i>
+            </button>
+
+            <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="actions-for-{{$primaryKey}}">
+              {{if $has_update_permission}}
+                <li class="mdl-menu__item" qor-icon-name="Edit">
+                  <a class="qor-action--edit" data-url="{{url_for $result $resource}}/edit" href="{{url_for $result $resource}}/edit">
+                    {{t "qor_admin.form.edit" "Edit"}}
+                  </a>
+                </li>
+              {{end}}
+              {{if $has_delete_permission}}
+                <li class="mdl-menu__item" qor-icon-name="Delete">
+                  <a class="qor-action--delete" href="{{url_for $result $resource}}" data-method="DELETE" data-confirm="{{t "qor_admin.form.are_you_sure" "Are you sure?"}}">
+                    {{t "qor_admin.form.delete" "Delete"}}
+                  </a>
+                </li>
+              {{end}}
+              {{range $action := $allowed_actions}}
+                <li class="mdl-menu__item" qor-icon-name="{{$action.Name}}">
+                  <a data-url="{{url_for $result $resource}}/{{$action.ToParam}}" href="{{url_for $result $resource}}/{{$action.ToParam}}" {{if not $action.Resource}}data-dataType="json" data-confirm="{{t "qor_admin.form.are_you_sure"}}" data-method="PUT"{{end}}>
+                    {{t (printf "%v.actions.%v" $resource.ToParam $action.Label) $action.Label}}
+                  </a>
+                </li>
+              {{end}}
+            </ul>
           {{end}}
         </td>
       </tr>

@@ -1,5 +1,8 @@
 <div class="signle-edit qor-field">
-  <label class="qor-field__label" for="{{.InputId}}">{{dt (printf "%v.attributes.%v" .BaseResource.ToParam .Label) .Label}}</label>
+  <label class="qor-field__label" for="{{.InputId}}">
+    {{meta_label .Meta}}
+  </label>
+
   <div class="qor-field__block">
     {{if (or (and (is_new_record .Value) (has_create_permission .Meta)) (has_update_permission .Meta))}}
       <fieldset id="{{.InputId}}" class="qor-fieldset">

@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"fmt"
 	"net/http"
 	"path"
 	"strings"
@@ -12,6 +11,7 @@ import (
 
 type controller struct {
 	*Admin
+	action *Action
 }
 
 const HTTPUnprocessableEntity = 422
@@ -79,7 +79,7 @@ func (ac *controller) Create(context *Context) {
 		}).Respond(context.Request)
 	} else {
 		responder.With("html", func() {
-			context.Flash(string(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res)), "success")
+			context.Flash(string(context.t("qor_admin.form.successfully_created", "{{.Name}} was successfully created", res)), "success")
 			http.Redirect(context.Writer, context.Request, context.UrlFor(result, res), http.StatusFound)
 		}).With("json", func() {
 			context.JSON("show", result)
@@ -150,7 +150,7 @@ func (ac *controller) Update(context *Context) {
 		}).Respond(context.Request)
 	} else {
 		responder.With("html", func() {
-			context.FlashNow(string(context.dt("resource_successfully_updated", "{{.Name}} was successfully updated", res)), "success")
+			context.FlashNow(string(context.t("qor_admin.form.successfully_updated", "{{.Name}} was successfully updated", res)), "success")
 			context.Execute("show", result)
 		}).With("json", func() {
 			context.JSON("show", result)
@@ -173,32 +173,36 @@ func (ac *controller) Delete(context *Context) {
 }
 
 func (ac *controller) Action(context *Context) {
-	var err error
-	name := strings.Split(context.Request.URL.Path, "/")[4]
+	var action = ac.action
+	if context.Request.Method == "GET" {
+		context.Execute("action", action)
+	} else {
+		var actionArgument = ActionArgument{
+			PrimaryValues: context.Request.Form["primary_values[]"],
+			Context:       context,
+		}
 
-	for _, action := range context.Resource.actions {
-		if action.Name == name {
-			ids := context.Request.Form.Get("ids")
-			scope := context.GetDB().Where(fmt.Sprintf("%v IN (?)", context.Resource.PrimaryField().DBName), ids)
-			err = action.Handle(scope, context.Context)
+		if primaryValue := context.Resource.GetPrimaryValue(context.Request); primaryValue != "" {
+			actionArgument.PrimaryValues = append(actionArgument.PrimaryValues, primaryValue)
+		}
+
+		if action.Resource != nil {
+			result := action.Resource.NewStruct()
+			action.Resource.Decode(context.Context, result)
+			actionArgument.Argument = result
+		}
+
+		if err := action.Handle(&actionArgument); err == nil {
+			responder.With("html", func() {
+				http.Redirect(context.Writer, context.Request, context.Request.Referer(), http.StatusFound)
+			}).With("json", func() {
+				context.JSON("OK", map[string]string{"redirect": context.Request.Referer(), "status": "ok"})
+			}).Respond(context.Request)
+		} else {
+			context.Writer.WriteHeader(HTTPUnprocessableEntity)
+			context.Writer.Write([]byte(err.Error()))
 		}
 	}
-
-	responder.With("html", func() {
-		if err == nil {
-			http.Redirect(context.Writer, context.Request, context.Request.Referer(), http.StatusFound)
-		} else {
-			context.Writer.WriteHeader(HTTPUnprocessableEntity)
-			context.Writer.Write([]byte(err.Error()))
-		}
-	}).With("json", func() {
-		if err == nil {
-			context.Writer.Write([]byte("OK"))
-		} else {
-			context.Writer.WriteHeader(HTTPUnprocessableEntity)
-			context.Writer.Write([]byte(err.Error()))
-		}
-	}).Respond(context.Request)
 }
 
 func (ac *controller) Asset(context *Context) {

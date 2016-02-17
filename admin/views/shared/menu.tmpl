@@ -1,13 +1,13 @@
 <ul class="qor-menu">
   {{range .Result}}
     {{if .SubMenus}}
-      <li data-menu-item="{{.Name}}" {{if .Active}}class="active"{{end}}>
-        <a href="{{if .Link}}{{.Link}}{{else}}javascript:void(0);{{end}}">{{t .Name}}</a>
+      <li qor-icon-name="{{.Name}}" {{if .Active}}class="active"{{end}}>
+        <a href="{{if .Link}}{{.Link}}{{else}}javascript:void(0);{{end}}">{{t (printf "qor_admin.menus.%v" .Name) .Name}}</a>
         {{render "shared/menu" .SubMenus}}
       </li>
     {{else}}
-      <li data-menu-item="{{.Name}}" {{if .Active}}class="active"{{end}}>
-        {{link_to (t .Name) .Link}}
+      <li qor-icon-name="{{.Name}}" {{if .Active}}class="active"{{end}}>
+        {{link_to (t (printf "qor_admin.menus.%v" .Name) .Name) .Link}}
       </li>
     {{end}}
   {{end}}

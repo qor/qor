@@ -11,9 +11,11 @@
   background-color: #fff;
   @include shadow-2dp();
 }
-
-.qor-form {}
-
+.qor-slideout__body .qor-form-container{
+  margin: 0;
+  padding: 0;
+  box-shadow: none;
+}
 .qor-form__actions {
   margin-top: 24px;
   @include clearfix();
@@ -32,28 +34,19 @@
 // -------------------------
 
 .qor-search-container {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  float: right;
   z-index: 1;
-  padding-left: 24px;
-  padding-right: 24px;
   background-color: inherit;
 }
 
 // Add to .qor-page__header
-.has-search {
-  padding-right: 80px;
-}
 
 .qor-search {
   height: 56px;
-  padding-top: 14px;
-  padding-bottom: 14px;
+  padding: 14px 6px;
 
   .mdl-button {
-    bottom: 12px;
+    top: 10px;
   }
 
   .qor-search__label {
@@ -90,11 +83,15 @@
 // -------------------------
 
 .qor-field__label {
-  display: inline-block;
+  display: block;
   max-width: 100%;
-  margin-bottom: 8px;
   font-size: 12px;
   color: unquote("rgba(#{$color-black}, 0.54)");
+}
+
+.qor-field__value {
+  display: block;
+  padding: 4px 0;
 }
 
 .qor-field__input {
@@ -105,6 +102,42 @@
   display: block;
   padding-bottom: 20px;
   position: relative;
+}
+
+.chosen-container{
+  margin-top: 8px;
+}
+
+.qor-field__show {
+  display: none;
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+[data-upgraded] > .qor-field__show{
+  margin-bottom: 0;
+}
+
+.qor-page__show {
+  .qor-field__show {
+    display: block;
+  }
+
+  .qor-field__edit, .qor-fieldset__delete, .qor-fieldset__add {
+    display: none;
+  }
+}
+
+.qor-page__edit {
+  .qor-field__show {
+    display: none;
+  }
+
+  .qor-field__edit, .qor-fieldset__delete {
+    display: block;
+  }
+  .qor-fieldset__add{
+    display: inline-block;
+  }
 }
 
 .qor-field {
@@ -150,7 +183,7 @@
 }
 
 // Custom modifier for .mdl-textfield
-.qor-textfield--static-label {
+.qor-field {
   .mdl-textfield__label {
     color: unquote("rgba(#{$color-black}, 0.54)");
     font-size: 12px;
@@ -161,7 +194,7 @@
     font-size: 14px;
   }
 
-  &.is-dirty .mdl-textfield__label {
+  .mdl-textfield.is-dirty .mdl-textfield__label {
     visibility: visible;
   }
 }
@@ -191,6 +224,7 @@
 .qor-file {
   position: relative;
   display: block;
+  margin-top: 8px;
 }
 
 .qor-file__list {
@@ -251,7 +285,7 @@
   position: relative;
   margin-top: 16px;
   margin-bottom: 16px;
-  padding: 8px 24px;
+  padding: 16px 32px;
   border: 1px solid unquote("rgba(#{$color-black}, 0.12)");
   background-color: unquote("rgb(#{$palette-grey-50})");
 }

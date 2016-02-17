@@ -120,9 +120,11 @@
       var minTop = 0;
       var maxTop = $this.outerHeight() - theadHeight - tbodyLastRowHeight;
       var offsetTop = this.$subHeader.outerHeight() + this.paddingHeight + this.marginBottomPX;
+      var headerHeight = $('.qor-page__header').outerHeight();
+      var showTop = Math.min(scrollTop - offsetTop, maxTop) + headerHeight;
 
-      if (scrollTop > offsetTop) {
-        $clone.css('top', Math.min(scrollTop - offsetTop, maxTop)).removeClass(CLASS_IS_HIDDEN);
+      if (scrollTop > offsetTop - headerHeight) {
+        $clone.css('top', showTop).removeClass(CLASS_IS_HIDDEN);
       } else {
         $clone.css('top', minTop).addClass(CLASS_IS_HIDDEN);
       }
