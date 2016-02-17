@@ -287,11 +287,10 @@
 
                 for (var name in qorSliderAfterShow) {
                   if (qorSliderAfterShow.hasOwnProperty(name)) {
-                    qorSliderAfterShow[name].call(this, url);
+                    qorSliderAfterShow[name].call(this, url, response);
                   }
                 }
               }
-
             } else {
               if (data.returnUrl) {
                 this.loading = false; // For reload
