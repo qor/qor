@@ -2,7 +2,6 @@ package admin
 
 import (
 	"bytes"
-	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -118,14 +117,6 @@ func (context *Context) valueOf(valuer func(interface{}, *qor.Context) interface
 					return nil
 				}
 			}
-
-			// For scanner & valuer
-			if value, ok := result.(driver.Valuer); ok {
-				if value, err := value.Value(); err == nil {
-					return value
-				}
-			}
-
 			return result
 		} else {
 			return nil
