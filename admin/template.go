@@ -27,10 +27,12 @@ func init() {
 
 // RegisterViewPath register views directory
 func RegisterViewPath(p string) {
-	registerViewPath(path.Join(Root, "vendor", p))
-
-	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-		registerViewPath(path.Join(gopath, "src", p))
+	if registerViewPath(path.Join(Root, "vendor", p)) != nil {
+		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+			if registerViewPath(path.Join(gopath, "src", p)) == nil {
+				return
+			}
+		}
 	}
 }
 
