@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 
 	"github.com/qor/qor"
 	"github.com/qor/qor/utils"
@@ -97,6 +98,8 @@ func (context *Context) getViewPaths() (paths []string) {
 			}
 		}
 	}
+
+	sort.Sort(sort.StringSlice(paths))
 	return paths
 }
 
