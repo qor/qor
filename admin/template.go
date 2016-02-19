@@ -21,8 +21,8 @@ func init() {
 		Root = root
 	}
 
-	registerViewPath(path.Join(Root, "app/views/qor"))
 	RegisterViewPath("github.com/qor/qor/admin/views")
+	registerViewPath(path.Join(Root, "app/views/qor"))
 }
 
 // RegisterViewPath register views directory
@@ -32,6 +32,8 @@ func RegisterViewPath(p string) {
 	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 		registerViewPath(path.Join(gopath, "src", p))
 	}
+
+	registerViewPath(path.Join(Root, p))
 }
 
 func isExistingDir(pth string) bool {
