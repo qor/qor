@@ -22,15 +22,13 @@ func init() {
 	}
 
 	for _, dir := range []string{path.Join(Root, "app/views/qor")} {
-		RegisterViewPath(dir)
+		registerViewPath(dir)
 	}
 
-	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-		RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/admin/views"))
-	}
+	RegisterViewPath("github.com/qor/qor/admin/views")
 }
 
-func RegisterViewPath(path string) error {
+func registerViewPath(path string) error {
 	if isExistingDir(path) {
 		var found bool
 
@@ -47,6 +45,14 @@ func RegisterViewPath(path string) error {
 		return nil
 	}
 	return errors.New("path not found")
+}
+
+func RegisterViewPath(p string) {
+	registerViewPath(path.Join(Root, "vendor", p))
+
+	for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
+		registerViewPath(path.Join(gopath, "src", p))
+	}
 }
 
 func isExistingDir(pth string) bool {

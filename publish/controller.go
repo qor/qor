@@ -3,8 +3,6 @@ package publish
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"path"
 	"reflect"
 	"strings"
 
@@ -103,9 +101,7 @@ func (db *publishController) PublishOrDiscard(context *admin.Context) {
 
 func (publish *Publish) ConfigureQorResource(res resource.Resourcer) {
 	if res, ok := res.(*admin.Resource); ok {
-		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
-			admin.RegisterViewPath(path.Join(gopath, "src/github.com/qor/qor/publish/views"))
-		}
+		admin.RegisterViewPath("github.com/qor/qor/publish/views")
 		res.UseTheme("publish")
 
 		if event := res.GetAdmin().GetResource("PublishEvent"); event == nil {
