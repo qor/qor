@@ -20,6 +20,8 @@
   var EVENT_CHNAGE = 'change.' + NAMESPACE;
   var EVENT_SUBMIT = 'submit.' + NAMESPACE;
   var ACTION_FORMS = '.qor-action-forms';
+  var ACTION_HEADER = '.qor-page__header';
+  var ACTION_SELECTORS = '.qor-actions';
   var BUTTON_BULKS = '.qor-action-bulk-buttons';
   var QOR_PAGE = '.qor-page';
 
@@ -60,14 +62,15 @@
         this.$wrap.removeClass('hidden');
         $(BUTTON_BULKS).find('button').toggleClass('hidden');
         this.appendTableCheckbox();
-        this.$qorPage.addClass("bluking");
+        console.log($(ACTION_HEADER).find(ACTION_SELECTORS))
+        $(ACTION_HEADER).find(ACTION_SELECTORS).addClass('hidden');
       }
 
       if ($target.is('.qor-action--exit-bulk span')) {
         this.$wrap.addClass('hidden');
         $(BUTTON_BULKS).find('button').toggleClass('hidden');
         this.removeTableCheckbox();
-        this.$qorPage.removeClass("bluking");
+        $(ACTION_HEADER).find(ACTION_SELECTORS).removeClass('hidden');
       }
 
       if ($(this).is('tr') && !$target.is('a')) {

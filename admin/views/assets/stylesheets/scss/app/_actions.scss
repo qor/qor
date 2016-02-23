@@ -82,7 +82,10 @@
     margin-left: 8px;
   }
 }
-
+.qor-action-bulk-buttons,.qor-action-forms{
+  display: inline-block;
+  vertical-align: middle;
+}
 .qor-action--button {
   height: 32px;
   line-height: 32px;
@@ -93,9 +96,11 @@
 }
 
 .qor-action-forms{
-  margin-top: 24px;
+  .qor-form__actions{
+    margin-top: 0;
+  }
   > .action-form{
-    margin-right: 48px;
+    margin-right: 24px;
   }
   > .action-form, .qor-form-section, .qor-form__actions{
     display: inline-block;
