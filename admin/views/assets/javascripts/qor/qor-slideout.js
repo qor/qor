@@ -1,5 +1,3 @@
-$.fn.qorSliderAfterShow = {};
-
 (function (factory) {
   if (typeof define === 'function' && define.amd) {
     // AMD. Register as anonymous module.
@@ -163,17 +161,30 @@ $.fn.qorSliderAfterShow = {};
         $.ajax($form.prop('action'), {
           method: $form.prop('method'),
           data: new FormData(form),
+          dataType: 'html',
           processData: false,
           contentType: false,
           beforeSend: function () {
             $submit.prop('disabled', true);
           },
-          success: function () {
+          success: function (html) {
             var returnUrl = $form.data('returnUrl');
 
             if (returnUrl) {
               _this.load(returnUrl);
             } else {
+              var prefix = '/' + location.pathname.split('/')[1];
+              var flashStructs = [];
+              $(html).find('.qor-alert').each(function (i, e) {
+                var message = $(e).find('.qor-alert-message').text().trim();
+                var type = $(e).data('type');
+                if (message !== '') {
+                  flashStructs.push({ Type: type, Message: message, Keep: true });
+                }
+              });
+              if (flashStructs.length > 0) {
+                document.cookie = 'qor-flashes=' + btoa(JSON.stringify(flashStructs)) + '; path=' + prefix;
+              }
               _this.refresh();
             }
           },
@@ -276,11 +287,10 @@ $.fn.qorSliderAfterShow = {};
 
                 for (var name in qorSliderAfterShow) {
                   if (qorSliderAfterShow.hasOwnProperty(name)) {
-                    qorSliderAfterShow[name].call(this, url);
+                    qorSliderAfterShow[name].call(this, url, response);
                   }
                 }
               }
-
             } else {
               if (data.returnUrl) {
                 this.loading = false; // For reload

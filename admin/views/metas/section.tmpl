@@ -1,15 +1,15 @@
 <div class="qor-form-section clearfix">
   {{if .Title}}
-  <label class="qor-field__label qor-form-section-title">
-    {{.Title}}
-  </label>
+    <label class="qor-field__label qor-form-section-title">
+      {{.Title}}
+    </label>
   {{end}}
 
   <div {{if .Title}}class="qor-fieldset"{{end}}>
     {{range .Rows}}
-    <div class="qor-form-section-rows qor-section-columns-{{.Length}} clearfix">
-      {{.ColumnsHTML}}
-    </div>
+      <div class="qor-form-section-rows qor-section-columns-{{.Length}} clearfix">
+        {{.ColumnsHTML}}
+      </div>
     {{end}}
   </div>
 </div>

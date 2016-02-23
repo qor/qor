@@ -5,6 +5,7 @@
   float: left;
   min-height: 32px;
   margin-right: 8px;
+  padding: 8px 0;
   @include clearfix();
 
   &:first-child {

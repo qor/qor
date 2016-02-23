@@ -1,7 +1,7 @@
 {{if .CurrentUser}}
-<div class="mdl-layout-spacer"></div>
-<small class="mdl-layout-text mdl-layout--large-screen-only">{{t "Logged in as {{$1}}" .CurrentUser.DisplayName}}</small>
-<nav class="mdl-navigation mdl-layout--large-screen-only">
-  <a class="mdl-navigation__link" href="{{logout_url}}"><i class="material-icons">exit_to_app</i></a>
-</nav>
+  <div class="mdl-layout-spacer"></div>
+  <small class="mdl-layout-text mdl-layout--large-screen-only">{{t "qor_admin.layout.logged_in_as" "Logged in as {{.DisplayName}}" .CurrentUser}}</small>
+  <nav class="mdl-navigation mdl-layout--large-screen-only">
+    <a class="mdl-navigation__link" href="{{logout_url}}"><i class="material-icons">exit_to_app</i></a>
+  </nav>
 {{end}}

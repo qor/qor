@@ -176,6 +176,6 @@ func (admin *Admin) T(context *qor.Context, key string, value string, values ...
 		}
 		return template.HTML(key)
 	} else {
-		return admin.I18n.Scope("qor_admin").Default(value).T(locale, key, values...)
+		return admin.I18n.Default(value).T(locale, key, values...)
 	}
 }

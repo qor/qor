@@ -2,21 +2,21 @@
   <nav class="qor-pagination-container">
     <ul class="qor-pagination">
       {{range $index, $page := pagination}}
-      {{if $page.IsPrevious}}
-      <li class="qor-pagination-item qor-pagination-previous">
-        <a href="{{patch_current_url "page" $page.Page}}" title="{{t "Previous Page"}}" aria-label="{{t "Previous Page"}}">&laquo;</a>
-      </li>
-      {{else if $page.IsNext}}
-      <li class="qor-pagination-item qor-pagination-next">
-        <a href="{{patch_current_url "page" $page.Page}}" title="{{t "Next Page"}}" aria-label="{{t "Next Page"}}">&raquo;</a>
-      </li>
-      {{else if $page.Current}}
-      <li class="qor-pagination-item active"><a href="{{patch_current_url "page" $page.Page}}">{{$page.Page}}</a></li>
-      {{else}}
-      <li class="qor-pagination-item"><a href="{{patch_current_url "page" $page.Page}}">{{$page.Page}}</a></li>
-      {{end}}
+        {{if $page.IsPrevious}}
+          <li class="qor-pagination-item qor-pagination-previous">
+            <a href="{{patch_current_url "page" $page.Page}}" title="{{t "qor_admin.pagination.previous" "Previous Page"}}" aria-label="{{t "qor_admin.pagination.previous"}}">&laquo;</a>
+          </li>
+        {{else if $page.IsNext}}
+          <li class="qor-pagination-item qor-pagination-next">
+            <a href="{{patch_current_url "page" $page.Page}}" title="{{t "qor_admin.pagination.next" "Next Page"}}" aria-label="{{t "qor_admin.pagination.next"}}">&raquo;</a>
+          </li>
+        {{else if $page.Current}}
+          <li class="qor-pagination-item active"><a href="{{patch_current_url "page" $page.Page}}">{{$page.Page}}</a></li>
+        {{else}}
+          <li class="qor-pagination-item"><a href="{{patch_current_url "page" $page.Page}}">{{$page.Page}}</a></li>
+        {{end}}
       {{end}}
     </ul>
-    <a class="qor-pagination-all" href="{{patch_current_url "page" "-1" }}">{{t "Show All"}}</a>
+    <a class="qor-pagination-all" href="{{patch_current_url "page" "-1" }}">{{t "qor_admin.pagination.show_all" "Show All"}}</a>
   </nav>
 {{end}}

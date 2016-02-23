@@ -49,6 +49,7 @@ function adminTasks() {
         src: pathto('javascripts/app/*.js'),
         dest: pathto('javascripts'),
         qor: pathto('javascripts/qor/*.js'),
+        qorInit: pathto('javascripts/qor/qor-init.js'),
         all: [
           'gulpfile.js',
           pathto('javascripts/qor/*.js')
@@ -77,7 +78,7 @@ function adminTasks() {
   });
 
   gulp.task('qor', ['jshint', 'jscs'], function () {
-    return gulp.src(scripts.qor)
+    return gulp.src([scripts.qorInit,scripts.qor])
     .pipe(plugins.concat('qor.js'))
     .pipe(plugins.uglify())
     .pipe(gulp.dest(scripts.dest));
@@ -91,7 +92,7 @@ function adminTasks() {
   });
 
   gulp.task('qor+', function () {
-    return gulp.src(scripts.qor)
+    return gulp.src([scripts.qorInit,scripts.qor])
     .pipe(plugins.sourcemaps.init())
     .pipe(plugins.concat('qor.js'))
     .pipe(plugins.sourcemaps.write('./'))

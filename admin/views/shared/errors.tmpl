@@ -1,15 +1,15 @@
 {{$formatted_errors := get_formatted_errors}}
 {{if $formatted_errors}}
   <ul class="qor-error" id="errors">
-  {{range $formatted_error := $formatted_errors}}
-    <li>
-      <label for="{{$formatted_error.Label}}">
-        <i class="material-icons">error</i>
-        {{range $error := $formatted_error.Errors}}
-          <span>{{t $error}}</span>
-        {{end}}
-      </label>
-    </li>
-  {{end}}
+    {{range $formatted_error := $formatted_errors}}
+      <li>
+        <label for="{{$formatted_error.Label}}">
+          <i class="material-icons">error</i>
+          {{range $error := $formatted_error.Errors}}
+            <span>{{t (printf "qor_admin.errors.%v" $error) $error}}</span>
+          {{end}}
+        </label>
+      </li>
+    {{end}}
   </ul>
 {{end}}

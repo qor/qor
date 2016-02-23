@@ -34,12 +34,8 @@
 // -------------------------
 
 .qor-search-container {
-  position: absolute;
-  top: 0;
-  right: 0;
+  float: right;
   z-index: 1;
-  padding-left: 24px;
-  padding-right: 24px;
   background-color: inherit;
 }
 
@@ -47,11 +43,10 @@
 
 .qor-search {
   height: 56px;
-  padding-top: 14px;
-  padding-bottom: 14px;
+  padding: 14px 6px;
 
   .mdl-button {
-    bottom: 12px;
+    top: 10px;
   }
 
   .qor-search__label {

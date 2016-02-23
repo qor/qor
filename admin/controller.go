@@ -79,7 +79,7 @@ func (ac *controller) Create(context *Context) {
 		}).Respond(context.Request)
 	} else {
 		responder.With("html", func() {
-			context.Flash(string(context.dt("resource_successfully_created", "{{.Name}} was successfully created", res)), "success")
+			context.Flash(string(context.t("qor_admin.form.successfully_created", "{{.Name}} was successfully created", res)), "success")
 			http.Redirect(context.Writer, context.Request, context.UrlFor(result, res), http.StatusFound)
 		}).With("json", func() {
 			context.JSON("show", result)
@@ -150,7 +150,7 @@ func (ac *controller) Update(context *Context) {
 		}).Respond(context.Request)
 	} else {
 		responder.With("html", func() {
-			context.FlashNow(string(context.dt("resource_successfully_updated", "{{.Name}} was successfully updated", res)), "success")
+			context.FlashNow(string(context.t("qor_admin.form.successfully_updated", "{{.Name}} was successfully updated", res)), "success")
 			context.Execute("show", result)
 		}).With("json", func() {
 			context.JSON("show", result)
