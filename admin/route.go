@@ -144,28 +144,6 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 				}
 			}
 
-			if mode == "read" {
-				if res.Config.Singleton {
-					// Index
-					router.Get(prefix, adminController.Show, RouteConfig{
-						PermissionMode: roles.Read,
-						Resource:       res,
-					})
-				} else {
-					// Index
-					router.Get(prefix, adminController.Index, RouteConfig{
-						PermissionMode: roles.Read,
-						Resource:       res,
-					})
-
-					// Show
-					router.Get(path.Join(prefix, primaryKey), adminController.Show, RouteConfig{
-						PermissionMode: roles.Read,
-						Resource:       res,
-					})
-				}
-			}
-
 			if mode == "update" {
 				if res.Config.Singleton {
 					// Update
@@ -218,6 +196,28 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 				}
 			}
 
+			if mode == "read" {
+				if res.Config.Singleton {
+					// Index
+					router.Get(prefix, adminController.Show, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+				} else {
+					// Index
+					router.Get(prefix, adminController.Index, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+
+					// Show
+					router.Get(path.Join(prefix, primaryKey), adminController.Show, RouteConfig{
+						PermissionMode: roles.Read,
+						Resource:       res,
+					})
+				}
+			}
+
 			if mode == "delete" {
 				if !res.Config.Singleton {
 					// Delete
@@ -258,7 +258,7 @@ func (admin *Admin) MountTo(mountTo string, mux *http.ServeMux) {
 	for _, res := range admin.resources {
 		res.configure()
 		if !res.Config.Invisible {
-			registerResourceToRouter(res, "create", "read", "update", "delete")
+			registerResourceToRouter(res, "create", "update", "read", "delete")
 		}
 	}
 
