@@ -1,10 +1,9 @@
 {{$context := .}}
-{{$action_mode := .Context.Request.URL.Query.Get "action_mode"}}
 {{$allowed_actions := (allowed_actions $context.Resource.Actions $context.Action)}}
 {{$resource := .Resource}}
 {{$result := .Result}}
-{{if gt (len $allowed_actions) 0 }}
 
+{{if gt (len $allowed_actions) 0 }}
   <div>
     <div class="qor-action-forms">
       {{range $action := $allowed_actions}}
@@ -14,5 +13,4 @@
       {{end}}
     </div>
   </div>
-
 {{end}}

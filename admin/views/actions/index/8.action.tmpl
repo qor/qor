@@ -1,9 +1,8 @@
 {{$context := .}}
-{{$action_mode := .Context.Request.URL.Query.Get "action_mode"}}
 {{$allowed_actions := (allowed_actions $context.Resource.Actions $context.Action)}}
 {{$resource := .Resource}}
-{{if gt (len $allowed_actions) 0 }}
 
+{{if gt (len $allowed_actions) 0 }}
   <div class="qor-action-bulk-edit" data-toggle="qor.action.bulk">
     <div class="qor-action-forms hidden">
       {{range $action := $allowed_actions}}
@@ -12,11 +11,10 @@
         </a>
       {{end}}
     </div>
-    asdasdasd
+
     <div class="qor-action-bulk-buttons">
       <button class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect qor-action--bulk" type="button">{{t "Bulk Edit"}}</button>
       <button class="mdl-button mdl-button--accent mdl-js-button mdl-js-ripple-effect qor-action--exit-bulk hidden" type="button">{{t "Exit Bulk Edit"}}</button>
     </div>
   </div>
-
 {{end}}
