@@ -1,6 +1,3 @@
-// Filter
-// --------------------------------------------------
-
 .qor-actions {
   float: left;
   min-height: 32px;
@@ -114,3 +111,12 @@
     }
   }
 }
+
+.qor-slideout__body{
+  .qor-page__header{
+    box-shadow: none;
+    background: transparent;
+    padding-top: 16px;
+  }
+}
+

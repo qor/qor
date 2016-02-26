@@ -185,6 +185,7 @@
 
         },
         error: function (xhr, textStatus, errorThrown) {
+          self.$element.find(ACTION_BUTTON).attr('disabled', false);
           window.alert([textStatus, errorThrown].join(': '));
         }
       });
