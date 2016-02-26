@@ -193,14 +193,17 @@ func (ac *controller) Action(context *Context) {
 		}
 
 		if err := action.Handle(&actionArgument); err == nil {
+			message := string(context.t("qor_admin.actions.executed_successfully", "Action {{.Name}}: Executed successfully", action))
 			responder.With("html", func() {
+				context.Flash(message, "success")
 				http.Redirect(context.Writer, context.Request, context.Request.Referer(), http.StatusFound)
 			}).With("json", func() {
-				context.JSON("OK", map[string]string{"redirect": context.Request.Referer(), "status": "ok"})
+				context.JSON("OK", map[string]string{"message": message, "status": "ok"})
 			}).Respond(context.Request)
 		} else {
+			message := string(context.t("qor_admin.actions.executed_failed", "Action {{.Name}}: Failed to execute", action))
 			context.Writer.WriteHeader(HTTPUnprocessableEntity)
-			context.Writer.Write([]byte(err.Error()))
+			context.JSON("OK", map[string]string{"error": message, "status": "error"})
 		}
 	}
 }
