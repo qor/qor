@@ -83,3 +83,7 @@
     }
   }
 }
+
+.mdl-layout.is-upgraded .mdl-layout__tab.is-active::after{
+  background-color: #fff;
+}
