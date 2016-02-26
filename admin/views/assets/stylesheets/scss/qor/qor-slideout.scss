@@ -65,10 +65,23 @@
 
 .qor-slideout__body {
   padding: 16px 24px;
+  .qor-alert{
+    margin: 0;
+  }
+  .qor-action-bulk-buttons{
+    display: none !important;
+  }
+  .qor-action-forms{
+    display: block !important;
+    margin-top: 0;
+    .qor-form__actions{
+      margin-top: 0;
+    }
+  }
   .qor-page__header{
     margin: -16px -24px 32px -24px;
     position: static;
-    width: 100%;
+    width: calc(100% + 48px);
     + .qor-page__body{
       padding-top: 0;
     }

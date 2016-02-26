@@ -4,7 +4,7 @@
 .qor-actions {
   float: left;
   min-height: 32px;
-  margin-right: 8px;
+  margin-right: 16px;
   padding: 8px 0;
   @include clearfix();
 
@@ -30,12 +30,6 @@
 .qor-action--select {
   height: 32px;
   border: 2px solid unquote("rgb(#{$color-primary})");
-
-  + .qor-selector,
-  + .qor-action--label,
-  + .qor-action--select {
-    margin-left: 8px;
-  }
 }
 
 .qor-action--label {
@@ -83,12 +77,40 @@
     margin-left: 8px;
   }
 }
-
+.qor-action-bulk-buttons,.qor-action-forms{
+  display: inline-block;
+  vertical-align: middle;
+  padding: 8px 0;
+}
 .qor-action--button {
   height: 32px;
   line-height: 32px;
 
   + .qor-action--button {
     margin-left: 8px;
+  }
+}
+
+.qor-action-bulk-edit{
+  float: left;
+}
+.qor-action-forms{
+  .qor-form__actions{
+    margin-top: 0;
+  }
+  > .qor-action-button{
+    margin-right: 24px;
+  }
+  > .action-form{
+    margin-right: 24px;
+  }
+  > .action-form, .qor-form-section, .qor-form__actions{
+    display: inline-block;
+    vertical-align: baseline;
+  }
+  .qor-form__actions{
+    .mdl-button{
+      float: none;
+    }
   }
 }

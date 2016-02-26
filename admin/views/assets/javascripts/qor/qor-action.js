@@ -12,20 +12,30 @@
 })(function ($) {
 
   'use strict';
-
+  var Mustache = window.Mustache;
   var NAMESPACE = 'qor.action';
   var EVENT_ENABLE = 'enable.' + NAMESPACE;
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
   var EVENT_CLICK = 'click.' + NAMESPACE;
-  var EVENT_CHNAGE = 'change.' + NAMESPACE;
-  var EVENT_SUBMIT = 'submit.' + NAMESPACE;
-  var ACTION_WRAP = '.qor-action-wrap';
+  var ACTION_FORMS = '.qor-action-forms';
+  var ACTION_HEADER = '.qor-page__header';
+  var ACTION_BODY = '.qor-page__body';
+  var ACTION_BUTTON = '.qor-action-button';
+  var MDL_BODY = '.mdl-layout__content';
+  var ACTION_SELECTORS = '.qor-actions';
+  var BUTTON_BULKS = '.qor-action-bulk-buttons';
+  var QOR_TABLE = '.qor-table-container';
+  var QOR_TABLE_BULK = '.qor-table--bulking';
+  var QOR_SEARCH = '.qor-search-container';
+  var QOR_SLIDEOUT = '.qor-slideout';
+
+  var ACTION_FORM_DATA = 'primary_values[]';
 
   function QorAction(element, options) {
     this.$element = $(element);
-    this.$wrap = $(ACTION_WRAP);
+    this.$wrap = $(ACTION_FORMS);
     this.options = $.extend({}, QorAction.DEFAULTS, $.isPlainObject(options) && options);
-    this.$clone = null;
+    this.ajaxForm = {};
     this.init();
   }
 
@@ -38,102 +48,146 @@
 
     bind: function () {
       this.$element.on(EVENT_CLICK, $.proxy(this.click, this));
-      this.$element.on(EVENT_CHNAGE, $.proxy(this.change, this));
-      this.$wrap.on(EVENT_SUBMIT, 'form', $.proxy(this.submit, this));
-      $('.qor-table-container').on(EVENT_CLICK, 'tr', this.click);
+      $(document).on(EVENT_CLICK, '.qor-table--bulking tr', this.click);
     },
 
     unbind: function () {
       this.$element.off(EVENT_CLICK, this.check);
-      this.$element.off(EVENT_CHNAGE, this.change);
-      this.$element.off(EVENT_SUBMIT, this.submit);
+    },
+
+    collectFormData: function () {
+      var checkedInputs = $(QOR_TABLE_BULK).find('.mdl-checkbox__input:checked');
+      var formData = [];
+
+      if (checkedInputs.size()){
+        checkedInputs.each(function () {
+          var id = $(this).closest('tr').data('primary-key');
+          if (id){
+            formData.push({
+              name: ACTION_FORM_DATA,
+              value: id.toString()
+            });
+          }
+        });
+        this.ajaxForm.formData = formData;
+      } else {
+        this.ajaxForm.formData = [];
+      }
+
+      return this.ajaxForm;
     },
 
     click : function (e) {
       var $target = $(e.target);
 
-      // If is in bulk edit mode, click row should not open slideout
+      if ($target.data().ajaxForm) {
+        this.collectFormData();
+        this.ajaxForm.properties = $target.data();
+        this.submit();
+        return false;
+      }
+
+      if ($target.is('.qor-action--bulk')) {
+        this.$wrap.removeClass('hidden');
+        $(BUTTON_BULKS).find('button').toggleClass('hidden');
+        this.appendTableCheckbox();
+        $(QOR_TABLE).addClass('qor-table--bulking');
+        $(ACTION_HEADER).find(ACTION_SELECTORS).addClass('hidden');
+        $(ACTION_HEADER).find(QOR_SEARCH).addClass('hidden');
+      }
+
+      if ($target.is('.qor-action--exit-bulk')) {
+        this.$wrap.addClass('hidden');
+        $(BUTTON_BULKS).find('button').toggleClass('hidden');
+        this.removeTableCheckbox();
+        $(QOR_TABLE).removeClass('qor-table--bulking');
+        $(ACTION_HEADER).find(ACTION_SELECTORS).removeClass('hidden');
+        $(ACTION_HEADER).find(QOR_SEARCH).removeClass('hidden');
+      }
+
+
       if ($(this).is('tr') && !$target.is('a')) {
+
         var $firstTd = $(this).find('td').first();
+
+        // Manual make checkbox checked or not
         if ($firstTd.find('.mdl-checkbox__input').get(0)) {
-          // Manual make checkbox checked or not
           var $checkbox = $firstTd.find('.mdl-js-checkbox');
+          var slideroutActionForm = $('[data-toggle="qor-action-slideout"]').find('form');
+          var formValueInput = slideroutActionForm.find('.js-primary-value');
+          var primaryValue = $(this).data('primary-key');
+          var $alreadyHaveValue = formValueInput.filter('[value="' + primaryValue + '"]');
+
           $checkbox.toggleClass('is-checked');
           $firstTd.parents('tr').toggleClass('is-selected');
-          $firstTd.find('input').prop('checked', $checkbox.hasClass('is-checked'));
+
+          var isChecked = $checkbox.hasClass('is-checked');
+
+          $firstTd.find('input').prop('checked', isChecked);
+
+          if (slideroutActionForm.size() && $('.qor-slideout').is(':visible')){
+
+            if (isChecked && !$alreadyHaveValue.size()){
+              slideroutActionForm.prepend('<input class="js-primary-value" type="hidden" name="primary_values[]" value="' + primaryValue + '" />');
+            }
+
+            if (!isChecked && $alreadyHaveValue.size()){
+              $alreadyHaveValue.remove();
+            }
+
+          }
+
           return false;
         }
+
       }
     },
 
-    change : function (e) {
-      var $target = $(e.target);
-
-      if ($target.is('.qor-js-selector')) {
-        var $scoped = $target.parents('.qor-slideout').get(0) ? $target.parents('.qor-slideout') : $('body');
-        $scoped.find('.qor-action-wrap .qor-js-form').hide();
-        $scoped.find('.qor-action-wrap .qor-js-form[data-action="' + $target.val() + '"]').show();
-
-        if (!$target.parents('.qor-slideout').get(0)){
-          var actionWrapHeight = $('.qor-page__header').outerHeight() + 24;
-          $('.qor-page__body').css({ 'padding-top':actionWrapHeight });
-
-        }
-        $.proxy(this.appendCheckbox, $target)();
-      }
+    renderFlashMessage: function (data) {
+      var flashMessageTmpl = QorAction.FLASHMESSAGETMPL;
+      Mustache.parse(flashMessageTmpl);
+      return Mustache.render(flashMessageTmpl, data);
     },
 
-    submit : function (e) {
-      var $form = $(e.target);
-      if ($form.data('mode') === 'index') {
-        $.proxy(this.appendCheckInputs, $form)();
+    submit: function () {
+      var self = this;
+      var $parent;
+
+      var ajaxForm = this.ajaxForm;
+      var properties = ajaxForm.properties;
+
+      if (!ajaxForm.formData.length && properties.fromIndex){
+        window.alert(ajaxForm.properties.errorNoProduct);
+        return;
       }
-      var $submit = $form.find('button');
-      $form.find('qor-js-loading').show();
-      $.ajax($form.prop('action'), {
-        method: $form.prop('method'),
-        data: new FormData($form.get(0)),
-        processData: false,
-        contentType: false,
+
+      $.ajax(properties.url, {
+        method: properties.method,
+        data: ajaxForm.formData,
+        dataType: properties.datatype,
         beforeSend: function () {
-          $submit.prop('disabled', true);
+          self.$element.find(ACTION_BUTTON).attr('disabled', true);
         },
-        success: function () {
-          location.reload();
+        success: function (data) {
+
+          if (properties.fromIndex){
+            window.location.reload();
+          } else {
+            self.$element.find(ACTION_BUTTON).attr('disabled', false);
+            if ($(QOR_SLIDEOUT).is(':visible')){
+              $parent = $(QOR_SLIDEOUT);
+            } else {
+              $parent = $(MDL_BODY);
+            }
+            $('.qor-alert').remove();
+            $parent.find(ACTION_BODY).prepend(self.renderFlashMessage(data));
+          }
+
         },
         error: function (xhr, textStatus, errorThrown) {
-          var $error;
-
-          // Custom HTTP status code
-          if (xhr.status === 422) {
-
-            // Clear old errors
-            $form.find('.qor-field').removeClass('is-error').find('.qor-field__error').remove();
-
-            // Append new errors
-            $error = $(xhr.responseText).find('.qor-error');
-            $form.before($error);
-
-            $error.find('> li > label').each(function () {
-              var $label = $(this);
-              var id = $label.attr('for');
-
-              if (id) {
-                $form.find('#' + id).
-                  closest('.qor-field').
-                  addClass('is-error').
-                  append($label.clone().addClass('qor-field__error'));
-              }
-            });
-          } else {
-            window.alert([textStatus, errorThrown].join(': '));
-          }
-        },
-        complete: function () {
-          $submit.prop('disabled', false);
-        },
+          window.alert([textStatus, errorThrown].join(': '));
+        }
       });
-      return false;
     },
 
     destroy: function () {
@@ -142,45 +196,89 @@
     },
 
     // Helper
-    appendCheckbox : function () {
+    removeTableCheckbox : function () {
+      $('.qor-page__body .mdl-data-table__select').each(function (i, e) { $(e).parents('td').remove(); });
+      $('.qor-page__body .mdl-data-table__select').each(function (i, e) { $(e).parents('th').remove(); });
+      $('.qor-table-container tr.is-selected').removeClass('is-selected');
+      $('.qor-page__body table.mdl-data-table--selectable').removeClass('mdl-data-table--selectable');
+      $('.qor-page__body tr.is-selected').removeClass('is-selected');
+    },
+
+    appendTableCheckbox : function () {
       // Only value change and the table isn't selectable will add checkboxes
       $('.qor-page__body .mdl-data-table__select').each(function (i, e) { $(e).parents('td').remove(); });
       $('.qor-page__body .mdl-data-table__select').each(function (i, e) { $(e).parents('th').remove(); });
       $('.qor-table-container tr.is-selected').removeClass('is-selected');
 
-      if ($(this).val()) {
-        $('.qor-page__body table').addClass('mdl-data-table--selectable');
-        window.newQorMaterialDataTable = new window.MaterialDataTable($('.qor-page__body table').get(0));
+      $('.qor-page__body table').addClass('mdl-data-table--selectable');
+      window.newQorMaterialDataTable = new window.MaterialDataTable($('.qor-page__body table').get(0));
 
-        // The fixed head have checkbox but the visiual one doesn't, clone the head with checkbox from the fixed one
-        $('thead.is-hidden tr th:not(".mdl-data-table__cell--non-numeric")').clone().prependTo($('thead:not(".is-hidden") tr'));
+      // The fixed head have checkbox but the visiual one doesn't, clone the head with checkbox from the fixed one
+      $('thead.is-hidden tr th:not(".mdl-data-table__cell--non-numeric")').clone().prependTo($('thead:not(".is-hidden") tr'));
 
-        // The clone one doesn't bind event, so binding event manual
-        var $fixedHeadCheckBox = $('thead:not(".is-fixed") .mdl-checkbox__input').parents('label');
-        $fixedHeadCheckBox.find('span').remove();
-        window.newQorMaterialCheckbox = new window.MaterialCheckbox($fixedHeadCheckBox.get(0));
-        $fixedHeadCheckBox.click(function () {
-          $('thead.is-fixed tr th').eq(0).find('label').click();
-          $(this).toggleClass('is-checked');
-          return false;
-        });
-      } else {
-        $('.qor-page__body table.mdl-data-table--selectable').removeClass('mdl-data-table--selectable');
-        $('.qor-page__body tr.is-selected').removeClass('is-selected');
-      }
-    },
+      // The clone one doesn't bind event, so binding event manual
+      var $fixedHeadCheckBox = $('thead:not(".is-fixed") .mdl-checkbox__input').parents('label');
+      $fixedHeadCheckBox.find('span').remove();
+      window.newQorMaterialCheckbox = new window.MaterialCheckbox($fixedHeadCheckBox.get(0));
+      $fixedHeadCheckBox.on('click', function () {
+        $('thead.is-fixed tr th').eq(0).find('label').click();
+        $(this).toggleClass('is-checked');
 
-    appendCheckInputs: function () {
-      var $form = $(this);
-      $form.find('input.js-primary-value').remove();
-      $('.qor-page__body .mdl-checkbox__input:checked').each(function (i, e) {
-        var id = $(e).parents('tr').data('primary-key');
-        $form.prepend('<input class="js-primary-value" type="hidden" name="primary_values[]" value="' + id + '" />');
+        var slideroutActionForm = $('[data-toggle="qor-action-slideout"]').find('form');
+        var slideroutActionFormPrimaryValues = slideroutActionForm.find('.js-primary-value');
+
+        slideroutActionFormPrimaryValues.remove();
+        if ($(this).hasClass('is-checked') && slideroutActionForm.size() && $('.qor-slideout').is(':visible')){
+          var allPrimaryValues = $('.qor-table--bulking tbody tr');
+          allPrimaryValues.each(function () {
+            var primaryValue = $(this).data('primary-key');
+            if (primaryValue){
+              slideroutActionForm.prepend('<input class="js-primary-value" type="hidden" name="primary_values[]" value="' + primaryValue + '" />');
+            }
+          });
+
+        }
+
+        return false;
       });
     }
+
   };
 
+  QorAction.FLASHMESSAGETMPL = (
+    '<div class="qor-alert qor-fixed-alert qor-alert--success [[#error]]qor-alert--error[[/error]]" [[#message]]data-dismissible="true"[[/message]] role="alert">' +
+      '<button type="button" class="mdl-button mdl-button--icon" data-dismiss="alert">'  +
+        '<i class="material-icons">close</i>'  +
+      '</button>'  +
+      '<span class="qor-alert-message">'  +
+        '[[#message]]' +
+          '[[message]]' +
+        '[[/message]]' +
+        '[[#error]]' +
+          '[[error]]' +
+        '[[/error]]' +
+      '</span>'  +
+    '</div>'
+  );
+
   QorAction.DEFAULTS = {
+  };
+
+  $.fn.qorSliderAfterShow.qorActionInit = function (url, html) {
+    var hasAction = $(html).find('[data-toggle="qor-action-slideout"]').size();
+    var $actionForm = $('[data-toggle="qor-action-slideout"]').find('form');
+    var $checkedItem = $('.qor-page__body .mdl-checkbox__input:checked');
+
+    if (hasAction && $checkedItem.size()){
+      // insert checked value into sliderout form
+      $checkedItem.each(function (i, e) {
+        var id = $(e).parents('tbody tr').data('primary-key');
+        if (id){
+          $actionForm.prepend('<input class="js-primary-value" type="hidden" name="primary_values[]" value="' + id + '" />');
+        }
+      });
+    }
+
   };
 
   QorAction.plugin = function (options) {
@@ -200,7 +298,7 @@
   };
 
   $(function () {
-    var selector = '.qor-js-action';
+    var selector = '[data-toggle="qor.action.bulk"]';
     var options = {};
 
     $(document).
