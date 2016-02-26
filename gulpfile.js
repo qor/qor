@@ -8,6 +8,7 @@ var moduleName = (function () {
       var i = 0;
       var name;
       var isExternal;
+      var obj = {};
 
       while (i++ < length) {
         if ((/^--+(\w+)/i).test(args[i])){
@@ -20,7 +21,10 @@ var moduleName = (function () {
         }
       }
 
-      return { name,isExternal };
+      obj.name = name;
+      obj.isExternal = isExternal;
+
+      return obj;
 
     })();
 
