@@ -2,5 +2,5 @@
 $.fn.qorSliderAfterShow = {};
 
 // change Mustache tags from {{}} to [[]]
-Mustache.tags = ['[[', ']]'];
+window.Mustache.tags = ['[[', ']]'];
 

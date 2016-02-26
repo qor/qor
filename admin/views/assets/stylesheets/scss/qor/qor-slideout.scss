@@ -65,6 +65,9 @@
 
 .qor-slideout__body {
   padding: 16px 24px;
+  .qor-alert{
+    margin: 0;
+  }
   .qor-action-bulk-buttons{
     display: none !important;
   }

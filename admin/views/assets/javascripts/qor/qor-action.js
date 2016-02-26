@@ -12,22 +12,30 @@
 })(function ($) {
 
   'use strict';
-
+  var Mustache = window.Mustache;
   var NAMESPACE = 'qor.action';
   var EVENT_ENABLE = 'enable.' + NAMESPACE;
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
   var EVENT_CLICK = 'click.' + NAMESPACE;
   var ACTION_FORMS = '.qor-action-forms';
   var ACTION_HEADER = '.qor-page__header';
+  var ACTION_BODY = '.qor-page__body';
+  var ACTION_BUTTON = '.qor-action-button';
+  var MDL_BODY = '.mdl-layout__content';
   var ACTION_SELECTORS = '.qor-actions';
   var BUTTON_BULKS = '.qor-action-bulk-buttons';
   var QOR_TABLE = '.qor-table-container';
+  var QOR_TABLE_BULK = '.qor-table--bulking';
   var QOR_SEARCH = '.qor-search-container';
+  var QOR_SLIDEOUT = '.qor-slideout';
+
+  var ACTION_FORM_DATA = 'primary_values[]';
 
   function QorAction(element, options) {
     this.$element = $(element);
     this.$wrap = $(ACTION_FORMS);
     this.options = $.extend({}, QorAction.DEFAULTS, $.isPlainObject(options) && options);
+    this.ajaxForm = {};
     this.init();
   }
 
@@ -47,10 +55,39 @@
       this.$element.off(EVENT_CLICK, this.check);
     },
 
+    collectFormData: function () {
+      var checkedInputs = $(QOR_TABLE_BULK).find('.mdl-checkbox__input:checked');
+      var formData = [];
+
+      if (checkedInputs.size()){
+        checkedInputs.each(function () {
+          var id = $(this).closest('tr').data('primary-key');
+          if (id){
+            formData.push({
+              name: ACTION_FORM_DATA,
+              value: id.toString()
+            });
+          }
+        });
+        this.ajaxForm.formData = formData;
+      } else {
+        this.ajaxForm.formData = [];
+      }
+
+      return this.ajaxForm;
+    },
+
     click : function (e) {
       var $target = $(e.target);
 
-      if ($target.is('.qor-action--bulk span')) {
+      if ($target.data().ajaxForm) {
+        this.collectFormData();
+        this.ajaxForm.properties = $target.data();
+        this.submit();
+        return false;
+      }
+
+      if ($target.is('.qor-action--bulk')) {
         this.$wrap.removeClass('hidden');
         $(BUTTON_BULKS).find('button').toggleClass('hidden');
         this.appendTableCheckbox();
@@ -59,7 +96,7 @@
         $(ACTION_HEADER).find(QOR_SEARCH).addClass('hidden');
       }
 
-      if ($target.is('.qor-action--exit-bulk span')) {
+      if ($target.is('.qor-action--exit-bulk')) {
         this.$wrap.addClass('hidden');
         $(BUTTON_BULKS).find('button').toggleClass('hidden');
         this.removeTableCheckbox();
@@ -104,6 +141,53 @@
         }
 
       }
+    },
+
+    renderFlashMessage: function (data) {
+      var flashMessageTmpl = QorAction.FLASHMESSAGETMPL;
+      Mustache.parse(flashMessageTmpl);
+      return Mustache.render(flashMessageTmpl, data);
+    },
+
+    submit: function () {
+      var self = this;
+      var $parent;
+
+      var ajaxForm = this.ajaxForm;
+      var properties = ajaxForm.properties;
+
+      if (!ajaxForm.formData.length && properties.fromIndex){
+        window.alert(ajaxForm.properties.errorNoProduct);
+        return;
+      }
+
+      $.ajax(properties.url, {
+        method: properties.method,
+        data: ajaxForm.formData,
+        dataType: properties.datatype,
+        beforeSend: function () {
+          self.$element.find(ACTION_BUTTON).attr('disabled', true);
+        },
+        success: function (data) {
+
+          if (properties.fromIndex){
+            window.location.reload();
+          } else {
+            self.$element.find(ACTION_BUTTON).attr('disabled', false);
+            if ($(QOR_SLIDEOUT).is(':visible')){
+              $parent = $(QOR_SLIDEOUT);
+            } else {
+              $parent = $(MDL_BODY);
+            }
+            $('.qor-alert').remove();
+            $parent.find(ACTION_BODY).prepend(self.renderFlashMessage(data));
+          }
+
+        },
+        error: function (xhr, textStatus, errorThrown) {
+          window.alert([textStatus, errorThrown].join(': '));
+        }
+      });
     },
 
     destroy: function () {
@@ -158,7 +242,24 @@
         return false;
       });
     }
+
   };
+
+  QorAction.FLASHMESSAGETMPL = (
+    '<div class="qor-alert qor-fixed-alert qor-alert--success [[#error]]qor-alert--error[[/error]]" [[#message]]data-dismissible="true"[[/message]] role="alert">' +
+      '<button type="button" class="mdl-button mdl-button--icon" data-dismiss="alert">'  +
+        '<i class="material-icons">close</i>'  +
+      '</button>'  +
+      '<span class="qor-alert-message">'  +
+        '[[#message]]' +
+          '[[message]]' +
+        '[[/message]]' +
+        '[[#error]]' +
+          '[[error]]' +
+        '[[/error]]' +
+      '</span>'  +
+    '</div>'
+  );
 
   QorAction.DEFAULTS = {
   };
@@ -172,7 +273,9 @@
       // insert checked value into sliderout form
       $checkedItem.each(function (i, e) {
         var id = $(e).parents('tbody tr').data('primary-key');
-        id && $actionForm.prepend('<input class="js-primary-value" type="hidden" name="primary_values[]" value="' + id + '" />');
+        if (id){
+          $actionForm.prepend('<input class="js-primary-value" type="hidden" name="primary_values[]" value="' + id + '" />');
+        }
       });
     }
 

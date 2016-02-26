@@ -243,7 +243,7 @@
       method = data.method ? data.method : 'GET';
       dataType = data.datatype ? data.datatype : 'html';
 
-      data.url = data.method = data.datatype = undefined;
+      data.url = data.method = data.datatype = data.ajaxForm = data.upgraded = undefined;
 
       load = $.proxy(function () {
         $.ajax(url, {

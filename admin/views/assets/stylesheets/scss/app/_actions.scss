@@ -4,7 +4,7 @@
 .qor-actions {
   float: left;
   min-height: 32px;
-  margin-right: 8px;
+  margin-right: 16px;
   padding: 8px 0;
   @include clearfix();
 
@@ -30,12 +30,6 @@
 .qor-action--select {
   height: 32px;
   border: 2px solid unquote("rgb(#{$color-primary})");
-
-  + .qor-selector,
-  + .qor-action--label,
-  + .qor-action--select {
-    margin-left: 8px;
-  }
 }
 
 .qor-action--label {
@@ -103,6 +97,9 @@
 .qor-action-forms{
   .qor-form__actions{
     margin-top: 0;
+  }
+  > .qor-action-button{
+    margin-right: 24px;
   }
   > .action-form{
     margin-right: 24px;
