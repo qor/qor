@@ -178,7 +178,7 @@ func filenameWithLineNum() string {
 			results = append(results[:0],
 				append(
 					[]string{fmt.Sprintf("%v:%v", strings.TrimPrefix(file, os.Getenv("GOPATH")+"src/"), line)},
-					results[0:len(results)]...)...)
+					results[0:]...)...)
 
 			if total == 0 {
 				return strings.Join(results, "\n")
