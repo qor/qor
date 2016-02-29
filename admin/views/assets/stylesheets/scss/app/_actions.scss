@@ -120,9 +120,6 @@
     min-height: 0;
     padding-top: 0;
     margin: -16px -24px 0;
-    & + .qor-page__body{
-      margin-top: -50px;
-    }
     .mdl-button{
       height: 36px;
       line-height: 36px;
@@ -132,6 +129,7 @@
     .qor-action-forms{
       margin-top: 16px;
       text-align: right;
+      margin-bottom: -50px;
     }
   }
 }
