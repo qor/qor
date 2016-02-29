@@ -2,10 +2,27 @@ package admin
 
 import (
 	"fmt"
-	"github.com/qor/qor/utils"
 	"strings"
+
+	"github.com/qor/qor/utils"
 )
 
+// Section is used to structure forms, it could group your fields into sections, to make your form clean & tidy
+//    product.EditAttrs(
+//      &admin.Section{
+//      	Title: "Basic Information",
+//      	Rows: [][]string{
+//      		{"Name"},
+//      		{"Code", "Price"},
+//      	}},
+//      &admin.Section{
+//      	Title: "Organization",
+//      	Rows: [][]string{
+//      		{"Category", "Collections", "MadeCountry"},
+//      	}},
+//      "Description",
+//      "ColorVariations",
+//    }
 type Section struct {
 	Resource Resource
 	Title    string
@@ -97,6 +114,7 @@ func isContainsPositiveValue(values ...interface{}) bool {
 	return false
 }
 
+// ConvertSectionToMetas convert section to metas
 func (res *Resource) ConvertSectionToMetas(sections []*Section) []*Meta {
 	var metas []*Meta
 	for _, section := range sections {
@@ -112,6 +130,7 @@ func (res *Resource) ConvertSectionToMetas(sections []*Section) []*Meta {
 	return metas
 }
 
+// ConvertSectionToStrings convert section to strings
 func (res *Resource) ConvertSectionToStrings(sections []*Section) []string {
 	var columns []string
 	for _, section := range sections {

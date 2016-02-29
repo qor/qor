@@ -10,24 +10,26 @@ import (
 	"html/template"
 )
 
-var layouts = map[string]*template.Template{}
-var templates = map[string]*template.Template{}
-var tmplSuffix = regexp.MustCompile(`(\.tmpl)?$`)
-var viewPaths = []string{}
-var Root, _ = os.Getwd()
+var (
+	layouts    = map[string]*template.Template{}
+	templates  = map[string]*template.Template{}
+	tmplSuffix = regexp.MustCompile(`(\.tmpl)?$`)
+	viewPaths  = []string{}
+	root, _    = os.Getwd()
+)
 
 func init() {
 	if root := os.Getenv("WEB_ROOT"); root != "" {
-		Root = root
+		root = root
 	}
 
-	registerViewPath(path.Join(Root, "app/views/qor"))
+	registerViewPath(path.Join(root, "app/views/qor"))
 	RegisterViewPath("github.com/qor/qor/admin/views")
 }
 
 // RegisterViewPath register views directory
 func RegisterViewPath(p string) {
-	if registerViewPath(path.Join(Root, "vendor", p)) != nil {
+	if registerViewPath(path.Join(root, "vendor", p)) != nil {
 		for _, gopath := range strings.Split(os.Getenv("GOPATH"), ":") {
 			if registerViewPath(path.Join(gopath, "src", p)) == nil {
 				return

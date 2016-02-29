@@ -9,6 +9,7 @@ import (
 	"github.com/qor/roles"
 )
 
+// Action register action for qor resource
 func (res *Resource) Action(action *Action) {
 	if action.Label == "" {
 		action.Label = utils.HumanizeString(action.Name)
@@ -16,12 +17,14 @@ func (res *Resource) Action(action *Action) {
 	res.Actions = append(res.Actions, action)
 }
 
+// ActionArgument action argument that used in handle
 type ActionArgument struct {
 	PrimaryValues []string
 	Context       *Context
 	Argument      interface{}
 }
 
+// Action action definiation
 type Action struct {
 	Name       string
 	Label      string
@@ -31,10 +34,12 @@ type Action struct {
 	Visibles   []string
 }
 
+// ToParam used to register routes for actions
 func (action Action) ToParam() string {
 	return utils.ToParamString(action.Name)
 }
 
+// HasPermission check if current user has permission for the action
 func (action Action) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
 	if action.Permission == nil {
 		return true
@@ -42,6 +47,7 @@ func (action Action) HasPermission(mode roles.PermissionMode, context *qor.Conte
 	return action.Permission.HasPermission(mode, context.Roles...)
 }
 
+// FindSelectedRecords find selected records when run bulk actions
 func (actionArgument *ActionArgument) FindSelectedRecords() []interface{} {
 	var (
 		context  = actionArgument.Context

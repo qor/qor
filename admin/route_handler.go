@@ -9,14 +9,15 @@ import (
 	"github.com/qor/roles"
 )
 
-type requestHandler func(c *Context)
-
+// RouteConfig config for admin routes
 type RouteConfig struct {
 	Resource       *Resource
 	Permission     *roles.Permission
 	PermissionMode roles.PermissionMode
 	Values         map[interface{}]interface{}
 }
+
+type requestHandler func(c *Context)
 
 type routeHandler struct {
 	Path   string
@@ -77,33 +78,33 @@ func match(s string, f func(byte) bool, i int) (matched string, next byte, j int
 }
 
 // mostly copied from pat https://github.com/bmizerany/pat
-func (h routeHandler) try(path string) (url.Values, bool) {
+func (handler routeHandler) try(path string) (url.Values, bool) {
 	p := make(url.Values)
 	var i, j int
 	for i < len(path) {
 		switch {
-		case j >= len(h.Path):
-			if h.Path != "/" && len(h.Path) > 0 && h.Path[len(h.Path)-1] == '/' {
+		case j >= len(handler.Path):
+			if handler.Path != "/" && len(handler.Path) > 0 && handler.Path[len(handler.Path)-1] == '/' {
 				return p, true
 			}
 			return nil, false
-		case h.Path[j] == ':':
+		case handler.Path[j] == ':':
 			var name, val string
 			var nextc byte
 
-			name, nextc, j = match(h.Path, isAlnum, j+1)
+			name, nextc, j = match(handler.Path, isAlnum, j+1)
 			val, _, i = match(path, matchPart(nextc), i)
 
-			if (j < len(h.Path)) && h.Path[j] == '[' {
+			if (j < len(handler.Path)) && handler.Path[j] == '[' {
 				var index int
-				if i := strings.Index(h.Path[j:], "]/"); i > 0 {
+				if i := strings.Index(handler.Path[j:], "]/"); i > 0 {
 					index = i
-				} else if h.Path[len(h.Path)-1] == ']' {
-					index = len(h.Path) - j - 1
+				} else if handler.Path[len(handler.Path)-1] == ']' {
+					index = len(handler.Path) - j - 1
 				}
 
 				if index > 0 {
-					match := strings.TrimSuffix(strings.TrimPrefix(h.Path[j:j+index+1], "["), "]")
+					match := strings.TrimSuffix(strings.TrimPrefix(handler.Path[j:j+index+1], "["), "]")
 					if reg, err := regexp.Compile("^" + match + "$"); err == nil && reg.MatchString(val) {
 						j = j + index + 1
 					} else {
@@ -113,7 +114,7 @@ func (h routeHandler) try(path string) (url.Values, bool) {
 			}
 
 			p.Add(":"+name, val)
-		case path[i] == h.Path[j]:
+		case path[i] == handler.Path[j]:
 			i++
 			j++
 		default:
@@ -121,7 +122,7 @@ func (h routeHandler) try(path string) (url.Values, bool) {
 		}
 	}
 
-	if j != len(h.Path) {
+	if j != len(handler.Path) {
 		return nil, false
 	}
 	return p, true

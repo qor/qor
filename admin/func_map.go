@@ -44,10 +44,10 @@ func (context *Context) isNewRecord(value interface{}) bool {
 }
 
 func (context *Context) newResourcePath(res *Resource) string {
-	return path.Join(context.UrlFor(res), "new")
+	return path.Join(context.URLFor(res), "new")
 }
 
-func (context *Context) UrlFor(value interface{}, resources ...*Resource) string {
+func (context *Context) URLFor(value interface{}, resources ...*Resource) string {
 	getPrefix := func(res *Resource) string {
 		var params string
 		for res.base != nil {
@@ -89,7 +89,7 @@ func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML
 	if linkStr, ok := link.(string); ok {
 		return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, linkStr, text))
 	}
-	return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, context.UrlFor(link), text))
+	return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, context.URLFor(link), text))
 }
 
 func (context *Context) valueOf(valuer func(interface{}, *qor.Context) interface{}, value interface{}, meta *Meta) interface{} {
@@ -746,7 +746,7 @@ func (context *Context) FuncMap() template.FuncMap {
 			context.RenderMeta(meta, value, []string{}, "index", result)
 			return template.HTML(result.String())
 		},
-		"url_for":                context.UrlFor,
+		"url_for":                context.URLFor,
 		"link_to":                context.LinkTo,
 		"new_resource_path":      context.newResourcePath,
 		"search_center_path":     func() string { return path.Join(context.Admin.router.Prefix, "!search") },

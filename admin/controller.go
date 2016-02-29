@@ -14,6 +14,7 @@ type controller struct {
 	action *Action
 }
 
+// HTTPUnprocessableEntity error status code
 const HTTPUnprocessableEntity = 422
 
 func (ac *controller) Dashboard(context *Context) {

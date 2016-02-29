@@ -334,10 +334,9 @@ func (admin *Admin) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if currentUser = admin.auth.GetCurrentUser(context); currentUser == nil {
 			http.Redirect(w, req, admin.auth.LoginURL(context), http.StatusSeeOther)
 			return
-		} else {
-			context.CurrentUser = currentUser
-			context.SetDB(context.GetDB().Set("qor:current_user", context.CurrentUser))
 		}
+		context.CurrentUser = currentUser
+		context.SetDB(context.GetDB().Set("qor:current_user", context.CurrentUser))
 	}
 	context.Roles = roles.MatchedRoles(req, currentUser)
 

@@ -2,6 +2,7 @@ package admin
 
 import "path"
 
+// Menu qor admin sidebar menus definiation
 type Menu struct {
 	Name      string
 	Link      string
@@ -10,18 +11,22 @@ type Menu struct {
 	rawPath   string
 }
 
+// GetMenus get menus for admin sidebar
 func (admin Admin) GetMenus() []*Menu {
 	return admin.menus
 }
 
+// GetSubMenus get submenus for a menu
 func (menu *Menu) GetSubMenus() []*Menu {
 	return menu.subMenus
 }
 
+// AddMenu add a menu to admin
 func (admin *Admin) AddMenu(menu *Menu) {
 	admin.menus = appendMenu(admin.menus, menu.Ancestors, menu)
 }
 
+// GetMenu get menu with name from admin
 func (admin Admin) GetMenu(name string) *Menu {
 	return getMenu(admin.menus, name)
 }

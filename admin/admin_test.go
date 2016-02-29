@@ -9,7 +9,7 @@ import (
 
 type User struct {
 	Name string
-	Id   uint64
+	ID   uint64
 }
 
 var db = utils.TestDB()

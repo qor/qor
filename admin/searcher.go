@@ -11,6 +11,7 @@ import (
 
 type scopeFunc func(db *gorm.DB, context *qor.Context) *gorm.DB
 
+// Pagination is used to hold pagination related information when rendering tables
 type Pagination struct {
 	Total       int
 	Pages       int
@@ -18,33 +19,31 @@ type Pagination struct {
 	PrePage     int
 }
 
+// Searcher is used to search results
 type Searcher struct {
 	*Context
-	scopes         []*Scope
-	filters        map[string]string
-	withPagination bool
-	Pagination     Pagination
-}
-
-func (s *Searcher) WithPagination() *Searcher {
-	s.withPagination = true
-	return s
-}
-
-func (s *Searcher) Page(num int) *Searcher {
-	s.Pagination.CurrentPage = num
-	return s
-}
-
-func (s *Searcher) PrePage(num int) *Searcher {
-	s.Pagination.PrePage = num
-	return s
+	scopes     []*Scope
+	filters    map[string]string
+	Pagination Pagination
 }
 
 func (s *Searcher) clone() *Searcher {
 	return &Searcher{Context: s.Context, scopes: s.scopes, filters: s.filters}
 }
 
+// Page set current page, if current page equal -1, then show all records
+func (s *Searcher) Page(num int) *Searcher {
+	s.Pagination.CurrentPage = num
+	return s
+}
+
+// PrePage set pre page count
+func (s *Searcher) PrePage(num int) *Searcher {
+	s.Pagination.PrePage = num
+	return s
+}
+
+// Scope filter with defined scopes
 func (s *Searcher) Scope(names ...string) *Searcher {
 	newSearcher := s.clone()
 	for _, name := range names {
@@ -58,6 +57,7 @@ func (s *Searcher) Scope(names ...string) *Searcher {
 	return newSearcher
 }
 
+// Filter filter with defined filters, filter with columns value
 func (s *Searcher) Filter(name, query string) *Searcher {
 	newSearcher := s.clone()
 	if newSearcher.filters == nil {
@@ -65,6 +65,22 @@ func (s *Searcher) Filter(name, query string) *Searcher {
 	}
 	newSearcher.filters[name] = query
 	return newSearcher
+}
+
+// FindMany find many records based on current conditions
+func (s *Searcher) FindMany() (interface{}, error) {
+	context := s.parseContext()
+	result := s.Resource.NewSlice()
+	err := s.Resource.CallFindMany(result, context)
+	return result, err
+}
+
+// FindOne find one record based on current conditions
+func (s *Searcher) FindOne() (interface{}, error) {
+	context := s.parseContext()
+	result := s.Resource.NewStruct()
+	err := s.Resource.CallFindOne(result, nil, context)
+	return result, err
 }
 
 var filterRegexp = regexp.MustCompile(`^filters\[(.*?)\]$`)
@@ -91,16 +107,16 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 			if filter != nil && filter.Handler != nil {
 				db = filter.Handler(key, value, db, context)
 			} else {
-				db = DefaultHandler(key, value, db, context)
+				db = defaultFilterHandler(key, value, db, context)
 			}
 		}
 	}
 
 	// add order by
-	if order_by := context.Request.Form.Get("order_by"); order_by != "" {
-		if regexp.MustCompile("^[a-zA-Z_]+$").MatchString(order_by) {
-			if field, ok := db.NewScope(s.Context.Resource.Value).FieldByName(strings.TrimSuffix(order_by, "_desc")); ok {
-				if strings.HasSuffix(order_by, "_desc") {
+	if orderBy := context.Request.Form.Get("order_by"); orderBy != "" {
+		if regexp.MustCompile("^[a-zA-Z_]+$").MatchString(orderBy) {
+			if field, ok := db.NewScope(s.Context.Resource.Value).FieldByName(strings.TrimSuffix(orderBy, "_desc")); ok {
+				if strings.HasSuffix(orderBy, "_desc") {
 					db = db.Order(field.DBName+" DESC", true)
 				} else {
 					db = db.Order(field.DBName, true)
@@ -123,20 +139,11 @@ func (s *Searcher) callScopes(context *qor.Context) *qor.Context {
 	return context
 }
 
-func (s *Searcher) cloneContext() *qor.Context {
-	context := s.Context.Context
-	return &qor.Context{
-		Request:    context.Request,
-		Writer:     context.Writer,
-		ResourceID: context.ResourceID,
-		Config:     context.Config,
-		DB:         context.DB,
-	}
-}
-
 func (s *Searcher) parseContext() *qor.Context {
-	var context = s.cloneContext()
-	var searcher = s.clone()
+	var (
+		searcher = s.clone()
+		context  = searcher.Context.Context.Clone()
+	)
 
 	if context != nil && context.Request != nil {
 		// parse scopes
@@ -184,18 +191,4 @@ func (s *Searcher) parseContext() *qor.Context {
 	context.SetDB(db)
 
 	return context
-}
-
-func (s *Searcher) FindMany() (interface{}, error) {
-	context := s.parseContext()
-	result := s.Resource.NewSlice()
-	err := s.Resource.CallFindMany(result, context)
-	return result, err
-}
-
-func (s *Searcher) FindOne() (interface{}, error) {
-	context := s.parseContext()
-	result := s.Resource.NewStruct()
-	err := s.Resource.CallFindOne(result, nil, context)
-	return result, err
 }

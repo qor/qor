@@ -5,6 +5,7 @@ import (
 	"github.com/qor/qor"
 )
 
+// Scope register scope for qor resource
 func (res *Resource) Scope(scope *Scope) {
 	if scope.Label == "" {
 		scope.Label = scope.Name
@@ -12,6 +13,7 @@ func (res *Resource) Scope(scope *Scope) {
 	res.scopes = append(res.scopes, scope)
 }
 
+// Scope scope definiation
 type Scope struct {
 	Name    string
 	Label   string

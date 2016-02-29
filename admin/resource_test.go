@@ -2,9 +2,10 @@ package admin
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"strings"
 	"testing"
+
+	"github.com/fatih/color"
 
 	"github.com/qor/qor"
 )
@@ -61,7 +62,7 @@ func TestEditAttrs(t *testing.T) {
 		} else {
 			t.Errorf(color.RedString(fmt.Sprintf("\nEdit Attrs TestCase #%d: Failure Result:%v\n", i, results)))
 		}
-		i += 1
+		i++
 	}
 }
 

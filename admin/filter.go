@@ -8,17 +8,19 @@ import (
 	"github.com/qor/qor"
 )
 
+// Filter register filter for qor resource
 func (res *Resource) Filter(filter *Filter) {
 	res.filters[filter.Name] = filter
 }
 
+// Filter filter definiation
 type Filter struct {
 	Name       string
 	Operations []string
-	Handler    func(name string, value string, scope *gorm.DB, context *qor.Context) *gorm.DB
+	Handler    func(fieldName string, query string, scope *gorm.DB, context *qor.Context) *gorm.DB
 }
 
-var DefaultHandler = func(name string, value string, scope *gorm.DB, context *qor.Context) *gorm.DB {
+var defaultFilterHandler = func(name string, value string, scope *gorm.DB, context *qor.Context) *gorm.DB {
 	lastIndex := strings.LastIndex(name, "_")
 	operation := name[lastIndex+1 : len(name)]
 	column := name[0:lastIndex]
