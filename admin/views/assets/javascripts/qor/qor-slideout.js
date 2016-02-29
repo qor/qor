@@ -281,6 +281,9 @@
 
               this.show();
 
+              $('.qor-datetime-picker').materialDatePicker({ format : 'YYYY-MM-DD HH:mm' });
+              $('.qor-date-picker').materialDatePicker({ format : 'YYYY-MM-DD', time: false });
+
               // callback for after slider loaded HTML
               if (options.afterShow){
                 var qorSliderAfterShow = $.fn.qorSliderAfterShow;
@@ -360,6 +363,11 @@
     hide: function () {
       var $slideout = this.$slideout;
       var hideEvent;
+      var $datePicker = $('.qor-datepicker').not('.hidden');
+
+      if ($datePicker.size()){
+        $datePicker.addClass('hidden');
+      }
 
       if (!this.slided) {
         return;

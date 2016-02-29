@@ -1,94 +1,306 @@
-.qor-datepicker {
-  .mdl-card {
-    width: 312px !important;
+$qor-picker-clock-coordinate-top:
+"0"
+"20px"
+"68px"
+"125px"
+"186px"
+"230px"
+"248px"
+"230px"
+"186px"
+"125px"
+"68px"
+"20px";
+
+$qor-picker-clock-coordinate-left:
+"126px"
+"191px"
+"235px"
+"248px"
+"232px"
+"191px"
+"125px"
+"64px"
+"18px"
+"2px"
+"20px"
+"63px";
+
+.qor-datepicker{
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+
+  &.hidden, & .hidden {
+    display: none;
+  }
+  .invisible {
+    visibility: hidden;
+  }
+  .left {
+    float: left;
+  }
+  .right {
+    float: right;
+  }
+  .center {
+    text-align: center;
   }
 
-  .mdl-card__title {
+  > .qor-datepicker__content{
+    background: #fff;
+    max-width: 312px;
+    @include shadow-2dp();
+    @include clearfix();
+    position: relative;
+    left: 50%;
+    border-radius: 2px;
+    > .qor-date-view > .qor-header{
+      background: unquote("rgb(#{$color-primary})");
+      color: #fff;
+      text-align: center;
+      padding: 8px;
+    }
+  }
+
+  .qor-date, .qor-time {
+    background: unquote("rgb(#{$color-primary})");
+    text-align: center;
+    color: #fff;
+    padding: 8px 0;
+  }
+
+  .qor-date > div {
+    @include clearfix();
+    &:first-child{
+      margin-bottom: 16px;
+    }
+  }
+
+  .qor-actual-num,.qor-actual-month{
+    font-size: 20px;
+  }
+
+  .qor-actual-maxtime {
+    font-size: 20px;
+  }
+
+  .qor-actual-year {
+    font-size: 16px;
+  }
+
+  .qor-picker {
+    padding: 16px;
+    text-align: center;
+  }
+
+  .qor-picker-month, .qor-actual-time {
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .qor-actual-time{
+    font-size: 20px;
+    padding-top: 10px;
+  }
+
+  .qor-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    > a {
+      color: #fff;
+       > i {
+        font-size: 18px;
+      }
+    }
+  }
+
+  table{
+    width: 100%;
+    color: unquote("rgba(#{$color-black}, 0.54)");
+    &.qor-picker-days,&.qor-picker-days tr,&.qor-picker-days tr > td{
+      border: none;
+    }
+
+    &.qor-picker-days tr > td{
+      font-weight: 400;
+      font-size: 14px;
+      text-align: center;
+      > a{
+        color: unquote("rgba(#{$color-black}, 0.54)");
+        text-decoration: none;
+        border-radius: 100% !important;
+        display: block;
+        padding: 8px;
+        &:hover{
+          background-color: #eee;
+        }
+        &.selected{
+          background: unquote("rgb(#{$color-primary})");
+          color: #fff;
+        }
+      }
+    }
+
+    &.qor-picker-days tr > th {
+      text-align: center;
+      font-weight: 700;
+      padding: 8px;
+    }
+
+    &.qor-picker-days {
+      margin: 0;
+      min-height: 251px;
+    }
+  }
+
+  .qor-picker-time{
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: 500;
+    text-align: center !important;
+    > a {
+      color: unquote("rgba(#{$color-black}, 0.54)");
+      text-decoration: none;
+      border-radius: 50%!important;
+      display: block;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      &.qor-select-hour.selected {
+        background: unquote("rgb(#{$color-primary})");
+        color: #fff;
+      }
+      &.qor-select-hour.disabled, &.qor-select-minute.disabled {
+        color: #757575;
+      }
+      &.qor-select-minute.selected {
+        background: unquote("rgb(#{$color-primary})");
+        color: #fff;
+      }
+    }
+  }
+
+  .p10 > a {
+    color: #fff;
+    text-decoration: none;
+  }
+  .p10 {
+    width: 10%;
+    display: inline-block;
+  }
+  .p20 {
+    width: 20%;
+    display: inline-block;
+  }
+  .p60 {
+    width: 60%;
+    display: inline-block;
+  }
+  .p80 {
+    width: 80%;
+    display: inline-block;
+  }
+
+  .qor-picker-month{
     display: none;
   }
 
-  .mdl-card__supporting-text {
-    padding: 0;
-  }
-}
-
-.qor-datepicker__picked {
-  padding: 16px 24px;
-  color: #fff;
-  background-color: unquote("rgb(#{$color-primary})");
-}
-
-.qor-datepicker__picked-year {
-  margin-bottom: 8px;
-}
-
-.qor-datepicker__picked-date {
-  font-size: 34px;
-  font-weight: 400;
-  line-height: 1;
-}
-
-.qor-datepicker__embedded {
-  padding: 16px;
-
-  // Reset Datepicker CSS
-  .datepicker-container {
-    float: none;
-    position: static;
+  .qor-meridien-am, .qor-meridien-pm {
+    position: relative;
+    top: 10px;
+    color: #212121;
+    font-weight: 500;
+    padding: 10px 8px;
+    border-radius: 100%!important;
+    text-decoration: none;
+    background: #eee;
+    font-size:12px;
   }
 
-  .datepicker-content {
-    width: 280px;
-    border: none;
-    box-shadow: none;
-  }
-
-  .datepicker-content li {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    line-height: 40px;
-  }
-
-  .datepicker-content .col-1 {
-    width: 40px;
-  }
-
-  .datepicker-content .col-2 {
-    width: 80px;
-  }
-
-  .datepicker-content .col-3 {
-    width: 120px;
-  }
-
-  .datepicker-content .col-4 {
-    width: 160px;
-  }
-
-  .datepicker-content .col-5 {
-    width: 200px;
-  }
-
-  .datepicker-content .col-6 {
-    width: 240px;
-  }
-
-  .datepicker-content .col-7 {
-    width: 280px;
-  }
-
-  .datepicker-content .selected,
-  .datepicker-content .selected:hover {
-    background-color: unquote("rgb(#{$color-primary})");
+  .qor-actual-meridien a.selected {
+    background: unquote("rgb(#{$color-primary})");
     color: #fff;
   }
 
-  .datepicker-years li,
-  .datepicker-months li {
-    width: 70px;
-    height: 70px;
-    border-radius: 35px;
-    line-height: 70px;
+  .qor-picker-clock {
+    margin-top: 24px;
+    border-radius: 100% !important;
+    background: #eee;
+    height: 280px;
+    position: relative;
   }
+
+  .qor-clock-center {
+    width: 15px;
+    height: 15px;
+    background: #757575;
+    border-radius: 50%;
+    position: absolute;
+    z-index: 50;
+    left: 50%;
+    margin-left: -7px;
+    top: 50%;
+    margin-top: -7px;
+  }
+
+  .qor-hand, .qor-hour-hand {
+    position: absolute;
+    width: 4px;
+    margin-left: -2px;
+    background: #BDBDBD;
+    -moz-transform: rotate(0deg);
+    -ms-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+    -moz-transform-origin: bottom;
+    -ms-transform-origin: bottom;
+    -webkit-transform-origin: bottom;
+    transform-origin: bottom;
+    z-index: 1;
+  }
+
+  .qor-hour-hand{
+    height: 80px;
+    left: 141px;
+    margin-top: 62px;
+  }
+
+  .qor-minute-hand {
+    width: 2px;
+    margin-left: -1px;
+    height: 100px;
+    left: 141px;
+    margin-top: 42px;
+  }
+
+  .qor-hand.on {
+    background: unquote("rgb(#{$color-primary})");
+  }
+
+  .qor-datepicker__buttons{
+    padding: 8px;
+    @include clearfix();
+    button{
+      float: right;
+    }
+  }
+
+
+  @for $i from 1 through 12{
+    .qor-picker-time-#{$i}{
+      margin-left: unquote(nth($qor-picker-clock-coordinate-left, $i));
+      margin-top: unquote(nth($qor-picker-clock-coordinate-top, $i));
+    }
+  }
+
 }
