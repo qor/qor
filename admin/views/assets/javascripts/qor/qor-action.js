@@ -247,7 +247,7 @@
   };
 
   QorAction.FLASHMESSAGETMPL = (
-    '<div class="qor-alert qor-fixed-alert qor-alert--success [[#error]]qor-alert--error[[/error]]" [[#message]]data-dismissible="true"[[/message]] role="alert">' +
+    '<div class="qor-alert qor-action-alert qor-alert--success [[#error]]qor-alert--error[[/error]]" [[#message]]data-dismissible="true"[[/message]] role="alert">' +
       '<button type="button" class="mdl-button mdl-button--icon" data-dismiss="alert">'  +
         '<i class="material-icons">close</i>'  +
       '</button>'  +
