@@ -22,7 +22,7 @@ type Filter struct {
 
 var defaultFilterHandler = func(name string, value string, scope *gorm.DB, context *qor.Context) *gorm.DB {
 	lastIndex := strings.LastIndex(name, "_")
-	operation := name[lastIndex+1 : len(name)]
+	operation := name[lastIndex+1:]
 	column := name[0:lastIndex]
 
 	switch operation {

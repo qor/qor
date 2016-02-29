@@ -65,7 +65,7 @@ func prefixMenuLinks(menus []*Menu, prefix string) {
 
 func newMenu(menus []string, menu *Menu) *Menu {
 	menuCount := len(menus)
-	for index, _ := range menus {
+	for index := range menus {
 		menu = &Menu{Name: menus[menuCount-index-1], subMenus: []*Menu{menu}}
 	}
 

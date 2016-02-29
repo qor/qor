@@ -45,10 +45,10 @@ type Router struct {
 
 func newRouter() *Router {
 	return &Router{routers: map[string][]routeHandler{
-		"GET":    []routeHandler{},
-		"PUT":    []routeHandler{},
-		"POST":   []routeHandler{},
-		"DELETE": []routeHandler{},
+		"GET":    {},
+		"PUT":    {},
+		"POST":   {},
+		"DELETE": {},
 	}}
 }
 

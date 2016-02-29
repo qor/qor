@@ -266,17 +266,17 @@ func TestNestedField(t *testing.T) {
 
 	mvs := &resource.MetaValues{
 		Values: []*resource.MetaValue{
-			&resource.MetaValue{
+			{
 				Name:  "Profile.Name",
 				Value: "Qor III",
 				Meta:  profileNameMeta,
 			},
-			&resource.MetaValue{
+			{
 				Name:  "Profile.Sex",
 				Value: "Male",
 				Meta:  profileSexMeta,
 			},
-			&resource.MetaValue{
+			{
 				Name:  "Profile.Phone.Num",
 				Value: "2048",
 				Meta:  phoneNumMeta,

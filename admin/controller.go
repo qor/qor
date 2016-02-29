@@ -81,7 +81,7 @@ func (ac *controller) Create(context *Context) {
 	} else {
 		responder.With("html", func() {
 			context.Flash(string(context.t("qor_admin.form.successfully_created", "{{.Name}} was successfully created", res)), "success")
-			http.Redirect(context.Writer, context.Request, context.UrlFor(result, res), http.StatusFound)
+			http.Redirect(context.Writer, context.Request, context.URLFor(result, res), http.StatusFound)
 		}).With("json", func() {
 			context.JSON("show", result)
 		}).Respond(context.Request)

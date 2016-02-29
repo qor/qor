@@ -623,7 +623,7 @@ func (context *Context) t(values ...interface{}) template.HTML {
 	case 2:
 		return context.Admin.T(context.Context, fmt.Sprint(values[0]), fmt.Sprint(values[1]))
 	case 3:
-		return context.Admin.T(context.Context, fmt.Sprint(values[0]), fmt.Sprint(values[1]), values[2:len(values)]...)
+		return context.Admin.T(context.Context, fmt.Sprint(values[0]), fmt.Sprint(values[1]), values[2:]...)
 	default:
 		utils.ExitWithMsg("passed wrong params for T")
 	}
