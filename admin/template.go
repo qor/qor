@@ -19,8 +19,8 @@ var (
 )
 
 func init() {
-	if root := os.Getenv("WEB_ROOT"); root != "" {
-		root = root
+	if path := os.Getenv("WEB_ROOT"); path != "" {
+		root = path
 	}
 
 	registerViewPath(path.Join(root, "app/views/qor"))
