@@ -43,8 +43,4 @@ $(function () {
     });
   }
 
-  // will move to qor-init.js
-  $('.qor-datetime-picker').materialDatePicker({ format : 'YYYY-MM-DD HH:mm' });
-  $('.qor-date-picker').materialDatePicker({ format : 'YYYY-MM-DD', time: false });
-
 });

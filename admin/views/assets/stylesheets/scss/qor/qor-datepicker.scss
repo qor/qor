@@ -1,5 +1,5 @@
 $qor-picker-clock-coordinate-top:
-"0px"
+"0"
 "20px"
 "68px"
 "125px"
@@ -215,7 +215,7 @@ $qor-picker-clock-coordinate-left:
     display: none;
   }
 
-  a.qor-meridien-am, a.qor-meridien-pm {
+  .qor-meridien-am, .qor-meridien-pm {
     position: relative;
     top: 10px;
     color: #212121;
