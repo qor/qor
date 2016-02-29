@@ -363,6 +363,11 @@
     hide: function () {
       var $slideout = this.$slideout;
       var hideEvent;
+      var $datePicker = $('.qor-datepicker').not('.hidden');
+
+      if ($datePicker.size()){
+        $datePicker.addClass('hidden');
+      }
 
       if (!this.slided) {
         return;
