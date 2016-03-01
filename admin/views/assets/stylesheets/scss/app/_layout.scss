@@ -183,6 +183,20 @@
   }
 }
 
+.qor-page__header-tabbar{
+  padding: 0;
+  background-color: $color-main-header;
+  .mdl-layout__tab-bar{
+    height: 48px;
+    width: 100%;
+    padding: 0;
+  }
+}
+
+.mdl-layout__header-row{
+  padding-right: 12px;
+}
+
 @media screen and (max-width: 1024px){
   .qor-page__header {
     width: 100%;
