@@ -116,7 +116,7 @@ func (meta *Meta) SetPermission(permission *roles.Permission) {
 	meta.Permission = permission
 }
 
-// PreInitialize when will be run before initalize, used to fill some basic necessary information
+// PreInitialize when will be run before initialize, used to fill some basic necessary information
 func (meta *Meta) PreInitialize() error {
 	if meta.Name == "" {
 		utils.ExitWithMsg("Meta should have name: %v", reflect.TypeOf(meta))

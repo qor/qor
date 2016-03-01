@@ -17,7 +17,7 @@ import (
 	"strings"
 )
 
-// Humanize separates string based on capitalizd letters
+// HumanizeString Humanize separates string based on capitalizd letters
 // e.g. "OrderItem" -> "Order Item"
 func HumanizeString(str string) string {
 	var human []rune
@@ -36,35 +36,13 @@ func isUppercase(char byte) bool {
 	return 'A' <= char && char <= 'Z'
 }
 
+var upcaseRegexp = regexp.MustCompile("[A-Z]{3,}[a-z]")
+
 // ToParamString replaces spaces and separates words (by uppercase letters) with
 // underscores in a string, also downcase it
 // e.g. ToParamString -> to_param_string, To ParamString -> to_param_string
-
-var upcaseRegexp = regexp.MustCompile("[A-Z]{3,}[a-z]")
-
 func ToParamString(str string) string {
-	if len(str) <= 1 {
-		return strings.ToLower(str)
-	}
-
-	str = strings.Replace(str, " ", "_", -1)
-	str = upcaseRegexp.ReplaceAllStringFunc(str, func(s string) string {
-		return s[0:1] + strings.ToLower(s[1:len(s)-2]) + s[len(s)-2:]
-	})
-
-	result := []rune{rune(str[0])}
-	for _, l := range str[1:] {
-		if rune('A') <= l && l <= rune('Z') {
-			if lr := len(result); lr == 0 || (result[lr-1] != '_' && !(rune('A') <= result[lr-1] && result[lr-1] <= rune('Z'))) {
-				result = append(result, rune('_'), l)
-				continue
-			}
-		}
-
-		result = append(result, l)
-	}
-
-	return strings.ToLower(string(result))
+	return gorm.ToDBName(strings.Replace(str, " ", "_", -1))
 }
 
 // PatchURL updates the query part of the current request url. You can
@@ -94,6 +72,7 @@ func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err
 	return
 }
 
+// GetLocale get locale from request, cookie, after get the locale, will write the locale to the cookie if possible
 func GetLocale(context *qor.Context) string {
 	if locale := context.Request.Header.Get("Locale"); locale != "" {
 		return locale
@@ -115,6 +94,7 @@ func GetLocale(context *qor.Context) string {
 	return ""
 }
 
+// Stringify stringify any data, if it is a struct, will try to use its Name, Title, Code field, else will use its primary key
 func Stringify(object interface{}) string {
 	if obj, ok := object.(interface {
 		Stringify() string
@@ -123,7 +103,7 @@ func Stringify(object interface{}) string {
 	}
 
 	scope := gorm.Scope{Value: object}
-	for _, column := range []string{"Name", "Title"} {
+	for _, column := range []string{"Name", "Title", "Code"} {
 		if field, ok := scope.FieldByName(column); ok {
 			return fmt.Sprintf("%v", field.Field.Interface())
 		}
@@ -132,28 +112,25 @@ func Stringify(object interface{}) string {
 	if scope.PrimaryField() != nil {
 		if scope.PrimaryKeyZero() {
 			return ""
-		} else {
-			return fmt.Sprintf("%v#%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue())
 		}
-	} else {
-		return fmt.Sprint(reflect.Indirect(reflect.ValueOf(object)).Interface())
+		return fmt.Sprintf("%v#%v", scope.GetModelStruct().ModelType.Name(), scope.PrimaryKeyValue())
 	}
+
+	return fmt.Sprint(reflect.Indirect(reflect.ValueOf(object)).Interface())
 }
 
+// ModelType get value's model type
 func ModelType(value interface{}) reflect.Type {
-	reflectValue := reflect.Indirect(reflect.ValueOf(value))
+	reflectType := reflect.Indirect(reflect.ValueOf(value)).Type()
 
-	if reflectValue.Kind() == reflect.Slice {
-		typ := reflectValue.Type().Elem()
-		if typ.Kind() == reflect.Ptr {
-			typ = typ.Elem()
-		}
-		return typ
+	for reflectType.Kind() == reflect.Ptr || reflectType.Kind() == reflect.Slice {
+		reflectType = reflectType.Elem()
 	}
 
-	return reflectValue.Type()
+	return reflectType
 }
 
+// ParseTagOption parse tag options to hash
 func ParseTagOption(str string) map[string]string {
 	tags := strings.Split(str, ";")
 	setting := map[string]string{}
@@ -167,6 +144,12 @@ func ParseTagOption(str string) map[string]string {
 		}
 	}
 	return setting
+}
+
+// ExitWithMsg debug error messages and print stack
+func ExitWithMsg(msg interface{}, value ...interface{}) {
+	fmt.Printf("\n"+filenameWithLineNum()+"\n%v\n", append([]interface{}{msg}, value...)...)
+	debug.PrintStack()
 }
 
 func filenameWithLineNum() string {
@@ -186,9 +169,4 @@ func filenameWithLineNum() string {
 		}
 	}
 	return ""
-}
-
-func ExitWithMsg(msg interface{}, value ...interface{}) {
-	fmt.Printf("\n"+filenameWithLineNum()+"\n%v\n", append([]interface{}{msg}, value...)...)
-	debug.PrintStack()
 }

@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// NewValue new struct value with reflect type
 func NewValue(t reflect.Type) (v reflect.Value) {
 	v = reflect.New(t)
 	ov := v
@@ -22,6 +23,7 @@ func NewValue(t reflect.Type) (v reflect.Value) {
 	return ov
 }
 
+// ToArray get array from value, will ignore blank string to convert it to array
 func ToArray(value interface{}) (values []string) {
 	switch value := value.(type) {
 	case []string:
@@ -43,70 +45,52 @@ func ToArray(value interface{}) (values []string) {
 	return
 }
 
+// ToString get string from value, if passed value is a slice, will use the first element
 func ToString(value interface{}) string {
-	if v, ok := value.([]string); ok && len(v) > 0 {
-		return v[0]
+	if v, ok := value.([]string); ok {
+		if len(v) > 0 {
+			return v[0]
+		}
+		return ""
 	} else if v, ok := value.(string); ok {
 		return v
-	} else if v, ok := value.([]interface{}); ok && len(v) > 0 {
-		return fmt.Sprintf("%v", v[0])
-	} else {
-		return fmt.Sprintf("%v", value)
+	} else if v, ok := value.([]interface{}); ok {
+		if len(v) > 0 {
+			return fmt.Sprintf("%v", v[0])
+		}
+		return ""
 	}
+	return fmt.Sprintf("%v", value)
 }
 
+// ToInt get int from value, if passed value is empty string, result will be 0
 func ToInt(value interface{}) int64 {
-	var result string
-	if v, ok := value.([]string); ok && len(v) > 0 {
-		result = v[0]
-	} else if v, ok := value.(string); ok {
-		result = v
-	} else {
-		return ToInt(fmt.Sprintf("%v", value))
-	}
-
-	if i, err := strconv.ParseInt(result, 10, 64); err == nil {
-		return i
-	} else if result == "" {
+	if result := ToString(value); result == "" {
 		return 0
+	} else if i, err := strconv.ParseInt(result, 10, 64); err == nil {
+		return i
 	} else {
 		panic("failed to parse int: " + result)
 	}
 }
 
+// ToUint get uint from value, if passed value is empty string, result will be 0
 func ToUint(value interface{}) uint64 {
-	var result string
-	if v, ok := value.([]string); ok && len(v) > 0 {
-		result = v[0]
-	} else if v, ok := value.(string); ok {
-		result = v
-	} else {
-		return ToUint(fmt.Sprintf("%v", value))
-	}
-
-	if i, err := strconv.ParseUint(result, 10, 64); err == nil {
-		return i
-	} else if result == "" {
+	if result := ToString(value); result == "" {
 		return 0
+	} else if i, err := strconv.ParseUint(result, 10, 64); err == nil {
+		return i
 	} else {
 		panic("failed to parse uint: " + result)
 	}
 }
 
+// ToFloat get float from value, if passed value is empty string, result will be 0
 func ToFloat(value interface{}) float64 {
-	var result string
-	if v, ok := value.([]string); ok && len(v) > 0 {
-		result = v[0]
-	} else if v, ok := value.(string); ok {
-		result = v
-	} else {
-		return ToFloat(fmt.Sprintf("%v", value))
-	}
-
-	if i, err := strconv.ParseFloat(result, 64); err == nil {
-		return i
-	} else if result == "" {
+	if result := ToString(value); result == "" {
 		return 0
+	} else if i, err := strconv.ParseFloat(result, 64); err == nil {
+		return i
 	} else {
 		panic("failed to parse float: " + result)
 	}

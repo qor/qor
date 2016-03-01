@@ -71,12 +71,12 @@ func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context
 	res.processors = append(res.processors, fc)
 }
 
-// NewStruct initalize a struct for the Resource
+// NewStruct initialize a struct for the Resource
 func (res *Resource) NewStruct() interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
 }
 
-// NewSlice initalize a slice of struct for the Resource
+// NewSlice initialize a slice of struct for the Resource
 func (res *Resource) NewSlice() interface{} {
 	sliceType := reflect.SliceOf(reflect.TypeOf(res.Value))
 	slice := reflect.MakeSlice(sliceType, 0, 0)
