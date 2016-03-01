@@ -3,10 +3,13 @@
 <header class="mdl-layout__header">
   <!-- Tabs -->
   <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-    <a href="#search-all" class="mdl-layout__tab is-active">{{t "All"}}</a>
+    {{if (gt (len .Result) 1)}}
+      <a href="#search-all" class="mdl-layout__tab is-active">{{t "qor_admin.search_center.all" "All"}}</a>
+    {{end}}
+
     {{range .Result}}
       <a href="#search-{{.Resource.ToParam}}" class="mdl-layout__tab" data-resource="{{.Resource.ToParam}}">
-        {{.Resource.Name}}
+        {{t (printf "qor_admin.search_center.%v" .Resource.ToParam) .Resource.Name}}
       </a>
     {{end}}
   </div>
@@ -23,8 +26,8 @@
       {{if .Results}}
         {{if (len .Results)}}
           <h2>
-            {{.Resource.Name}}
-            <a href="{{patch_url (url_for .Resource) "keyword" $keyword}}">{{t "qor_admin.layout.view_all" "View All"}}</a>
+            {{t (printf "qor_admin.search_center.%v" .Resource.ToParam) .Resource.Name}}
+            <a href="{{patch_url (url_for .Resource) "keyword" $keyword}}">{{t "qor_admin.search_center.view_all" "View All"}}</a>
           </h2>
 
           {{.Context.Render "index/table" .Results}}
