@@ -37,24 +37,24 @@ func (ac *controller) Index(context *Context) {
 }
 
 func (ac *controller) SearchCenter(context *Context) {
-	type searchResult struct {
+	type Result struct {
 		Context  *Context
 		Resource *Resource
 		Results  interface{}
 	}
-	var searchResults []searchResult
+	var searchResults []Result
+
 	for _, res := range context.Admin.searchResources {
-		resourceName := context.Request.URL.Query().Get("resource_name")
+		var (
+			resourceName = context.Request.URL.Query().Get("resource_name")
+			ctx          = context.clone().setResource(res)
+			searchResult = Result{Context: ctx, Resource: res}
+		)
+
 		if resourceName == "" || res.ToParam() == resourceName {
-			ctx := context.clone().setResource(res)
-			if results, err := ctx.FindMany(); err == nil {
-				searchResults = append(searchResults, searchResult{
-					Context:  ctx,
-					Resource: res,
-					Results:  results,
-				})
-			}
+			searchResult.Results, _ = ctx.FindMany()
 		}
+		searchResults = append(searchResults, searchResult)
 	}
 	context.Execute("search_center", searchResults)
 }
