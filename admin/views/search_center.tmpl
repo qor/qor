@@ -1,31 +1,35 @@
 {{ $keyword := .Context.Request.URL.Query.Get "keyword" }}
-<div class="qor-page__header">
-  <form action="{{search_center_path}}" method="GET">
+
+<header class="mdl-layout__header">
+    <!-- Tabs -->
+    <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+      <a href="#search-all" class="mdl-layout__tab is-active">{{t "All"}}</a>
+      {{range .Result}}
+      <a href="#search-{{.Resource.ToParam}}" class="mdl-layout__tab" data-resource="{{.Resource.ToParam}}">
+        {{.Resource.Name}}
+      </a>
+    {{end}}
+    </div>
+  </header>
+
+<form action="{{search_center_path}}" method="GET">
     <input name="keyword" value="{{$keyword}}">
   </form>
-</div>
 
-<div class="qor-page__body">
-  <ul class="search-headers">
-    <li>{{t "All"}}</li>
-    {{range .Result}}
-      <li data-resource="{{.Resource.ToParam}}">
-        {{.Resource.Name}}
-      </li>
-    {{end}}
-  </ul>
 
-  <div class="search-results">
-    {{range .Result}}
-      {{if (len .Results)}}
-        <div class="search-result">
-          <h2>
-            {{.Resource.Name}}
-            <a href="{{patch_url (url_for .Resource) "keyword" $keyword}}">{{t "qor_admin.layout.view_all" "View All"}}</a>
-          </h2>
-          {{.Context.Render "index/table" .Results}}
-        </div>
-      {{end}}
-    {{end}}
-  </div>
-</div>
+<main class="mdl-layout__content">
+    <section class="mdl-layout__tab-panel is-active" id="search-all">
+      <div class="page-content">
+        {{range .Result}}
+          {{if (len .Results)}}
+              <h2>
+                {{.Resource.Name}}
+                <a href="{{patch_url (url_for .Resource) "keyword" $keyword}}">{{t "qor_admin.layout.view_all" "View All"}}</a>
+              </h2>
+              {{.Context.Render "index/table" .Results}}
+          {{end}}
+        {{end}}
+      </div>
+    </section>
+
+</main>
