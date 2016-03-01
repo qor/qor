@@ -14,6 +14,7 @@ import (
 	"github.com/qor/roles"
 )
 
+// Meta meta struct definition
 type Meta struct {
 	Name            string
 	FieldName       string
@@ -31,6 +32,7 @@ type Meta struct {
 	baseResource *Resource
 }
 
+// GetMetas get sub metas
 func (meta *Meta) GetMetas() []resource.Metaor {
 	if len(meta.Metas) > 0 {
 		return meta.Metas
@@ -41,10 +43,12 @@ func (meta *Meta) GetMetas() []resource.Metaor {
 	}
 }
 
+// GetResource get resource from meta
 func (meta *Meta) GetResource() resource.Resourcer {
 	return meta.Resource
 }
 
+// DBName get meta's db name
 func (meta *Meta) DBName() string {
 	if meta.FieldStruct != nil {
 		return meta.FieldStruct.DBName
@@ -84,25 +88,31 @@ func (meta *Meta) setBaseResource(base *Resource) {
 	}
 
 	res.FindManyHandler = func(value interface{}, context *qor.Context) error {
-		clone := context.Clone()
-		baseValue := base.NewStruct()
-		if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
+		var (
+			err       error
+			clone     = context.Clone()
+			baseValue = base.NewStruct()
+		)
+
+		if err = base.FindOneHandler(baseValue, nil, clone); err == nil {
 			base.FindOneHandler(baseValue, nil, clone)
 			return context.GetDB().Model(baseValue).Related(value).Error
-		} else {
-			return err
 		}
+		return err
 	}
 
 	res.SaveHandler = func(value interface{}, context *qor.Context) error {
-		clone := context.Clone()
-		baseValue := base.NewStruct()
-		if err := base.FindOneHandler(baseValue, nil, clone); err == nil {
+		var (
+			err       error
+			clone     = context.Clone()
+			baseValue = base.NewStruct()
+		)
+
+		if err = base.FindOneHandler(baseValue, nil, clone); err == nil {
 			base.FindOneHandler(baseValue, nil, clone)
 			return context.GetDB().Model(baseValue).Association(meta.FieldName).Append(value).Error
-		} else {
-			return err
 		}
+		return err
 	}
 
 	res.DeleteHandler = func(value interface{}, context *qor.Context) (err error) {
@@ -122,6 +132,7 @@ func (meta *Meta) setBaseResource(base *Resource) {
 	}
 }
 
+// SetPermission set meta's permission
 func (meta *Meta) SetPermission(permission *roles.Permission) {
 	meta.Permission = permission
 	meta.Meta.Permission = permission

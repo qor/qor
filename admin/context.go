@@ -14,6 +14,7 @@ import (
 	"github.com/qor/qor/utils"
 )
 
+// Context admin context, which is used for admin controller
 type Context struct {
 	*qor.Context
 	*Searcher
@@ -25,10 +26,9 @@ type Context struct {
 	Result   interface{}
 }
 
+// NewContext new admin context
 func (admin *Admin) NewContext(w http.ResponseWriter, r *http.Request) *Context {
-	context := Context{Context: &qor.Context{Config: admin.Config, Request: r, Writer: w}, Admin: admin}
-
-	return &context
+	return &Context{Context: &qor.Context{Config: admin.Config, Request: r, Writer: w}, Admin: admin}
 }
 
 func (context *Context) clone() *Context {
@@ -44,7 +44,6 @@ func (context *Context) clone() *Context {
 	}
 }
 
-// Resource
 func (context *Context) resourcePath() string {
 	if context.Resource == nil {
 		return ""
@@ -59,10 +58,6 @@ func (context *Context) setResource(res *Resource) *Context {
 	}
 	context.Searcher = &Searcher{Context: context}
 	return context
-}
-
-func (context *Context) GetResource(name string) *Resource {
-	return context.Admin.GetResource(name)
 }
 
 // Template
@@ -109,6 +104,7 @@ func (context *Context) findFile(layout string) (string, error) {
 	return "", errors.New("file not found")
 }
 
+// FindTemplate find template based on context
 func (context *Context) FindTemplate(layouts ...string) (string, error) {
 	for _, layout := range layouts {
 		for _, p := range context.getViewPaths() {
@@ -120,6 +116,7 @@ func (context *Context) FindTemplate(layouts ...string) (string, error) {
 	return "", errors.New("template not found")
 }
 
+// Render render template based on context
 func (context *Context) Render(name string, results ...interface{}) template.HTML {
 	if file, err := context.FindTemplate(name + ".tmpl"); err == nil {
 		var clone = context.clone()
@@ -142,6 +139,7 @@ func (context *Context) Render(name string, results ...interface{}) template.HTM
 	return ""
 }
 
+// Execute execute template with layout
 func (context *Context) Execute(name string, result interface{}) {
 	var tmpl *template.Template
 	var cacheKey string
@@ -187,12 +185,13 @@ func (context *Context) Execute(name string, result interface{}) {
 	}
 }
 
-func (context *Context) JSON(name string, result interface{}) {
-	if name == "show" && !context.Resource.isSetShowAttrs {
-		name = "edit"
+// JSON generate json outputs for action
+func (context *Context) JSON(action string, result interface{}) {
+	if action == "show" && !context.Resource.isSetShowAttrs {
+		action = "edit"
 	}
 
-	js, _ := json.MarshalIndent(context.Resource.convertObjectToJSONMap(context, result, name), "", "\t")
+	js, _ := json.MarshalIndent(context.Resource.convertObjectToJSONMap(context, result, action), "", "\t")
 	context.Writer.Header().Set("Content-Type", "application/json")
 	context.Writer.Write(js)
 }

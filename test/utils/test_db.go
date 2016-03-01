@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// TestDB initalize a db for testing
+// TestDB initialize a db for testing
 func TestDB() *gorm.DB {
 	dbuser, dbpwd, dbname := "qor", "qor", "qor_test"
 
