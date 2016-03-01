@@ -8,6 +8,7 @@ import (
 	"github.com/qor/roles"
 )
 
+// Resourcer interface
 type Resourcer interface {
 	GetResource() *Resource
 	GetMetas([]string) []Metaor
@@ -19,16 +20,17 @@ type Resourcer interface {
 	NewStruct() interface{}
 }
 
-// ConfigureResourcerBeforeInitializeInterface if a struct implemented this interface, it will be called before everything when create a resource with the struct
+// ConfigureResourceBeforeInitializeInterface if a struct implemented this interface, it will be called before everything when create a resource with the struct
 type ConfigureResourceBeforeInitializeInterface interface {
 	ConfigureQorResourceBeforeInitialize(Resourcer)
 }
 
-// ConfigureResourcerInterface if a struct implemented this interface, it will be called after configured by user
+// ConfigureResourceInterface if a struct implemented this interface, it will be called after configured by user
 type ConfigureResourceInterface interface {
 	ConfigureQorResource(Resourcer)
 }
 
+// Resource is a struct that including basic definition of qor resource
 type Resource struct {
 	Name            string
 	Value           interface{}
@@ -42,6 +44,7 @@ type Resource struct {
 	primaryField    *gorm.Field
 }
 
+// New initialize qor resource
 func New(value interface{}) *Resource {
 	name := reflect.Indirect(reflect.ValueOf(value)).Type().Name()
 	res := &Resource{Value: value, Name: name}
@@ -53,22 +56,27 @@ func New(value interface{}) *Resource {
 	return res
 }
 
+// GetResource return itself to match interface `Resourcer`
 func (res *Resource) GetResource() *Resource {
 	return res
 }
 
+// AddValidator add validator to resource, it will invoked when creating, updating, and will rollback the change if validator return any error
 func (res *Resource) AddValidator(fc func(interface{}, *MetaValues, *qor.Context) error) {
 	res.validators = append(res.validators, fc)
 }
 
+// AddProcessor add processor to resource, it is used to process data before creating, updating, will rollback the change if it return any error
 func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context) error) {
 	res.processors = append(res.processors, fc)
 }
 
+// NewStruct initalize a struct for the Resource
 func (res *Resource) NewStruct() interface{} {
 	return reflect.New(reflect.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
 }
 
+// NewSlice initalize a slice of struct for the Resource
 func (res *Resource) NewSlice() interface{} {
 	sliceType := reflect.SliceOf(reflect.TypeOf(res.Value))
 	slice := reflect.MakeSlice(sliceType, 0, 0)
@@ -77,10 +85,12 @@ func (res *Resource) NewSlice() interface{} {
 	return slicePtr.Interface()
 }
 
+// GetMetas get defined metas, to match interface `Resourcer`
 func (res *Resource) GetMetas([]string) []Metaor {
 	panic("not defined")
 }
 
+// HasPermission check permission of resource
 func (res *Resource) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
 	if res == nil || res.Permission == nil {
 		return true
