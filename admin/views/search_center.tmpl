@@ -1,39 +1,54 @@
 {{ $keyword := .Context.Request.URL.Query.Get "keyword" }}
 
-<header class="mdl-layout__header">
-  <!-- Tabs -->
-  <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-    {{if (gt (len .Result) 1)}}
-      <a href="#search-all" class="mdl-layout__tab is-active">{{t "qor_admin.search_center.all" "All"}}</a>
-    {{end}}
+<div class="qor-global-search--container" data-toggle="qor.global.search">
 
-    {{range .Result}}
-      <a href="#search-{{.Resource.ToParam}}" class="mdl-layout__tab" data-resource="{{.Resource.ToParam}}">
-        {{t (printf "qor_admin.search_center.%v" .Resource.ToParam) .Resource.Name}}
-      </a>
-    {{end}}
+  <div class="qor-page__header qor-page__header-tabbar">
+    <ul class="mdl-layout__tab-bar">
+      {{if (gt (len .Result) 1)}}
+        <li class="mdl-layout__tab is-active">{{t "qor_admin.search_center.all" "All"}}</li>
+      {{end}}
+
+      {{range .Result}}
+        <li class="mdl-layout__tab" data-resource="{{.Resource.ToParam}}">
+          {{t (printf "qor_admin.search_center.%v" .Resource.ToParam) .Resource.Name}}
+        </li>
+      {{end}}
+    </ul>
+
+    <form action="{{search_center_path}}" method="GET">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable qor-global-search">
+        <label class="mdl-button mdl-js-button mdl-button--icon" for="inputGlobalSearch">
+          <i class="material-icons">search</i>
+        </label>
+        <div class="mdl-textfield__expandable-holder">
+          <input class="mdl-textfield__input" name="keyword" value="{{$keyword}}" type="text" id="inputGlobalSearch" placeholder="{{t "qor_admin.search_center.hint" "Search…"}}">
+          <label class="mdl-textfield__label" for="sample-expandable"></label>
+        </div>
+        <button class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored qor-search__clear" type="button">
+          <i class="material-icons md-18">clear</i>
+        </button>
+      </div>
+    </form>
+
   </div>
-</header>
 
-<form action="{{search_center_path}}" method="GET">
-  <input name="keyword" value="{{$keyword}}">
-</form>
 
-<main class="mdl-layout__content">
-<section class="mdl-layout__tab-panel is-active" id="search-all">
-  <div class="page-content">
-    {{range .Result}}
-      {{if .Results}}
-        {{if (len .Results)}}
-          <h2>
-            {{t (printf "qor_admin.search_center.%v" .Resource.ToParam) .Resource.Name}}
-            <a href="{{patch_url (url_for .Resource) "keyword" $keyword}}">{{t "qor_admin.search_center.view_all" "View All"}}</a>
-          </h2>
-
-          {{.Context.Render "index/table" .Results}}
+  <main class="qor-page__body">
+    <section class="qor-section">
+      {{range .Result}}
+        {{if .Results}}
+          {{if (len .Results)}}
+            <h2 class="qor-section-title">
+              {{t (printf "qor_admin.search_center.%v" .Resource.ToParam) .Resource.Name}}
+              <a href="{{patch_url (url_for .Resource) "keyword" $keyword}}">{{t "qor_admin.search_center.view_all" "View All"}}</a>
+            </h2>
+            <div class="qor-section__body qor-table-container">
+              {{.Context.Render "index/table" .Results}}
+            </div>
+          {{end}}
         {{end}}
       {{end}}
-    {{end}}
-  </div>
-</section>
-</main>
+    </section>
+  </main>
+
+</div>

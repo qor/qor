@@ -3,6 +3,7 @@ $(function () {
   'use strict';
 
   var location = window.location;
+  var a='a';
 
   $('.qor-search').each(function () {
     var $this = $(this);

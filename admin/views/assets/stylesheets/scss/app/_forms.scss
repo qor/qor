@@ -41,10 +41,9 @@
 
 // Add to .qor-page__header
 
-.qor-search {
+.qor-search,.qor-global-search {
   height: 56px;
   padding: 14px 6px;
-
   .mdl-button {
     top: 10px;
   }
