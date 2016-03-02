@@ -52,6 +52,7 @@ func main() {
   Admin.AddResource(&Product{})
 
   mux := http.NewServeMux()
+  // amount to /admin, so visit `/admin` to view the admin interface
   Admin.MountTo("/admin", mux)
 
   fmt.Println("Listening on: 9000")
@@ -65,13 +66,58 @@ func main() {
 
 ### Site Name
 
+Use `SetSiteName` to set admin's HTML title, it will not only set title, but also will auto load javascripts, stylesheets files according to your name, so it could be used to customize the admin interface.
+
+For example, if you named it as `Qor Demo`, admin will look up `qor_demo.js`, `qor_demo.css` in [QOR view paths](#customize-views), and load them if found
+
+```go
+Admin.SetSiteName("Qor DEMO")
+```
+
 ### Dashboard
+
+Qor provide a default dashboard page with some dummary text, if you want to overwrite it, you could create a file named as `dashboard.tmpl` in [QOR view paths](#customize-views), Qor will load it as golang templates when render dashboard
+
+If you want to disable the dashboard, you could redirect the dashboard page to some other page, for example:
+
+```go
+Admin.GetRouter().Get("/", func(c *admin.Context) {
+  http.Redirect(c.Writer, c.Request, "/admin/clients", http.StatusSeeOther)
+})
+```
 
 ### Authentication
 
+Qor provides pretty flexable authorization solution, with it, you could integrate admin with your current authorization method.
+
+What you need to do is implement below `Auth` interface, and set it to the admin
+
+```go
+type Auth interface {
+	GetCurrentUser(*Context) qor.CurrentUser // get current user, if don't have permission, then return nil
+	LoginURL(*Context) string // get login url, if don't have permission, will redirect to this url
+	LogoutURL(*Context) string // get logout url, if click logout link from admin interface, will visit this page
+}
+
+// Once struct `auth` has implemented above interface, use `SetAuth` set it to admin
+Admin.SetAuth(auth{})
+```
+
 ### Menu
 
+Registered Resources will be shown in menu in order, use `admin.Config` to group them
+
+```go
+Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
+Admin.AddResource(&Color{}, &admin.Config{Menu: []string{"Product Management"}})
+Admin.AddResource(&Size{}, &admin.Config{Menu: []string{"Product Management"}})
+
+Admin.AddResource(&Order{}, &admin.Config{Menu: []string{"Order Management"}})
+```
+
 ### Internationalization
+
+To translate your admin interface to a new language, you could use the `i18n` [https://github.com/qor/i18n](https://github.com/qor/i18n)
 
 ## Working with Resource
 
@@ -82,6 +128,8 @@ func main() {
 ### Actions
 
 ### Customizing the Form
+
+## JSON API
 
 ## Extendable
 
