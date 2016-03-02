@@ -11,10 +11,7 @@ import (
 	"github.com/theplant/cldr"
 )
 
-const (
-	DEFAULT_PAGE_COUNT = 20
-)
-
+// Admin is a struct that used to generate admin/api interface
 type Admin struct {
 	Config           *qor.Config
 	SiteName         string
@@ -28,10 +25,12 @@ type Admin struct {
 	metaConfigorMaps map[string]func(*Meta)
 }
 
+// ResourceNamer is an interface for models that defined method `ResourceName`
 type ResourceNamer interface {
 	ResourceName() string
 }
 
+// New new admin with configuration
 func New(config *qor.Config) *Admin {
 	admin := Admin{
 		funcMaps:         make(template.FuncMap),
@@ -42,10 +41,13 @@ func New(config *qor.Config) *Admin {
 	return &admin
 }
 
+// SetSiteName set site's name, the name will be used as admin HTML title and admin interface will auto load javascripts, stylesheets files based on its value
+// For example, if you named it as `Qor Demo`, admin will look up `qor_demo.js`, `qor_demo.css` in QOR view paths, and load them if found
 func (admin *Admin) SetSiteName(siteName string) {
 	admin.SiteName = siteName
 }
 
+// SetAuth set admin's authorization gateway
 func (admin *Admin) SetAuth(auth Auth) {
 	admin.auth = auth
 }
@@ -60,10 +62,12 @@ func (admin *Admin) RegisterFuncMap(name string, fc interface{}) {
 	admin.funcMaps[name] = fc
 }
 
+// GetRouter get router from admin
 func (admin *Admin) GetRouter() *Router {
 	return admin.router
 }
 
+// NewResource initialize a new qor resource, won't add it to admin, just initialize it
 func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource {
 	var configuration *Config
 	if len(config) > 0 {
@@ -85,7 +89,7 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 	res.Permission = configuration.Permission
 
 	if configuration.PageCount == 0 {
-		configuration.PageCount = DEFAULT_PAGE_COUNT
+		configuration.PageCount = 20
 	}
 
 	if configuration.Name != "" {
@@ -119,6 +123,7 @@ func (admin *Admin) NewResource(value interface{}, config ...*Config) *Resource 
 	return res
 }
 
+// AddResource make a model manageable from admin interface
 func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource {
 	res := admin.NewResource(value, config...)
 
@@ -138,6 +143,7 @@ func (admin *Admin) AddResource(value interface{}, config ...*Config) *Resource 
 	return res
 }
 
+// AddSearchResource make a resource searchable from search center
 func (admin *Admin) AddSearchResource(resources ...*Resource) {
 	admin.searchResources = append(admin.searchResources, resources...)
 }
@@ -146,6 +152,7 @@ func (admin *Admin) EnabledSearchCenter() bool {
 	return len(admin.searchResources) > 0
 }
 
+// GetResource get resource with name
 func (admin *Admin) GetResource(name string) *Resource {
 	for _, res := range admin.resources {
 		var typeName = reflect.Indirect(reflect.ValueOf(res.Value)).Type().String()
@@ -156,6 +163,7 @@ func (admin *Admin) GetResource(name string) *Resource {
 	return nil
 }
 
+// GetResources get defined resources from admin
 func (admin *Admin) GetResources() []*Resource {
 	return admin.resources
 }
@@ -167,6 +175,7 @@ type I18n interface {
 	T(locale string, key string, args ...interface{}) template.HTML
 }
 
+// T call i18n backend to translate
 func (admin *Admin) T(context *qor.Context, key string, value string, values ...interface{}) template.HTML {
 	locale := utils.GetLocale(context)
 
@@ -175,7 +184,7 @@ func (admin *Admin) T(context *qor.Context, key string, value string, values ...
 			return template.HTML(result)
 		}
 		return template.HTML(key)
-	} else {
-		return admin.I18n.Default(value).T(locale, key, values...)
 	}
+
+	return admin.I18n.Default(value).T(locale, key, values...)
 }

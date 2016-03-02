@@ -16,6 +16,7 @@ import (
 	"github.com/qor/roles"
 )
 
+// Metaor interface
 type Metaor interface {
 	GetName() string
 	GetFieldName() string
@@ -27,16 +28,17 @@ type Metaor interface {
 	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
 
-// ConfigureMetaorBeforeInitializeInterface if a struct's field's type implemented this interface, it will be called when initializing a meta
+// ConfigureMetaBeforeInitializeInterface if a struct's field's type implemented this interface, it will be called when initializing a meta
 type ConfigureMetaBeforeInitializeInterface interface {
 	ConfigureQorMetaBeforeInitialize(Metaor)
 }
 
-// ConfigureMetaorInterface if a struct's field's type implemented this interface, it will be called after configed
+// ConfigureMetaInterface if a struct's field's type implemented this interface, it will be called after configed
 type ConfigureMetaInterface interface {
 	ConfigureQorMeta(Metaor)
 }
 
+// Meta meta struct definition
 type Meta struct {
 	Name            string
 	FieldName       string
@@ -48,38 +50,47 @@ type Meta struct {
 	FieldStruct     *gorm.StructField
 }
 
+// GetBaseResource get base resource from meta
 func (meta Meta) GetBaseResource() Resourcer {
 	return meta.Resource
 }
 
+// GetName get meta's name
 func (meta Meta) GetName() string {
 	return meta.Name
 }
 
+// GetFieldName get meta's field name
 func (meta Meta) GetFieldName() string {
 	return meta.FieldName
 }
 
+// SetFieldName set meta's field name
 func (meta *Meta) SetFieldName(name string) {
 	meta.FieldName = name
 }
 
+// GetSetter get setter from meta
 func (meta Meta) GetSetter() func(resource interface{}, metaValue *MetaValue, context *qor.Context) {
 	return meta.Setter
 }
 
+// SetSetter set setter to meta
 func (meta *Meta) SetSetter(fc func(resource interface{}, metaValue *MetaValue, context *qor.Context)) {
 	meta.Setter = fc
 }
 
+// GetValuer get valuer from meta
 func (meta Meta) GetValuer() func(interface{}, *qor.Context) interface{} {
 	return meta.Valuer
 }
 
+// SetValuer set valuer for meta
 func (meta *Meta) SetValuer(fc func(interface{}, *qor.Context) interface{}) {
 	meta.Valuer = fc
 }
 
+// GetFormattedValuer get formatted valuer from meta
 func (meta *Meta) GetFormattedValuer() func(interface{}, *qor.Context) interface{} {
 	if meta.FormattedValuer != nil {
 		return meta.FormattedValuer
@@ -87,10 +98,12 @@ func (meta *Meta) GetFormattedValuer() func(interface{}, *qor.Context) interface
 	return meta.Valuer
 }
 
+// SetFormattedValuer set formatted valuer for meta
 func (meta *Meta) SetFormattedValuer(fc func(interface{}, *qor.Context) interface{}) {
 	meta.FormattedValuer = fc
 }
 
+// HasPermission check has permission or not
 func (meta Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
 	if meta.Permission == nil {
 		return true
@@ -98,10 +111,12 @@ func (meta Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) 
 	return meta.Permission.HasPermission(mode, context.Roles...)
 }
 
+// SetPermission set permission for meta
 func (meta *Meta) SetPermission(permission *roles.Permission) {
 	meta.Permission = permission
 }
 
+// PreInitialize when will be run before initialize, used to fill some basic necessary information
 func (meta *Meta) PreInitialize() error {
 	if meta.Name == "" {
 		utils.ExitWithMsg("Meta should have name: %v", reflect.TypeOf(meta))
@@ -140,6 +155,7 @@ func (meta *Meta) PreInitialize() error {
 	return nil
 }
 
+// Initialize initialize meta, will set valuer, setter if haven't configure it
 func (meta *Meta) Initialize() error {
 	var (
 		nestedField = strings.Contains(meta.FieldName, ".")

@@ -9,10 +9,8 @@ import (
 	"github.com/qor/roles"
 )
 
-var (
-	ErrProcessorRecordNotFound = errors.New("resource: record not found")
-	ErrProcessorSkipLeft       = errors.New("resource: skip left")
-)
+// ErrProcessorSkipLeft skip left processors error, if returned this error in validation, before callbacks, then qor will stop process following processors
+var ErrProcessorSkipLeft = errors.New("resource: skip left")
 
 type processor struct {
 	Result     interface{}
@@ -23,6 +21,7 @@ type processor struct {
 	newRecord  bool
 }
 
+// DecodeToResource decode meta values to resource result
 func DecodeToResource(res Resourcer, result interface{}, metaValues *MetaValues, context *qor.Context) *processor {
 	scope := &gorm.Scope{Value: result}
 	return &processor{Resource: res, Result: result, Context: context, MetaValues: metaValues, newRecord: scope.PrimaryKeyZero()}

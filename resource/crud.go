@@ -38,17 +38,15 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 			return context.GetDB().First(result, fmt.Sprintf("%v = ?", scope.Quote(primaryField.DBName)), primaryKey).Error
 		}
 		return errors.New("failed to find")
-	} else {
-		return roles.ErrPermissionDenied
 	}
+	return roles.ErrPermissionDenied
 }
 
 func (res *Resource) findManyHandler(result interface{}, context *qor.Context) error {
 	if res.HasPermission(roles.Read, context) {
 		return context.GetDB().Set("gorm:order_by_primary_key", "DESC").Find(result).Error
-	} else {
-		return roles.ErrPermissionDenied
 	}
+	return roles.ErrPermissionDenied
 }
 
 func (res *Resource) saveHandler(result interface{}, context *qor.Context) error {
@@ -56,9 +54,8 @@ func (res *Resource) saveHandler(result interface{}, context *qor.Context) error
 		res.HasPermission(roles.Create, context)) || // has create permission
 		res.HasPermission(roles.Update, context) { // has update permission
 		return context.GetDB().Save(result).Error
-	} else {
-		return roles.ErrPermissionDenied
 	}
+	return roles.ErrPermissionDenied
 }
 
 func (res *Resource) deleteHandler(result interface{}, context *qor.Context) error {
@@ -66,26 +63,28 @@ func (res *Resource) deleteHandler(result interface{}, context *qor.Context) err
 		scope := context.GetDB().NewScope(res.Value)
 		if !context.GetDB().First(result, fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName())), context.ResourceID).RecordNotFound() {
 			return context.GetDB().Delete(result).Error
-		} else {
-			return gorm.RecordNotFound
 		}
-	} else {
-		return roles.ErrPermissionDenied
+		return gorm.RecordNotFound
 	}
+	return roles.ErrPermissionDenied
 }
 
+// CallFindOne call find one method
 func (res *Resource) CallFindOne(result interface{}, metaValues *MetaValues, context *qor.Context) error {
 	return res.FindOneHandler(result, metaValues, context)
 }
 
+// CallFindMany call find many method
 func (res *Resource) CallFindMany(result interface{}, context *qor.Context) error {
 	return res.FindManyHandler(result, context)
 }
 
+// CallSave call save method
 func (res *Resource) CallSave(result interface{}, context *qor.Context) error {
 	return res.SaveHandler(result, context)
 }
 
+// CallDelete call delete method
 func (res *Resource) CallDelete(result interface{}, context *qor.Context) error {
 	return res.DeleteHandler(result, context)
 }

@@ -21,6 +21,7 @@ import (
 	"github.com/qor/roles"
 )
 
+// NewResourceContext new resource context
 func (context *Context) NewResourceContext(name ...interface{}) *Context {
 	clone := &Context{Context: context.Context, Admin: context.Admin, Result: context.Result, Action: context.Action}
 	if len(name) > 0 {
@@ -47,6 +48,10 @@ func (context *Context) newResourcePath(res *Resource) string {
 	return path.Join(context.URLFor(res), "new")
 }
 
+// URLFor generate url for resource value
+//     context.URLFor(&Product{})
+//     context.URLFor(&Product{ID: 111})
+//     context.URLFor(productResource)
 func (context *Context) URLFor(value interface{}, resources ...*Resource) string {
 	getPrefix := func(res *Resource) string {
 		var params string
@@ -75,16 +80,16 @@ func (context *Context) URLFor(value interface{}, resources ...*Resource) string
 		if res != nil {
 			if res.Config.Singleton {
 				return path.Join(getPrefix(res), res.ToParam())
-			} else {
-				primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
-				return path.Join(getPrefix(res), res.ToParam(), primaryKey)
 			}
+
+			primaryKey := fmt.Sprint(context.GetDB().NewScope(value).PrimaryKeyValue())
+			return path.Join(getPrefix(res), res.ToParam(), primaryKey)
 		}
 	}
 	return ""
 }
 
-func (context *Context) LinkTo(text interface{}, link interface{}) template.HTML {
+func (context *Context) linkTo(text interface{}, link interface{}) template.HTML {
 	text = reflect.Indirect(reflect.ValueOf(text)).Interface()
 	if linkStr, ok := link.(string); ok {
 		return template.HTML(fmt.Sprintf(`<a href="%v">%v</a>`, linkStr, text))
@@ -118,19 +123,20 @@ func (context *Context) valueOf(valuer func(interface{}, *qor.Context) interface
 				}
 			}
 			return result
-		} else {
-			return nil
 		}
+		return nil
 	}
 
 	utils.ExitWithMsg(fmt.Sprintf("No valuer found for meta %v of resource %v", meta.Name, meta.baseResource.Name))
 	return nil
 }
 
+// RawValueOf return raw value of a meta for current resource
 func (context *Context) RawValueOf(value interface{}, meta *Meta) interface{} {
 	return context.valueOf(meta.GetValuer(), value, meta)
 }
 
+// FormattedValueOf return formatted value of a meta for current resource
 func (context *Context) FormattedValueOf(value interface{}, meta *Meta) interface{} {
 	return context.valueOf(meta.GetFormattedValuer(), value, meta)
 }
@@ -153,7 +159,7 @@ func (context *Context) renderSections(value interface{}, sections []*Section, p
 			for _, col := range column {
 				meta := section.Resource.GetMetaOrNew(col)
 				if meta != nil {
-					context.RenderMeta(meta, value, prefix, kind, columnsHTML)
+					context.renderMeta(meta, value, prefix, kind, columnsHTML)
 				}
 			}
 
@@ -178,7 +184,7 @@ func (context *Context) renderSections(value interface{}, sections []*Section, p
 	}
 }
 
-func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []string, metaType string, writer *bytes.Buffer) {
+func (context *Context) renderMeta(meta *Meta, value interface{}, prefix []string, metaType string, writer *bytes.Buffer) {
 	var (
 		tmpl     *template.Template
 		err      error
@@ -199,7 +205,7 @@ func (context *Context) RenderMeta(meta *Meta, value interface{}, prefix []strin
 			if len(sections) > 0 {
 				for _, field := range context.GetDB().NewScope(value).PrimaryFields() {
 					if meta := sections[0].Resource.GetMetaOrNew(field.Name); meta != nil {
-						context.RenderMeta(meta, value, newPrefix, kind, result)
+						context.renderMeta(meta, value, newPrefix, kind, result)
 					}
 				}
 
@@ -268,10 +274,8 @@ func (context *Context) isIncluded(value interface{}, hasValue interface{}) bool
 		primaryKeys = append(primaryKeys, scope.PrimaryKeyValue())
 	} else if reflectValue.Kind() == reflect.String {
 		return strings.Contains(reflectValue.Interface().(string), fmt.Sprintf("%v", hasValue))
-	} else {
-		if reflectValue.IsValid() {
-			primaryKeys = append(primaryKeys, reflect.Indirect(reflectValue).Interface())
-		}
+	} else if reflectValue.IsValid() {
+		primaryKeys = append(primaryKeys, reflect.Indirect(reflectValue).Interface())
 	}
 
 	for _, key := range primaryKeys {
@@ -356,6 +360,7 @@ type scopeMenu struct {
 	Scopes []scope
 }
 
+// GetScopes get scopes from current context
 func (context *Context) GetScopes() (menus []*scopeMenu) {
 	if context.Resource == nil {
 		return
@@ -389,6 +394,7 @@ OUT:
 	return menus
 }
 
+// HasPermissioner has permission interface
 type HasPermissioner interface {
 	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
@@ -409,6 +415,7 @@ func (context *Context) hasDeletePermission(permissioner HasPermissioner) bool {
 	return permissioner.HasPermission(roles.Delete, context.Context)
 }
 
+// Page contain pagination information
 type Page struct {
 	Page       int
 	Current    bool
@@ -416,11 +423,10 @@ type Page struct {
 	IsNext     bool
 }
 
-const (
-	VISIBLE_PAGE_COUNT = 8
-)
+const visiblePageCount = 8
 
-// Keep VISIBLE_PAGE_COUNT's pages visible, exclude prev and next link
+// Pagination return pagination information
+// Keep visiblePageCount's pages visible, exclude prev and next link
 // Assume there are 12 pages in total.
 // When current page is 1
 // [current, 2, 3, 4, 5, 6, 7, 8, next]
@@ -435,18 +441,18 @@ func (context *Context) Pagination() *[]Page {
 		return nil
 	}
 
-	start := pagination.CurrentPage - VISIBLE_PAGE_COUNT/2
+	start := pagination.CurrentPage - visiblePageCount/2
 	if start < 1 {
 		start = 1
 	}
 
-	end := start + VISIBLE_PAGE_COUNT - 1 // -1 for "start page" itself
+	end := start + visiblePageCount - 1 // -1 for "start page" itself
 	if end > pagination.Pages {
 		end = pagination.Pages
 	}
 
-	if (end-start) < VISIBLE_PAGE_COUNT && start != 1 {
-		start = end - VISIBLE_PAGE_COUNT + 1
+	if (end-start) < visiblePageCount && start != 1 {
+		start = end - visiblePageCount + 1
 	}
 	if start < 1 {
 		start = 1
@@ -672,6 +678,7 @@ func (context *Context) getFormattedErrors() (formatedErrors []formatedError) {
 	return
 }
 
+// AllowedActions return allowed actions based on context
 func (context *Context) AllowedActions(actions []*Action, mode string) []*Action {
 	var allowedActions []*Action
 	for _, action := range actions {
@@ -717,10 +724,11 @@ func (context *Context) pageTitle() template.HTML {
 	return context.t(titleKey, value, resourceName)
 }
 
+// FuncMap return funcs map
 func (context *Context) FuncMap() template.FuncMap {
 	funcMap := template.FuncMap{
 		"current_user":         func() qor.CurrentUser { return context.CurrentUser },
-		"get_resource":         context.GetResource,
+		"get_resource":         context.Admin.GetResource,
 		"new_resource_context": context.NewResourceContext,
 		"is_new_record":        context.isNewRecord,
 		"is_included":          context.isIncluded,
@@ -743,11 +751,11 @@ func (context *Context) FuncMap() template.FuncMap {
 		"render_form": context.renderForm,
 		"render_index_meta": func(value interface{}, meta *Meta) template.HTML {
 			var result = bytes.NewBufferString("")
-			context.RenderMeta(meta, value, []string{}, "index", result)
+			context.renderMeta(meta, value, []string{}, "index", result)
 			return template.HTML(result.String())
 		},
 		"url_for":                context.URLFor,
-		"link_to":                context.LinkTo,
+		"link_to":                context.linkTo,
 		"new_resource_path":      context.newResourcePath,
 		"search_center_path":     func() string { return path.Join(context.Admin.router.Prefix, "!search") },
 		"patch_current_url":      context.patchCurrentURL,

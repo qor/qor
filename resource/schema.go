@@ -51,14 +51,18 @@ func convertMapToMetaValues(values map[string]interface{}, metaors []Metaor) (*M
 	return metaValues, nil
 }
 
+// ConvertJSONToMetaValues convert json to meta values
 func ConvertJSONToMetaValues(reader io.Reader, metaors []Metaor) (*MetaValues, error) {
-	decoder := json.NewDecoder(reader)
-	values := map[string]interface{}{}
-	if err := decoder.Decode(&values); err == nil {
+	var (
+		err     error
+		values  = map[string]interface{}{}
+		decoder = json.NewDecoder(reader)
+	)
+
+	if err = decoder.Decode(&values); err == nil {
 		return convertMapToMetaValues(values, metaors)
-	} else {
-		return nil, err
 	}
+	return nil, err
 }
 
 var (
@@ -66,6 +70,7 @@ var (
 	isNextLevel    = regexp.MustCompile(`^(([^.\[\]]+)(\[\d+\])?)(?:\.([^.]+)+)$`)
 )
 
+// ConvertFormToMetaValues convert form to meta values
 func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix string) (*MetaValues, error) {
 	metaValues := &MetaValues{}
 	metaorsMap := map[string]Metaor{}
@@ -123,6 +128,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 	return metaValues, nil
 }
 
+// Decode decode context to result according to resource definition
 func Decode(context *qor.Context, result interface{}, res Resourcer) error {
 	var errors qor.Errors
 	var err error

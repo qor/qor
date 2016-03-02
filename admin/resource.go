@@ -17,6 +17,7 @@ import (
 	"github.com/qor/roles"
 )
 
+// Resource is the most important thing for qor admin, every model is defined as a resource, qor admin will genetate management interface based on its definition
 type Resource struct {
 	resource.Resource
 	Config        *Config
@@ -38,6 +39,7 @@ type Resource struct {
 	cachedMetas    *map[string][]*Meta
 }
 
+// Meta register meta for admin resource
 func (res *Resource) Meta(meta *Meta) *Meta {
 	if res.GetMeta(meta.Name) != nil {
 		utils.ExitWithMsg("Duplicated meta %v defined for resource %v", meta.Name, res.Name)
@@ -48,6 +50,7 @@ func (res *Resource) Meta(meta *Meta) *Meta {
 	return meta
 }
 
+// GetAdmin get admin from resource
 func (res Resource) GetAdmin() *Admin {
 	return res.admin
 }
@@ -65,6 +68,7 @@ func (res Resource) ParamIDName() string {
 	return fmt.Sprintf(":%v_id", inflection.Singular(res.ToParam()))
 }
 
+// ToParam used as urls to register routes for resource
 func (res Resource) ToParam() string {
 	if res.Config.Singleton == true {
 		return utils.ToParamString(res.Name)
@@ -72,6 +76,7 @@ func (res Resource) ToParam() string {
 	return utils.ToParamString(inflection.Plural(res.Name))
 }
 
+// UseTheme use them for resource, will auto load the theme's javascripts, stylesheets for this resource
 func (res Resource) UseTheme(theme string) []string {
 	if res.Config != nil {
 		for _, t := range res.Config.Themes {
@@ -85,6 +90,7 @@ func (res Resource) UseTheme(theme string) []string {
 	return res.Config.Themes
 }
 
+// Decode decode context into a value
 func (res *Resource) Decode(context *qor.Context, value interface{}) error {
 	return resource.Decode(context, value, res)
 }
@@ -178,36 +184,105 @@ MetaIncluded:
 func (res *Resource) getAttrs(attrs []string) []string {
 	if len(attrs) == 0 {
 		return res.allAttrs()
-	} else {
-		var onlyExcludeAttrs = true
-		for _, attr := range attrs {
-			if !strings.HasPrefix(attr, "-") {
-				onlyExcludeAttrs = false
-				break
-			}
-		}
-		if onlyExcludeAttrs {
-			return append(res.allAttrs(), attrs...)
-		}
-		return attrs
 	}
+
+	var onlyExcludeAttrs = true
+	for _, attr := range attrs {
+		if !strings.HasPrefix(attr, "-") {
+			onlyExcludeAttrs = false
+			break
+		}
+	}
+
+	if onlyExcludeAttrs {
+		return append(res.allAttrs(), attrs...)
+	}
+	return attrs
 }
 
+// IndexAttrs set attributes will be shown in the index page
+//     // show given attributes in the index page
+//     order.IndexAttrs("User", "PaymentAmount", "ShippedAt", "CancelledAt", "State", "ShippingAddress")
+//     // show all attributes except `State` in the index page
+//     order.IndexAttrs("-State")
 func (res *Resource) IndexAttrs(values ...interface{}) []*Section {
 	res.setSections(&res.indexSections, values...)
 	return res.indexSections
 }
 
+// NewAttrs set attributes will be shown in the new page
+//     // show given attributes in the new page
+//     order.NewAttrs("User", "PaymentAmount", "ShippedAt", "CancelledAt", "State", "ShippingAddress")
+//     // show all attributes except `State` in the new page
+//     order.NewAttrs("-State")
+//  You could also use `Section` to structure form to make it tidy and clean
+//     product.NewAttrs(
+//       &admin.Section{
+//       	Title: "Basic Information",
+//       	Rows: [][]string{
+//       		{"Name"},
+//       		{"Code", "Price"},
+//       	}},
+//       &admin.Section{
+//       	Title: "Organization",
+//       	Rows: [][]string{
+//       		{"Category", "Collections", "MadeCountry"},
+//       	}},
+//       "Description",
+//       "ColorVariations",
+//     }
 func (res *Resource) NewAttrs(values ...interface{}) []*Section {
 	res.setSections(&res.newSections, values...)
 	return res.newSections
 }
 
+// EditAttrs set attributes will be shown in the edit page
+//     // show given attributes in the new page
+//     order.EditAttrs("User", "PaymentAmount", "ShippedAt", "CancelledAt", "State", "ShippingAddress")
+//     // show all attributes except `State` in the edit page
+//     order.EditAttrs("-State")
+//  You could also use `Section` to structure form to make it tidy and clean
+//     product.EditAttrs(
+//       &admin.Section{
+//       	Title: "Basic Information",
+//       	Rows: [][]string{
+//       		{"Name"},
+//       		{"Code", "Price"},
+//       	}},
+//       &admin.Section{
+//       	Title: "Organization",
+//       	Rows: [][]string{
+//       		{"Category", "Collections", "MadeCountry"},
+//       	}},
+//       "Description",
+//       "ColorVariations",
+//     }
 func (res *Resource) EditAttrs(values ...interface{}) []*Section {
 	res.setSections(&res.editSections, values...)
 	return res.editSections
 }
 
+// ShowAttrs set attributes will be shown in the show page
+//     // show given attributes in the show page
+//     order.ShowAttrs("User", "PaymentAmount", "ShippedAt", "CancelledAt", "State", "ShippingAddress")
+//     // show all attributes except `State` in the show page
+//     order.ShowAttrs("-State")
+//  You could also use `Section` to structure form to make it tidy and clean
+//     product.ShowAttrs(
+//       &admin.Section{
+//       	Title: "Basic Information",
+//       	Rows: [][]string{
+//       		{"Name"},
+//       		{"Code", "Price"},
+//       	}},
+//       &admin.Section{
+//       	Title: "Organization",
+//       	Rows: [][]string{
+//       		{"Category", "Collections", "MadeCountry"},
+//       	}},
+//       "Description",
+//       "ColorVariations",
+//     }
 func (res *Resource) ShowAttrs(values ...interface{}) []*Section {
 	if len(values) > 0 {
 		if values[len(values)-1] == false {
@@ -220,6 +295,7 @@ func (res *Resource) ShowAttrs(values ...interface{}) []*Section {
 	return res.showSections
 }
 
+// SortableAttrs set sortable attributes, sortable attributes could be click to order in qor table
 func (res *Resource) SortableAttrs(columns ...string) []string {
 	if len(columns) != 0 || res.sortableAttrs == nil {
 		if len(columns) == 0 {
@@ -237,6 +313,9 @@ func (res *Resource) SortableAttrs(columns ...string) []string {
 	return *res.sortableAttrs
 }
 
+// SearchAttrs set search attributes, when search resources, will use those columsn to search
+//     // Search products with its name, code, category's name, brand's name
+//	   product.SearchAttrs("Name", "Code", "Category.Name", "Brand.Name")
 func (res *Resource) SearchAttrs(columns ...string) []string {
 	if len(columns) != 0 || res.searchAttrs == nil {
 		if len(columns) == 0 {
@@ -340,9 +419,8 @@ func (res *Resource) SearchAttrs(columns ...string) []string {
 				// search conditions
 				if len(conditions) > 0 {
 					return db.Where(strings.Join(conditions, " OR "), keywords...)
-				} else {
-					return db
 				}
+				return db
 			}
 		}
 	}
@@ -357,17 +435,18 @@ func (res *Resource) getCachedMetas(cacheKey string, fc func() []resource.Metaor
 
 	if values, ok := (*res.cachedMetas)[cacheKey]; ok {
 		return values
-	} else {
-		values := fc()
-		var metas []*Meta
-		for _, value := range values {
-			metas = append(metas, value.(*Meta))
-		}
-		(*res.cachedMetas)[cacheKey] = metas
-		return metas
 	}
+
+	values := fc()
+	var metas []*Meta
+	for _, value := range values {
+		metas = append(metas, value.(*Meta))
+	}
+	(*res.cachedMetas)[cacheKey] = metas
+	return metas
 }
 
+// GetMetas get metas with give attrs
 func (res *Resource) GetMetas(attrs []string) []resource.Metaor {
 	if len(attrs) == 0 {
 		attrs = res.allAttrs()
@@ -417,6 +496,7 @@ Attrs:
 	return metas
 }
 
+// GetMeta get meta with name
 func (res *Resource) GetMeta(name string) *Meta {
 	for _, meta := range res.Metas {
 		if meta.Name == name || meta.GetFieldName() == name {
@@ -426,6 +506,7 @@ func (res *Resource) GetMeta(name string) *Meta {
 	return nil
 }
 
+// GetMetaOrNew get meta or initalize a new one
 func (res *Resource) GetMetaOrNew(name string) *Meta {
 	for _, meta := range res.Metas {
 		if meta.Name == name || meta.GetFieldName() == name {
