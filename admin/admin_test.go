@@ -57,7 +57,7 @@ func TestNewResource(t *testing.T) {
 		t.Error("default resource name didn't set")
 	}
 
-	if user.Config.PageCount != DEFAULT_PAGE_COUNT {
+	if user.Config.PageCount != 20 {
 		t.Error("default page count didn't set")
 	}
 }
