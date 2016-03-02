@@ -113,4 +113,7 @@
   &[qor-icon-name*="Notification"] > a::before {
     content: "\e7f4";
   }
+  &[qor-icon-name*="Workers"] > a::before {
+    content: "\e8f9";
+  }
 }
