@@ -36,8 +36,8 @@
       var options = this.options;
       var $this = this.$element;
 
-      // disable fixer if have multiple tables
-      if ($('.qor-page__body .qor-js-table').size() > 1) {
+      // disable fixer if have multiple tables or in search page
+      if ($('.qor-page__body .qor-js-table').size() > 1 || $('.qor-global-search--container').size() > 0) {
         return;
       }
 

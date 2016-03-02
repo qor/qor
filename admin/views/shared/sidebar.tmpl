@@ -5,11 +5,9 @@
   <div class="sidebar-body">
     <div class="qor-menu-container">
       {{if .Admin.EnabledSearchCenter}}
-        <ul class="qor-menu">
-          <li qor-icon-name="Search">
-            <a href="{{search_center_path}}">{{t "qor_admin.layout.Search" "Search" }}</a>
-          </li>
-        </ul>
+        <div qor-icon-name="Search">
+          <span class="qor-global-search--show" data-placeholder="{{t "qor_admin.search_center.hint" "Search…"}}" data-action-url="{{search_center_path}}">{{t "qor_admin.search_center.title" "Global Search" }}</span>
+        </div>
       {{end}}
       {{render "shared/menu" get_menus}}
     </div>

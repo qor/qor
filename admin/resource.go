@@ -207,6 +207,7 @@ func (res *Resource) getAttrs(attrs []string) []string {
 //     order.IndexAttrs("-State")
 func (res *Resource) IndexAttrs(values ...interface{}) []*Section {
 	res.setSections(&res.indexSections, values...)
+	res.SearchAttrs()
 	return res.indexSections
 }
 

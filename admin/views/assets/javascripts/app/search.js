@@ -3,6 +3,7 @@ $(function () {
   'use strict';
 
   var location = window.location;
+  var a='a';
 
   $('.qor-search').each(function () {
     var $this = $(this);
@@ -16,7 +17,7 @@ $(function () {
       if ($input.val()) {
         $input.focus().val('');
       } else if (isSearched) {
-        location.search = location.search.replace(new RegExp($input.attr('name') + '\\=?\\w*'), '');
+        location.search = location.search.replace(new RegExp($input.attr('name') + '\\=?\\w*'), '').replace('?','');
       } else {
         $this.removeClass('is-dirty');
       }

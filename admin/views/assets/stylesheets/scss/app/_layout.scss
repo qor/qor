@@ -4,7 +4,7 @@
   .mdl-layout__content{
     overflow: auto;
     &.has-header{
-      margin-top: 48px;
+      padding-top: 48px;
     }
     &::-webkit-scrollbar {
       width: 8px;
@@ -181,6 +181,31 @@
   .mdl-layout__tab-bar{
     padding: 0;
   }
+}
+
+.qor-page__header-tabbar{
+  padding: 0;
+  background-color: $color-main-header;
+  .mdl-layout__tab-bar{
+    height: 48px;
+    width: 100%;
+    padding: 0;
+  }
+}
+
+.qor-view-all{
+  display: inline-block;
+  height: 32px;
+  margin-left: 16px;
+  font-size: 12px;
+  line-height: 32px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: unquote("rgb(#{$color-primary})");
+}
+
+.mdl-layout__header-row{
+  padding-right: 12px;
 }
 
 @media screen and (max-width: 1024px){
