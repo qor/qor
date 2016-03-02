@@ -13,10 +13,6 @@ QOR is a set of libraries written in Go that abstracts common features needed fo
 This is actually the third version of QOR: 1 and 2 were written in Ruby and used internally at [The Plant](https://theplant.jp).
 We decided to rewrite QOR in Go and open source it - which has happened as of June 2015.
 
-QOR is still beta software - we will probably break an API or two before we release a stable 1.0 (scheduled for September 2015).
-
-While nearing API freeze our other main focus is building up API documentation for each module and a tutorial that will eventually cover features from most of the modules.
-
 ### What QOR is not
 
 QOR is not a "boxed turnkey solution". You need proper coding skills to use it. It's designed to make the lives of developers easier when building complex EC systems, not providing you one out of the box.
