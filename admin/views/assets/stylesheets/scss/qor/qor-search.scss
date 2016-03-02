@@ -3,10 +3,21 @@
     margin: 0;
   }
 
+  .mdl-spinner{
+    margin: 48px auto;
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 901;
+  }
+
   .qor-page__header-tabbar{
     .mdl-layout__tab-bar{
       width: calc(100% - 260px);
       float: left;
+      li{
+        cursor: pointer;
+      }
     }
   }
 

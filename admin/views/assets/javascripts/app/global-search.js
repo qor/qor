@@ -31,6 +31,8 @@ $(function () {
 
       $('body').append(modalHTML);
       componentHandler.upgradeElement(document.getElementById('global-search-textfield'));
+      $('#globalSearch').focus();
+
   });
 
 

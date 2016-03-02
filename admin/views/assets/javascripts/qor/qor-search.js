@@ -12,10 +12,18 @@
 })(function ($) {
 
   'use strict';
+  var location = window.location;
+  var componentHandler = window.componentHandler;
+  var history = window.history;
   var NAMESPACE = 'qor.globalSearch';
   var EVENT_ENABLE = 'enable.' + NAMESPACE;
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
   var EVENT_CLICK = 'click.' + NAMESPACE;
+
+  var SEARCH_RESOURCE = '.qor-global-search--resource';
+  var SEARCH_RESULTS = '.qor-global-search--results';
+  var QOR_TABLE = '.qor-table';
+  var IS_ACTIVE = 'is-active';
 
   function QorSearchCenter(element, options) {
     this.$element = $(element);
@@ -28,6 +36,7 @@
 
     init: function () {
       this.bind();
+      this.initTab();
     },
 
     bind: function () {
@@ -38,39 +47,72 @@
       this.$element.off(EVENT_CLICK, this.check);
     },
 
+    initTab: function () {
+      var locationSearch = location.search;
+      var resourceName;
+      if (/resource_name/.test(locationSearch)){
+        resourceName = locationSearch.match(/resource_name=\w+/g).toString().split('=')[1];
+        $(SEARCH_RESOURCE).removeClass(IS_ACTIVE);
+        $('[data-resource="' + resourceName + '"]').addClass(IS_ACTIVE);
+      }
+    },
+
     click : function (e) {
       var $target = $(e.target);
+      var data = $target.data();
+
+      if ($target.is(SEARCH_RESOURCE)){
+        var oldUrl = location.href;
+        var newUrl;
+        var newResourceName = data.resource;
+        var hasResource = /resource_name/.test(oldUrl);
+        var hasKeyword = /keyword/.test(oldUrl);
+        var resourceParam = 'resource_name=' + newResourceName;
+        var searchSymbol = hasKeyword ? '&' : '?';
+
+        if (newResourceName){
+          if (hasResource){
+            newUrl = oldUrl.replace(/resource_name=\w+/g, resourceParam);
+          } else {
+            newUrl = oldUrl + searchSymbol + resourceParam;
+          }
+        } else {
+          newUrl = oldUrl.replace(/&resource_name=\w+/g, '');
+        }
+
+        if (history.pushState){
+          this.fetchSearch(newUrl, $target);
+        } else {
+          location.href = newUrl;
+        }
+
+      }
     },
 
-    showGlobalSearch: function (e) {
-      var $target = $(e.target);
-      var searchData = $target.data();
+    fetchSearch: function (url,$target) {
+      var title = document.title;
 
-      console.log($target)
-      console.log(searchData)
-
-      $body.append(this.renderTmpl(searchData));
-
-      return false;
-    },
-
-    submit: function () {
-      var self = this;
-      var $parent;
-
-
-      $.ajax(properties.url, {
-        method: properties.method,
-        data: ajaxForm.formData,
-        dataType: properties.datatype,
-
-        success: function (data) {
-
-
-
+      $.ajax(url, {
+        method: 'GET',
+        dataType: 'html',
+        beforeSend: function () {
+          $('.mdl-spinner').remove();
+          $(SEARCH_RESULTS).prepend('<div class="mdl-spinner mdl-js-spinner is-active"></div>').find('.qor-section').hide();
+          componentHandler.upgradeElement(document.querySelector('.mdl-spinner'));
+        },
+        success: function (html) {
+          var result = $(html).find(SEARCH_RESULTS).html();
+          $(SEARCH_RESOURCE).removeClass(IS_ACTIVE);
+          $target.addClass(IS_ACTIVE);
+          // change location URL without refresh page
+          history.pushState({ Page: url, Title: title }, title, url);
+          $('.mdl-spinner').remove();
+          $(SEARCH_RESULTS).removeClass('loading').html(result);
+          componentHandler.upgradeElements(document.querySelectorAll(QOR_TABLE));
         },
         error: function (xhr, textStatus, errorThrown) {
-          self.$element.find(ACTION_BUTTON).attr('disabled', false);
+          $(SEARCH_RESULTS).find('.qor-section').show();
+          $('.mdl-spinner').remove();
           window.alert([textStatus, errorThrown].join(': '));
         }
       });
