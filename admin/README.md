@@ -1,18 +1,20 @@
-## Introduction
+## Qor Service
 
-Qor admin provide easy-to-use interface for data management.
+Instantly create a beautiful, cross platform, configurable Admin Interface and API for managing your data in minutes.
+
+[![GoDoc](https://godoc.org/github.com/qor/log?status.svg)](https://godoc.org/github.com/qor/log)
 
 ## Features
 
-- CRUD of any resource
-- JSON API supported
-- Authentication
+- Admin Interface for managing data
+- JSON API
+- Handle Associations
 - Search and filtering
-- Custom actions
-- Customizable view
+- Actions/Batch Actions
+- Authentication
 - Extendable
 
-## Quick Example
+## Quick Start
 
 ```go
 package main
@@ -23,40 +25,73 @@ import (
     "github.com/jinzhu/gorm"
     _ "github.com/mattn/go-sqlite3"
     "github.com/qor/qor"
-    "github.com/qor/qor/admin"
+    "github.com/qor/service"
 )
 
+// Create a GORM-backend model
 type User struct {
   gorm.Model
-    Name string
+  Name string
 }
 
+// Create another GORM-backend model
 type Product struct {
   gorm.Model
-    Name        string
-    Description string
+  Name        string
+  Description string
 }
 
 func main() {
   DB, _ := gorm.Open("sqlite3", "demo.db")
   DB.AutoMigrate(&User{}, &Product{})
 
-  Admin := admin.New(&qor.Config{DB: &DB})
-  Admin.AddResource(&User{}, &admin.Config{Menu: []string{"User Management"}})
-  Admin.AddResource(&Product{}, &admin.Config{Menu: []string{"Product Management"}})
+  Admin := service.New(&qor.Config{DB: &DB})
+
+  // Create resources from GORM-backend model
+  Admin.AddResource(&User{})
+  Admin.AddResource(&Product{})
 
   mux := http.NewServeMux()
   Admin.MountTo("/admin", mux)
+
+  fmt.Println("Listening on: 9000")
   http.ListenAndServe(":9000", mux)
 }
-
-// TODO: add screenshot after QOR admin UI finished
-`go run main.go` and visit `localhost:9000/admin` to see the result !
 ```
 
-## Usage
+`go run main.go` and visit `localhost:9000/admin` to see the result !
+
+## General Setting
+
+### Site Name
+
+### Dashboard
+
+### Authentication
+
+### Menu
+
+### Internationalization
+
+## Working with Resource
+
+### Customizing CURD pages
+
+### Search
+
+### Actions
+
+### Customizing the Form
+
+## Extendable
+
+### Customize Views
+
+// view paths
 
 ### Register route
+
+### Plugins
 
 ```go
 router := Admin.GetRouter()
@@ -92,4 +127,11 @@ router.Get("/path/:name[\\d+]", func(context *admin.Context) { // "/hello/123"
 })
 ```
 
-You can view [qor example](https://github.com/qor/qor-example) for a more detailed configuration example.
+## Live DEMO
+
+* Live Demo [http://demo.getqor.com/admin](http://demo.getqor.com/admin)
+* Source Code of Live Demo [https://github.com/qor/qor-example](https://github.com/qor/qor-example)
+
+## License
+
+Released under the [MIT License](http://opensource.org/licenses/MIT).
