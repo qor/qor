@@ -45,12 +45,14 @@ func main() {
   DB, _ := gorm.Open("sqlite3", "demo.db")
   DB.AutoMigrate(&User{}, &Product{})
 
+  // Initalize
   Admin := service.New(&qor.Config{DB: &DB})
 
   // Create resources from GORM-backend model
   Admin.AddResource(&User{})
   Admin.AddResource(&Product{})
 
+  // Register route
   mux := http.NewServeMux()
   // amount to /admin, so visit `/admin` to view the admin interface
   Admin.MountTo("/admin", mux)
@@ -98,21 +100,66 @@ type Auth interface {
 	LoginURL(*Context) string // get login url, if don't have permission, will redirect to this url
 	LogoutURL(*Context) string // get logout url, if click logout link from admin interface, will visit this page
 }
+```
 
-// Once struct `auth` has implemented above interface, use `SetAuth` set it to admin
-Admin.SetAuth(auth{})
+Here is an example
+
+```go
+type Auth struct{}
+
+func (Auth) LoginURL(c *admin.Context) string {
+  return "/login"
+}
+
+func (Auth) LogoutURL(*Context) string
+  return "/logout"
+}
+
+func (Auth) GetCurrentUser(c *admin.Context) qor.CurrentUser {
+  if userid, err := c.Request.Cookie("userid"); err == nil {
+    var user User
+    if !DB.First(&user, "id = ?", userid.Value).RecordNotFound() {
+      return &user
+    }
+  }
+  return nil
+}
+
+func (u User) DisplayName() string {
+  return u.Name
+}
+
+// Register Auth for Qor admin
+Admin.SetAuth(&Auth{})
 ```
 
 ### Menu
 
-Registered Resources will be shown in menu in order, use `service.Config` to group them
+#### Register Menu
 
 ```go
+Admin.AddMenu(&admin.Menu{Name: "Dashboard", Link: "/admin"})
+
+// Register nested menu
+Admin.AddMenu(&admin.Menu{Name: "menu", Link: "/link", Ancestors: []string{"Dashboard"}})
+```
+
+#### Add resource to menu
+
+```go
+Admin.AddResource(&User{})
+
 Admin.AddResource(&Product{}, &service.Config{Menu: []string{"Product Management"}})
 Admin.AddResource(&Color{}, &service.Config{Menu: []string{"Product Management"}})
 Admin.AddResource(&Size{}, &service.Config{Menu: []string{"Product Management"}})
 
 Admin.AddResource(&Order{}, &service.Config{Menu: []string{"Order Management"}})
+```
+
+If you don't want resource to be displayed in navigation, pass Invisible option in like this
+
+```go
+Admin.AddResource(&User{}, &admin.Config{Invisible: true})
 ```
 
 ### Internationalization
@@ -175,6 +222,28 @@ Use `SearchAttrs` to set search attributes, when search resources, will use thos
 ```go
 // Search products with its name, code, category's name, brand's name
 product.SearchAttrs("Name", "Code", "Category.Name", "Brand.Name")
+```
+
+### Scopes
+
+Define a scope that show all active users
+
+```go
+user.Scope(&admin.Scope{Name: "Active", Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {
+  return db.Where("active = ?", true)
+}})
+```
+
+Group Scopes
+
+```go
+order.Scope(&admin.Scope{Name: "Paid", Group: "State", Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {
+  return db.Where("state = ?", "paid")
+}})
+
+order.Scope(&admin.Scope{Name: "Shipped", Group: "State", Handle: func(db *gorm.DB, context *qor.Context) *gorm.DB {
+  return db.Where("state = ?", "shipped")
+}})
 ```
 
 ### Actions
@@ -345,6 +414,29 @@ There are couple of plugins created for qor already, you could find some of them
 
 * Live Demo [http://demo.getqor.com/admin](http://demo.getqor.com/admin)
 * Source Code of Live Demo [https://github.com/qor/qor-example](https://github.com/qor/qor-example)
+
+## Q & A
+
+* How to integrate with beego
+
+```go
+mux := http.NewServeMux()
+Admin.MountTo("/admin", mux)
+
+beego.Handler("/admin/*", mux)
+beego.Run()
+```
+
+* How to integrate with Gin
+
+```go
+mux := http.NewServeMux()
+Admin.MountTo("/admin", mux)
+
+r := gin.Default()
+r.Any("/admin/*w", gin.WrapH(mux))
+r.Run()
+```
 
 ## License
 

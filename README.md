@@ -23,7 +23,7 @@ QOR is not a "boxed turnkey solution". You need proper coding skills to use it. 
 
 ## The modules
 
-* Admin - The heart of any QOR system, where you manage all your resources
+* Service - The core part of QOR system, will generate an admin interface and RESTFul API for you to manage your data
 
 * Publish - Providing a staging environment for all content changes to be reviewed before being published to the live system
 
@@ -41,35 +41,12 @@ QOR is not a "boxed turnkey solution". You need proper coding skills to use it. 
 
 * Roles - Access Control
 
+* And more [https://github.com/qor](https://github.com/qor)
 
-## API Documentation
+## Live DEMO
 
-We are planning to update the godoc documentation for all modules after the API for the 1.0 release is frozen. Still outstanding are:
-
-* [ ] Admin
-* [ ] Publish
-* [ ] Transition
-* [ ] Media Library
-* [ ] Worker
-* [ ] Exchange
-* [ ] Internationalization (i18n)
-* [ ] Localization (l10n)
-* [ ] Roles
-
-
-## Example Application
-
-[The example application](https://github.com/qor/qor-example) is a work in progress but already covers the following modules:
-
-* [x] Setup & Installation
-* [x] Define a first set of resources (qor/admin)
-* [x] Introduce Meta - Back Office display control for your resources
-* [x] Basic Media library usage
-* [x] Using Publish
-* [x] L10n & I18n
-* [\] Roles (very little)
-* [ ] Worker
-
+* Live Demo [http://demo.getqor.com/admin](http://demo.getqor.com/admin)
+* Source Code of Live Demo [https://github.com/qor/qor-example](https://github.com/qor/qor-example)
 
 ## Frontend Development
 
@@ -82,29 +59,6 @@ npm install && npm install -g gulp
 - Watch SCSS/JavaScript changes: `gulp`
 - Build Release files: `gulp release`
 
+## License
 
-## Q&A
-
-1. How to integrate with [beego](https://github.com/astaxie/beego)
-
-```
-	adm := admin.New(&qor.Config{DB: &db.DB})
-	adm.AddResource(&db.User{}, &admin.Config{Menu: []string{"管理"}})
-
-	mux := http.NewServeMux()
-	adm.MountTo("/admin", mux)
-
-	beego.Handler("/admin/*", mux)
-	beego.Run()
-```
-
-2. How to integrate with [Gin](https://github.com/gin-gonic/gin)
-
-```
-	mux := http.NewServeMux()
-	admin.Admin.MountTo("/admin", mux)
-
-	r := gin.Default()
-	r.Any("/admin/*w", gin.WrapH(mux))
-	r.Run()
-```
+Released under the [MIT License](http://opensource.org/licenses/MIT).
