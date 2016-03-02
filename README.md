@@ -4,7 +4,7 @@ English Chat Room: [![Join the chat at https://gitter.im/qor/qor](https://badges
 
 中文聊天室： [![加入中国Qor聊天室 https://gitter.im/qor/qor/china](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/qor/qor/china)
 
-[![Build Status](https://semaphoreci.com/api/v1/theplant/qor/branches/action/badge.svg)](https://semaphoreci.com/theplant/qor)
+[![Build Status](https://semaphoreci.com/api/v1/theplant/qor/branches/master/badge.svg)](https://semaphoreci.com/theplant/qor)
 
 ## What is QOR?
 
