@@ -62,7 +62,7 @@
       var data = $target.data();
 
       if ($target.is(SEARCH_RESOURCE)){
-        var oldUrl = location.href;
+        var oldUrl = location.href.replace(/#/g, '');
         var newUrl;
         var newResourceName = data.resource;
         var hasResource = /resource_name/.test(oldUrl);

@@ -15,6 +15,7 @@
 
   var $document = $(document);
   var FormData = window.FormData;
+  var _ = window._;
   var NAMESPACE = 'qor.slideout';
   var EVENT_ENABLE = 'enable.' + NAMESPACE;
   var EVENT_DISABLE = 'disable.' + NAMESPACE;
@@ -55,6 +56,7 @@
       this.$slideout = $slideout = $(QorSlideout.TEMPLATE).appendTo('body');
       this.$title = $slideout.find('.qor-slideout__title');
       this.$body = $slideout.find('.qor-slideout__body');
+      this.$bodyClass = $('body').prop('class');
     },
 
     unbuild: function () {
@@ -85,6 +87,40 @@
       if (e.which === 27) {
         this.hide();
       }
+    },
+
+    loadScript: function (src, url, response) {
+      var options = this.options;
+      var script = document.createElement('script');
+      script.src = src;
+      script.onload = function () {
+        // exec qorSliderAfterShow after script loaded
+        if (options.afterShow){
+          var qorSliderAfterShow = $.fn.qorSliderAfterShow;
+          for (var name in qorSliderAfterShow) {
+            if (qorSliderAfterShow.hasOwnProperty(name)) {
+              qorSliderAfterShow[name].call(this, url, response);
+            }
+          }
+        }
+      };
+      document.body.appendChild(script);
+    },
+
+    loadStyle: function (src) {
+      var ss = document.createElement('link');
+      ss.type = 'text/css';
+      ss.rel = 'stylesheet';
+      ss.href = src;
+      document.getElementsByTagName('head')[0].appendChild(ss);
+    },
+
+    pushArrary: function ($ele,prop) {
+      var array = [];
+      $ele.each(function () {
+        array.push($(this).prop(prop));
+      });
+      return array;
     },
 
     click: function (e) {
@@ -263,6 +299,49 @@
                 return;
               }
 
+              // Get response body tag: http://stackoverflow.com/questions/7001926/cannot-get-body-element-from-ajax-response
+              var dataBody = response.match(/<\s*body.*>[\s\S]*<\s*\/body\s*>/ig).join('');
+              dataBody  = dataBody.replace(/<\s*body/gi, '<div');
+              dataBody  = dataBody.replace(/<\s*\/body/gi, '</div');
+              var bodyClass = $(dataBody).prop('class');
+              $('body').removeClass().addClass(bodyClass);
+
+              // Get links and scripts, compare slideout and inline, load style and script if has new style or script.
+              var $slideoutStyles = $response.filter('link');
+              var $currentPageStyles = $('link');
+              var $slideoutScripts = $response.filter('script');
+              var $currentPageScripts = $('script');
+
+              var slideoutStylesUrls = this.pushArrary($slideoutStyles, 'href');
+              var currentPageStylesUrls = this.pushArrary($currentPageStyles, 'href');
+
+              var slideoutScriptsUrls = this.pushArrary($slideoutScripts, 'src');
+              var currentPageScriptsUrls = this.pushArrary($currentPageScripts, 'src');
+
+              var styleDifferenceUrl  = _.difference(slideoutStylesUrls, currentPageStylesUrls);
+              var scriptDifferenceUrl = _.difference(slideoutScriptsUrls, currentPageScriptsUrls);
+
+              var styleDifferenceUrlLength = styleDifferenceUrl.length;
+              var scriptDifferenceUrlLength = scriptDifferenceUrl.length;
+
+              if (styleDifferenceUrlLength === 1){
+                this.loadStyle(styleDifferenceUrl);
+              } else if (styleDifferenceUrlLength > 1){
+                for (var i = styleDifferenceUrlLength - 1; i >= 0; i--) {
+                  this.loadStyle(styleDifferenceUrl[i]);
+                }
+              }
+
+              if (scriptDifferenceUrlLength === 1){
+                this.loadScript(scriptDifferenceUrl, url, response);
+              } else if (scriptDifferenceUrlLength > 1){
+                for (var j = scriptDifferenceUrlLength - 1; j >= 0; j--) {
+                  this.loadScript(scriptDifferenceUrl[j], url, response);
+                }
+              }
+
+              // end
+
               $content.find('.qor-button--cancel').attr('data-dismiss', 'slideout').removeAttr('href');
               this.$title.html($response.find(options.title).html());
               this.$body.html($content.html());
@@ -293,7 +372,9 @@
                     qorSliderAfterShow[name].call(this, url, response);
                   }
                 }
+
               }
+
             } else {
               if (data.returnUrl) {
                 this.loading = false; // For reload
@@ -302,7 +383,11 @@
                 this.refresh();
               }
             }
+
+
           }, this),
+
+
           error: $.proxy (function (response) {
             var errors;
             if ($('.qor-error span').size() > 0) {
@@ -364,6 +449,8 @@
       var $slideout = this.$slideout;
       var hideEvent;
       var $datePicker = $('.qor-datepicker').not('.hidden');
+
+      $('body').removeClass().addClass(this.$bodyClass);
 
       if ($datePicker.size()){
         $datePicker.addClass('hidden');
