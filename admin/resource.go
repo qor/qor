@@ -314,7 +314,7 @@ func (res *Resource) SortableAttrs(columns ...string) []string {
 	return *res.sortableAttrs
 }
 
-// SearchAttrs set search attributes, when search resources, will use those columsn to search
+// SearchAttrs set search attributes, when search resources, will use those columns to search
 //     // Search products with its name, code, category's name, brand's name
 //	   product.SearchAttrs("Name", "Code", "Category.Name", "Brand.Name")
 func (res *Resource) SearchAttrs(columns ...string) []string {

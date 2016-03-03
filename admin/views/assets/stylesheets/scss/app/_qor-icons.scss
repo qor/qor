@@ -21,9 +21,11 @@
     padding: 0;
   }
 }
+
 [qor-icon-name="Delete"] > a::before{
   content: "\e872";
 }
+
 [qor-icon-name="Edit"]{
   border-bottom: 1px solid unquote("rgba(#{$color-black}, 0.12)") ;
   > a::before{
@@ -45,7 +47,6 @@
     left: auto;
   }
 }
-
 
 [qor-icon-name*="Dashboard"] > a::before {
   content: "\e871";
@@ -102,14 +103,21 @@
 [qor-icon-name*="Search"] > a::before,[qor-icon-name*="Search"] > span::before {
   content: "\e8b6";
 }
+
 [qor-icon-name*="Client Services"] > a::before {
   content: "\e5c3";
 }
+
 [qor-icon-name*="Transaction Logs"] > a::before {
   content: "\e889";
 }
+
 [qor-icon-name*="Notification"] > a::before {
   content: "\e7f4";
+}
+
+[qor-icon-name*="Workers"] > a::before {
+  content: "\e8f9";
 }
 
 [qor-icon-name] [qor-icon-name] > a::before {

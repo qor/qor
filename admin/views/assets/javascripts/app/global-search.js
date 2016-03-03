@@ -34,5 +34,4 @@ $(function () {
       $('#globalSearch').focus();
 
   });
-
 });
