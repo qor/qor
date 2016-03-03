@@ -7,7 +7,7 @@ function migrate {
     for file in $( grep "github.com/qor/qor/$(basename $package)" -l -r . ); do
       if [[ $file == *".go" ]]
       then
-        echo "updating package `$(basename $package)`'s import path for file $file "
+        echo "updating package $(basename $package)'s import path for file $file "
         sed -i '' s/\\/qor\\/qor\\/$(basename $package)/\\/qor\\/$(basename $package)/g $file
       fi
     done
