@@ -5,6 +5,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
+	"github.com/qor/qor/utils"
 	"github.com/qor/roles"
 )
 
@@ -46,13 +47,15 @@ type Resource struct {
 
 // New initialize qor resource
 func New(value interface{}) *Resource {
-	name := reflect.Indirect(reflect.ValueOf(value)).Type().Name()
-	res := &Resource{Value: value, Name: name}
+	var (
+		name = utils.HumanizeString(utils.ModelType(value).Name())
+		res  = &Resource{Value: value, Name: name}
+	)
+
 	res.FindOneHandler = res.findOneHandler
 	res.FindManyHandler = res.findManyHandler
 	res.SaveHandler = res.saveHandler
 	res.DeleteHandler = res.deleteHandler
-
 	return res
 }
 
