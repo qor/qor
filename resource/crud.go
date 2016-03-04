@@ -44,7 +44,12 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 
 func (res *Resource) findManyHandler(result interface{}, context *qor.Context) error {
 	if res.HasPermission(roles.Read, context) {
-		return context.GetDB().Set("gorm:order_by_primary_key", "DESC").Find(result).Error
+		db := context.GetDB()
+		if _, ok := db.Get("qor:getting_total_count"); ok {
+			return context.GetDB().Count(result).Error
+		} else {
+			return context.GetDB().Set("gorm:order_by_primary_key", "DESC").Find(result).Error
+		}
 	}
 	return roles.ErrPermissionDenied
 }
