@@ -162,20 +162,27 @@ func (context *Context) Execute(name string, result interface{}) {
 		if file, err := context.FindTemplate("layout.tmpl"); err == nil {
 			if tmpl, err = template.New(filepath.Base(file)).Funcs(context.FuncMap()).ParseFiles(file); err == nil {
 				for _, name := range []string{"header", "footer"} {
-					if tmpl.Lookup(name) == nil {
+					if err := tmpl.Lookup(name); err == nil {
 						if file, err := context.FindTemplate(name + ".tmpl"); err == nil {
 							tmpl.ParseFiles(file)
 						}
 					} else {
 						utils.ExitWithMsg(err)
+						return
 					}
 				}
 			} else {
 				utils.ExitWithMsg(err)
+				return
 			}
 		}
 	} else {
 		tmpl = t
+	}
+	
+	if tmpl == nil {
+		utils.ExitWithMsg(errors.New("Template is nil"))
+		return
 	}
 
 	context.Result = result
