@@ -69,7 +69,7 @@ func (res *Resource) deleteHandler(result interface{}, context *qor.Context) err
 		if !context.GetDB().First(result, fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName())), context.ResourceID).RecordNotFound() {
 			return context.GetDB().Delete(result).Error
 		}
-		return gorm.RecordNotFound
+		return gorm.ErrRecordNotFound
 	}
 	return roles.ErrPermissionDenied
 }
