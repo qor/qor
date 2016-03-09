@@ -11,14 +11,17 @@ import (
 
 // TestDB initialize a db for testing
 func TestDB() *gorm.DB {
-	dbuser, dbpwd, dbname := "qor", "qor", "qor_test"
-
-	if os.Getenv("TEST_ENV") == "CI" {
-		dbuser, dbpwd = os.Getenv("DB_USER"), os.Getenv("DB_PWD")
-	}
-
 	var db *gorm.DB
 	var err error
+	var dbuser, dbpwd, dbname = "qor", "qor", "qor_test"
+
+	if os.Getenv("DB_USER") != "" {
+		dbuser = os.Getenv("DB_USER")
+	}
+
+	if os.Getenv("DB_PWD") != "" {
+		dbpwd = os.Getenv("DB_PWD")
+	}
 
 	if os.Getenv("TEST_DB") == "postgres" {
 		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@localhost/%s?sslmode=disable", dbuser, dbpwd, dbname))
@@ -31,6 +34,10 @@ func TestDB() *gorm.DB {
 
 	if err != nil {
 		panic(err)
+	}
+
+	if os.Getenv("DEBUG") != "" {
+		db.LogMode(true)
 	}
 
 	return db
