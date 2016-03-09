@@ -45,9 +45,6 @@ function adminTasks() {
         main: pathto('stylesheets/{qor,app}.css'),
         scss: pathto('stylesheets/scss/**/*.scss')
       };
-  var fonts = {
-        dest: pathto('fonts'),
-      };
 
   gulp.task('jshint', function () {
     return gulp.src(scripts.all)
