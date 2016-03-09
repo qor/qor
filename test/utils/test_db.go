@@ -17,7 +17,7 @@ func TestDB() *gorm.DB {
 		dbuser, dbpwd = os.Getenv("DB_USER"), os.Getenv("DB_PWD")
 	}
 
-	var db gorm.DB
+	var db *gorm.DB
 	var err error
 
 	if os.Getenv("TEST_DB") == "postgres" {
@@ -33,5 +33,5 @@ func TestDB() *gorm.DB {
 		panic(err)
 	}
 
-	return &db
+	return db
 }
