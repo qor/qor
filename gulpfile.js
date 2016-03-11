@@ -214,13 +214,13 @@ if (moduleName) {
 
 // Task for compress js and css vendor assets
 gulp.task('compressJavaScriptVendor', function () {
-  return gulp.src(['!admin/views/assets/javascripts/vendors/jquery.min.js','admin/views/assets/javascripts/vendors/*.js'])
+  return gulp.src(['!../admin/views/assets/javascripts/vendors/jquery.min.js','../admin/views/assets/javascripts/vendors/*.js'])
   .pipe(plugins.concat('vendors.js'))
-  .pipe(gulp.dest('admin/views/assets/javascripts'));
+  .pipe(gulp.dest('../admin/views/assets/javascripts'));
 });
 
 gulp.task('compressCSSVendor', function () {
-  return gulp.src('admin/views/assets/stylesheets/vendors/*.css')
+  return gulp.src('../admin/views/assets/stylesheets/vendors/*.css')
   .pipe(plugins.concat('vendors.css'))
-  .pipe(gulp.dest('admin/views/assets/stylesheets'));
+  .pipe(gulp.dest('../admin/views/assets/stylesheets'));
 });
