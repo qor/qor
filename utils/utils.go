@@ -81,7 +81,7 @@ func GetLocale(context *qor.Context) string {
 	if locale := context.Request.URL.Query().Get("locale"); locale != "" {
 		if context.Writer != nil {
 			context.Request.Header.Set("Locale", locale)
-			c := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0), Path: "/"}
+			c := http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0), Path: "/", HttpOnly: true}
 			http.SetCookie(context.Writer, &c)
 		}
 		return locale
