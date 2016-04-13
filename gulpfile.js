@@ -224,3 +224,11 @@ gulp.task('compressCSSVendor', function () {
   .pipe(plugins.concat('vendors.css'))
   .pipe(gulp.dest('../admin/views/assets/stylesheets'));
 });
+
+gulp.task('compressI18nJavascript', function () {
+    return gulp.src(['../i18n/views/themes/i18n/assets/javascripts/app/i18n-inline/poshytip.js',
+                     '../i18n/views/themes/i18n/assets/javascripts/app/i18n-inline/jquery-editable-poshytip.js',
+                     '../i18n/views/themes/i18n/assets/javascripts/app/i18n-inline/i18n-inline.js'])
+  .pipe(plugins.concat('i18n-inline.js'))
+  .pipe(gulp.dest('../i18n/views/themes/i18n/assets/javascripts'));
+});
