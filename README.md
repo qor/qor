@@ -10,8 +10,7 @@ English Chat Room: [![Join the chat at https://gitter.im/qor/qor](https://badges
 
 QOR is a set of libraries written in Go that abstracts common features needed for business applications, CMSs, and E-commerce systems.
 
-This is actually the third version of QOR: 1 and 2 were written in Ruby and used internally at [The Plant](https://theplant.jp).
-We decided to rewrite QOR in Go and open source it - which has happened as of June 2015.
+This is a complete rewrite in Go, of the original QOR, which was a proprietary framework written in Ruby on Rails and used internally at [The Plant](https://theplant.jp). QOR 1.0 is the first version to be open sourced and distributed under the MIT license.
 
 ### What QOR is not
 
