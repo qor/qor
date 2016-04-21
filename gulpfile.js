@@ -225,10 +225,16 @@ gulp.task('compressCSSVendor', function () {
   .pipe(gulp.dest('../admin/views/assets/stylesheets'));
 });
 
-gulp.task('compressI18nJavascript', function () {
-    return gulp.src(['../i18n/views/themes/i18n/assets/javascripts/app/i18n-inline/poshytip.js',
-                     '../i18n/views/themes/i18n/assets/javascripts/app/i18n-inline/jquery-editable-poshytip.js',
-                     '../i18n/views/themes/i18n/assets/javascripts/app/i18n-inline/i18n-inline.js'])
+gulp.task('compressI18nInlineEditJavascript', function () {
+  return gulp.src(['../i18n/inline_edit/views/themes/i18n/assets/javascripts/app/i18n-inline/poshytip.js',
+                     '../i18n/inline_edit/views/themes/i18n/assets/javascripts/app/i18n-inline/jquery-editable-poshytip.js',
+                     '../i18n/inline_edit/views/themes/i18n/assets/javascripts/app/i18n-inline/i18n-inline.js'])
   .pipe(plugins.concat('i18n-inline.js'))
-  .pipe(gulp.dest('../i18n/views/themes/i18n/assets/javascripts'));
+  .pipe(gulp.dest('../i18n/inline_edit/views/themes/i18n/assets/javascripts'));
+});
+
+gulp.task('compressI18nInlineEditCSS', function () {
+  return gulp.src(['../i18n/inline_edit/views/themes/i18n/assets/stylesheets/scss/i18n-inline.scss'])
+  .pipe(plugins.concat('i18n-inline.css'))
+  .pipe(gulp.dest('../i18n/inline_edit/views/themes/i18n/assets/stylesheets'));
 });
