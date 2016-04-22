@@ -18,23 +18,23 @@ QOR is not a "boxed turnkey solution". You need proper coding skills to use it. 
 
 ## The modules
 
-* Service - The core part of QOR system, will generate an admin interface and RESTFul API for you to manage your data
+* [Admin](https://github.com/qor/admin) - The core part of QOR system, will generate an admin interface and RESTFul API for you to manage your data
 
-* Publish - Providing a staging environment for all content changes to be reviewed before being published to the live system
+* [Publish](https://github.com/qor/publish) - Providing a staging environment for all content changes to be reviewed before being published to the live system
 
-* Transition - A configurable State Machine: define states, events (eg. pay order), and validation constraints for state transitions
+* [Transition](https://github.com/qor/transition) - A configurable State Machine: define states, events (eg. pay order), and validation constraints for state transitions
 
-* Media Library - Asset Management with support for several cloud storage backends and publishing via a CDN
+* [Media Library](https://github.com/qor/media_library) - Asset Management with support for several cloud storage backends and publishing via a CDN
 
-* Worker (Batch processing) - A process scheduler
+* [Worker](https://github.com/qor/worker) (Batch processing) - A process scheduler
 
-* Exchange - Data exchange with other business applications using CSV or Excel data
+* [Exchange](https://github.com/qor/exchange) - Data exchange with other business applications using CSV or Excel data
 
-* Internationalization (i18n) - Managing and (inline) editing of translations
+* [Internationalization](https://github.com/qor/i18n) (i18n) - Managing and (inline) editing of translations
 
-* Localization (l10n) - Manage DB-backed models on per-locale basis, with support for defining/editing localizable attributes, and locale-based querying
+* [Localization](https://github.com/qor/l10n) (l10n) - Manage DB-backed models on per-locale basis, with support for defining/editing localizable attributes, and locale-based querying
 
-* Roles - Access Control
+* [Roles](https://github.com/qor/roles) - Access Control
 
 * And more [https://github.com/qor](https://github.com/qor)
 
