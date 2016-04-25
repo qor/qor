@@ -58,7 +58,13 @@ func (res *Resource) saveHandler(result interface{}, context *qor.Context) error
 	if (context.GetDB().NewScope(result).PrimaryKeyZero() &&
 		res.HasPermission(roles.Create, context)) || // has create permission
 		res.HasPermission(roles.Update, context) { // has update permission
-		return context.GetDB().Save(result).Error
+		results := context.GetDB().Save(result)
+
+		if results.RowsAffected == 0 && !context.GetDB().NewScope(result).PrimaryKeyZero() {
+			return context.GetDB().Create(result).Error
+		}
+
+		return results.Error
 	}
 	return roles.ErrPermissionDenied
 }
