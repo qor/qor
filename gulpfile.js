@@ -131,31 +131,16 @@ function moduleTasks(moduleNames) {
   var pathto = function (file) {
     return '../' + moduleNames + '/views/themes/' + moduleNames + '/assets/' + file;
   };
-  var pathtoInline = function (file) {
-    return '../' + moduleNames + '/inline_edit/views/themes/' + moduleNames + '/assets/' + file;
-  };
 
   var scripts = {
         src: pathto('javascripts/app/*.js'),
         dest: pathto('javascripts/')
       };
-
-  var scriptsInline = {
-        src: pathtoInline('javascripts/app/*.js'),
-        dest: pathtoInline('javascripts/')
-      };
-
   var styles = {
         src: pathto('stylesheets/scss/*.scss'),
         dest: pathto('stylesheets/'),
         main: pathto('stylesheets/' + moduleNames + '.css'),
         scss: pathto('stylesheets/scss/**/*.scss')
-      };
-
-  var stylesInline = {
-        src: pathtoInline('stylesheets/scss/*.scss'),
-        main: pathtoInline('stylesheets/' + moduleNames + '-inline.css'),
-        dest: pathtoInline('stylesheets/')
       };
 
   gulp.task('jshint', function () {
@@ -169,29 +154,11 @@ function moduleTasks(moduleNames) {
     .pipe(plugins.jscs());
   });
 
-  gulp.task('jshintInline', function () {
-    return gulp.src(scriptsInline.src)
-    .pipe(plugins.jshint())
-    .pipe(plugins.jshint.reporter('default'));
-  });
-
-  gulp.task('jscsInline', function () {
-    return gulp.src(scriptsInline.src)
-    .pipe(plugins.jscs());
-  });
-
   gulp.task('js', ['jshint', 'jscs'], function () {
     return gulp.src(scripts.src)
     .pipe(plugins.concat(moduleNames + '.js'))
     .pipe(plugins.uglify())
     .pipe(gulp.dest(scripts.dest));
-  });
-
-  gulp.task('jsInline', ['jshint', 'jscs'], function () {
-    return gulp.src(scriptsInline.src)
-    .pipe(plugins.concat(moduleNames + '-inline.js'))
-    .pipe(plugins.uglify())
-    .pipe(gulp.dest(scriptsInline.dest));
   });
 
   gulp.task('concat', function () {
@@ -202,34 +169,14 @@ function moduleTasks(moduleNames) {
     .pipe(gulp.dest(scripts.dest));
   });
 
-  gulp.task('concatInline', function () {
-    return gulp.src(scriptsInline.src)
-    .pipe(plugins.sourcemaps.init())
-    .pipe(plugins.concat(moduleNames + '-inline.js'))
-    .pipe(plugins.sourcemaps.write('./'))
-    .pipe(gulp.dest(scriptsInline.dest));
-  });
-
   gulp.task('sass', function () {
     return gulp.src(styles.src)
     .pipe(plugins.sass())
     .pipe(gulp.dest(styles.dest));
   });
 
-  gulp.task('sassInline', function () {
-    return gulp.src(stylesInline.src)
-    .pipe(plugins.sass())
-    .pipe(gulp.dest(stylesInline.dest));
-  });
-
   gulp.task('csslint', ['sass'], function () {
     return gulp.src(styles.main)
-    .pipe(plugins.csslint('.csslintrc'))
-    .pipe(plugins.csslint.reporter());
-  });
-
-  gulp.task('csslintInline', ['sassInline'], function () {
-    return gulp.src(stylesInline.main)
     .pipe(plugins.csslint('.csslintrc'))
     .pipe(plugins.csslint.reporter());
   });
@@ -242,22 +189,12 @@ function moduleTasks(moduleNames) {
     .pipe(gulp.dest(styles.dest));
   });
 
-  gulp.task('cssInline', ['csslintInline'], function () {
-    return gulp.src(stylesInline.main)
-    .pipe(plugins.autoprefixer())
-    .pipe(plugins.csscomb())
-    .pipe(plugins.minifyCss())
-    .pipe(gulp.dest(stylesInline.dest));
-  });
-
   gulp.task('watch', function () {
     gulp.watch(scripts.src, ['concat']);
-    gulp.watch(scriptsInline.src, ['concatInline']);
     gulp.watch(styles.scss, ['sass']);
-    gulp.watch(stylesInline.src, ['sassInline']);
   });
 
-  gulp.task('release', ['js', 'jsInline', 'css', 'cssInline']);
+  gulp.task('release', ['js', 'css']);
 
   gulp.task('default', ['watch']);
 }
@@ -286,4 +223,21 @@ gulp.task('compressCSSVendor', function () {
   return gulp.src('../admin/views/assets/stylesheets/vendors/*.css')
   .pipe(plugins.concat('vendors.css'))
   .pipe(gulp.dest('../admin/views/assets/stylesheets'));
+});
+
+gulp.task('compressI18nInlineEditJavascript', function () {
+  return gulp.src(['../i18n/inline_edit/views/themes/i18n/assets/javascripts/app/i18n-inline/poshytip.js',
+                     '../i18n/inline_edit/views/themes/i18n/assets/javascripts/app/i18n-inline/jquery-editable-poshytip.js',
+                     '../i18n/inline_edit/views/themes/i18n/assets/javascripts/app/i18n-inline/i18n-inline.js'])
+  .pipe(plugins.concat('i18n-inline.js'))
+  .pipe(plugins.uglify())
+  .pipe(gulp.dest('../i18n/inline_edit/views/themes/i18n/assets/javascripts'));
+});
+
+gulp.task('compressI18nInlineEditCSS', function () {
+  return gulp.src(['../i18n/inline_edit/views/themes/i18n/assets/stylesheets/scss/i18n-inline.scss'])
+  .pipe(plugins.concat('i18n-inline.css'))
+  .pipe(plugins.csscomb())
+  .pipe(plugins.minifyCss())
+  .pipe(gulp.dest('../i18n/inline_edit/views/themes/i18n/assets/stylesheets'));
 });
