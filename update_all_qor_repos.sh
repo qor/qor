@@ -10,7 +10,7 @@ function pull_chances {
     local pkg=$(basename $1)
     local pkg_path=$root/$1
 
-    if [ ! -d "$pkg/.git" ]; then
+    if [ ! -d "$pkg_path/.git" ]; then
         echo "$pkg not a git repo. skipped."
         return 0
     fi
