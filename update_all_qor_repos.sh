@@ -22,16 +22,14 @@ function pull_chances {
         exit 1
     fi
 
-    echo -e "\033[31mUpdating $pkg...\033[0m"
-
     git checkout master >> /dev/null 2>&1 || {
         echo "failed to update $pkg"
         touch $tmp_dir/failed
         exit 1
     }
 
-    git pull --rebase >> /dev/null 2>&1 || {
-        echo "failed to update $pkg"
+    (git pull --rebase --quiet && echo -e "\033[31mUpdating $pkg...\033[0m") || {
+        echo -e "\033[31mfailed to update $pkg\033[0m"
         touch $tmp_dir/failed
         exit 1
     }
