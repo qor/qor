@@ -21,11 +21,15 @@ function pull_chances {
         echo "$pkg is not clean. please stash or commit your changes."
         exit 1
     fi
+
+    echo -e "\033[31mUpdating $pkg...\033[0m"
+
     git checkout master >> /dev/null 2>&1 || {
         echo "failed to update $pkg"
         touch $tmp_dir/failed
         exit 1
     }
+
     git pull --rebase >> /dev/null 2>&1 || {
         echo "failed to update $pkg"
         touch $tmp_dir/failed
