@@ -1,11 +1,55 @@
-function update_git_repo {
-  for path in $( find $1 -maxdepth 2 -type d ); do
-    cd $path
-    if test -n "$(find . -maxdepth 1 -name '.git' -print -quit)"; then
-      echo "\033[31mUpdating $(basename $path)...\033[0m"
-      git pull
+#!/usr/bin/env bash
+
+root=$GOPATH/src/github.com/qor
+
+tmp_dir=$(mktemp -d)
+
+trap "rm -rf $tmp_dir" EXIT
+
+function pull_chances {
+    local pkg=$(basename $1)
+    local pkg_path=$root/$1
+
+    if [ ! -d "$pkg_path/.git" ]; then
+        echo "$pkg not a git repo. skipped."
+        return 0
     fi
-  done
+
+    cd $pkg_path
+
+    if [[ `git status -s --untracked-files=no` != "" ]]; then
+        echo "$pkg is not clean. please stash or commit your changes."
+        exit 1
+    fi
+
+    echo -e "\033[31mUpdating $pkg...\033[0m"
+
+    git checkout master >> /dev/null 2>&1 || {
+        echo "failed to update $pkg"
+        touch $tmp_dir/failed
+        exit 1
+    }
+
+    git pull --rebase >> /dev/null 2>&1 || {
+        echo "failed to update $pkg"
+        touch $tmp_dir/failed
+        exit 1
+    }
 }
 
-update_git_repo $GOPATH/src/github.com/qor
+function update_git_repo {
+    for pkg in $(ls $root); do
+        pull_chances $pkg &
+    done
+}
+
+update_git_repo
+
+wait
+
+if [[ -f "$tmp_dir/failed" ]]; then
+    echo "failed"
+    exit 1
+else
+    echo "done"
+fi
