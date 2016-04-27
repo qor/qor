@@ -1,0 +1,27 @@
+{
+    'env': {
+        'browser': true,
+        'es6': true,
+        'commonjs': true,
+        'amd': true,
+        'jquery': true,
+    },
+    'extends': 'eslint:recommended',
+    'parserOptions': {
+        'sourceType': 'module'
+    },
+    'globals': {
+        '$': true,
+        'jQuery': true
+    },
+    'rules': {
+        'indent': [
+            0,
+            4
+        ],
+        'semi': [
+            2,
+            'always'
+        ]
+    }
+}

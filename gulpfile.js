@@ -1,27 +1,38 @@
 'use strict';
 
 var gulp = require('gulp');
+var eslint = require('gulp-eslint');
 var plugins = require('gulp-load-plugins')();
+
+var fs = require('fs');
+var path = require('path');
+var es = require('event-stream');
+var rename = require('gulp-rename');
+
 var moduleName = (function () {
       var args = process.argv;
       var length = args.length;
       var i = 0;
       var name;
+      var subName;
 
       while (i++ < length) {
         if ((/^--+(\w+)/i).test(args[i])){
           name = args[i].split('--')[1];
+          subName = args[i].split('--')[2];
           break;
         }
       }
-      return name;
+      return {
+        'name': name,
+        'subName': subName
+      };
     })();
 
 // Admin Module
 // Command: gulp [task]
 // Admin is default task
 // Watch Admin module: gulp
-// Release Admin module: gulp release
 // -----------------------------------------------------------------------------
 
 function adminTasks() {
@@ -122,79 +133,81 @@ function adminTasks() {
 
 
 // Other Modules
-// Command: gulp [task] --moduleName
+// Command: gulp [task] --moduleName--subModuleName
 // Watch Worker module: gulp --worker
-// Release Worker module: gulp release --worker
+// Watch Worker inline_edit subModule: gulp --worker--inline_edit
 // -----------------------------------------------------------------------------
 
 function moduleTasks(moduleNames) {
+  var moduleName = moduleNames.name;
+  var subModuleName = moduleNames.subName;
+
   var pathto = function (file) {
-    return '../' + moduleNames + '/views/themes/' + moduleNames + '/assets/' + file;
+    if(moduleName && subModuleName) {
+      return '../' + moduleName + '/' + subModuleName + '/views/themes/' + moduleName + '/assets/' + file;
+    }
+    return '../' + moduleName + '/views/themes/' + moduleName + '/assets/' + file;
   };
 
   var scripts = {
-        src: pathto('javascripts/app/*.js'),
-        dest: pathto('javascripts/')
+        src: pathto('javascripts/'),
+        watch: pathto('javascripts/**/*.js')
       };
   var styles = {
-        src: pathto('stylesheets/scss/*.scss'),
-        dest: pathto('stylesheets/'),
-        main: pathto('stylesheets/' + moduleNames + '.css'),
-        scss: pathto('stylesheets/scss/**/*.scss')
+        src: pathto('stylesheets/'),
+        watch: pathto('stylesheets/**/*.scss')
       };
 
-  gulp.task('jshint', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.jshint())
-    .pipe(plugins.jshint.reporter('default'));
-  });
+  function getFolders(dir){
+    return fs.readdirSync(dir).filter(function(file){
+      return fs.statSync(path.join(dir, file)).isDirectory();
+    })
+  }
 
-  gulp.task('jscs', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.jscs());
-  });
-
-  gulp.task('js', ['jshint', 'jscs'], function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.concat(moduleNames + '.js'))
-    .pipe(plugins.uglify())
-    .pipe(gulp.dest(scripts.dest));
-  });
 
   gulp.task('concat', function () {
-    return gulp.src(scripts.src)
-    .pipe(plugins.sourcemaps.init())
-    .pipe(plugins.concat(moduleNames + '.js'))
-    .pipe(plugins.sourcemaps.write('./'))
-    .pipe(gulp.dest(scripts.dest));
+    var scriptPath = scripts.src;
+    var folders = getFolders(scriptPath);
+    var task = folders.map(function(folder){
+
+      return gulp.src(path.join(scriptPath, folder, '/*.js'))
+        .pipe(eslint({configFile: '.eslintrc'}))
+        .pipe(eslint.format())
+        .pipe(plugins.sourcemaps.init())
+        .pipe(plugins.concat(folder + '.js'))
+        .pipe(plugins.uglify())
+        .pipe(plugins.sourcemaps.write('./'))
+        .pipe(gulp.dest(scriptPath));
+    });
+
+    return es.concat.apply(null, task);
+
   });
 
-  gulp.task('sass', function () {
-    return gulp.src(styles.src)
-    .pipe(plugins.sass())
-    .pipe(gulp.dest(styles.dest));
-  });
+  gulp.task('css', function () {
 
-  gulp.task('csslint', ['sass'], function () {
-    return gulp.src(styles.main)
-    .pipe(plugins.csslint('.csslintrc'))
-    .pipe(plugins.csslint.reporter());
-  });
+    var stylePath = styles.src;
+    var folders = getFolders(stylePath);
+    var task = folders.map(function(folder){
 
-  gulp.task('css', ['csslint'], function () {
-    return gulp.src(styles.main)
-    .pipe(plugins.autoprefixer())
-    .pipe(plugins.csscomb())
-    .pipe(plugins.minifyCss())
-    .pipe(gulp.dest(styles.dest));
+      return gulp.src(path.join(stylePath, folder, '/*.scss'))
+
+        .pipe(plugins.sourcemaps.init())
+        .pipe(plugins.sass({outputStyle: 'compressed'}))
+        .pipe(plugins.sourcemaps.write('./'))
+        .pipe(plugins.minifyCss())
+        .pipe(rename(folder + '.css'))
+        .pipe(gulp.dest(stylePath))
+    });
+
+    return es.concat.apply(null, task);
+
   });
 
   gulp.task('watch', function () {
-    gulp.watch(scripts.src, ['concat']);
-    gulp.watch(styles.scss, ['sass']);
+    gulp.watch(scripts.watch, ['concat']);
+    gulp.watch(styles.watch, ['css']);
   });
-
-  gulp.task('release', ['js', 'css']);
 
   gulp.task('default', ['watch']);
 }
@@ -203,8 +216,13 @@ function moduleTasks(moduleNames) {
 // Init
 // -----------------------------------------------------------------------------
 
-if (moduleName) {
-  var runModuleName = 'Running "' + moduleName + '" module task...';
+if (moduleName.name) {
+  var runModuleName = 'Running "' + moduleName.name + '" module task...';
+
+  if (moduleName.subName){
+    runModuleName = 'Running "' + moduleName.name + ' > ' + moduleName.subName + '" module task...';
+  }
+
   console.log(runModuleName);
   moduleTasks(moduleName);
 } else {
@@ -223,21 +241,4 @@ gulp.task('compressCSSVendor', function () {
   return gulp.src('../admin/views/assets/stylesheets/vendors/*.css')
   .pipe(plugins.concat('vendors.css'))
   .pipe(gulp.dest('../admin/views/assets/stylesheets'));
-});
-
-gulp.task('compressI18nInlineEditJavascript', function () {
-  return gulp.src(['../i18n/inline_edit/views/themes/i18n/assets/javascripts/app/i18n-inline/poshytip.js',
-                     '../i18n/inline_edit/views/themes/i18n/assets/javascripts/app/i18n-inline/jquery-editable-poshytip.js',
-                     '../i18n/inline_edit/views/themes/i18n/assets/javascripts/app/i18n-inline/i18n-inline.js'])
-  .pipe(plugins.concat('i18n-inline.js'))
-  .pipe(plugins.uglify())
-  .pipe(gulp.dest('../i18n/inline_edit/views/themes/i18n/assets/javascripts'));
-});
-
-gulp.task('compressI18nInlineEditCSS', function () {
-  return gulp.src(['../i18n/inline_edit/views/themes/i18n/assets/stylesheets/scss/i18n-inline.scss'])
-  .pipe(plugins.concat('i18n-inline.css'))
-  .pipe(plugins.csscomb())
-  .pipe(plugins.minifyCss())
-  .pipe(gulp.dest('../i18n/inline_edit/views/themes/i18n/assets/stylesheets'));
 });
