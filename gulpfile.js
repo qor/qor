@@ -57,18 +57,7 @@ function adminTasks() {
         scss: pathto('stylesheets/scss/**/*.scss')
       };
 
-  gulp.task('jshint', function () {
-    return gulp.src(scripts.all)
-    .pipe(plugins.jshint())
-    .pipe(plugins.jshint.reporter('default'));
-  });
-
-  gulp.task('jscs', function () {
-    return gulp.src(scripts.all)
-    .pipe(plugins.jscs());
-  });
-
-  gulp.task('qor', ['jshint', 'jscs'], function () {
+  gulp.task('qor', function () {
     return gulp.src([scripts.qorInit,scripts.qor])
     .pipe(plugins.concat('qor.js'))
     .pipe(plugins.uglify())
