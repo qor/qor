@@ -60,8 +60,12 @@ func (res *Resource) saveHandler(result interface{}, context *qor.Context) error
 		res.HasPermission(roles.Update, context) { // has update permission
 		results := context.GetDB().Save(result)
 
-		if results.RowsAffected == 0 && !context.GetDB().NewScope(result).PrimaryKeyZero() {
-			return context.GetDB().Create(result).Error
+		if results.RowsAffected == 0 {
+			primaryField := context.GetDB().NewScope(result).PrimaryField()
+			// if primary field has value and it is not a auto increment field, then create it if nothing updated
+			if _, ok := primaryField.TagSettings["AUTO_INCREMENT"]; !primaryField.IsBlank && !ok {
+				return context.GetDB().Create(result).Error
+			}
 		}
 
 		return results.Error
