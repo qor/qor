@@ -66,6 +66,8 @@ function adminTasks() {
 
   gulp.task('js', ['qor'], function () {
     return gulp.src(scripts.src)
+    .pipe(eslint({configFile: '.eslintrc'}))
+    .pipe(eslint.format())
     .pipe(plugins.concat('app.js'))
     .pipe(plugins.uglify())
     .pipe(gulp.dest(scripts.dest));
@@ -74,7 +76,10 @@ function adminTasks() {
   gulp.task('qor+', function () {
     return gulp.src([scripts.qorInit,scripts.qor])
     .pipe(plugins.sourcemaps.init())
+    .pipe(eslint({configFile: '.eslintrc'}))
+    .pipe(eslint.format())
     .pipe(plugins.concat('qor.js'))
+    .pipe(plugins.uglify())
     .pipe(plugins.sourcemaps.write('./'))
     .pipe(gulp.dest(scripts.dest));
   });
@@ -83,6 +88,7 @@ function adminTasks() {
     return gulp.src(scripts.src)
     .pipe(plugins.sourcemaps.init())
     .pipe(plugins.concat('app.js'))
+    .pipe(plugins.uglify())
     .pipe(plugins.sourcemaps.write('./'))
     .pipe(gulp.dest(scripts.dest));
   });
@@ -95,13 +101,7 @@ function adminTasks() {
     .pipe(gulp.dest(styles.dest));
   });
 
-  gulp.task('csslint', ['sass'], function () {
-    return gulp.src(styles.main)
-    .pipe(plugins.csslint('.csslintrc'))
-    .pipe(plugins.csslint.reporter());
-  });
-
-  gulp.task('css', ['csslint'], function () {
+  gulp.task('css', ['sass'], function () {
     return gulp.src(styles.main)
     .pipe(plugins.autoprefixer())
     .pipe(plugins.csscomb())
@@ -112,7 +112,7 @@ function adminTasks() {
   gulp.task('watch', function () {
     gulp.watch(scripts.qor, ['qor+']);
     gulp.watch(scripts.src, ['js+']);
-    gulp.watch(styles.scss, ['sass']);
+    gulp.watch(styles.scss, ['css']);
   });
 
   gulp.task('release', ['js', 'css']);
@@ -154,7 +154,7 @@ function moduleTasks(moduleNames) {
   }
 
 
-  gulp.task('concat', function () {
+  gulp.task('js', function () {
     var scriptPath = scripts.src;
     var folders = getFolders(scriptPath);
     var task = folders.map(function(folder){
@@ -194,11 +194,12 @@ function moduleTasks(moduleNames) {
   });
 
   gulp.task('watch', function () {
-    gulp.watch(scripts.watch, ['concat']);
+    gulp.watch(scripts.watch, ['js']);
     gulp.watch(styles.watch, ['css']);
   });
 
   gulp.task('default', ['watch']);
+  gulp.task('release', ['js', 'css']);
 }
 
 
