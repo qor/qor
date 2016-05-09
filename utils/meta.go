@@ -35,11 +35,11 @@ func ToArray(value interface{}) (values []string) {
 		}
 	case []interface{}:
 		for _, v := range value {
-			values = append(values, fmt.Sprintf("%v", v))
+			values = append(values, fmt.Sprint(v))
 		}
 	default:
 		if value := fmt.Sprint(value); value != "" {
-			values = []string{fmt.Sprintf("%v", value)}
+			values = []string{value}
 		}
 	}
 	return
