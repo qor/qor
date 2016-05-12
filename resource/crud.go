@@ -35,7 +35,7 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 					}
 				}
 			}
-			return context.GetDB().First(result, fmt.Sprintf("%v = ?", scope.Quote(primaryField.DBName)), primaryKey).Error
+			return context.GetDB().First(result, fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(primaryField.DBName)), primaryKey).Error
 		}
 		return errors.New("failed to find")
 	}
