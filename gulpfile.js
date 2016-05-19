@@ -121,10 +121,26 @@ function adminTasks() {
 }
 
 
+// -----------------------------------------------------------------------------
 // Other Modules
 // Command: gulp [task] --moduleName--subModuleName
+//
+//  example:
 // Watch Worker module: gulp --worker
-// Watch Worker inline_edit subModule: gulp --worker--inline_edit
+//
+// if module's assets just like normal path:
+// moduleName/views/themes/moduleName/assets/javascripts(stylesheets)
+// just use gulp --worker
+//
+// if module's assets path like Admin module:
+// moduleName/views/assets/javascripts(stylesheets)
+// you need set subModuleName as admin
+// gulp --worker--admin
+//
+// if you need run task for subModule in modules
+// example: worker module inline_edit subModule:
+// gulp --worker--inline_edit
+//
 // -----------------------------------------------------------------------------
 
 function moduleTasks(moduleNames) {
@@ -133,7 +149,12 @@ function moduleTasks(moduleNames) {
 
   var pathto = function (file) {
     if(moduleName && subModuleName) {
-      return '../' + moduleName + '/' + subModuleName + '/views/themes/' + moduleName + '/assets/' + file;
+      if(subModuleName == 'admin') {
+        return '../' + moduleName + '/views/assets/' + file;
+      } else {
+        return '../' + moduleName + '/' + subModuleName + '/views/themes/' + moduleName + '/assets/' + file;
+      }
+
     }
     return '../' + moduleName + '/views/themes/' + moduleName + '/assets/' + file;
   };
@@ -207,16 +228,22 @@ function moduleTasks(moduleNames) {
 // -----------------------------------------------------------------------------
 
 if (moduleName.name) {
-  var runModuleName = 'Running "' + moduleName.name + '" module task...';
+  var taskPath = moduleName.name + '/views/themes/' + moduleName.name + '/assets/';
+  var runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
 
   if (moduleName.subName){
-    runModuleName = 'Running "' + moduleName.name + ' > ' + moduleName.subName + '" module task...';
+    if (moduleName.subName == 'admin'){
+      taskPath = moduleName.name + '/views/assets/';
+      runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
+    } else {
+      taskPath = moduleName.name + '/' + moduleName.subName + '/views/themes/' + moduleName.name + '/assets/';
+      runModuleName = 'Running "' + moduleName.name + ' > ' + moduleName.subName + '" module task in "' + taskPath + '"...';
+    }
   }
-
   console.log(runModuleName);
   moduleTasks(moduleName);
 } else {
-  console.log('Running "admin" module task...');
+  console.log('Running "admin" module task in "admin/views/assets/"...');
   adminTasks();
 }
 
