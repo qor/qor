@@ -90,9 +90,14 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 			} else if matches := isNextLevel.FindStringSubmatch(key); len(matches) > 0 {
 				name := matches[1]
 				if _, ok := convertedNextLevel[name]; !ok {
+					var metaors []Metaor
 					convertedNextLevel[name] = true
 					metaor := metaorsMap[matches[2]]
-					if children, err := ConvertFormToMetaValues(request, metaor.GetMetas(), prefix+name+"."); err == nil {
+					if metaor != nil {
+						metaors = metaor.GetMetas()
+					}
+
+					if children, err := ConvertFormToMetaValues(request, metaors, prefix+name+"."); err == nil {
 						metaValue = &MetaValue{Name: matches[2], Meta: metaor, MetaValues: children}
 					}
 				}
