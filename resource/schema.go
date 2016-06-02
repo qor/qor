@@ -67,7 +67,7 @@ func ConvertJSONToMetaValues(reader io.Reader, metaors []Metaor) (*MetaValues, e
 
 var (
 	isCurrentLevel = regexp.MustCompile("^[^.]+$")
-	isNextLevel    = regexp.MustCompile(`^(([^.\[\]]+)(\[\d+\])?)(?:\.([^.]+)+)$`)
+	isNextLevel    = regexp.MustCompile(`^(([^.\[\]]+)(\[\d+\])?)(?:(\.[^.]+)+)$`)
 )
 
 // ConvertFormToMetaValues convert form to meta values
