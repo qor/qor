@@ -40,8 +40,8 @@ type Resource struct {
 	SaveHandler     func(interface{}, *qor.Context) error
 	DeleteHandler   func(interface{}, *qor.Context) error
 	Permission      *roles.Permission
-	validators      []func(interface{}, *MetaValues, *qor.Context) error
-	processors      []func(interface{}, *MetaValues, *qor.Context) error
+	Validators      []func(interface{}, *MetaValues, *qor.Context) error
+	Processors      []func(interface{}, *MetaValues, *qor.Context) error
 	primaryField    *gorm.Field
 }
 
@@ -66,12 +66,12 @@ func (res *Resource) GetResource() *Resource {
 
 // AddValidator add validator to resource, it will invoked when creating, updating, and will rollback the change if validator return any error
 func (res *Resource) AddValidator(fc func(interface{}, *MetaValues, *qor.Context) error) {
-	res.validators = append(res.validators, fc)
+	res.Validators = append(res.Validators, fc)
 }
 
 // AddProcessor add processor to resource, it is used to process data before creating, updating, will rollback the change if it return any error
 func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context) error) {
-	res.processors = append(res.processors, fc)
+	res.Processors = append(res.Processors, fc)
 }
 
 // NewStruct initialize a struct for the Resource
