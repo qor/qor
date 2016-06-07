@@ -94,6 +94,23 @@ func GetLocale(context *qor.Context) string {
 	return ""
 }
 
+// SetCookie set cookie for context
+func SetCookie(cookie http.Cookie, context *qor.Context) string {
+	cookie.HttpOnly = true
+
+	// set https cookie
+	if context.Request != nil && context.Request.URL.Scheme == "https" {
+		cookie.Secure = true
+	}
+
+	// set default path
+	if cookie.Path == "" {
+		cookie.Path = "/"
+	}
+
+	http.SetCookie(context.Writer, &cookie)
+}
+
 // Stringify stringify any data, if it is a struct, will try to use its Name, Title, Code field, else will use its primary key
 func Stringify(object interface{}) string {
 	if obj, ok := object.(interface {
