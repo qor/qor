@@ -250,6 +250,7 @@ if (moduleName.name) {
 // Task for compress js and css vendor assets
 gulp.task('compressJavaScriptVendor', function () {
   return gulp.src(['!../admin/views/assets/javascripts/vendors/jquery.min.js','../admin/views/assets/javascripts/vendors/*.js'])
+  .pipe(plugins.uglify())
   .pipe(plugins.concat('vendors.js'))
   .pipe(gulp.dest('../admin/views/assets/javascripts'));
 });
@@ -257,5 +258,6 @@ gulp.task('compressJavaScriptVendor', function () {
 gulp.task('compressCSSVendor', function () {
   return gulp.src('../admin/views/assets/stylesheets/vendors/*.css')
   .pipe(plugins.concat('vendors.css'))
+  .pipe(plugins.minifyCss())
   .pipe(gulp.dest('../admin/views/assets/stylesheets'));
 });
