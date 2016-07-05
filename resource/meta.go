@@ -38,16 +38,30 @@ type ConfigureMetaInterface interface {
 	ConfigureQorMeta(Metaor)
 }
 
+// MetaConfigInterface meta configuration interface
+type MetaConfigInterface interface {
+	ConfigureMetaInterface
+}
+
+// MetaConfig base meta config struct
+type MetaConfig struct {
+}
+
+// ConfigureQorMeta implement the MetaConfigInterface
+func (MetaConfig) ConfigureQorMeta(Metaor) {
+}
+
 // Meta meta struct definition
 type Meta struct {
 	Name            string
 	FieldName       string
+	FieldStruct     *gorm.StructField
 	Setter          func(resource interface{}, metaValue *MetaValue, context *qor.Context)
 	Valuer          func(interface{}, *qor.Context) interface{}
 	FormattedValuer func(interface{}, *qor.Context) interface{}
-	Permission      *roles.Permission
+	Config          MetaConfigInterface
 	Resource        Resourcer
-	FieldStruct     *gorm.StructField
+	Permission      *roles.Permission
 }
 
 // GetBaseResource get base resource from meta
