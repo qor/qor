@@ -258,6 +258,5 @@ gulp.task('compressJavaScriptVendor', function () {
 gulp.task('compressCSSVendor', function () {
   return gulp.src('../admin/views/assets/stylesheets/vendors/*.css')
   .pipe(plugins.concat('vendors.css'))
-  .pipe(plugins.minifyCss())
   .pipe(gulp.dest('../admin/views/assets/stylesheets'));
 });
