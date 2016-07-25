@@ -207,7 +207,7 @@ func (meta *Meta) Initialize() error {
 				return ""
 			}
 		} else {
-			utils.ExitWithMsg("Unsupported meta name %v for resource %v", meta.FieldName, reflect.TypeOf(meta.Resource.GetResource().Value))
+			utils.ExitWithMsg("Meta %v is not supported for resource %v, no `Valuer` configured for it", meta.FieldName, reflect.TypeOf(meta.Resource.GetResource().Value))
 		}
 	}
 

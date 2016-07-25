@@ -164,7 +164,7 @@ func ParseTagOption(str string) map[string]string {
 
 // ExitWithMsg debug error messages and print stack
 func ExitWithMsg(msg interface{}, value ...interface{}) {
-	fmt.Printf("\n"+filenameWithLineNum()+"\n%v\n", append([]interface{}{msg}, value...)...)
+	fmt.Printf("\n"+filenameWithLineNum()+"\n"+fmt.Sprint(msg)+"\n", value...)
 	debug.PrintStack()
 }
 
