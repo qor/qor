@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -121,7 +122,13 @@ func Stringify(object interface{}) string {
 	scope := gorm.Scope{Value: object}
 	for _, column := range []string{"Name", "Title", "Code"} {
 		if field, ok := scope.FieldByName(column); ok {
-			return fmt.Sprintf("%v", field.Field.Interface())
+			result := field.Field.Interface()
+			if valuer, ok := result.(driver.Valuer); ok {
+				if result, err := valuer.Value(); err == nil {
+					return fmt.Sprint(result)
+				}
+			}
+			return fmt.Sprint(result)
 		}
 	}
 
