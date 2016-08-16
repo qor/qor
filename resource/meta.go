@@ -273,7 +273,7 @@ func (meta *Meta) Initialize() error {
 
 				field := reflect.Indirect(reflect.ValueOf(resource)).FieldByName(fieldName)
 				if field.Kind() == reflect.Ptr {
-					if field.IsNil() {
+					if field.IsNil() && utils.ToString(value) != "" {
 						field.Set(utils.NewValue(field.Type()).Elem())
 					}
 
