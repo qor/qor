@@ -128,11 +128,15 @@ function adminTasks() {
 //  example:
 // Watch Worker module: gulp --worker
 //
-// if module's assets just like normal path:
+// if module's assets just as normal path:
 // moduleName/views/themes/moduleName/assets/javascripts(stylesheets)
 // just use gulp --worker
 //
-// if module's assets path like Admin module:
+// if module's assets in enterprise as normal path:
+// moduleName/views/themes/moduleName/assets/javascripts(stylesheets)
+// just use gulp --worker--enterprise
+//
+// if module's assets path as Admin module:
 // moduleName/views/assets/javascripts(stylesheets)
 // you need set subModuleName as admin
 // gulp --worker--admin
@@ -151,6 +155,8 @@ function moduleTasks(moduleNames) {
     if(moduleName && subModuleName) {
       if(subModuleName == 'admin') {
         return '../' + moduleName + '/views/assets/' + file;
+      } else if (subModuleName == 'enterprise'){
+        return '../../qor-enterprise/' + moduleName + '/views/assets/' + file;
       } else {
         return '../' + moduleName + '/' + subModuleName + '/views/themes/' + moduleName + '/assets/' + file;
       }
@@ -235,7 +241,10 @@ if (moduleName.name) {
     if (moduleName.subName == 'admin'){
       taskPath = moduleName.name + '/views/assets/';
       runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
-    } else {
+    } else if (moduleName.subName == 'enterprise'){
+      taskPath = '../../enterprise/' + moduleName.name + '/views/assets/';
+      runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
+    }else {
       taskPath = moduleName.name + '/' + moduleName.subName + '/views/themes/' + moduleName.name + '/assets/';
       runModuleName = 'Running "' + moduleName.name + ' > ' + moduleName.subName + '" module task in "' + taskPath + '"...';
     }
