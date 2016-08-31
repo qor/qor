@@ -75,29 +75,23 @@ function adminTasks() {
 
   gulp.task('qor+', function () {
     return gulp.src([scripts.qorInit,scripts.qor])
-    .pipe(plugins.sourcemaps.init())
     .pipe(eslint({configFile: '.eslintrc'}))
     .pipe(eslint.format())
     .pipe(plugins.concat('qor.js'))
     .pipe(plugins.uglify())
-    .pipe(plugins.sourcemaps.write('./'))
     .pipe(gulp.dest(scripts.dest));
   });
 
   gulp.task('js+', function () {
     return gulp.src(scripts.src)
-    .pipe(plugins.sourcemaps.init())
     .pipe(plugins.concat('app.js'))
     .pipe(plugins.uglify())
-    .pipe(plugins.sourcemaps.write('./'))
     .pipe(gulp.dest(scripts.dest));
   });
 
   gulp.task('sass', function () {
     return gulp.src(styles.src)
-    .pipe(plugins.sourcemaps.init())
     .pipe(plugins.sass())
-    .pipe(plugins.sourcemaps.write('./'))
     .pipe(gulp.dest(styles.dest));
   });
 
@@ -189,10 +183,8 @@ function moduleTasks(moduleNames) {
       return gulp.src(path.join(scriptPath, folder, '/*.js'))
         .pipe(eslint({configFile: '.eslintrc'}))
         .pipe(eslint.format())
-        .pipe(plugins.sourcemaps.init())
         .pipe(plugins.concat(folder + '.js'))
         .pipe(plugins.uglify())
-        .pipe(plugins.sourcemaps.write('./'))
         .pipe(gulp.dest(scriptPath));
     });
 
@@ -208,9 +200,7 @@ function moduleTasks(moduleNames) {
 
       return gulp.src(path.join(stylePath, folder, '/*.scss'))
 
-        .pipe(plugins.sourcemaps.init())
         .pipe(plugins.sass({outputStyle: 'compressed'}))
-        .pipe(plugins.sourcemaps.write('./'))
         .pipe(plugins.minifyCss())
         .pipe(rename(folder + '.css'))
         .pipe(gulp.dest(stylePath))
