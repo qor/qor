@@ -14,6 +14,7 @@ import (
 	"github.com/qor/qor"
 	"github.com/qor/qor/utils"
 	"github.com/qor/roles"
+	"github.com/qor/validations"
 )
 
 // Metaor interface
@@ -263,9 +264,17 @@ func (meta *Meta) Initialize() error {
 				if metaValue == nil {
 					return
 				}
+				var (
+					value     = metaValue.Value
+					fieldName = meta.FieldName
+				)
 
-				value := metaValue.Value
-				fieldName := meta.FieldName
+				defer func() {
+					if r := recover(); r != nil {
+						context.AddError(validations.NewError(resource, meta.Name, fmt.Sprintf("Can't set value %v", value)))
+					}
+				}()
+
 				if nestedField {
 					fields := strings.Split(fieldName, ".")
 					fieldName = fields[len(fields)-1]
