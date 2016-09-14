@@ -13,6 +13,7 @@ func TestHumanizeString(t *testing.T) {
 		{"orderItem", "Order Item"},
 		{"OrderIDItem", "Order ID Item"},
 		{"OrderItemID", "Order Item ID"},
+		{"VIEW SITE", "VIEW SITE"},
 	}
 	for _, c := range cases {
 		if got := HumanizeString(c.input); got != c.want {
