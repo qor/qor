@@ -128,7 +128,7 @@ function adminTasks() {
 //
 // if module's assets in enterprise as normal path:
 // moduleName/views/themes/moduleName/assets/javascripts(stylesheets)
-// just use gulp --worker--enterprise
+// just use gulp --microsite--enterprise
 //
 // if module's assets path as Admin module:
 // moduleName/views/assets/javascripts(stylesheets)
@@ -150,7 +150,7 @@ function moduleTasks(moduleNames) {
       if(subModuleName == 'admin') {
         return '../' + moduleName + '/views/assets/' + file;
       } else if (subModuleName == 'enterprise'){
-        return '../../qor-enterprise/' + moduleName + '/views/assets/' + file;
+        return '../../../enterprise.getqor.com/' + moduleName + '/views/themes/' + moduleName + '/assets/' + file;
       } else {
         return '../' + moduleName + '/' + subModuleName + '/views/themes/' + moduleName + '/assets/' + file;
       }
@@ -232,7 +232,7 @@ if (moduleName.name) {
       taskPath = moduleName.name + '/views/assets/';
       runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
     } else if (moduleName.subName == 'enterprise'){
-      taskPath = '../../enterprise/' + moduleName.name + '/views/assets/';
+      taskPath = '../../../enterprise.getqor.com/' + moduleName.name + '/views/themes/' + moduleName.name + '/assets/';
       runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
     }else {
       taskPath = moduleName.name + '/' + moduleName.subName + '/views/themes/' + moduleName.name + '/assets/';
