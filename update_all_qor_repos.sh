@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 
-root=$GOPATH/src/github.com/qor
-
 tmp_dir=$(mktemp -d)
 
 trap "rm -rf $tmp_dir" EXIT
 
 function pull_chances {
-    local pkg=$(basename $1)
-    local pkg_path=$root/$1
+    local pkg=$(basename $2)
+    local pkg_path=$1/$2
 
     if [ ! -d "$pkg_path/.git" ]; then
         echo "$pkg not a git repo. skipped."
@@ -36,12 +34,15 @@ function pull_chances {
 }
 
 function update_git_repo {
-    for pkg in $(ls $root); do
-        pull_chances $pkg &
-    done
+    if [ -d "$1" ]; then
+        for pkg in $(ls $1); do
+            pull_chances $1 $pkg &
+        done
+    fi
 }
 
-update_git_repo
+update_git_repo $GOPATH/src/github.com/qor
+update_git_repo $GOPATH/src/enterprise.getqor.com
 
 wait
 
