@@ -7,12 +7,12 @@ import (
 	"net/url"
 	"os"
 	"reflect"
-	"regexp"
 	"runtime"
 	"runtime/debug"
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/now"
 	"github.com/qor/qor"
 
 	"strings"
@@ -36,8 +36,6 @@ func HumanizeString(str string) string {
 func isUppercase(char byte) bool {
 	return 'A' <= char && char <= 'Z'
 }
-
-var upcaseRegexp = regexp.MustCompile("[A-Z]{3,}[a-z]")
 
 // ToParamString replaces spaces and separates words (by uppercase letters) with
 // underscores in a string, also downcase it
@@ -71,27 +69,6 @@ func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err
 	url.RawQuery = query.Encode()
 	patchedURL = url.String()
 	return
-}
-
-// GetLocale get locale from request, cookie, after get the locale, will write the locale to the cookie if possible
-func GetLocale(context *qor.Context) string {
-	if locale := context.Request.Header.Get("Locale"); locale != "" {
-		return locale
-	}
-
-	if locale := context.Request.URL.Query().Get("locale"); locale != "" {
-		if context.Writer != nil {
-			context.Request.Header.Set("Locale", locale)
-			SetCookie(http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0)}, context)
-		}
-		return locale
-	}
-
-	if locale, err := context.Request.Cookie("locale"); err == nil {
-		return locale.Value
-	}
-
-	return ""
 }
 
 // SetCookie set cookie for context
@@ -192,4 +169,30 @@ func filenameWithLineNum() string {
 		}
 	}
 	return ""
+}
+
+// GetLocale get locale from request, cookie, after get the locale, will write the locale to the cookie if possible
+func GetLocale(context *qor.Context) string {
+	if locale := context.Request.Header.Get("Locale"); locale != "" {
+		return locale
+	}
+
+	if locale := context.Request.URL.Query().Get("locale"); locale != "" {
+		if context.Writer != nil {
+			context.Request.Header.Set("Locale", locale)
+			SetCookie(http.Cookie{Name: "locale", Value: locale, Expires: time.Now().AddDate(1, 0, 0)}, context)
+		}
+		return locale
+	}
+
+	if locale, err := context.Request.Cookie("locale"); err == nil {
+		return locale.Value
+	}
+
+	return ""
+}
+
+// ParseTime parse time from string
+func ParseTime(str string, context *qor.Context) (time.Time, error) {
+	return now.Parse(str)
 }
