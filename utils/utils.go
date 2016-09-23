@@ -172,7 +172,11 @@ func filenameWithLineNum() string {
 }
 
 // GetLocale get locale from request, cookie, after get the locale, will write the locale to the cookie if possible
-func GetLocale(context *qor.Context) string {
+// Overwrite the default logic with
+//     utils.GetLocale = func(context *qor.Context) string {
+//         // ....
+//     }
+var GetLocale = func(context *qor.Context) string {
 	if locale := context.Request.Header.Get("Locale"); locale != "" {
 		return locale
 	}
@@ -193,6 +197,10 @@ func GetLocale(context *qor.Context) string {
 }
 
 // ParseTime parse time from string
-func ParseTime(str string, context *qor.Context) (time.Time, error) {
-	return now.Parse(str)
+// Overwrite the default logic with
+//     utils.ParseTime = func(timeStr string, context *qor.Context) (time.Time, error) {
+//         // ....
+//     }
+var ParseTime = func(timeStr string, context *qor.Context) (time.Time, error) {
+	return now.Parse(timeStr)
 }
