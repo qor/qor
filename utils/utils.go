@@ -204,3 +204,12 @@ var GetLocale = func(context *qor.Context) string {
 var ParseTime = func(timeStr string, context *qor.Context) (time.Time, error) {
 	return now.Parse(timeStr)
 }
+
+// FormatTime format time to string
+// Overwrite the default logic with
+//     utils.FormatTime = func(time time.Time, format string, context *qor.Context) string {
+//         // ....
+//     }
+var FormatTime = func(date time.Time, format string, context *qor.Context) string {
+	return date.Format(format)
+}
