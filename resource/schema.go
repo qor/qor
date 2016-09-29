@@ -75,6 +75,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 	metaValues := &MetaValues{}
 	metaorsMap := map[string]Metaor{}
 	convertedNextLevel := map[string]bool{}
+	nestedStructIndex := map[string]int{}
 	for _, metaor := range metaors {
 		metaorsMap[metaor.GetName()] = metaor
 	}
@@ -98,7 +99,13 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 					}
 
 					if children, err := ConvertFormToMetaValues(request, metaors, prefix+name+"."); err == nil {
-						metaValue = &MetaValue{Name: matches[2], Meta: metaor, MetaValues: children}
+						nestedName := prefix + matches[2]
+						if _, ok := nestedStructIndex[nestedName]; ok {
+							nestedStructIndex[nestedName] += 1
+						} else {
+							nestedStructIndex[nestedName] = 0
+						}
+						metaValue = &MetaValue{Name: matches[2], Meta: metaor, MetaValues: children, Index: nestedStructIndex[nestedName]}
 					}
 				}
 			}

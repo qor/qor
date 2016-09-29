@@ -91,7 +91,7 @@ func (processor *processor) decode() (errors []error) {
 		}
 
 		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
-		decodeMetaValuesToField(res, field, metaValue.MetaValues, processor.Context)
+		decodeMetaValuesToField(res, field, metaValue, processor.Context)
 	}
 
 	return
