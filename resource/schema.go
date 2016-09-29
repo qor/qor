@@ -21,21 +21,25 @@ func convertMapToMetaValues(values map[string]interface{}, metaors []Metaor) (*M
 	for key, value := range values {
 		var metaValue *MetaValue
 		metaor := metaorMap[key]
+		var childMeta []Metaor
+		if metaor != nil {
+			childMeta = metaor.GetMetas()
+		}
 
 		switch result := value.(type) {
 		case map[string]interface{}:
-			if children, err := convertMapToMetaValues(result, metaor.GetMetas()); err == nil {
+			if children, err := convertMapToMetaValues(result, childMeta); err == nil {
 				metaValue = &MetaValue{Name: key, Meta: metaor, MetaValues: children}
 			}
 		case []interface{}:
 			for idx, r := range result {
 				if mr, ok := r.(map[string]interface{}); ok {
-					if children, err := convertMapToMetaValues(mr, metaor.GetMetas()); err == nil {
+					if children, err := convertMapToMetaValues(mr, childMeta); err == nil {
 						metaValue := &MetaValue{Name: key, Meta: metaor, MetaValues: children, Index: idx}
 						metaValues.Values = append(metaValues.Values, metaValue)
 					}
 				} else {
-					metaValue := &MetaValue{Name: key, Value: result, Meta: metaor}
+					metaValue := &MetaValue{Name: key, Value: result, Meta: metaor, Index: idx}
 					metaValues.Values = append(metaValues.Values, metaValue)
 					break
 				}
