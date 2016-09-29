@@ -1,5 +1,11 @@
 package resource
 
+import (
+	"reflect"
+
+	"github.com/qor/qor"
+)
+
 // MetaValues is slice of MetaValue
 type MetaValues struct {
 	Values []*MetaValue
@@ -24,4 +30,35 @@ type MetaValue struct {
 	MetaValues *MetaValues
 	Meta       Metaor
 	error      error
+}
+
+func decodeMetaValuesToField(res Resourcer, field reflect.Value, metaValues *MetaValues, context *qor.Context) {
+	if field.Kind() == reflect.Struct {
+		value := reflect.New(field.Type())
+		associationProcessor := DecodeToResource(res, value.Interface(), metaValues, context)
+		associationProcessor.Start()
+		if !associationProcessor.SkipLeft {
+			field.Set(value.Elem())
+		}
+	} else if field.Kind() == reflect.Slice {
+		var fieldType = field.Type().Elem()
+		var isPtr bool
+		if fieldType.Kind() == reflect.Ptr {
+			fieldType = fieldType.Elem()
+			isPtr = true
+		}
+
+		value := reflect.New(fieldType)
+		associationProcessor := DecodeToResource(res, value.Interface(), metaValues, context)
+		associationProcessor.Start()
+		if !associationProcessor.SkipLeft {
+			if !reflect.DeepEqual(reflect.Zero(fieldType).Interface(), value.Elem().Interface()) {
+				if isPtr {
+					field.Set(reflect.Append(field, value))
+				} else {
+					field.Set(reflect.Append(field, value.Elem()))
+				}
+			}
+		}
+	}
 }

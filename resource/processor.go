@@ -91,34 +91,7 @@ func (processor *processor) decode() (errors []error) {
 		}
 
 		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
-		if field.Kind() == reflect.Struct {
-			value := reflect.New(field.Type())
-			associationProcessor := DecodeToResource(res, value.Interface(), metaValue.MetaValues, processor.Context)
-			associationProcessor.Start()
-			if !associationProcessor.SkipLeft {
-				field.Set(value.Elem())
-			}
-		} else if field.Kind() == reflect.Slice {
-			var fieldType = field.Type().Elem()
-			var isPtr bool
-			if fieldType.Kind() == reflect.Ptr {
-				fieldType = fieldType.Elem()
-				isPtr = true
-			}
-
-			value := reflect.New(fieldType)
-			associationProcessor := DecodeToResource(res, value.Interface(), metaValue.MetaValues, processor.Context)
-			associationProcessor.Start()
-			if !associationProcessor.SkipLeft {
-				if !reflect.DeepEqual(reflect.Zero(fieldType).Interface(), value.Elem().Interface()) {
-					if isPtr {
-						field.Set(reflect.Append(field, value))
-					} else {
-						field.Set(reflect.Append(field, value.Elem()))
-					}
-				}
-			}
-		}
+		decodeMetaValuesToField(res, field, metaValue.MetaValues, processor.Context)
 	}
 
 	return

@@ -263,6 +263,7 @@ func (meta *Meta) Initialize() error {
 				if metaValue == nil {
 					return
 				}
+
 				var (
 					value     = metaValue.Value
 					fieldName = meta.FieldName
@@ -307,6 +308,12 @@ func (meta *Meta) Initialize() error {
 						}
 					default:
 						if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
+							if value == nil && len(metaValue.MetaValues.Values) > 0 {
+								field.Set(reflect.Zero(field.Type()))
+								decodeMetaValuesToField(meta.Resource, field, metaValue.MetaValues, context)
+								return
+							}
+
 							if scanner.Scan(value) != nil {
 								scanner.Scan(utils.ToString(value))
 							}
