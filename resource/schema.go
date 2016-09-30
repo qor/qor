@@ -39,7 +39,7 @@ func convertMapToMetaValues(values map[string]interface{}, metaors []Metaor) (*M
 						metaValues.Values = append(metaValues.Values, metaValue)
 					}
 				} else {
-					metaValue := &MetaValue{Name: key, Value: result, Meta: metaor, Index: idx}
+					metaValue := &MetaValue{Name: key, Value: result, Meta: metaor}
 					metaValues.Values = append(metaValues.Values, metaValue)
 					break
 				}
