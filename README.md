@@ -16,6 +16,10 @@ This is a complete rewrite in Go, of the original QOR, which was a proprietary f
 
 QOR is not a "boxed turnkey solution". You need proper coding skills to use it. It's designed to make the lives of developers easier when building complex EC systems, not providing you one out of the box.
 
+## Documentation
+
+<https://doc.getqor.com/>
+
 ## The modules
 
 * [Admin](https://github.com/qor/admin) - The core part of QOR system, will generate an admin interface and RESTFul API for you to manage your data
