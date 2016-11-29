@@ -6,6 +6,8 @@ English Chat Room: [![Join the chat at https://gitter.im/qor/qor](https://badges
 
 [![Build Status](https://semaphoreci.com/api/v1/theplant/qor/branches/master/badge.svg)](https://semaphoreci.com/theplant/qor)
 
+**For security issues, please send us an email to security@getqor.com and give us time to respond BEFORE posting as an issue or reporting on public forums.**
+
 ## What is QOR?
 
 QOR is a set of libraries written in Go that abstracts common features needed for business applications, CMSs, and E-commerce systems.
@@ -19,6 +21,7 @@ QOR is not a "boxed turnkey solution". You need proper coding skills to use it. 
 ## Documentation
 
 <https://doc.getqor.com/>
+
 
 ## The modules
 
