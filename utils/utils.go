@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"reflect"
 	"runtime"
 	"runtime/debug"
@@ -150,6 +151,19 @@ func ParseTagOption(str string) map[string]string {
 func ExitWithMsg(msg interface{}, value ...interface{}) {
 	fmt.Printf("\n"+filenameWithLineNum()+"\n"+fmt.Sprint(msg)+"\n", value...)
 	debug.PrintStack()
+}
+
+// FileServer file server that disabled file listing
+func FileServer(dir http.Dir) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := path.Join(string(dir), r.URL.Path)
+		if f, err := os.Stat(p); err == nil && !f.IsDir() {
+			http.ServeFile(w, r, p)
+			return
+		}
+
+		http.NotFound(w, r)
+	})
 }
 
 func filenameWithLineNum() string {
