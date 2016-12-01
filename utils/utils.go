@@ -45,9 +45,8 @@ func ToParamString(str string) string {
 	return gorm.ToDBName(strings.Replace(str, " ", "_", -1))
 }
 
-// PatchURL updates the query part of the current request url. You can
-// access it in template by `patch_url`.
-//     patch_url "google.com" "key" "value"
+// PatchURL updates the query part of the request url.
+//     PatchURL("google.com","key","value") => "google.com?key=value"
 func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err error) {
 	url, err := url.Parse(originalURL)
 	if err != nil {
@@ -69,6 +68,26 @@ func PatchURL(originalURL string, params ...interface{}) (patchedURL string, err
 
 	url.RawQuery = query.Encode()
 	patchedURL = url.String()
+	return
+}
+
+// JoinURL updates the path part of the request url.
+//     JoinURL("google.com", "admin") => "google.com/admin"
+//     JoinURL("google.com?q=keyword", "admin") => "google.com/admin?q=keyword"
+func JoinURL(originalURL string, paths ...interface{}) (joinedURL string, err error) {
+	u, err := url.Parse(originalURL)
+	if err != nil {
+		return
+	}
+
+	var urlPaths = []string{u.Path}
+	for _, p := range paths {
+		urlPaths = append(urlPaths, fmt.Sprint(p))
+	}
+
+	u.Path = path.Join(urlPaths...)
+
+	joinedURL = u.String()
 	return
 }
 
