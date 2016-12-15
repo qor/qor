@@ -327,6 +327,8 @@ func (meta *Meta) Initialize() error {
 								if newTime, err := utils.ParseTime(str, context); err == nil {
 									field.Set(reflect.ValueOf(newTime))
 								}
+							} else {
+								field.Set(reflect.Zero(field.Type()))
 							}
 						} else {
 							var buf = bytes.NewBufferString("")
