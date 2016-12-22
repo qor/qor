@@ -1,6 +1,7 @@
 'use strict';
 
 var gulp = require('gulp');
+var babel = require("gulp-babel");
 var eslint = require('gulp-eslint');
 var plugins = require('gulp-load-plugins')();
 
@@ -67,7 +68,6 @@ function adminTasks() {
     gulp.task('js', ['qor'], function() {
         return gulp.src(scripts.src)
             .pipe(eslint({ configFile: '.eslintrc' }))
-            .pipe(eslint.format())
             .pipe(plugins.concat('app.js'))
             .pipe(plugins.uglify())
             .pipe(gulp.dest(scripts.dest));
@@ -76,7 +76,9 @@ function adminTasks() {
     gulp.task('qor+', function() {
         return gulp.src([scripts.qorInit, scripts.qor])
             .pipe(eslint({ configFile: '.eslintrc' }))
-            .pipe(eslint.format())
+            .pipe(babel({
+                presets: ['es2015']
+            }))
             .pipe(plugins.concat('qor.js'))
             .pipe(plugins.uglify())
             .pipe(gulp.dest(scripts.dest));
@@ -84,6 +86,9 @@ function adminTasks() {
 
     gulp.task('js+', function() {
         return gulp.src(scripts.src)
+            .pipe(babel({
+                presets: ['es2015']
+            }))
             .pipe(plugins.concat('app.js'))
             .pipe(plugins.uglify())
             .pipe(gulp.dest(scripts.dest));
@@ -109,7 +114,7 @@ function adminTasks() {
         gulp.watch(styles.scss, ['css']);
     });
 
-    gulp.task('release', ['js', 'css']);
+    gulp.task('release', ['qor+', 'js+', 'css']);
 
     gulp.task('default', ['watch']);
 }
@@ -182,7 +187,9 @@ function moduleTasks(moduleNames) {
 
             return gulp.src(path.join(scriptPath, folder, '/*.js'))
                 .pipe(eslint({ configFile: '.eslintrc' }))
-                .pipe(eslint.format())
+                .pipe(babel({
+                    presets: ['es2015']
+                }))
                 .pipe(plugins.concat(folder + '.js'))
                 .pipe(plugins.uglify())
                 .pipe(gulp.dest(scriptPath));
