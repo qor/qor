@@ -79,6 +79,7 @@ function adminTasks() {
             .pipe(babel({
                 presets: ['es2015']
             }))
+            .pipe(eslint.format())
             .pipe(plugins.concat('qor.js'))
             .pipe(plugins.uglify())
             .pipe(gulp.dest(scripts.dest));
@@ -89,6 +90,7 @@ function adminTasks() {
             .pipe(babel({
                 presets: ['es2015']
             }))
+            .pipe(eslint.format())
             .pipe(plugins.concat('app.js'))
             .pipe(plugins.uglify())
             .pipe(gulp.dest(scripts.dest));
@@ -190,6 +192,7 @@ function moduleTasks(moduleNames) {
                 .pipe(babel({
                     presets: ['es2015']
                 }))
+                .pipe(eslint.format())
                 .pipe(plugins.concat(folder + '.js'))
                 .pipe(plugins.uglify())
                 .pipe(gulp.dest(scriptPath));
