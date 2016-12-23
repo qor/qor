@@ -14,10 +14,18 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/qor/qor"
 
 	"strings"
 )
+
+var HTMLSanitizer = bluemonday.UGCPolicy()
+
+func init() {
+	HTMLSanitizer.AllowStandardAttributes()
+	HTMLSanitizer.AddTargetBlankToFullyQualifiedLinks(true)
+}
 
 // HumanizeString Humanize separates string based on capitalizd letters
 // e.g. "OrderItem" -> "Order Item"
