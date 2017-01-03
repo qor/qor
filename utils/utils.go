@@ -24,7 +24,6 @@ var HTMLSanitizer = bluemonday.UGCPolicy()
 
 func init() {
 	HTMLSanitizer.AllowStandardAttributes()
-	HTMLSanitizer.AddTargetBlankToFullyQualifiedLinks(true)
 }
 
 // HumanizeString Humanize separates string based on capitalizd letters
