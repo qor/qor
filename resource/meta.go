@@ -286,6 +286,11 @@ func (meta *Meta) Initialize() error {
 						field.Set(utils.NewValue(field.Type()).Elem())
 					}
 
+					if utils.ToString(value) == "" {
+						field.Set(reflect.Zero(field.Type()))
+						return
+					}
+
 					for field.Kind() == reflect.Ptr {
 						field = field.Elem()
 					}
