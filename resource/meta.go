@@ -198,7 +198,9 @@ func (meta *Meta) Initialize() error {
 
 				if f, ok := scope.FieldByName(fieldName); ok {
 					if f.Relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
-						context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.FieldName)
+						inter := reflect.Indirect(reflect.New(f.Field.Type().Elem()))
+						context.GetDB().Model(value).Related(inter.Addr().Interface(), meta.FieldName)
+						return inter.Interface()
 					}
 
 					return f.Field.Interface()
