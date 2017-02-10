@@ -369,7 +369,7 @@ func getNestedModel(value interface{}, fieldName string, context *qor.Context) i
 			submodel := model.FieldByName(field)
 			if key := submodel.FieldByName("Id"); !key.IsValid() || key.Uint() == 0 {
 				if submodel.CanAddr() {
-					context.GetDB().Model(model.Addr().Interface()).Related(submodel.Addr().Interface())
+					context.GetDB().Model(model.Addr().Interface()).Association(field).Find(submodel.Addr().Interface())
 					model = submodel
 				} else {
 					break
