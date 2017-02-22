@@ -197,9 +197,9 @@ func (meta *Meta) Initialize() error {
 				}
 
 				if f, ok := scope.FieldByName(fieldName); ok {
-					if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() {
+					if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
 						if ((relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0) ||
-							((relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && scope.PrimaryKeyZero()) {
+							((relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && context.GetDB().NewScope(f.Field.Interface()).PrimaryKeyZero()) {
 							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.FieldName)
 						}
 					}
