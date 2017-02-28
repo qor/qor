@@ -8,22 +8,33 @@ import (
 
 func TestParamsMatch(t *testing.T) {
 	type paramMatchChecker struct {
-		Source  string
-		Path    string
-		Results url.Values
+		Source      string
+		Path        string
+		MatchedPath string
+		Matched     bool
+		Results     url.Values
 	}
 
 	checkers := []paramMatchChecker{
-		{Source: "/hello/:name", Path: "/hello/world", Results: url.Values{":name": []string{"world"}}},
-		{Source: "/hello/:name/:id", Path: "/hello/world/444", Results: url.Values{":name": []string{"world"}, ":id": []string{"444"}}},
-		{Source: "/hello/:name/:id", Path: "/bye/world/444", Results: nil},
+		{Source: "/hello/:name", Path: "/hello/world", MatchedPath: "/hello/world", Results: url.Values{":name": []string{"world"}}, Matched: true},
+		{Source: "/hello/:name/:id", Path: "/hello/world/444", MatchedPath: "/hello/world/444", Results: url.Values{":name": []string{"world"}, ":id": []string{"444"}}, Matched: true},
+		{Source: "/hello/:name/:id", Path: "/bye/world/444", MatchedPath: "", Results: nil},
+		{Source: "/hello/:name", Path: "/hello/world/444", MatchedPath: "/hello/world", Results: url.Values{":name": []string{"world"}}},
+		{Source: "/hello/world", Path: "/hello/name", MatchedPath: "", Results: nil},
+		{Source: "/hello/world", Path: "/hello", MatchedPath: "", Results: nil},
+		{Source: "/hello/", Path: "/hello", MatchedPath: "/hello", Results: url.Values{}, Matched: true},
+		{Source: "/hello/:world", Path: "/hello", MatchedPath: "", Results: nil},
 	}
 
 	for _, checker := range checkers {
-		results, ok := ParamsMatch(checker.Source, checker.Path)
+		results, matched, ok := ParamsMatch(checker.Source, checker.Path)
 
-		if (checker.Results != nil) != ok {
-			t.Errorf("%+v should matched correctly, matched should be %v, but got %v", checker, checker.Results != nil, ok)
+		if matched != checker.MatchedPath {
+			t.Errorf("%+v's matched path should be %v, but got %v", checker, checker.MatchedPath, matched)
+		}
+
+		if ok != checker.Matched {
+			t.Errorf("%+v should matched correctly, matched should be %v, but got %v", checker, checker.Matched, ok)
 		}
 
 		if !reflect.DeepEqual(results, checker.Results) {

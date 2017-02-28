@@ -36,16 +36,19 @@ func match(s string, f func(byte) bool, i int) (matched string, next byte, j int
 }
 
 // ParamsMatch match string by param
-func ParamsMatch(source string, path string) (url.Values, bool) {
-	p := make(url.Values)
+func ParamsMatch(source string, path string) (url.Values, string, bool) {
 	var i, j int
+	var p = make(url.Values)
+
+	source = strings.TrimSuffix(source, "/")
 	for i < len(path) {
 		switch {
 		case j >= len(source):
+
 			if source != "/" && len(source) > 0 && source[len(source)-1] == '/' {
-				return p, true
+				return p, path, true
 			}
-			return nil, false
+			return p, path[:i], false
 		case source[j] == ':':
 			var name, val string
 			var nextc byte
@@ -66,7 +69,7 @@ func ParamsMatch(source string, path string) (url.Values, bool) {
 					if reg, err := regexp.Compile("^" + match + "$"); err == nil && reg.MatchString(val) {
 						j = j + index + 1
 					} else {
-						return nil, false
+						return nil, "", false
 					}
 				}
 			}
@@ -76,12 +79,12 @@ func ParamsMatch(source string, path string) (url.Values, bool) {
 			i++
 			j++
 		default:
-			return nil, false
+			return nil, "", false
 		}
 	}
 
 	if j != len(source) {
-		return nil, false
+		return nil, "", false
 	}
-	return p, true
+	return p, path, true
 }
