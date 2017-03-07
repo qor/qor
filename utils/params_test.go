@@ -24,6 +24,9 @@ func TestParamsMatch(t *testing.T) {
 		{Source: "/hello/world", Path: "/hello", MatchedPath: "", Results: nil},
 		{Source: "/hello/", Path: "/hello", MatchedPath: "/hello", Results: url.Values{}, Matched: true},
 		{Source: "/hello/:world", Path: "/hello", MatchedPath: "", Results: nil},
+		{Source: "/:locale/campaign", Path: "/en-us/campaign", Matched: true, MatchedPath: "/en-us/campaign", Results: url.Values{":locale": []string{"en-us"}}},
+		{Source: "/:locale[(zh|jp)-.*]/campaign", Path: "/zh-CN/campaign", Matched: true, MatchedPath: "/zh-CN/campaign", Results: url.Values{":locale": []string{"zh-CN"}}},
+		{Source: "/:locale[(zh|jp)-.*]/campaign", Path: "/en-us/campaign", Matched: false, Results: nil},
 	}
 
 	for _, checker := range checkers {
