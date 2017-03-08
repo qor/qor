@@ -40,7 +40,6 @@ func ParamsMatch(source string, path string) (url.Values, string, bool) {
 	var i, j int
 	var p = make(url.Values)
 
-	source = strings.TrimSuffix(source, "/")
 	for i < len(path) {
 		switch {
 		case j >= len(source):
@@ -88,6 +87,10 @@ func ParamsMatch(source string, path string) (url.Values, string, bool) {
 	}
 
 	if j != len(source) {
+		if (len(source) == j+1) && source[j] == '/' {
+			return p, path, true
+		}
+
 		return nil, "", false
 	}
 	return p, path, true
