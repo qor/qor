@@ -16,6 +16,7 @@ func TestParamsMatch(t *testing.T) {
 	}
 
 	checkers := []paramMatchChecker{
+		{Source: "", Path: "/", MatchedPath: "/", Results: url.Values{}, Matched: true},
 		{Source: "/hello/:name", Path: "/hello/world", MatchedPath: "/hello/world", Results: url.Values{":name": []string{"world"}}, Matched: true},
 		{Source: "/hello/:name/:id", Path: "/hello/world/444", MatchedPath: "/hello/world/444", Results: url.Values{":name": []string{"world"}, ":id": []string{"444"}}, Matched: true},
 		{Source: "/hello/:name/:id", Path: "/bye/world/444", MatchedPath: "", Results: nil},

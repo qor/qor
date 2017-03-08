@@ -48,6 +48,10 @@ func ParamsMatch(source string, path string) (url.Values, string, bool) {
 			if source != "/" && len(source) > 0 && source[len(source)-1] == '/' {
 				return p, path, true
 			}
+
+			if source == "" && path == "/" {
+				return p, path, true
+			}
 			return p, path[:i], false
 		case source[j] == ':':
 			var name, val string
