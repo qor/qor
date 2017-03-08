@@ -1,6 +1,8 @@
 package utils
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestHumanizeString(t *testing.T) {
 	cases := []struct {
@@ -26,16 +28,19 @@ func TestHumanizeString(t *testing.T) {
 }
 
 func TestToParamString(t *testing.T) {
-	cases := [][2]string{
-		{"OrderItem", "order_item"},
-		{"order item", "order_item"},
-		{"Order Item", "order_item"},
-		{"FAQ", "faq"},
-		{"FAQPage", "faq_page"},
+	results := map[string]string{
+		"OrderItem":  "order_item",
+		"order item": "order_item",
+		"Order Item": "order_item",
+		"FAQ":        "faq",
+		"FAQPage":    "faq_page",
+		"!help_id":   "help_id",
+		"help id":    "help_id",
 	}
-	for _, c := range cases {
-		if got := ToParamString(c[0]); got != c[1] {
-			t.Errorf("ToParamString(%q) = %q; want %q", c[0], got, c[1])
+
+	for key, value := range results {
+		if ToParamString(key) != value {
+			t.Errorf("%v to params should be %v, but got %v", key, value, ToParamString(key))
 		}
 	}
 }
