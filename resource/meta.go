@@ -249,6 +249,8 @@ func (meta *Meta) Initialize() error {
 					}
 
 					if len(primaryKeys) > 0 {
+						// set current field value to blank and replace it with new value
+						field.Set(reflect.Zero(field.Type()))
 						context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
 					}
 
