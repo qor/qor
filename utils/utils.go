@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"reflect"
-	"regexp"
 	"runtime"
 	"runtime/debug"
 	"time"
@@ -46,13 +45,11 @@ func isUppercase(char byte) bool {
 	return 'A' <= char && char <= 'Z'
 }
 
-var toParamsRegexp = regexp.MustCompile(`[^A-z|-|_]`)
-
 // ToParamString replaces spaces and separates words (by uppercase letters) with
 // underscores in a string, also downcase it
 // e.g. ToParamString -> to_param_string, To ParamString -> to_param_string
 func ToParamString(str string) string {
-	return gorm.ToDBName(toParamsRegexp.ReplaceAllString(strings.Replace(str, " ", "_", -1), ""))
+	return gorm.ToDBName(strings.Replace(str, " ", "_", -1))
 }
 
 // PatchURL updates the query part of the request url.
