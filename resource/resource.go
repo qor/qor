@@ -65,6 +65,7 @@ func New(value interface{}) *Resource {
 // SetPrimaryFields set primary fields
 func (res *Resource) SetPrimaryFields(fields ...string) error {
 	scope := gorm.Scope{Value: res.Value}
+	res.PrimaryFields = nil
 
 	if len(fields) > 0 {
 		for _, fieldName := range fields {
