@@ -12,16 +12,18 @@ import (
 )
 
 // ToPrimaryQueryParams to primary query params
-func (res *Resource) ToPrimaryQueryParams(primaryValue string, context *qor.Context) (string, []string) {
+func (res *Resource) ToPrimaryQueryParams(primaryValue string, context *qor.Context) (string, []interface{}) {
 	if primaryValue != "" {
 		scope := context.GetDB().NewScope(res.Value)
 
 		// multiple primary fields
 		if len(res.PrimaryFields) > 1 {
-			if primaryValues := strings.Split(primaryValue, ","); len(primaryValues) == len(res.PrimaryFields) {
+			if primaryValueStrs := strings.Split(primaryValue, ","); len(primaryValueStrs) == len(res.PrimaryFields) {
 				sqls := []string{}
-				for _, field := range res.PrimaryFields {
+				primaryValues := []interface{}{}
+				for idx, field := range res.PrimaryFields {
 					sqls = append(sqls, fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(field.DBName)))
+					primaryValues = append(primaryValues, primaryValueStrs[idx])
 				}
 
 				return strings.Join(sqls, " AND "), primaryValues
@@ -30,23 +32,24 @@ func (res *Resource) ToPrimaryQueryParams(primaryValue string, context *qor.Cont
 
 		// fallback to first configured primary field
 		if len(res.PrimaryFields) > 0 {
-			return fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(res.PrimaryFields[0].DBName)), []string{primaryValue}
+			return fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(res.PrimaryFields[0].DBName)), []interface{}{primaryValue}
 		}
 
 		// if no configured primary fields found
 		if primaryField := scope.PrimaryField(); primaryField != nil {
-			return fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(primaryField.DBName)), []string{primaryValue}
+			return fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(primaryField.DBName)), []interface{}{primaryValue}
 		}
 	}
 
-	return "", []string{}
+	return "", []interface{}{}
 }
 
 // ToPrimaryQueryParamsFromMetaValue to primary query params from meta values
-func (res *Resource) ToPrimaryQueryParamsFromMetaValue(metaValues *MetaValues, context *qor.Context) (string, []string) {
+func (res *Resource) ToPrimaryQueryParamsFromMetaValue(metaValues *MetaValues, context *qor.Context) (string, []interface{}) {
 	var (
-		sqls, primaryValues []string
-		scope               = context.GetDB().NewScope(res.Value)
+		sqls          []string
+		primaryValues []interface{}
+		scope         = context.GetDB().NewScope(res.Value)
 	)
 
 	if metaValues != nil {
@@ -65,7 +68,7 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 	if res.HasPermission(roles.Read, context) {
 		var (
 			primaryQuerySQL string
-			primaryParams   []string
+			primaryParams   []interface{}
 		)
 
 		if metaValues == nil {
@@ -78,12 +81,12 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 			if metaValues != nil {
 				if destroy := metaValues.Get("_destroy"); destroy != nil {
 					if fmt.Sprint(destroy.Value) != "0" && res.HasPermission(roles.Delete, context) {
-						context.GetDB().Delete(result, append([]string{primaryQuerySQL}, primaryParams...))
+						context.GetDB().Delete(result, append([]interface{}{primaryQuerySQL}, primaryParams...)...)
 						return ErrProcessorSkipLeft
 					}
 				}
 			}
-			return context.GetDB().First(result, append([]string{primaryQuerySQL}, primaryParams...)).Error
+			return context.GetDB().First(result, append([]interface{}{primaryQuerySQL}, primaryParams...)...).Error
 		}
 
 		return errors.New("failed to find")
@@ -115,7 +118,7 @@ func (res *Resource) saveHandler(result interface{}, context *qor.Context) error
 func (res *Resource) deleteHandler(result interface{}, context *qor.Context) error {
 	if res.HasPermission(roles.Delete, context) {
 		if primaryQuerySQL, primaryParams := res.ToPrimaryQueryParams(context.ResourceID, context); primaryQuerySQL != "" {
-			if !context.GetDB().First(result, append([]string{primaryQuerySQL}, primaryParams...)).RecordNotFound() {
+			if !context.GetDB().First(result, append([]interface{}{primaryQuerySQL}, primaryParams...)...).RecordNotFound() {
 				return context.GetDB().Delete(result).Error
 			}
 		}
