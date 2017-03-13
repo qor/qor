@@ -105,7 +105,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 					if children, err := ConvertFormToMetaValues(request, metaors, prefix+name+"."); err == nil {
 						nestedName := prefix + matches[2]
 						if _, ok := nestedStructIndex[nestedName]; ok {
-							nestedStructIndex[nestedName] += 1
+							nestedStructIndex[nestedName]++
 						} else {
 							nestedStructIndex[nestedName] = 0
 						}

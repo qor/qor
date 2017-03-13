@@ -3,6 +3,7 @@ package resource
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
@@ -10,33 +11,81 @@ import (
 	"github.com/qor/roles"
 )
 
+// ToPrimaryQueryParams to primary query params
+func (res *Resource) ToPrimaryQueryParams(primaryValue string, context *qor.Context) (string, []string) {
+	if primaryValue != "" {
+		scope := context.GetDB().NewScope(res.Value)
+
+		// multiple primary fields
+		if len(res.PrimaryFields) > 1 {
+			if primaryValues := strings.Split(primaryValue, ","); len(primaryValues) == len(res.PrimaryFields) {
+				sqls := []string{}
+				for _, field := range res.PrimaryFields {
+					sqls = append(sqls, fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(field.DBName)))
+				}
+
+				return strings.Join(sqls, " AND "), primaryValues
+			}
+		}
+
+		// fallback to first configured primary field
+		if len(res.PrimaryFields) > 0 {
+			return fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(res.PrimaryFields[0].DBName)), []string{primaryValue}
+		}
+
+		// if no configured primary fields found
+		if primaryField := scope.PrimaryField(); primaryField != nil {
+			return fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(primaryField.DBName)), []string{primaryValue}
+		}
+	}
+
+	return "", []string{}
+}
+
+// ToPrimaryQueryParamsFromMetaValue to primary query params from meta values
+func (res *Resource) ToPrimaryQueryParamsFromMetaValue(metaValues *MetaValues, context *qor.Context) (string, []string) {
+	var (
+		sqls, primaryValues []string
+		scope               = context.GetDB().NewScope(res.Value)
+	)
+
+	if metaValues != nil {
+		for _, field := range res.PrimaryFields {
+			if metaField := metaValues.Get(field.Name); metaField != nil {
+				sqls = append(sqls, fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(field.DBName)))
+				primaryValues = append(primaryValues, utils.ToString(metaField.Value))
+			}
+		}
+	}
+
+	return strings.Join(sqls, " AND "), primaryValues
+}
+
 func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, context *qor.Context) error {
 	if res.HasPermission(roles.Read, context) {
 		var (
-			scope        = context.GetDB().NewScope(res.Value)
-			primaryField = res.PrimaryField()
-			primaryKey   string
+			primaryQuerySQL string
+			primaryParams   []string
 		)
 
 		if metaValues == nil {
-			primaryKey = context.ResourceID
-		} else if primaryField == nil {
-			return nil
-		} else if id := metaValues.Get(primaryField.Name); id != nil {
-			primaryKey = utils.ToString(id.Value)
+			primaryQuerySQL, primaryParams = res.ToPrimaryQueryParams(context.ResourceID, context)
+		} else {
+			primaryQuerySQL, primaryParams = res.ToPrimaryQueryParamsFromMetaValue(metaValues, context)
 		}
 
-		if primaryKey != "" {
+		if primaryQuerySQL != "" {
 			if metaValues != nil {
 				if destroy := metaValues.Get("_destroy"); destroy != nil {
 					if fmt.Sprint(destroy.Value) != "0" && res.HasPermission(roles.Delete, context) {
-						context.GetDB().Delete(result, fmt.Sprintf("%v = ?", scope.Quote(primaryField.DBName)), primaryKey)
+						context.GetDB().Delete(result, append([]string{primaryQuerySQL}, primaryParams...))
 						return ErrProcessorSkipLeft
 					}
 				}
 			}
-			return context.GetDB().First(result, fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(primaryField.DBName)), primaryKey).Error
+			return context.GetDB().First(result, append([]string{primaryQuerySQL}, primaryParams...)).Error
 		}
+
 		return errors.New("failed to find")
 	}
 	return roles.ErrPermissionDenied
@@ -47,10 +96,10 @@ func (res *Resource) findManyHandler(result interface{}, context *qor.Context) e
 		db := context.GetDB()
 		if _, ok := db.Get("qor:getting_total_count"); ok {
 			return context.GetDB().Count(result).Error
-		} else {
-			return context.GetDB().Set("gorm:order_by_primary_key", "DESC").Find(result).Error
 		}
+		return context.GetDB().Set("gorm:order_by_primary_key", "DESC").Find(result).Error
 	}
+
 	return roles.ErrPermissionDenied
 }
 
@@ -65,10 +114,6 @@ func (res *Resource) saveHandler(result interface{}, context *qor.Context) error
 
 func (res *Resource) deleteHandler(result interface{}, context *qor.Context) error {
 	if res.HasPermission(roles.Delete, context) {
-		scope := context.GetDB().NewScope(res.Value)
-		if !context.GetDB().First(result, fmt.Sprintf("%v = ?", scope.Quote(res.PrimaryDBName())), context.ResourceID).RecordNotFound() {
-			return context.GetDB().Delete(result).Error
-		}
 		return gorm.ErrRecordNotFound
 	}
 	return roles.ErrPermissionDenied

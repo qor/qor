@@ -35,6 +35,7 @@ type ConfigureResourceInterface interface {
 type Resource struct {
 	Name            string
 	Value           interface{}
+	PrimaryFields   []*gorm.StructField
 	FindManyHandler func(interface{}, *qor.Context) error
 	FindOneHandler  func(interface{}, *MetaValues, *qor.Context) error
 	SaveHandler     func(interface{}, *qor.Context) error
@@ -51,6 +52,11 @@ func New(value interface{}) *Resource {
 		name = utils.HumanizeString(utils.ModelType(value).Name())
 		res  = &Resource{Value: value, Name: name}
 	)
+
+	scope := gorm.Scope{Value: res.Value}
+	if primaryField := scope.PrimaryField(); primaryField != nil {
+		res.PrimaryFields = []*gorm.StructField{primaryField.StructField}
+	}
 
 	res.FindOneHandler = res.findOneHandler
 	res.FindManyHandler = res.findManyHandler
@@ -99,31 +105,4 @@ func (res *Resource) HasPermission(mode roles.PermissionMode, context *qor.Conte
 		return true
 	}
 	return res.Permission.HasPermission(mode, context.Roles...)
-}
-
-// PrimaryField return gorm's primary field
-func (res *Resource) PrimaryField() *gorm.Field {
-	if res.primaryField == nil {
-		scope := gorm.Scope{Value: res.Value}
-		res.primaryField = scope.PrimaryField()
-	}
-	return res.primaryField
-}
-
-// PrimaryDBName return db column name of the resource's primary field
-func (res *Resource) PrimaryDBName() (name string) {
-	field := res.PrimaryField()
-	if field != nil {
-		name = field.DBName
-	}
-	return
-}
-
-// PrimaryFieldName return struct column name of the resource's primary field
-func (res *Resource) PrimaryFieldName() (name string) {
-	field := res.PrimaryField()
-	if field != nil {
-		name = field.Name
-	}
-	return
 }
