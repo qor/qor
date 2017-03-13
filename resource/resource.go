@@ -53,16 +53,25 @@ func New(value interface{}) *Resource {
 		res  = &Resource{Value: value, Name: name}
 	)
 
-	scope := gorm.Scope{Value: res.Value}
-	if primaryField := scope.PrimaryField(); primaryField != nil {
-		res.PrimaryFields = []*gorm.StructField{primaryField.StructField}
-	}
-
 	res.FindOneHandler = res.findOneHandler
 	res.FindManyHandler = res.findManyHandler
 	res.SaveHandler = res.saveHandler
 	res.DeleteHandler = res.deleteHandler
+	res.SetPrimaryFields(nil)
 	return res
+}
+
+// SetPrimaryFields set primary fields
+func (res *Resource) SetPrimaryFields(fields []*gorm.StructField) {
+	if len(fields) > 0 {
+		res.PrimaryFields = fields
+		return
+	}
+
+	scope := gorm.Scope{Value: res.Value}
+	if primaryField := scope.PrimaryField(); primaryField != nil {
+		res.PrimaryFields = []*gorm.StructField{primaryField.StructField}
+	}
 }
 
 // GetResource return itself to match interface `Resourcer`
