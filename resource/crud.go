@@ -114,6 +114,11 @@ func (res *Resource) saveHandler(result interface{}, context *qor.Context) error
 
 func (res *Resource) deleteHandler(result interface{}, context *qor.Context) error {
 	if res.HasPermission(roles.Delete, context) {
+		if primaryQuerySQL, primaryParams := res.ToPrimaryQueryParams(context.ResourceID, context); primaryQuerySQL != "" {
+			if !context.GetDB().First(result, append([]string{primaryQuerySQL}, primaryParams...)).RecordNotFound() {
+				return context.GetDB().Delete(result).Error
+			}
+		}
 		return gorm.ErrRecordNotFound
 	}
 	return roles.ErrPermissionDenied
