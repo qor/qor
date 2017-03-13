@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/jinzhu/gorm"
@@ -57,21 +58,31 @@ func New(value interface{}) *Resource {
 	res.FindManyHandler = res.findManyHandler
 	res.SaveHandler = res.saveHandler
 	res.DeleteHandler = res.deleteHandler
-	res.SetPrimaryFields(nil)
+	res.SetPrimaryFields()
 	return res
 }
 
 // SetPrimaryFields set primary fields
-func (res *Resource) SetPrimaryFields(fields []*gorm.StructField) {
+func (res *Resource) SetPrimaryFields(fields ...string) error {
+	scope := gorm.Scope{Value: res.Value}
+
 	if len(fields) > 0 {
-		res.PrimaryFields = fields
-		return
+		for _, fieldName := range fields {
+			if field, ok := scope.FieldByName(fieldName); ok {
+				res.PrimaryFields = append(res.PrimaryFields, field.StructField)
+			} else {
+				return fmt.Errorf("%v is not a valid field for resource %v", fieldName, res.Name)
+			}
+		}
+		return nil
 	}
 
-	scope := gorm.Scope{Value: res.Value}
 	if primaryField := scope.PrimaryField(); primaryField != nil {
 		res.PrimaryFields = []*gorm.StructField{primaryField.StructField}
+		return nil
 	}
+
+	return fmt.Errorf("no valid primary field for resource %v", res.Name)
 }
 
 // GetResource return itself to match interface `Resourcer`
