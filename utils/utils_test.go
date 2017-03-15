@@ -34,7 +34,7 @@ func TestToParamString(t *testing.T) {
 		"Order Item": "order_item",
 		"FAQ":        "faq",
 		"FAQPage":    "faq_page",
-		"!help_id":   "help_id",
+		"!help_id":   "!help_id",
 		"help id":    "help_id",
 	}
 
