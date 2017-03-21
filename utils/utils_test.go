@@ -114,6 +114,11 @@ func TestJoinURL(t *testing.T) {
 			input:    []interface{}{"admin"},
 			want:     "http://qor.com/admin?q=keyword",
 		},
+		{
+			original: "http://qor.com/?q=keyword",
+			input:    []interface{}{"admin/"},
+			want:     "http://qor.com/admin/?q=keyword",
+		},
 	}
 	for _, c := range cases {
 		// u, _ := url.Parse(c.original)

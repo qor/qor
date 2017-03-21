@@ -92,7 +92,11 @@ func JoinURL(originalURL string, paths ...interface{}) (joinedURL string, err er
 		urlPaths = append(urlPaths, fmt.Sprint(p))
 	}
 
-	u.Path = path.Join(urlPaths...)
+	if strings.HasSuffix(strings.Join(urlPaths, ""), "/") {
+		u.Path = path.Join(urlPaths...) + "/"
+	} else {
+		u.Path = path.Join(urlPaths...)
+	}
 
 	joinedURL = u.String()
 	return
