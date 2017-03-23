@@ -2,6 +2,7 @@ package utils
 
 import (
 	"net/url"
+	"path"
 	"regexp"
 	"strings"
 )
@@ -36,28 +37,37 @@ func match(s string, f func(byte) bool, i int) (matched string, next byte, j int
 }
 
 // ParamsMatch match string by param
-func ParamsMatch(source string, path string) (url.Values, string, bool) {
-	var i, j int
-	var p = make(url.Values)
+func ParamsMatch(source string, pth string) (url.Values, string, bool) {
+	var (
+		i, j int
+		p    = make(url.Values)
+		ext  = path.Ext(pth)
+	)
 
-	for i < len(path) {
+	pth = strings.TrimSuffix(pth, ext)
+
+	if ext != "" {
+		p.Add(":format", strings.TrimPrefix(ext, "."))
+	}
+
+	for i < len(pth) {
 		switch {
 		case j >= len(source):
 
 			if source != "/" && len(source) > 0 && source[len(source)-1] == '/' {
-				return p, path[:i], true
+				return p, pth[:i], true
 			}
 
-			if source == "" && path == "/" {
-				return p, path, true
+			if source == "" && pth == "/" {
+				return p, pth, true
 			}
-			return p, path[:i], false
+			return p, pth[:i], false
 		case source[j] == ':':
 			var name, val string
 			var nextc byte
 
 			name, nextc, j = match(source, isAlnum, j+1)
-			val, _, i = match(path, matchPart(nextc), i)
+			val, _, i = match(pth, matchPart(nextc), i)
 
 			if (j < len(source)) && source[j] == '[' {
 				var index int
@@ -78,7 +88,7 @@ func ParamsMatch(source string, path string) (url.Values, string, bool) {
 			}
 
 			p.Add(":"+name, val)
-		case path[i] == source[j]:
+		case pth[i] == source[j]:
 			i++
 			j++
 		default:
@@ -88,10 +98,10 @@ func ParamsMatch(source string, path string) (url.Values, string, bool) {
 
 	if j != len(source) {
 		if (len(source) == j+1) && source[j] == '/' {
-			return p, path, true
+			return p, pth, true
 		}
 
 		return nil, "", false
 	}
-	return p, path, true
+	return p, pth, true
 }
