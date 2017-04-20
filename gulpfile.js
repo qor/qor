@@ -48,6 +48,7 @@ function adminTasks() {
     dest: pathto('javascripts'),
     qor: pathto('javascripts/qor/*.js'),
     qorInit: pathto('javascripts/qor/qor-config.js'),
+    qorCommon: pathto('javascripts/qor/qor-common.js'),
     all: [
             'gulpfile.js',
             pathto('javascripts/qor/*.js')
@@ -62,7 +63,7 @@ function adminTasks() {
   };
 
   gulp.task('qor', function() {
-    return gulp.src([scripts.qorInit, scripts.qor])
+    return gulp.src([scripts.qorInit, scripts.qorCommon, scripts.qor])
       .pipe(plugins.concat('qor.js'))
       .pipe(plugins.uglify())
       .pipe(gulp.dest(scripts.dest));
@@ -79,7 +80,7 @@ function adminTasks() {
   });
 
   gulp.task('qor+', function() {
-    return gulp.src([scripts.qorInit, scripts.qor])
+    return gulp.src([scripts.qorInit, scripts.qorCommon, scripts.qor])
       .pipe(eslint({
         configFile: '.eslintrc'
       }))
@@ -152,6 +153,8 @@ function adminTasks() {
 // if you need run task for subModule in modules
 // example: worker module inline_edit subModule:
 // gulp --worker--inline_edit
+//
+// gulp --media--media_library--true
 //
 // -----------------------------------------------------------------------------
 
