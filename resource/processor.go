@@ -6,6 +6,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/qor"
+	"github.com/qor/qor/utils"
 	"github.com/qor/roles"
 )
 
@@ -84,9 +85,9 @@ func (processor *processor) decode() (errors []error) {
 			setter(processor.Result, metaValue, processor.Context)
 		}
 
-		if res := metaValue.Meta.GetResource(); res != nil {
+		if res := metaValue.Meta.GetResource(); res != nil && !reflect.ValueOf(res).IsNil() {
 			field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
-			if reflect.Indirect(field).Type() == reflect.Indirect(reflect.ValueOf(res.NewStruct())).Type() {
+			if utils.ModelType(field.Interface()) == utils.ModelType(res.NewStruct()) {
 				decodeMetaValuesToField(res, field, metaValue, processor.Context)
 			}
 		}
