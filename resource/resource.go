@@ -103,11 +103,17 @@ func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context
 
 // NewStruct initialize a struct for the Resource
 func (res *Resource) NewStruct() interface{} {
+	if res.Value == nil {
+		return nil
+	}
 	return reflect.New(reflect.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
 }
 
 // NewSlice initialize a slice of struct for the Resource
 func (res *Resource) NewSlice() interface{} {
+	if res.Value == nil {
+		return nil
+	}
 	sliceType := reflect.SliceOf(reflect.TypeOf(res.Value))
 	slice := reflect.MakeSlice(sliceType, 0, 0)
 	slicePtr := reflect.New(sliceType)

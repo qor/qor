@@ -82,16 +82,14 @@ func (processor *processor) decode() (errors []error) {
 
 		if setter := meta.GetSetter(); setter != nil {
 			setter(processor.Result, metaValue, processor.Context)
-			continue
 		}
 
-		res := metaValue.Meta.GetResource()
-		if res == nil {
-			continue
+		if res := metaValue.Meta.GetResource(); res != nil {
+			field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
+			if reflect.Indirect(field).Type() == reflect.Indirect(reflect.ValueOf(res.NewStruct())).Type() {
+				decodeMetaValuesToField(res, field, metaValue, processor.Context)
+			}
 		}
-
-		field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
-		decodeMetaValuesToField(res, field, metaValue, processor.Context)
 	}
 
 	return
