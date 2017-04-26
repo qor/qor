@@ -87,7 +87,7 @@ func (processor *processor) decode() (errors []error) {
 
 		if res := metaValue.Meta.GetResource(); res != nil && !reflect.ValueOf(res).IsNil() {
 			field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
-			if utils.ModelType(field.Interface()) == utils.ModelType(res.NewStruct()) {
+			if utils.ModelType(field.Addr().Interface()) == utils.ModelType(res.NewStruct()) {
 				decodeMetaValuesToField(res, field, metaValue, processor.Context)
 			}
 		}
