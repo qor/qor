@@ -85,10 +85,12 @@ func (processor *processor) decode() (errors []error) {
 			setter(processor.Result, metaValue, processor.Context)
 		}
 
-		if res := metaValue.Meta.GetResource(); res != nil && !reflect.ValueOf(res).IsNil() {
-			field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
-			if utils.ModelType(field.Addr().Interface()) == utils.ModelType(res.NewStruct()) {
-				decodeMetaValuesToField(res, field, metaValue, processor.Context)
+		if metaValue.MetaValues != nil && len(metaValue.MetaValues.Values) > 0 {
+			if res := metaValue.Meta.GetResource(); res != nil && !reflect.ValueOf(res).IsNil() {
+				field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
+				if utils.ModelType(field.Addr().Interface()) == utils.ModelType(res.NewStruct()) {
+					decodeMetaValuesToField(res, field, metaValue, processor.Context)
+				}
 			}
 		}
 	}
