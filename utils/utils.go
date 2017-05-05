@@ -8,10 +8,12 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"regexp"
 	"runtime"
 	"runtime/debug"
 	"time"
 
+	"github.com/gosimple/slug"
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
 	"github.com/microcosm-cc/bluemonday"
@@ -45,11 +47,16 @@ func isUppercase(char byte) bool {
 	return 'A' <= char && char <= 'Z'
 }
 
+var asicsiiRegexp = regexp.MustCompile("^(\\w|\\s|-|!)*$")
+
 // ToParamString replaces spaces and separates words (by uppercase letters) with
 // underscores in a string, also downcase it
 // e.g. ToParamString -> to_param_string, To ParamString -> to_param_string
 func ToParamString(str string) string {
-	return gorm.ToDBName(strings.Replace(str, " ", "_", -1))
+	if asicsiiRegexp.MatchString(str) {
+		return gorm.ToDBName(strings.Replace(str, " ", "_", -1))
+	}
+	return slug.Make(str)
 }
 
 // PatchURL updates the query part of the request url.

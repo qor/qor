@@ -32,6 +32,7 @@ func TestParamsMatch(t *testing.T) {
 		{Source: "/:locale[(zh|jp)-.*]/campaign", Path: "/zh-CN/campaign", Matched: true, MatchedPath: "/zh-CN/campaign", Results: url.Values{":locale": []string{"zh-CN"}}},
 		{Source: `/:locale[(zh|jp)-\w+]/campaign`, Path: "/zh-CN/campaign", Matched: true, MatchedPath: "/zh-CN/campaign", Results: url.Values{":locale": []string{"zh-CN"}}},
 		{Source: "/:locale[(zh|jp)-.*]/campaign", Path: "/en-us/campaign", Matched: false, Results: nil},
+		{Source: "/yu-yan/:yu-yan_id", Path: "/yu-yan/1", Matched: true, MatchedPath: "/yu-yan/1", Results: url.Values{":yu-yan_id": []string{"1"}}},
 	}
 
 	for _, checker := range checkers {

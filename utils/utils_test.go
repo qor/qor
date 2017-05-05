@@ -36,6 +36,7 @@ func TestToParamString(t *testing.T) {
 		"FAQPage":    "faq_page",
 		"!help_id":   "!help_id",
 		"help id":    "help_id",
+		"语言":         "yu-yan",
 	}
 
 	for key, value := range results {
