@@ -198,8 +198,13 @@ func (meta *Meta) Initialize() error {
 
 				if f, ok := scope.FieldByName(fieldName); ok {
 					if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
-						if ((relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0) ||
-							((relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && context.GetDB().NewScope(f.Field.Interface()).PrimaryKeyZero()) {
+						if (relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0 {
+							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.FieldName)
+						} else if (relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && context.GetDB().NewScope(f.Field.Interface()).PrimaryKeyZero() {
+							if f.Field.Kind() == reflect.Ptr && f.Field.IsNil() {
+								f.Field.Set(reflect.New(f.Field.Type().Elem()))
+							}
+
 							context.GetDB().Model(value).Related(f.Field.Addr().Interface(), meta.FieldName)
 						}
 					}
