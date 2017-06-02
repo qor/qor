@@ -124,7 +124,32 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 	for key := range request.Form {
 		sortedFormKeys = append(sortedFormKeys, key)
 	}
-	sort.Strings(sortedFormKeys)
+
+	replaceIdxRegexp := regexp.MustCompile(`\[\d+\]`)
+	orderFunc := func(i, j int) bool { // true for first
+		str1 := replaceIdxRegexp.ReplaceAllString(sortedFormKeys[i], "[:number:]")
+		str2 := replaceIdxRegexp.ReplaceAllString(sortedFormKeys[j], "[:number:]")
+
+		if str1 == str2 {
+			matched1 := replaceIdxRegexp.FindStringSubmatch(sortedFormKeys[i])
+			matched2 := replaceIdxRegexp.FindStringSubmatch(sortedFormKeys[j])
+			if len(matched2) > len(matched1) {
+				return false
+			}
+
+			for x := 0; x < len(matched1); x++ {
+				if matched1[x] != matched2[x] {
+					if len(matched1[x]) != len(matched2[x]) {
+						return len(matched1[x]) < len(matched2[x])
+					}
+					return strings.Compare(matched1[x], matched2[x]) < 0
+				}
+			}
+		}
+
+		return strings.Compare(str1, str2) < 0
+	}
+	sort.Slice(sortedFormKeys, orderFunc)
 
 	for _, key := range sortedFormKeys {
 		newMetaValue(key, request.Form[key])
@@ -135,7 +160,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 		for key := range request.MultipartForm.File {
 			sortedFormKeys = append(sortedFormKeys, key)
 		}
-		sort.Strings(sortedFormKeys)
+		sort.Slice(sortedFormKeys, orderFunc)
 
 		for _, key := range sortedFormKeys {
 			newMetaValue(key, request.MultipartForm.File[key])
