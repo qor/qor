@@ -22,10 +22,27 @@ import (
 	"strings"
 )
 
+// ContextKey defined type used for context's key
+type ContextKey string
+
+// ContextDB context
+var ContextDBName ContextKey = "ContextDB"
+
+// HTMLSanitizer html sanitizer to avoid XSS
 var HTMLSanitizer = bluemonday.UGCPolicy()
 
 func init() {
 	HTMLSanitizer.AllowStandardAttributes()
+}
+
+// GetDBFromRequest get database from request
+var GetDBFromRequest = func(req *http.Request) *gorm.DB {
+	db := req.Context().Value(ContextDBName)
+	if tx, ok := db.(*gorm.DB); ok {
+		return tx
+	}
+
+	return nil
 }
 
 // HumanizeString Humanize separates string based on capitalizd letters
