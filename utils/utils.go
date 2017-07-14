@@ -22,10 +22,13 @@ import (
 	"strings"
 )
 
+// AppRoot app root path
+var AppRoot, _ = os.Getwd()
+
 // ContextKey defined type used for context's key
 type ContextKey string
 
-// ContextDB context
+// ContextDBName db name used for context
 var ContextDBName ContextKey = "ContextDB"
 
 // HTMLSanitizer html sanitizer to avoid XSS
@@ -33,6 +36,9 @@ var HTMLSanitizer = bluemonday.UGCPolicy()
 
 func init() {
 	HTMLSanitizer.AllowStandardAttributes()
+	if path := os.Getenv("WEB_ROOT"); path != "" {
+		AppRoot = path
+	}
 }
 
 // GetDBFromRequest get database from request
