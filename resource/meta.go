@@ -60,13 +60,14 @@ type Meta struct {
 	Valuer          func(interface{}, *qor.Context) interface{}
 	FormattedValuer func(interface{}, *qor.Context) interface{}
 	Config          MetaConfigInterface
+	BaseResource    Resourcer
 	Resource        Resourcer
 	Permission      *roles.Permission
 }
 
 // GetBaseResource get base resource from meta
 func (meta Meta) GetBaseResource() Resourcer {
-	return meta.Resource
+	return meta.BaseResource
 }
 
 // GetName get meta's name
@@ -159,9 +160,9 @@ func (meta *Meta) PreInitialize() error {
 	}
 
 	var nestedField = strings.Contains(meta.FieldName, ".")
-	var scope = &gorm.Scope{Value: meta.Resource.GetResource().Value}
+	var scope = &gorm.Scope{Value: meta.BaseResource.GetResource().Value}
 	if nestedField {
-		subModel, name := parseNestedField(reflect.ValueOf(meta.Resource.GetResource().Value), meta.FieldName)
+		subModel, name := parseNestedField(reflect.ValueOf(meta.BaseResource.GetResource().Value), meta.FieldName)
 		meta.FieldStruct = getField(scope.New(subModel.Interface()).GetStructFields(), name)
 	} else {
 		meta.FieldStruct = getField(scope.GetStructFields(), meta.FieldName)
@@ -215,7 +216,7 @@ func (meta *Meta) Initialize() error {
 				return ""
 			}
 		} else {
-			utils.ExitWithMsg("Meta %v is not supported for resource %v, no `Valuer` configured for it", meta.FieldName, reflect.TypeOf(meta.Resource.GetResource().Value))
+			utils.ExitWithMsg("Meta %v is not supported for resource %v, no `Valuer` configured for it", meta.FieldName, reflect.TypeOf(meta.BaseResource.GetResource().Value))
 		}
 	}
 
