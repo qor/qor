@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"database/sql"
 	"errors"
 	"reflect"
 
@@ -89,7 +90,9 @@ func (processor *processor) decode() (errors []error) {
 			if res := metaValue.Meta.GetResource(); res != nil && !reflect.ValueOf(res).IsNil() {
 				field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
 				if utils.ModelType(field.Addr().Interface()) == utils.ModelType(res.NewStruct()) {
-					decodeMetaValuesToField(res, field, metaValue, processor.Context)
+					if _, ok := field.Addr().Interface().(sql.Scanner); !ok {
+						decodeMetaValuesToField(res, field, metaValue, processor.Context)
+					}
 				}
 			}
 		}
