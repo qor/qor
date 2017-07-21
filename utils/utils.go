@@ -301,25 +301,29 @@ func SortFormKeys(strs []string) {
 		matched2 := replaceIdxRegexp.FindAllStringIndex(str2, -1)
 
 		for x := 0; x < len(matched1); x++ {
+			prefix1 := str1[:matched1[x][0]]
+			prefix2 := str2
+
+			if len(matched2) >= x+1 {
+				prefix2 = str2[:matched2[x][0]]
+			}
+
+			if prefix1 != prefix2 {
+				return strings.Compare(prefix1, prefix2) < 0
+			}
+
 			if len(matched2) < x+1 {
 				return false
 			}
 
-			m1 := matched1[x]
-			m2 := matched2[x]
+			number1 := str1[matched1[x][0]:matched1[x][1]]
+			number2 := str2[matched2[x][0]:matched2[x][1]]
 
-			if str1[:m1[0]] != str2[:m2[0]] {
-				return strings.Compare(str1[:m1[0]], str2[:m2[0]]) < 0
-			}
-
-			idx1 := str1[m1[0]:m1[1]]
-			idx2 := str2[m2[0]:m2[1]]
-
-			if idx1 != idx2 {
-				if len(idx1) != len(idx2) {
-					return len(idx1) < len(idx2)
+			if number1 != number2 {
+				if len(number1) != len(number2) {
+					return len(number1) < len(number2)
 				}
-				return strings.Compare(idx1, idx2) < 0
+				return strings.Compare(number1, number2) < 0
 			}
 		}
 
