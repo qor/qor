@@ -294,29 +294,35 @@ var replaceIdxRegexp = regexp.MustCompile(`\[\d+\]`)
 
 // SortFormKeys sort form keys
 func SortFormKeys(strs []string) {
-	fmt.Printf("IN \n %+v \n", strs)
 	sort.Slice(strs, func(i, j int) bool { // true for first
-		str1 := replaceIdxRegexp.ReplaceAllString(strs[i], "[:number:]")
-		str2 := replaceIdxRegexp.ReplaceAllString(strs[j], "[:number:]")
+		str1 := strs[i]
+		str2 := strs[j]
+		matched1 := replaceIdxRegexp.FindAllStringIndex(str1, -1)
+		matched2 := replaceIdxRegexp.FindAllStringIndex(str2, -1)
 
-		if str1 == str2 {
-			matched1 := replaceIdxRegexp.FindStringSubmatch(strs[i])
-			matched2 := replaceIdxRegexp.FindStringSubmatch(strs[j])
-			if len(matched2) > len(matched1) {
+		for x := 0; x < len(matched1); x++ {
+			if len(matched2) < x+1 {
 				return false
 			}
 
-			for x := 0; x < len(matched1); x++ {
-				if matched1[x] != matched2[x] {
-					if len(matched1[x]) != len(matched2[x]) {
-						return len(matched1[x]) < len(matched2[x])
-					}
-					return strings.Compare(matched1[x], matched2[x]) < 0
+			m1 := matched1[x]
+			m2 := matched2[x]
+
+			if str1[:m1[0]] != str2[:m2[0]] {
+				return strings.Compare(str1[:m1[0]], str2[:m2[0]]) < 0
+			}
+
+			idx1 := str1[m1[0]:m1[1]]
+			idx2 := str2[m2[0]:m2[1]]
+
+			if idx1 != idx2 {
+				if len(idx1) != len(idx2) {
+					return len(idx1) < len(idx2)
 				}
+				return strings.Compare(idx1, idx2) < 0
 			}
 		}
 
 		return strings.Compare(str1, str2) < 0
 	})
-	fmt.Printf("OUT \n %+v \n", strs)
 }
