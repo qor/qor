@@ -53,10 +53,6 @@ func decodeMetaValuesToField(res Resourcer, field reflect.Value, metaValue *Meta
 			isPtr = true
 		}
 
-		if destroy := metaValue.MetaValues.Get("_destroy"); destroy != nil {
-			return
-		}
-
 		value := reflect.New(fieldType)
 		associationProcessor := DecodeToResource(res, value.Interface(), metaValue.MetaValues, context)
 		associationProcessor.Start()

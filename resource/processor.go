@@ -70,6 +70,10 @@ func (processor *processor) decode() (errors []error) {
 		return
 	}
 
+	if destroy := processor.MetaValues.Get("_destroy"); destroy != nil {
+		return
+	}
+
 	for _, metaValue := range processor.MetaValues.Values {
 		meta := metaValue.Meta
 		if meta == nil {
