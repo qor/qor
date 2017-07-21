@@ -13,6 +13,8 @@ import (
 	"runtime/debug"
 	"time"
 
+	"go4.org/sort"
+
 	"github.com/gosimple/slug"
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
@@ -286,4 +288,35 @@ var ParseTime = func(timeStr string, context *qor.Context) (time.Time, error) {
 //     }
 var FormatTime = func(date time.Time, format string, context *qor.Context) string {
 	return date.Format(format)
+}
+
+var replaceIdxRegexp = regexp.MustCompile(`\[\d+\]`)
+
+// SortFormKeys sort form keys
+func SortFormKeys(strs []string) {
+	fmt.Printf("IN \n %+v \n", strs)
+	sort.Slice(strs, func(i, j int) bool { // true for first
+		str1 := replaceIdxRegexp.ReplaceAllString(strs[i], "[:number:]")
+		str2 := replaceIdxRegexp.ReplaceAllString(strs[j], "[:number:]")
+
+		if str1 == str2 {
+			matched1 := replaceIdxRegexp.FindStringSubmatch(strs[i])
+			matched2 := replaceIdxRegexp.FindStringSubmatch(strs[j])
+			if len(matched2) > len(matched1) {
+				return false
+			}
+
+			for x := 0; x < len(matched1); x++ {
+				if matched1[x] != matched2[x] {
+					if len(matched1[x]) != len(matched2[x]) {
+						return len(matched1[x]) < len(matched2[x])
+					}
+					return strings.Compare(matched1[x], matched2[x]) < 0
+				}
+			}
+		}
+
+		return strings.Compare(str1, str2) < 0
+	})
+	fmt.Printf("OUT \n %+v \n", strs)
 }

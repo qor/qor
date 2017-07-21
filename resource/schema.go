@@ -2,13 +2,14 @@ package resource
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/qor/qor"
+	"github.com/qor/qor/utils"
 )
 
 func convertMapToMetaValues(values map[string]interface{}, metaors []Metaor) (*MetaValues, error) {
@@ -125,31 +126,10 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 		sortedFormKeys = append(sortedFormKeys, key)
 	}
 
-	replaceIdxRegexp := regexp.MustCompile(`\[\d+\]`)
-	orderFunc := func(i, j int) bool { // true for first
-		str1 := replaceIdxRegexp.ReplaceAllString(sortedFormKeys[i], "[:number:]")
-		str2 := replaceIdxRegexp.ReplaceAllString(sortedFormKeys[j], "[:number:]")
+	utils.SortFormKeys(sortedFormKeys)
 
-		if str1 == str2 {
-			matched1 := replaceIdxRegexp.FindStringSubmatch(sortedFormKeys[i])
-			matched2 := replaceIdxRegexp.FindStringSubmatch(sortedFormKeys[j])
-			if len(matched2) > len(matched1) {
-				return false
-			}
-
-			for x := 0; x < len(matched1); x++ {
-				if matched1[x] != matched2[x] {
-					if len(matched1[x]) != len(matched2[x]) {
-						return len(matched1[x]) < len(matched2[x])
-					}
-					return strings.Compare(matched1[x], matched2[x]) < 0
-				}
-			}
-		}
-
-		return strings.Compare(str1, str2) < 0
-	}
-	sort.Slice(sortedFormKeys, orderFunc)
+	fmt.Println("sorted form keys....")
+	fmt.Println(sortedFormKeys)
 
 	for _, key := range sortedFormKeys {
 		newMetaValue(key, request.Form[key])
@@ -160,7 +140,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 		for key := range request.MultipartForm.File {
 			sortedFormKeys = append(sortedFormKeys, key)
 		}
-		sort.Slice(sortedFormKeys, orderFunc)
+		utils.SortFormKeys(sortedFormKeys)
 
 		for _, key := range sortedFormKeys {
 			newMetaValue(key, request.MultipartForm.File[key])

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -137,5 +138,17 @@ func TestJoinURL(t *testing.T) {
 				t.Errorf("context.JoinURL = %s; c.want %s", got, c.want)
 			}
 		}
+	}
+}
+
+func TestSortFormKeys(t *testing.T) {
+	keys := []string{"QorResource.Category", "QorResource.Code", "QorResource.ColorVariations[0].Color", "QorResource.ColorVariations[0].ID", "QorResource.ColorVariations[0].SizeVariations[2].AvailableQuantity", "QorResource.ColorVariations[0].SizeVariations[3].AvailableQuantity", "QorResource.ColorVariations[0].SizeVariations[4].AvailableQuantity", "QorResource.ColorVariations[1].SizeVariations[0].AvailableQuantity", "QorResource.ColorVariations[1].SizeVariations[1].AvailableQuantity", "QorResource.ColorVariations[1].ID", "QorResource.ColorVariations[0].SizeVariations[1].ID", "QorResource.ColorVariations[0].SizeVariations[4].ID", "QorResource.ColorVariations[0].SizeVariations[3].ID"}
+
+	SortFormKeys(keys)
+
+	orderedKeys := []string{"QorResource.Category", "QorResource.Code", "QorResource.ColorVariations[0].Color", "QorResource.ColorVariations[0].ID", "QorResource.ColorVariations[0].SizeVariations[1].ID", "QorResource.ColorVariations[0].SizeVariations[2].AvailableQuantity", "QorResource.ColorVariations[0].SizeVariations[3].AvailableQuantity", "QorResource.ColorVariations[0].SizeVariations[3].ID", "QorResource.ColorVariations[0].SizeVariations[4].AvailableQuantity", "QorResource.ColorVariations[0].SizeVariations[4].ID", "QorResource.ColorVariations[1].ID", "QorResource.ColorVariations[1].SizeVariations[0].AvailableQuantity", "QorResource.ColorVariations[1].SizeVariations[1].AvailableQuantity"}
+
+	if fmt.Sprint(keys) != fmt.Sprint(orderedKeys) {
+		t.Errorf("ordered form keys should be \n%v\n, but got\n%v", orderedKeys, keys)
 	}
 }
