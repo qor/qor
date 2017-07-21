@@ -2,7 +2,6 @@ package resource
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -127,9 +126,6 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 	}
 
 	utils.SortFormKeys(sortedFormKeys)
-
-	fmt.Println("sorted form keys....")
-	fmt.Println(sortedFormKeys)
 
 	for _, key := range sortedFormKeys {
 		newMetaValue(key, request.Form[key])
