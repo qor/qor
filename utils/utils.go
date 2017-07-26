@@ -330,3 +330,20 @@ func SortFormKeys(strs []string) {
 		return strings.Compare(str1, str2) < 0
 	})
 }
+
+// GetAbsURL get absolute URL from request, refer: https://stackoverflow.com/questions/6899069/why-are-request-url-host-and-scheme-blank-in-the-development-server
+func GetAbsURL(req *http.Request) url.URL {
+	var result url.URL
+
+	if req.URL.IsAbs() {
+		return *req.URL
+	}
+
+	if domain := req.Header.Get("Origin"); domain != "" {
+		parseResult, _ := url.Parse(domain)
+		result = *parseResult
+	}
+
+	result.Parse(req.RequestURI)
+	return result
+}
