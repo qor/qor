@@ -1,7 +1,7 @@
 'use strict';
 
 var gulp = require('gulp');
-var babel = require("gulp-babel");
+var babel = require('gulp-babel');
 var eslint = require('gulp-eslint');
 var plugins = require('gulp-load-plugins')();
 
@@ -19,7 +19,7 @@ var moduleName = (function() {
   var useSubName;
 
   while (i++ < length) {
-    if ((/^--+(\w+)/i).test(args[i])) {
+    if (/^--+(\w+)/i.test(args[i])) {
       name = args[i].split('--')[1];
       subName = args[i].split('--')[2];
       useSubName = args[i].split('--')[3];
@@ -27,9 +27,9 @@ var moduleName = (function() {
     }
   }
   return {
-    'name': name,
-    'subName': subName,
-    'useSubName': useSubName
+    name: name,
+    subName: subName,
+    useSubName: useSubName
   };
 })();
 
@@ -41,7 +41,7 @@ var moduleName = (function() {
 
 function adminTasks() {
   var pathto = function(file) {
-    return ('../admin/views/assets/' + file);
+    return '../admin/views/assets/' + file;
   };
   var scripts = {
     src: pathto('javascripts/app/*.js'),
@@ -49,44 +49,52 @@ function adminTasks() {
     qor: pathto('javascripts/qor/*.js'),
     qorInit: pathto('javascripts/qor/qor-config.js'),
     qorCommon: pathto('javascripts/qor/qor-common.js'),
-    all: [
-            'gulpfile.js',
-            pathto('javascripts/qor/*.js')
-        ]
+    qorAdmin: [pathto('javascripts/qor.js'), pathto('javascripts/app.js')],
+    all: ['gulpfile.js', pathto('javascripts/qor/*.js')]
   };
   var styles = {
     src: pathto('stylesheets/scss/{app,qor}.scss'),
     dest: pathto('stylesheets'),
     vendors: pathto('stylesheets/vendors'),
     main: pathto('stylesheets/{qor,app}.css'),
+    qorAdmin: [pathto('stylesheets/vendors.css'), pathto('stylesheets/qor.css'), pathto('stylesheets/app.css')],
     scss: pathto('stylesheets/scss/**/*.scss')
   };
 
   gulp.task('qor', function() {
-    return gulp.src([scripts.qorInit, scripts.qorCommon, scripts.qor])
+    return gulp
+      .src([scripts.qorInit, scripts.qorCommon, scripts.qor])
       .pipe(plugins.concat('qor.js'))
       .pipe(plugins.uglify())
       .pipe(gulp.dest(scripts.dest));
   });
 
   gulp.task('js', ['qor'], function() {
-    return gulp.src(scripts.src)
-      .pipe(eslint({
-        configFile: '.eslintrc'
-      }))
+    return gulp
+      .src(scripts.src)
+      .pipe(
+        eslint({
+          configFile: '.eslintrc'
+        })
+      )
       .pipe(plugins.concat('app.js'))
       .pipe(plugins.uglify())
       .pipe(gulp.dest(scripts.dest));
   });
 
   gulp.task('qor+', function() {
-    return gulp.src([scripts.qorInit, scripts.qorCommon, scripts.qor])
-      .pipe(eslint({
-        configFile: '.eslintrc'
-      }))
-      .pipe(babel({
-        presets: ['es2015']
-      }))
+    return gulp
+      .src([scripts.qorInit, scripts.qorCommon, scripts.qor])
+      .pipe(
+        eslint({
+          configFile: '.eslintrc'
+        })
+      )
+      .pipe(
+        babel({
+          presets: ['es2015']
+        })
+      )
       .pipe(eslint.format())
       .pipe(plugins.concat('qor.js'))
       .pipe(plugins.uglify())
@@ -94,10 +102,13 @@ function adminTasks() {
   });
 
   gulp.task('js+', function() {
-    return gulp.src(scripts.src)
-      .pipe(babel({
-        presets: ['es2015']
-      }))
+    return gulp
+      .src(scripts.src)
+      .pipe(
+        babel({
+          presets: ['es2015']
+        })
+      )
       .pipe(eslint.format())
       .pipe(plugins.concat('app.js'))
       .pipe(plugins.uglify())
@@ -105,30 +116,49 @@ function adminTasks() {
   });
 
   gulp.task('sass', function() {
-    return gulp.src(styles.src)
-      .pipe(plugins.sass())
-      .pipe(gulp.dest(styles.dest));
+    return gulp.src(styles.src).pipe(plugins.sass()).pipe(gulp.dest(styles.dest));
   });
 
   gulp.task('css', ['sass'], function() {
-    return gulp.src(styles.main)
+    return gulp
+      .src(styles.main)
       .pipe(plugins.autoprefixer())
       .pipe(plugins.csscomb())
       .pipe(plugins.minifyCss())
       .pipe(gulp.dest(styles.dest));
   });
 
-  gulp.task('watch', function() {
-    gulp.watch(scripts.qor, ['qor+']);
-    gulp.watch(scripts.src, ['js+']);
-    gulp.watch(styles.scss, ['css']);
+  gulp.task('release_js', function() {
+    return gulp.src(scripts.qorAdmin).pipe(plugins.concat('qor-admin.js')).pipe(gulp.dest(scripts.dest));
   });
 
-  gulp.task('release', ['qor+', 'js+', 'css']);
+  gulp.task('release_css', function() {
+    return gulp.src(styles.qorAdmin).pipe(plugins.concat('qor-admin.css')).pipe(gulp.dest(styles.dest));
+  });
+
+  gulp.task('release', ['qor+', 'js+', 'css', 'release_js', 'release_css']);
+
+  var watcher = gulp.task('watch', function() {
+    var watch_qor = gulp.watch(scripts.qor, ['qor+']);
+    var watch_js = gulp.watch(scripts.src, ['js+']);
+    var watch_css = gulp.watch(styles.scss, ['css']);
+
+    gulp.watch(styles.qorAdmin, ['release_css']);
+    gulp.watch(scripts.qorAdmin, ['release_js']);
+
+    watch_qor.on('change', function(event) {
+      console.log(':==> File ' + event.path + ' was ' + event.type + ', running tasks...');
+    });
+    watch_js.on('change', function(event) {
+      console.log(':==> File ' + event.path + ' was ' + event.type + ', running tasks...');
+    });
+    watch_css.on('change', function(event) {
+      console.log(':==> File ' + event.path + ' was ' + event.type + ', running tasks...');
+    });
+  });
 
   gulp.task('default', ['watch']);
 }
-
 
 // -----------------------------------------------------------------------------
 // Other Modules
@@ -174,7 +204,6 @@ function moduleTasks(moduleNames) {
       } else {
         return '../' + moduleName + '/' + subModuleName + '/views/themes/' + moduleName + '/assets/' + file;
       }
-
     }
     return '../' + moduleName + '/views/themes/' + moduleName + '/assets/' + file;
   };
@@ -191,51 +220,55 @@ function moduleTasks(moduleNames) {
   function getFolders(dir) {
     return fs.readdirSync(dir).filter(function(file) {
       return fs.statSync(path.join(dir, file)).isDirectory();
-    })
+    });
   }
 
   gulp.task('js', function() {
     var scriptPath = scripts.src;
     var folders = getFolders(scriptPath);
     var task = folders.map(function(folder) {
-
-      return gulp.src(path.join(scriptPath, folder, '/*.js'))
-        .pipe(eslint({
-          configFile: '.eslintrc'
-        }))
-        .pipe(babel({
-          presets: ['es2015']
-        }))
+      return gulp
+        .src(path.join(scriptPath, folder, '/*.js'))
+        .pipe(
+          eslint({
+            configFile: '.eslintrc'
+          })
+        )
+        .pipe(
+          babel({
+            presets: ['es2015']
+          })
+        )
         .pipe(eslint.format())
         .pipe(plugins.concat(folder + '.js'))
-        .pipe(plugins.uglify({
-          drop_debugger: false
-        }))
+        .pipe(
+          plugins.uglify({
+            drop_debugger: false
+          })
+        )
         .pipe(gulp.dest(scriptPath));
     });
 
     return es.concat.apply(null, task);
-
   });
 
   gulp.task('css', function() {
-
     var stylePath = styles.src;
     var folders = getFolders(stylePath);
     var task = folders.map(function(folder) {
-
-      return gulp.src(path.join(stylePath, folder, '/*.scss'))
-
-        .pipe(plugins.sass({
-          outputStyle: 'compressed'
-        }))
+      return gulp
+        .src(path.join(stylePath, folder, '/*.scss'))
+        .pipe(
+          plugins.sass({
+            outputStyle: 'compressed'
+          })
+        )
         .pipe(plugins.minifyCss())
         .pipe(rename(folder + '.css'))
-        .pipe(gulp.dest(stylePath))
+        .pipe(gulp.dest(stylePath));
     });
 
     return es.concat.apply(null, task);
-
   });
 
   gulp.task('watch', function() {
@@ -246,7 +279,6 @@ function moduleTasks(moduleNames) {
   gulp.task('default', ['watch']);
   gulp.task('release', ['js', 'css']);
 }
-
 
 // Init
 // -----------------------------------------------------------------------------
@@ -279,13 +311,15 @@ if (moduleName.name) {
 
 // Task for compress js and css vendor assets
 gulp.task('combineJavaScriptVendor', function() {
-  return gulp.src(['!../admin/views/assets/javascripts/vendors/jquery.min.js', '../admin/views/assets/javascripts/vendors/*.js'])
+  return gulp
+    .src(['!../admin/views/assets/javascripts/vendors/jquery.min.js', '../admin/views/assets/javascripts/vendors/*.js'])
     .pipe(plugins.concat('vendors.js'))
     .pipe(gulp.dest('../admin/views/assets/javascripts'));
 });
 
 gulp.task('compressCSSVendor', function() {
-  return gulp.src('../admin/views/assets/stylesheets/vendors/*.css')
+  return gulp
+    .src('../admin/views/assets/stylesheets/vendors/*.css')
     .pipe(plugins.concat('vendors.css'))
     .pipe(gulp.dest('../admin/views/assets/stylesheets'));
 });
