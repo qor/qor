@@ -131,5 +131,10 @@ func (res *Resource) HasPermission(mode roles.PermissionMode, context *qor.Conte
 	if res == nil || res.Permission == nil {
 		return true
 	}
-	return res.Permission.HasPermission(mode, context.Roles...)
+
+	var roles = []interface{}{}
+	for _, role := range context.Roles {
+		roles = append(roles, role)
+	}
+	return res.Permission.HasPermission(mode, roles...)
 }

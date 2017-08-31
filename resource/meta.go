@@ -123,7 +123,11 @@ func (meta Meta) HasPermission(mode roles.PermissionMode, context *qor.Context) 
 	if meta.Permission == nil {
 		return true
 	}
-	return meta.Permission.HasPermission(mode, context.Roles...)
+	var roles = []interface{}{}
+	for _, role := range context.Roles {
+		roles = append(roles, role)
+	}
+	return meta.Permission.HasPermission(mode, roles...)
 }
 
 // SetPermission set permission for meta
