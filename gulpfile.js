@@ -129,11 +129,11 @@ function adminTasks() {
   });
 
   gulp.task('release_js', function() {
-    return gulp.src(scripts.qorAdmin).pipe(plugins.concat('qor-admin.js')).pipe(gulp.dest(scripts.dest));
+    return gulp.src(scripts.qorAdmin).pipe(plugins.concat('qor_admin_default.js')).pipe(gulp.dest(scripts.dest));
   });
 
   gulp.task('release_css', function() {
-    return gulp.src(styles.qorAdmin).pipe(plugins.concat('qor-admin.css')).pipe(gulp.dest(styles.dest));
+    return gulp.src(styles.qorAdmin).pipe(plugins.concat('qor_admin_default.css')).pipe(gulp.dest(styles.dest));
   });
 
   gulp.task('release', ['qor+', 'js+', 'css', 'release_js', 'release_css']);
