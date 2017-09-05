@@ -334,7 +334,10 @@ func (meta *Meta) Initialize() error {
 							}
 
 							if scanner.Scan(value) != nil {
-								scanner.Scan(utils.ToString(value))
+								if err := scanner.Scan(utils.ToString(value)); err != nil {
+									context.AddError(err)
+									return
+								}
 							}
 						} else if reflect.TypeOf("").ConvertibleTo(field.Type()) {
 							field.Set(reflect.ValueOf(utils.ToString(value)).Convert(field.Type()))
