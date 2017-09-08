@@ -4,6 +4,7 @@ var gulp = require('gulp');
 var babel = require('gulp-babel');
 var eslint = require('gulp-eslint');
 var plugins = require('gulp-load-plugins')();
+var plumber = require('gulp-plumber');
 
 var fs = require('fs');
 var path = require('path');
@@ -64,6 +65,7 @@ function adminTasks() {
   gulp.task('qor', function() {
     return gulp
       .src([scripts.qorInit, scripts.qorCommon, scripts.qor])
+      .pipe(plumber())
       .pipe(plugins.concat('qor.js'))
       .pipe(plugins.uglify())
       .pipe(gulp.dest(scripts.dest));
@@ -72,6 +74,7 @@ function adminTasks() {
   gulp.task('js', ['qor'], function() {
     return gulp
       .src(scripts.src)
+      .pipe(plumber())
       .pipe(
         eslint({
           configFile: '.eslintrc'
@@ -85,6 +88,7 @@ function adminTasks() {
   gulp.task('qor+', function() {
     return gulp
       .src([scripts.qorInit, scripts.qorCommon, scripts.qor])
+      .pipe(plumber())
       .pipe(
         eslint({
           configFile: '.eslintrc'
@@ -104,6 +108,7 @@ function adminTasks() {
   gulp.task('js+', function() {
     return gulp
       .src(scripts.src)
+      .pipe(plumber())
       .pipe(
         babel({
           presets: ['es2015']
@@ -116,12 +121,13 @@ function adminTasks() {
   });
 
   gulp.task('sass', function() {
-    return gulp.src(styles.src).pipe(plugins.sass()).pipe(gulp.dest(styles.dest));
+    return gulp.src(styles.src).pipe(plumber()).pipe(plugins.sass()).pipe(gulp.dest(styles.dest));
   });
 
   gulp.task('css', ['sass'], function() {
     return gulp
       .src(styles.main)
+      .pipe(plumber())
       .pipe(plugins.autoprefixer())
       .pipe(plugins.csscomb())
       .pipe(plugins.minifyCss())
@@ -226,9 +232,11 @@ function moduleTasks(moduleNames) {
   gulp.task('js', function() {
     var scriptPath = scripts.src;
     var folders = getFolders(scriptPath);
+
     var task = folders.map(function(folder) {
       return gulp
         .src(path.join(scriptPath, folder, '/*.js'))
+        .pipe(plumber())
         .pipe(
           eslint({
             configFile: '.eslintrc'
@@ -258,6 +266,7 @@ function moduleTasks(moduleNames) {
     var task = folders.map(function(folder) {
       return gulp
         .src(path.join(stylePath, folder, '/*.scss'))
+        .pipe(plumber())
         .pipe(
           plugins.sass({
             outputStyle: 'compressed'
@@ -272,8 +281,12 @@ function moduleTasks(moduleNames) {
   });
 
   gulp.task('watch', function() {
-    gulp.watch(scripts.watch, ['js']);
+    var moduleScript = gulp.watch(scripts.watch, { debounceDelay: 2000 }, ['js']);
     gulp.watch(styles.watch, ['css']);
+
+    moduleScript.on('change', function(event) {
+      console.log(':==> File ' + event.path + ' was ' + event.type + ', running tasks...');
+    });
   });
 
   gulp.task('default', ['watch']);
