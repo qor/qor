@@ -44,6 +44,10 @@ func (processor *processor) checkSkipLeft(errs ...error) bool {
 }
 
 func (processor *processor) Initialize() error {
+	if reflect.ValueOf(processor.Resource).IsNil() {
+		return nil
+	}
+
 	err := processor.Resource.CallFindOne(processor.Result, processor.MetaValues, processor.Context)
 	processor.checkSkipLeft(err)
 	return err
@@ -52,6 +56,10 @@ func (processor *processor) Initialize() error {
 func (processor *processor) Validate() error {
 	var errors qor.Errors
 	if processor.checkSkipLeft() {
+		return nil
+	}
+
+	if reflect.ValueOf(processor.Resource).IsNil() {
 		return nil
 	}
 
@@ -109,6 +117,10 @@ func (processor *processor) Commit() error {
 	var errors qor.Errors
 	errors.AddError(processor.decode()...)
 	if processor.checkSkipLeft(errors.GetErrors()...) {
+		return nil
+	}
+
+	if reflect.ValueOf(processor.Resource).IsNil() {
 		return nil
 	}
 
