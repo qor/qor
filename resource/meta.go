@@ -62,7 +62,7 @@ type Meta struct {
 	Config          MetaConfigInterface
 	BaseResource    Resourcer
 	Resource        Resourcer
-	Permission      *roles.Permission
+	Permission      roles.Permissioner
 }
 
 // GetBaseResource get base resource from meta

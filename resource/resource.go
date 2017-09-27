@@ -41,7 +41,7 @@ type Resource struct {
 	FindOneHandler  func(interface{}, *MetaValues, *qor.Context) error
 	SaveHandler     func(interface{}, *qor.Context) error
 	DeleteHandler   func(interface{}, *qor.Context) error
-	Permission      *roles.Permission
+	Permission      roles.Permissioner
 	Validators      []func(interface{}, *MetaValues, *qor.Context) error
 	Processors      []func(interface{}, *MetaValues, *qor.Context) error
 	primaryField    *gorm.Field
