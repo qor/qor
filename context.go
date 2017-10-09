@@ -13,14 +13,15 @@ type CurrentUser interface {
 
 // Context qor context, which is used for many qor components, used to share information between them
 type Context struct {
+	CurrentUser CurrentUser
 	Request     *http.Request
 	Writer      http.ResponseWriter
-	ResourceID  string
-	Config      *Config
 	Roles       []string
-	DB          *gorm.DB
-	CurrentUser CurrentUser
+	ResourceID  string
 	Errors
+
+	DB     *gorm.DB
+	Config *Config
 }
 
 // Clone clone current context
