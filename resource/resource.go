@@ -42,8 +42,8 @@ type Resource struct {
 	SaveHandler     func(interface{}, *qor.Context) error
 	DeleteHandler   func(interface{}, *qor.Context) error
 	Permission      *roles.Permission
-	Validators      []func(interface{}, *MetaValues, *qor.Context) error
-	Processors      []func(interface{}, *MetaValues, *qor.Context) error
+	Validators      []*Validator
+	Processors      []*Processor
 	primaryField    *gorm.Field
 }
 
@@ -91,14 +91,39 @@ func (res *Resource) GetResource() *Resource {
 	return res
 }
 
+// Validator validator struct
+type Validator struct {
+	Name    string
+	Handler func(interface{}, *MetaValues, *qor.Context) error
+}
+
 // AddValidator add validator to resource, it will invoked when creating, updating, and will rollback the change if validator return any error
-func (res *Resource) AddValidator(fc func(interface{}, *MetaValues, *qor.Context) error) {
-	res.Validators = append(res.Validators, fc)
+func (res *Resource) AddValidator(validator *Validator) {
+	for idx, v := range res.Validators {
+		if v.Name == validator.Name {
+			res.Validators[idx] = validator
+			return
+		}
+	}
+
+	res.Validators = append(res.Validators, validator)
+}
+
+// Processor processor struct
+type Processor struct {
+	Name    string
+	Handler func(interface{}, *MetaValues, *qor.Context) error
 }
 
 // AddProcessor add processor to resource, it is used to process data before creating, updating, will rollback the change if it return any error
-func (res *Resource) AddProcessor(fc func(interface{}, *MetaValues, *qor.Context) error) {
-	res.Processors = append(res.Processors, fc)
+func (res *Resource) AddProcessor(processor *Processor) {
+	for idx, p := range res.Processors {
+		if p.Name == processor.Name {
+			res.Processors[idx] = processor
+			return
+		}
+	}
+	res.Processors = append(res.Processors, processor)
 }
 
 // NewStruct initialize a struct for the Resource
