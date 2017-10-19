@@ -25,6 +25,7 @@ type Metaor interface {
 	GetValuer() func(interface{}, *qor.Context) interface{}
 	GetResource() Resourcer
 	GetMetas() []Metaor
+	SetPermission(*roles.Permission)
 	HasPermission(roles.PermissionMode, *qor.Context) bool
 }
 
