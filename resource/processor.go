@@ -43,12 +43,14 @@ func (processor *processor) checkSkipLeft(errs ...error) bool {
 	return processor.SkipLeft
 }
 
+// Initialize initialize a processor
 func (processor *processor) Initialize() error {
 	err := processor.Resource.CallFindOne(processor.Result, processor.MetaValues, processor.Context)
 	processor.checkSkipLeft(err)
 	return err
 }
 
+// Validate run validators
 func (processor *processor) Validate() error {
 	var errors qor.Errors
 	if processor.checkSkipLeft() {
@@ -105,6 +107,20 @@ func (processor *processor) decode() (errors []error) {
 	return
 }
 
+// Start start processor
+func (processor *processor) Start() error {
+	var errors qor.Errors
+	processor.Initialize()
+	if errors.AddError(processor.Validate()); !errors.HasError() {
+		errors.AddError(processor.Commit())
+	}
+	if errors.HasError() {
+		return errors
+	}
+	return nil
+}
+
+// Commit commit data into result
 func (processor *processor) Commit() error {
 	var errors qor.Errors
 	errors.AddError(processor.decode()...)
@@ -121,16 +137,4 @@ func (processor *processor) Commit() error {
 		}
 	}
 	return errors
-}
-
-func (processor *processor) Start() error {
-	var errors qor.Errors
-	processor.Initialize()
-	if errors.AddError(processor.Validate()); !errors.HasError() {
-		errors.AddError(processor.Commit())
-	}
-	if errors.HasError() {
-		return errors
-	}
-	return nil
 }

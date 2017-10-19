@@ -11,7 +11,27 @@ import (
 	"github.com/qor/roles"
 )
 
-// ToPrimaryQueryParams to primary query params
+// CallFindOne call find one method
+func (res *Resource) CallFindOne(result interface{}, metaValues *MetaValues, context *qor.Context) error {
+	return res.FindOneHandler(result, metaValues, context)
+}
+
+// CallFindMany call find many method
+func (res *Resource) CallFindMany(result interface{}, context *qor.Context) error {
+	return res.FindManyHandler(result, context)
+}
+
+// CallSave call save method
+func (res *Resource) CallSave(result interface{}, context *qor.Context) error {
+	return res.SaveHandler(result, context)
+}
+
+// CallDelete call delete method
+func (res *Resource) CallDelete(result interface{}, context *qor.Context) error {
+	return res.DeleteHandler(result, context)
+}
+
+// ToPrimaryQueryParams generate query params based on primary key, multiple primary value are linked with a comma
 func (res *Resource) ToPrimaryQueryParams(primaryValue string, context *qor.Context) (string, []interface{}) {
 	if primaryValue != "" {
 		scope := context.GetDB().NewScope(res.Value)
@@ -44,7 +64,7 @@ func (res *Resource) ToPrimaryQueryParams(primaryValue string, context *qor.Cont
 	return "", []interface{}{}
 }
 
-// ToPrimaryQueryParamsFromMetaValue to primary query params from meta values
+// ToPrimaryQueryParamsFromMetaValue generate query params based on MetaValues
 func (res *Resource) ToPrimaryQueryParamsFromMetaValue(metaValues *MetaValues, context *qor.Context) (string, []interface{}) {
 	var (
 		sqls          []string
@@ -125,24 +145,4 @@ func (res *Resource) deleteHandler(result interface{}, context *qor.Context) err
 		return gorm.ErrRecordNotFound
 	}
 	return roles.ErrPermissionDenied
-}
-
-// CallFindOne call find one method
-func (res *Resource) CallFindOne(result interface{}, metaValues *MetaValues, context *qor.Context) error {
-	return res.FindOneHandler(result, metaValues, context)
-}
-
-// CallFindMany call find many method
-func (res *Resource) CallFindMany(result interface{}, context *qor.Context) error {
-	return res.FindManyHandler(result, context)
-}
-
-// CallSave call save method
-func (res *Resource) CallSave(result interface{}, context *qor.Context) error {
-	return res.SaveHandler(result, context)
-}
-
-// CallDelete call delete method
-func (res *Resource) CallDelete(result interface{}, context *qor.Context) error {
-	return res.DeleteHandler(result, context)
 }

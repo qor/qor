@@ -62,6 +62,11 @@ func New(value interface{}) *Resource {
 	return res
 }
 
+// GetResource return itself to match interface `Resourcer`
+func (res *Resource) GetResource() *Resource {
+	return res
+}
+
 // SetPrimaryFields set primary fields
 func (res *Resource) SetPrimaryFields(fields ...string) error {
 	scope := gorm.Scope{Value: res.Value}
@@ -84,11 +89,6 @@ func (res *Resource) SetPrimaryFields(fields ...string) error {
 	}
 
 	return fmt.Errorf("no valid primary field for resource %v", res.Name)
-}
-
-// GetResource return itself to match interface `Resourcer`
-func (res *Resource) GetResource() *Resource {
-	return res
 }
 
 // Validator validator struct

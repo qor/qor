@@ -28,9 +28,8 @@ type MetaValue struct {
 	Name       string
 	Value      interface{}
 	Index      int
-	MetaValues *MetaValues
 	Meta       Metaor
-	error      error
+	MetaValues *MetaValues
 }
 
 func decodeMetaValuesToField(res Resourcer, field reflect.Value, metaValue *MetaValue, context *qor.Context) {
