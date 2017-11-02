@@ -43,6 +43,15 @@ func init() {
 	}
 }
 
+// GOPATH return GOPATH from env
+func GOPATH() []string {
+	paths := strings.Split(os.Getenv("GOPATH"), ":")
+	if len(paths) == 0 {
+		fmt.Println("GOPATH doesn't exist")
+	}
+	return paths
+}
+
 // GetDBFromRequest get database from request
 var GetDBFromRequest = func(req *http.Request) *gorm.DB {
 	db := req.Context().Value(ContextDBName)
