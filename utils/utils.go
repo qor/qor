@@ -45,7 +45,7 @@ func init() {
 
 // GOPATH return GOPATH from env
 func GOPATH() []string {
-	paths := strings.Split(os.Getenv("GOPATH"), ":")
+	paths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
 	if len(paths) == 0 {
 		fmt.Println("GOPATH doesn't exist")
 	}
