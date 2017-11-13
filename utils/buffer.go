@@ -1,15 +1,13 @@
 package utils
 
-import (
-	"bytes"
-)
+import "io"
 
-// ClosingBuffer implement Closer interface for Buffer
-type ClosingBuffer struct {
-	*bytes.Buffer
+// ClosingReadSeeker implement Closer interface for ReadSeeker
+type ClosingReadSeeker struct {
+	io.ReadSeeker
 }
 
 // Close implement Closer interface for Buffer
-func (ClosingBuffer) Close() error {
+func (ClosingReadSeeker) Close() error {
 	return nil
 }
