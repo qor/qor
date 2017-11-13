@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bytes"
-	"os"
 )
 
 // ClosingBuffer implement Closer interface for Buffer
@@ -11,6 +10,6 @@ type ClosingBuffer struct {
 }
 
 // Close implement Closer interface for Buffer
-func (cb *ClosingBuffer) Close() (err os.Error) {
-	return
+func (ClosingBuffer) Close() error {
+	return nil
 }
