@@ -91,7 +91,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 
 			if matches := isCurrentLevel.FindStringSubmatch(key); len(matches) > 0 {
 				name := matches[0]
-				metaValue = &MetaValue{Name: name, Value: value, Meta: metaorsMap[name]}
+				metaValue = &MetaValue{Name: name, Meta: metaorsMap[name], Value: value}
 			} else if matches := isNextLevel.FindStringSubmatch(key); len(matches) > 0 {
 				name := matches[1]
 				if _, ok := convertedNextLevel[name]; !ok {
@@ -109,7 +109,20 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 						} else {
 							nestedStructIndex[nestedName] = 0
 						}
-						metaValue = &MetaValue{Name: matches[2], Meta: metaor, MetaValues: children, Index: nestedStructIndex[nestedName]}
+
+						// is collection
+						if matches[3] != "" {
+							metaValue = &MetaValue{Name: matches[2], Meta: metaor, MetaValues: children, Index: nestedStructIndex[nestedName]}
+						} else {
+							// is nested and it is existing
+							if metaValue = metaValues.Get(matches[2]); metaValue == nil {
+								metaValue = &MetaValue{Name: matches[2], Meta: metaor, MetaValues: children, Index: nestedStructIndex[nestedName]}
+							} else {
+								metaValue.MetaValues = children
+								metaValue.Index = nestedStructIndex[nestedName]
+								metaValue = nil
+							}
+						}
 					}
 				}
 			}
