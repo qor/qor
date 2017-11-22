@@ -95,7 +95,8 @@ func (processor *processor) decode() (errors []error) {
 		if metaValue.MetaValues != nil && len(metaValue.MetaValues.Values) > 0 {
 			if res := metaValue.Meta.GetResource(); res != nil && !reflect.ValueOf(res).IsNil() {
 				field := reflect.Indirect(reflect.ValueOf(processor.Result)).FieldByName(meta.GetFieldName())
-				if utils.ModelType(field.Addr().Interface()) == utils.ModelType(res.NewStruct()) {
+				// Only decode nested meta value into struct if no Setter defined
+				if meta.GetSetter() == nil || reflect.Indirect(field).Type() == utils.ModelType(res.NewStruct()) {
 					if _, ok := field.Addr().Interface().(sql.Scanner); !ok {
 						decodeMetaValuesToField(res, field, metaValue, processor.Context)
 					}
