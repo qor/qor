@@ -84,7 +84,7 @@ func (processor *processor) decode() (errors []error) {
 
 		if processor.newRecord && !meta.HasPermission(roles.Create, processor.Context) {
 			continue
-		} else if !meta.HasPermission(roles.Update, processor.Context) {
+		} else if !processor.newRecord && !meta.HasPermission(roles.Update, processor.Context) {
 			continue
 		}
 
