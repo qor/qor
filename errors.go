@@ -1,6 +1,8 @@
 package qor
 
-import "strings"
+import (
+	"strings"
+)
 
 // Errors is a struct that used to hold errors array
 type Errors struct {
