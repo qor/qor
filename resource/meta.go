@@ -285,6 +285,10 @@ func (meta *Meta) Initialize() error {
 					fieldName = meta.FieldName
 				)
 
+				if value == nil {
+					return
+				}
+
 				defer func() {
 					if r := recover(); r != nil {
 						context.AddError(validations.NewError(resource, meta.Name, fmt.Sprintf("Can't set value %v", value)))
