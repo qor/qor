@@ -52,22 +52,22 @@ func (processor *processor) Initialize() error {
 
 // Validate run validators
 func (processor *processor) Validate() error {
-	var errors qor.Errors
+	var errs qor.Errors
 	if processor.checkSkipLeft() {
 		return nil
 	}
 
 	for _, v := range processor.Resource.GetResource().Validators {
-		if errors.AddError(v.Handler(processor.Result, processor.MetaValues, processor.Context)); !errors.HasError() {
-			if processor.checkSkipLeft(errors.GetErrors()...) {
+		if errs.AddError(v.Handler(processor.Result, processor.MetaValues, processor.Context)); !errs.HasError() {
+			if processor.checkSkipLeft(errs.GetErrors()...) {
 				break
 			}
 		}
 	}
-	return errors
+	return errs
 }
 
-func (processor *processor) decode() (errors []error) {
+func (processor *processor) decode() (errs []error) {
 	if processor.checkSkipLeft() || processor.MetaValues == nil {
 		return
 	}
@@ -110,22 +110,22 @@ func (processor *processor) decode() (errors []error) {
 
 // Start start processor
 func (processor *processor) Start() error {
-	var errors qor.Errors
+	var errs qor.Errors
 	processor.Initialize()
-	if errors.AddError(processor.Validate()); !errors.HasError() {
-		errors.AddError(processor.Commit())
+	if errs.AddError(processor.Validate()); !errs.HasError() {
+		errs.AddError(processor.Commit())
 	}
-	if errors.HasError() {
-		return errors
+	if errs.HasError() {
+		return errs
 	}
 	return nil
 }
 
 // Commit commit data into result
 func (processor *processor) Commit() error {
-	var errors qor.Errors
-	errors.AddError(processor.decode()...)
-	if processor.checkSkipLeft(errors.GetErrors()...) {
+	var errs qor.Errors
+	errs.AddError(processor.decode()...)
+	if processor.checkSkipLeft(errs.GetErrors()...) {
 		return nil
 	}
 
@@ -134,8 +134,8 @@ func (processor *processor) Commit() error {
 			if processor.checkSkipLeft(err) {
 				break
 			}
-			errors.AddError(err)
+			errs.AddError(err)
 		}
 	}
-	return errors
+	return errs
 }
