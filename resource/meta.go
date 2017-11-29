@@ -1,9 +1,7 @@
 package resource
 
 import (
-	"bytes"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -275,24 +273,23 @@ func (meta *Meta) Initialize() error {
 				}
 			}
 		} else {
-			generateSetter := func(setter func(field reflect.Value, metaValue *MetaValue)) func(record interface{}, metaValue *MetaValue, context *qor.Context) {
+			fieldName := meta.FieldName
+			if nestedField {
+				fieldNames := strings.Split(fieldName, ".")
+				fieldName = fieldNames[len(fieldNames)-1]
+			}
+
+			generateSetter := func(setter func(field reflect.Value, metaValue *MetaValue, context *qor.Context)) func(record interface{}, metaValue *MetaValue, context *qor.Context) {
 				return func(record interface{}, metaValue *MetaValue, context *qor.Context) {
 					if metaValue == nil {
 						return
 					}
-
-					fieldName := meta.FieldName
 
 					defer func() {
 						if r := recover(); r != nil {
 							context.AddError(validations.NewError(record, meta.Name, fmt.Sprintf("Can't set value %v", metaValue.Value)))
 						}
 					}()
-
-					if nestedField {
-						fields := strings.Split(fieldName, ".")
-						fieldName = fields[len(fields)-1]
-					}
 
 					field := reflect.Indirect(reflect.ValueOf(record)).FieldByName(fieldName)
 					if field.Kind() == reflect.Ptr {
@@ -311,7 +308,7 @@ func (meta *Meta) Initialize() error {
 					}
 
 					if field.IsValid() && field.CanAddr() {
-						setter(field, metaValue)
+						setter(field, metaValue, context)
 					}
 				}
 			}
@@ -323,19 +320,19 @@ func (meta *Meta) Initialize() error {
 
 			switch field.Kind() {
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue) {
+				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
 					field.SetInt(utils.ToInt(metaValue.Value))
 				})
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue) {
+				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
 					field.SetUint(utils.ToUint(metaValue.Value))
 				})
 			case reflect.Float32, reflect.Float64:
-				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue) {
+				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
 					field.SetFloat(utils.ToFloat(metaValue.Value))
 				})
 			case reflect.Bool:
-				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue) {
+				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
 					if utils.ToString(metaValue.Value) == "true" {
 						field.SetBool(true)
 					} else {
@@ -344,15 +341,15 @@ func (meta *Meta) Initialize() error {
 				})
 			default:
 				if _, ok := field.Addr().Interface().(sql.Scanner); ok {
-					meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue) {
+					meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
 						if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
-							if value == nil && len(metaValue.MetaValues.Values) > 0 {
+							if metaValue.Value == nil && len(metaValue.MetaValues.Values) > 0 {
 								decodeMetaValuesToField(meta.Resource, field, metaValue, context)
 								return
 							}
 
-							if scanner.Scan(value) != nil {
-								if err := scanner.Scan(utils.ToString(value)); err != nil {
+							if scanner.Scan(metaValue.Value) != nil {
+								if err := scanner.Scan(utils.ToString(metaValue.Value)); err != nil {
 									context.AddError(err)
 									return
 								}
@@ -360,25 +357,33 @@ func (meta *Meta) Initialize() error {
 						}
 					})
 				} else if reflect.TypeOf("").ConvertibleTo(field.Type()) {
-					field.Set(reflect.ValueOf(utils.ToString(value)).Convert(field.Type()))
+					meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+						field.Set(reflect.ValueOf(utils.ToString(metaValue.Value)).Convert(field.Type()))
+					})
 				} else if reflect.TypeOf([]string{}).ConvertibleTo(field.Type()) {
-					field.Set(reflect.ValueOf(utils.ToArray(value)).Convert(field.Type()))
-				} else if rvalue := reflect.ValueOf(value); reflect.TypeOf(rvalue.Type()).ConvertibleTo(field.Type()) {
-					field.Set(rvalue.Convert(field.Type()))
+					meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+						field.Set(reflect.ValueOf(utils.ToArray(metaValue.Value)).Convert(field.Type()))
+					})
 				} else if _, ok := field.Addr().Interface().(*time.Time); ok {
-					if str := utils.ToString(value); str != "" {
-						if newTime, err := utils.ParseTime(str, context); err == nil {
-							field.Set(reflect.ValueOf(newTime))
+					meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+						if str := utils.ToString(metaValue.Value); str != "" {
+							if newTime, err := utils.ParseTime(str, context); err == nil {
+								field.Set(reflect.ValueOf(newTime))
+							}
+						} else {
+							field.Set(reflect.Zero(field.Type()))
 						}
-					} else {
-						field.Set(reflect.Zero(field.Type()))
-					}
+					})
 				} else {
-					var buf = bytes.NewBufferString("")
-					json.NewEncoder(buf).Encode(value)
-					if err := json.NewDecoder(strings.NewReader(buf.String())).Decode(field.Addr().Interface()); err != nil {
-						utils.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.TypeOf(value), field.Type(), meta)
-					}
+					// FIXME
+					// } else if rvalue := reflect.ValueOf(value); reflect.TypeOf(rvalue.Type()).ConvertibleTo(field.Type()) {
+					//  	field.Set(rvalue.Convert(field.Type(
+
+					// var buf = bytes.NewBufferString("")
+					// json.NewEncoder(buf).Encode(value)
+					// if err := json.NewDecoder(strings.NewReader(buf.String())).Decode(field.Addr().Interface()); err != nil {
+					// 	utils.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.TypeOf(value), field.Type(), meta)
+					// }
 				}
 			}
 		}
