@@ -239,6 +239,7 @@ func (meta *Meta) Initialize() error {
 func setupSetter(meta *Meta, fieldName string, record interface{}) {
 	nestedField := strings.Contains(fieldName, ".")
 
+	// Setup nested fields
 	if nestedField {
 		fieldNames := strings.Split(fieldName, ".")
 		setupSetter(meta, strings.Join(fieldNames[1:], "."), getNestedModel(record, strings.Join(fieldNames[0:2], "."), nil))
@@ -250,58 +251,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 		return
 	}
 
-	if relationship := meta.FieldStruct.Relationship; relationship != nil {
-		if relationship.Kind == "belongs_to" || relationship.Kind == "many_to_many" {
-			meta.Setter = func(resource interface{}, metaValue *MetaValue, context *qor.Context) {
-				scope := &gorm.Scope{Value: resource}
-				reflectValue := reflect.Indirect(reflect.ValueOf(resource))
-				field := reflectValue.FieldByName(meta.FieldName)
-
-				if field.Kind() == reflect.Ptr {
-					if field.IsNil() {
-						field.Set(utils.NewValue(field.Type()).Elem())
-					}
-
-					for field.Kind() == reflect.Ptr {
-						field = field.Elem()
-					}
-				}
-
-				primaryKeys := utils.ToArray(metaValue.Value)
-				// associations not changed for belongs to
-				if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
-					oldPrimaryKeys := utils.ToArray(reflectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
-					// if not changed
-					if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
-						return
-					}
-
-					// if removed
-					if len(primaryKeys) == 0 {
-						field := reflectValue.FieldByName(relationship.ForeignFieldNames[0])
-						field.Set(reflect.Zero(field.Type()))
-					}
-				}
-
-				if len(primaryKeys) > 0 {
-					// set current field value to blank and replace it with new value
-					field.Set(reflect.Zero(field.Type()))
-					context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
-				}
-
-				// Replace many 2 many relations
-				if relationship.Kind == "many_to_many" {
-					if !scope.PrimaryKeyZero() {
-						context.GetDB().Model(resource).Association(meta.FieldName).Replace(field.Interface())
-						field.Set(reflect.Zero(field.Type()))
-					}
-				}
-			}
-			return
-		}
-	}
-
-	commonSetter := func(setter func(field reflect.Value, metaValue *MetaValue, context *qor.Context)) func(record interface{}, metaValue *MetaValue, context *qor.Context) {
+	commonSetter := func(setter func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{})) func(record interface{}, metaValue *MetaValue, context *qor.Context) {
 		return func(record interface{}, metaValue *MetaValue, context *qor.Context) {
 			if metaValue == nil {
 				return
@@ -330,8 +280,51 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 			}
 
 			if field.IsValid() && field.CanAddr() {
-				setter(field, metaValue, context)
+				setter(field, metaValue, context, record)
 			}
+		}
+	}
+
+	// Setup belongs_to / many_to_many Setter
+	if relationship := meta.FieldStruct.Relationship; relationship != nil {
+		if relationship.Kind == "belongs_to" || relationship.Kind == "many_to_many" {
+			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
+				var (
+					scope         = context.GetDB().NewScope(record)
+					indirectValue = reflect.Indirect(reflect.ValueOf(record))
+					primaryKeys   = utils.ToArray(metaValue.Value)
+				)
+
+				// associations not changed for belongs to
+				if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
+					oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
+					// if not changed
+					if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
+						return
+					}
+
+					// if removed
+					if len(primaryKeys) == 0 {
+						field := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
+						field.Set(reflect.Zero(field.Type()))
+					}
+				}
+
+				if len(primaryKeys) > 0 {
+					// set current field value to blank and replace it with new value
+					field.Set(reflect.Zero(field.Type()))
+					context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
+				}
+
+				// Replace many 2 many relations
+				if relationship.Kind == "many_to_many" {
+					if !scope.PrimaryKeyZero() {
+						context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
+						field.Set(reflect.Zero(field.Type()))
+					}
+				}
+			})
+			return
 		}
 	}
 
@@ -345,19 +338,19 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 
 	switch field.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 			field.SetInt(utils.ToInt(metaValue.Value))
 		})
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 			field.SetUint(utils.ToUint(metaValue.Value))
 		})
 	case reflect.Float32, reflect.Float64:
-		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 			field.SetFloat(utils.ToFloat(metaValue.Value))
 		})
 	case reflect.Bool:
-		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 			if utils.ToString(metaValue.Value) == "true" {
 				field.SetBool(true)
 			} else {
@@ -366,7 +359,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 		})
 	default:
 		if _, ok := field.Addr().Interface().(sql.Scanner); ok {
-			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 				if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
 					if metaValue.Value == nil && len(metaValue.MetaValues.Values) > 0 {
 						decodeMetaValuesToField(meta.Resource, field, metaValue, context)
@@ -382,15 +375,15 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 				}
 			})
 		} else if reflect.TypeOf("").ConvertibleTo(field.Type()) {
-			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 				field.Set(reflect.ValueOf(utils.ToString(metaValue.Value)).Convert(field.Type()))
 			})
 		} else if reflect.TypeOf([]string{}).ConvertibleTo(field.Type()) {
-			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 				field.Set(reflect.ValueOf(utils.ToArray(metaValue.Value)).Convert(field.Type()))
 			})
 		} else if _, ok := field.Addr().Interface().(*time.Time); ok {
-			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 				if str := utils.ToString(metaValue.Value); str != "" {
 					if newTime, err := utils.ParseTime(str, context); err == nil {
 						field.Set(reflect.ValueOf(newTime))
