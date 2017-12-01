@@ -313,8 +313,11 @@ func (meta *Meta) Initialize() error {
 				}
 			}
 
-			field := reflect.Indirect(reflect.ValueOf(meta.Resource.NewStruct())).FieldByName(fieldName)
+			field := reflect.Indirect(reflect.ValueOf(meta.GetBaseResource().NewStruct())).FieldByName(fieldName)
 			for field.Kind() == reflect.Ptr {
+				if field.IsNil() {
+					field.Set(utils.NewValue(field.Type().Elem()))
+				}
 				field = field.Elem()
 			}
 
@@ -390,13 +393,13 @@ func (meta *Meta) Initialize() error {
 	}
 
 	if nestedField {
-		oldvalue := meta.Valuer
-		meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
-			return oldvalue(getNestedModel(value, meta.FieldName, context), context)
+		oldValuer := meta.Valuer
+		meta.Valuer = func(record interface{}, context *qor.Context) interface{} {
+			return oldValuer(getNestedModel(record, meta.FieldName, context), context)
 		}
 		oldSetter := meta.Setter
-		meta.Setter = func(resource interface{}, metaValue *MetaValue, context *qor.Context) {
-			oldSetter(getNestedModel(resource, meta.FieldName, context), metaValue, context)
+		meta.Setter = func(record interface{}, metaValue *MetaValue, context *qor.Context) {
+			oldSetter(getNestedModel(record, meta.FieldName, context), metaValue, context)
 		}
 	}
 	return nil
