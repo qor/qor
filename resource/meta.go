@@ -224,172 +224,7 @@ func (meta *Meta) Initialize() error {
 	}
 
 	if meta.Setter == nil && hasColumn {
-		if relationship := field.Relationship; relationship != nil {
-			if relationship.Kind == "belongs_to" || relationship.Kind == "many_to_many" {
-				meta.Setter = func(resource interface{}, metaValue *MetaValue, context *qor.Context) {
-					scope := &gorm.Scope{Value: resource}
-					reflectValue := reflect.Indirect(reflect.ValueOf(resource))
-					field := reflectValue.FieldByName(meta.FieldName)
-
-					if field.Kind() == reflect.Ptr {
-						if field.IsNil() {
-							field.Set(utils.NewValue(field.Type()).Elem())
-						}
-
-						for field.Kind() == reflect.Ptr {
-							field = field.Elem()
-						}
-					}
-
-					primaryKeys := utils.ToArray(metaValue.Value)
-					// associations not changed for belongs to
-					if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
-						oldPrimaryKeys := utils.ToArray(reflectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
-						// if not changed
-						if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
-							return
-						}
-
-						// if removed
-						if len(primaryKeys) == 0 {
-							field := reflectValue.FieldByName(relationship.ForeignFieldNames[0])
-							field.Set(reflect.Zero(field.Type()))
-						}
-					}
-
-					if len(primaryKeys) > 0 {
-						// set current field value to blank and replace it with new value
-						field.Set(reflect.Zero(field.Type()))
-						context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
-					}
-
-					// Replace many 2 many relations
-					if relationship.Kind == "many_to_many" {
-						if !scope.PrimaryKeyZero() {
-							context.GetDB().Model(resource).Association(meta.FieldName).Replace(field.Interface())
-							field.Set(reflect.Zero(field.Type()))
-						}
-					}
-				}
-			}
-		} else {
-			fieldName := meta.FieldName
-			if nestedField {
-				fieldNames := strings.Split(fieldName, ".")
-				fieldName = fieldNames[len(fieldNames)-1]
-			}
-
-			generateSetter := func(setter func(field reflect.Value, metaValue *MetaValue, context *qor.Context)) func(record interface{}, metaValue *MetaValue, context *qor.Context) {
-				return func(record interface{}, metaValue *MetaValue, context *qor.Context) {
-					if metaValue == nil {
-						return
-					}
-
-					defer func() {
-						if r := recover(); r != nil {
-							context.AddError(validations.NewError(record, meta.Name, fmt.Sprintf("Can't set value %v", metaValue.Value)))
-						}
-					}()
-
-					field := reflect.Indirect(reflect.ValueOf(record)).FieldByName(fieldName)
-					if field.Kind() == reflect.Ptr {
-						if field.IsNil() && utils.ToString(metaValue.Value) != "" {
-							field.Set(utils.NewValue(field.Type()).Elem())
-						}
-
-						if utils.ToString(metaValue.Value) == "" {
-							field.Set(reflect.Zero(field.Type()))
-							return
-						}
-
-						for field.Kind() == reflect.Ptr {
-							field = field.Elem()
-						}
-					}
-
-					if field.IsValid() && field.CanAddr() {
-						setter(field, metaValue, context)
-					}
-				}
-			}
-
-			field := reflect.Indirect(reflect.ValueOf(meta.GetBaseResource().NewStruct())).FieldByName(fieldName)
-			for field.Kind() == reflect.Ptr {
-				if field.IsNil() {
-					field.Set(utils.NewValue(field.Type().Elem()))
-				}
-				field = field.Elem()
-			}
-
-			switch field.Kind() {
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
-					field.SetInt(utils.ToInt(metaValue.Value))
-				})
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
-					field.SetUint(utils.ToUint(metaValue.Value))
-				})
-			case reflect.Float32, reflect.Float64:
-				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
-					field.SetFloat(utils.ToFloat(metaValue.Value))
-				})
-			case reflect.Bool:
-				meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
-					if utils.ToString(metaValue.Value) == "true" {
-						field.SetBool(true)
-					} else {
-						field.SetBool(false)
-					}
-				})
-			default:
-				if _, ok := field.Addr().Interface().(sql.Scanner); ok {
-					meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
-						if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
-							if metaValue.Value == nil && len(metaValue.MetaValues.Values) > 0 {
-								decodeMetaValuesToField(meta.Resource, field, metaValue, context)
-								return
-							}
-
-							if scanner.Scan(metaValue.Value) != nil {
-								if err := scanner.Scan(utils.ToString(metaValue.Value)); err != nil {
-									context.AddError(err)
-									return
-								}
-							}
-						}
-					})
-				} else if reflect.TypeOf("").ConvertibleTo(field.Type()) {
-					meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
-						field.Set(reflect.ValueOf(utils.ToString(metaValue.Value)).Convert(field.Type()))
-					})
-				} else if reflect.TypeOf([]string{}).ConvertibleTo(field.Type()) {
-					meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
-						field.Set(reflect.ValueOf(utils.ToArray(metaValue.Value)).Convert(field.Type()))
-					})
-				} else if _, ok := field.Addr().Interface().(*time.Time); ok {
-					meta.Setter = generateSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
-						if str := utils.ToString(metaValue.Value); str != "" {
-							if newTime, err := utils.ParseTime(str, context); err == nil {
-								field.Set(reflect.ValueOf(newTime))
-							}
-						} else {
-							field.Set(reflect.Zero(field.Type()))
-						}
-					})
-				} else {
-					// FIXME
-					// } else if rvalue := reflect.ValueOf(value); reflect.TypeOf(rvalue.Type()).ConvertibleTo(field.Type()) {
-					//  	field.Set(rvalue.Convert(field.Type(
-
-					// var buf = bytes.NewBufferString("")
-					// json.NewEncoder(buf).Encode(value)
-					// if err := json.NewDecoder(strings.NewReader(buf.String())).Decode(field.Addr().Interface()); err != nil {
-					// 	utils.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.TypeOf(value), field.Type(), meta)
-					// }
-				}
-			}
-		}
+		setupSetter(meta, meta.FieldName, meta.GetBaseResource().NewStruct())
 	}
 
 	if nestedField {
@@ -397,12 +232,185 @@ func (meta *Meta) Initialize() error {
 		meta.Valuer = func(record interface{}, context *qor.Context) interface{} {
 			return oldValuer(getNestedModel(record, meta.FieldName, context), context)
 		}
-		oldSetter := meta.Setter
-		meta.Setter = func(record interface{}, metaValue *MetaValue, context *qor.Context) {
-			oldSetter(getNestedModel(record, meta.FieldName, context), metaValue, context)
-		}
 	}
 	return nil
+}
+
+func setupSetter(meta *Meta, fieldName string, record interface{}) {
+	nestedField := strings.Contains(fieldName, ".")
+
+	if nestedField {
+		fieldNames := strings.Split(fieldName, ".")
+		setupSetter(meta, strings.Join(fieldNames[1:], "."), getNestedModel(record, strings.Join(fieldNames[0:2], "."), nil))
+
+		oldSetter := meta.Setter
+		meta.Setter = func(record interface{}, metaValue *MetaValue, context *qor.Context) {
+			oldSetter(getNestedModel(record, strings.Join(fieldNames[0:2], "."), context), metaValue, context)
+		}
+		return
+	}
+
+	if relationship := meta.FieldStruct.Relationship; relationship != nil {
+		if relationship.Kind == "belongs_to" || relationship.Kind == "many_to_many" {
+			meta.Setter = func(resource interface{}, metaValue *MetaValue, context *qor.Context) {
+				scope := &gorm.Scope{Value: resource}
+				reflectValue := reflect.Indirect(reflect.ValueOf(resource))
+				field := reflectValue.FieldByName(meta.FieldName)
+
+				if field.Kind() == reflect.Ptr {
+					if field.IsNil() {
+						field.Set(utils.NewValue(field.Type()).Elem())
+					}
+
+					for field.Kind() == reflect.Ptr {
+						field = field.Elem()
+					}
+				}
+
+				primaryKeys := utils.ToArray(metaValue.Value)
+				// associations not changed for belongs to
+				if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
+					oldPrimaryKeys := utils.ToArray(reflectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
+					// if not changed
+					if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
+						return
+					}
+
+					// if removed
+					if len(primaryKeys) == 0 {
+						field := reflectValue.FieldByName(relationship.ForeignFieldNames[0])
+						field.Set(reflect.Zero(field.Type()))
+					}
+				}
+
+				if len(primaryKeys) > 0 {
+					// set current field value to blank and replace it with new value
+					field.Set(reflect.Zero(field.Type()))
+					context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
+				}
+
+				// Replace many 2 many relations
+				if relationship.Kind == "many_to_many" {
+					if !scope.PrimaryKeyZero() {
+						context.GetDB().Model(resource).Association(meta.FieldName).Replace(field.Interface())
+						field.Set(reflect.Zero(field.Type()))
+					}
+				}
+			}
+			return
+		}
+	}
+
+	commonSetter := func(setter func(field reflect.Value, metaValue *MetaValue, context *qor.Context)) func(record interface{}, metaValue *MetaValue, context *qor.Context) {
+		return func(record interface{}, metaValue *MetaValue, context *qor.Context) {
+			if metaValue == nil {
+				return
+			}
+
+			defer func() {
+				if r := recover(); r != nil {
+					context.AddError(validations.NewError(record, meta.Name, fmt.Sprintf("Can't set value %v", metaValue.Value)))
+				}
+			}()
+
+			field := reflect.Indirect(reflect.ValueOf(record)).FieldByName(fieldName)
+			if field.Kind() == reflect.Ptr {
+				if field.IsNil() && utils.ToString(metaValue.Value) != "" {
+					field.Set(utils.NewValue(field.Type()).Elem())
+				}
+
+				if utils.ToString(metaValue.Value) == "" {
+					field.Set(reflect.Zero(field.Type()))
+					return
+				}
+
+				for field.Kind() == reflect.Ptr {
+					field = field.Elem()
+				}
+			}
+
+			if field.IsValid() && field.CanAddr() {
+				setter(field, metaValue, context)
+			}
+		}
+	}
+
+	field := reflect.Indirect(reflect.ValueOf(record)).FieldByName(fieldName)
+	for field.Kind() == reflect.Ptr {
+		if field.IsNil() {
+			field.Set(utils.NewValue(field.Type().Elem()))
+		}
+		field = field.Elem()
+	}
+
+	switch field.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+			field.SetInt(utils.ToInt(metaValue.Value))
+		})
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+			field.SetUint(utils.ToUint(metaValue.Value))
+		})
+	case reflect.Float32, reflect.Float64:
+		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+			field.SetFloat(utils.ToFloat(metaValue.Value))
+		})
+	case reflect.Bool:
+		meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+			if utils.ToString(metaValue.Value) == "true" {
+				field.SetBool(true)
+			} else {
+				field.SetBool(false)
+			}
+		})
+	default:
+		if _, ok := field.Addr().Interface().(sql.Scanner); ok {
+			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+				if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
+					if metaValue.Value == nil && len(metaValue.MetaValues.Values) > 0 {
+						decodeMetaValuesToField(meta.Resource, field, metaValue, context)
+						return
+					}
+
+					if scanner.Scan(metaValue.Value) != nil {
+						if err := scanner.Scan(utils.ToString(metaValue.Value)); err != nil {
+							context.AddError(err)
+							return
+						}
+					}
+				}
+			})
+		} else if reflect.TypeOf("").ConvertibleTo(field.Type()) {
+			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+				field.Set(reflect.ValueOf(utils.ToString(metaValue.Value)).Convert(field.Type()))
+			})
+		} else if reflect.TypeOf([]string{}).ConvertibleTo(field.Type()) {
+			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+				field.Set(reflect.ValueOf(utils.ToArray(metaValue.Value)).Convert(field.Type()))
+			})
+		} else if _, ok := field.Addr().Interface().(*time.Time); ok {
+			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context) {
+				if str := utils.ToString(metaValue.Value); str != "" {
+					if newTime, err := utils.ParseTime(str, context); err == nil {
+						field.Set(reflect.ValueOf(newTime))
+					}
+				} else {
+					field.Set(reflect.Zero(field.Type()))
+				}
+			})
+		} else {
+			// FIXME
+			// } else if rvalue := reflect.ValueOf(value); reflect.TypeOf(rvalue.Type()).ConvertibleTo(field.Type()) {
+			//  	field.Set(rvalue.Convert(field.Type(
+
+			// var buf = bytes.NewBufferString("")
+			// json.NewEncoder(buf).Encode(value)
+			// if err := json.NewDecoder(strings.NewReader(buf.String())).Decode(field.Addr().Interface()); err != nil {
+			// 	utils.ExitWithMsg("Can't set value %v to %v [meta %v]", reflect.TypeOf(value), field.Type(), meta)
+			// }
+		}
+	}
 }
 
 func getNestedModel(value interface{}, fieldName string, context *qor.Context) interface{} {
@@ -411,7 +419,7 @@ func getNestedModel(value interface{}, fieldName string, context *qor.Context) i
 	for _, field := range fields[:len(fields)-1] {
 		if model.CanAddr() {
 			submodel := model.FieldByName(field)
-			if context.GetDB().NewRecord(submodel.Interface()) && !context.GetDB().NewRecord(model.Addr().Interface()) {
+			if context != nil && context.GetDB() != nil && context.GetDB().NewRecord(submodel.Interface()) && !context.GetDB().NewRecord(model.Addr().Interface()) {
 				if submodel.CanAddr() {
 					context.GetDB().Model(model.Addr().Interface()).Association(field).Find(submodel.Addr().Interface())
 					model = submodel
