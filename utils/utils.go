@@ -356,3 +356,11 @@ func GetAbsURL(req *http.Request) url.URL {
 	result.Parse(req.RequestURI)
 	return result
 }
+
+// Indirect returns last value that v points to
+func Indirect(v reflect.Value) reflect.Value {
+	for v.Kind() == reflect.Ptr {
+		v = reflect.Indirect(v)
+	}
+	return v
+}
