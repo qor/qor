@@ -254,7 +254,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 
 			defer func() {
 				if r := recover(); r != nil {
-					context.AddError(validations.NewError(record, meta.Name, fmt.Sprintf("Can't set value %v", metaValue.Value)))
+					context.AddError(validations.NewError(record, meta.Name, fmt.Sprintf("Failed to set Meta %v's value with %v, got %v", meta.Name, metaValue.Value, r)))
 				}
 			}()
 
@@ -353,6 +353,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 			}
 		})
 	default:
+		fmt.Println(field.Type())
 		if _, ok := field.Addr().Interface().(sql.Scanner); ok {
 			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 				if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
@@ -370,7 +371,9 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 				}
 			})
 		} else if reflect.TypeOf("").ConvertibleTo(field.Type()) {
+			fmt.Println("---hello")
 			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
+				fmt.Println("======--")
 				field.Set(reflect.ValueOf(utils.ToString(metaValue.Value)).Convert(field.Type()))
 			})
 		} else if reflect.TypeOf([]string{}).ConvertibleTo(field.Type()) {

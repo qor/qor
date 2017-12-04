@@ -20,6 +20,9 @@ func TestValuerAndSetter(t *testing.T) {
 		meta.Initialize()
 
 		meta.Setter(record, metaValue, context)
+		if context.HasError() {
+			t.Errorf("No error should happen, but got %v", context.Errors)
+		}
 
 		if result := meta.Valuer(record, context); fmt.Sprint(result) != fmt.Sprint(value) {
 			t.Errorf("Wrong value, should be %v, but got %v", fmt.Sprint(value), result)
