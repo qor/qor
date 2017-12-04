@@ -258,7 +258,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 				}
 			}()
 
-			field := reflect.Indirect(reflect.ValueOf(record)).FieldByName(fieldName)
+			field := utils.Indirect(reflect.ValueOf(record)).FieldByName(fieldName)
 			if field.Kind() == reflect.Ptr {
 				if field.IsNil() && utils.ToString(metaValue.Value) != "" {
 					field.Set(utils.NewValue(field.Type()).Elem())
@@ -353,7 +353,6 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 			}
 		})
 	default:
-		fmt.Println(field.Type())
 		if _, ok := field.Addr().Interface().(sql.Scanner); ok {
 			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 				if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
@@ -371,9 +370,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 				}
 			})
 		} else if reflect.TypeOf("").ConvertibleTo(field.Type()) {
-			fmt.Println("---hello")
 			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
-				fmt.Println("======--")
 				field.Set(reflect.ValueOf(utils.ToString(metaValue.Value)).Convert(field.Type()))
 			})
 		} else if reflect.TypeOf([]string{}).ConvertibleTo(field.Type()) {
