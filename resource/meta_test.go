@@ -9,26 +9,26 @@ import (
 	"github.com/qor/qor/test/utils"
 )
 
-func TestValuerAndSetter(t *testing.T) {
-	checker := func(record interface{}, meta *resource.Meta, value interface{}) {
-		var (
-			context   = &qor.Context{DB: utils.TestDB()}
-			metaValue = &resource.MetaValue{Name: meta.Name, Value: value}
-		)
+func checkMeta(record interface{}, meta *resource.Meta, value interface{}, t *testing.T) {
+	var (
+		context   = &qor.Context{DB: utils.TestDB()}
+		metaValue = &resource.MetaValue{Name: meta.Name, Value: value}
+	)
 
-		meta.PreInitialize()
-		meta.Initialize()
+	meta.PreInitialize()
+	meta.Initialize()
 
-		meta.Setter(record, metaValue, context)
-		if context.HasError() {
-			t.Errorf("No error should happen, but got %v", context.Errors)
-		}
-
-		if result := meta.Valuer(record, context); fmt.Sprint(result) != fmt.Sprint(value) {
-			t.Errorf("Wrong value, should be %v, but got %v", fmt.Sprint(value), result)
-		}
+	meta.Setter(record, metaValue, context)
+	if context.HasError() {
+		t.Errorf("No error should happen, but got %v", context.Errors)
 	}
 
+	if result := meta.Valuer(record, context); fmt.Sprint(result) != fmt.Sprint(value) {
+		t.Errorf("Wrong value, should be %v, but got %v", fmt.Sprint(value), result)
+	}
+}
+
+func TestStringMetaValuerAndSetter(t *testing.T) {
 	user := &struct {
 		Name string
 	}{}
@@ -40,5 +40,20 @@ func TestValuerAndSetter(t *testing.T) {
 		BaseResource: res,
 	}
 
-	checker(&user, nameMeta, "hello world")
+	checkMeta(&user, nameMeta, "hello world", t)
+}
+
+func TestIntMetaValuerAndSetter(t *testing.T) {
+	user := &struct {
+		Age int
+	}{}
+
+	res := resource.New(&user)
+
+	meta := &resource.Meta{
+		Name:         "Age",
+		BaseResource: res,
+	}
+
+	checkMeta(&user, meta, 18, t)
 }
