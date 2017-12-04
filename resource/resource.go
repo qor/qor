@@ -131,7 +131,7 @@ func (res *Resource) NewStruct() interface{} {
 	if res.Value == nil {
 		return nil
 	}
-	return reflect.New(reflect.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
+	return reflect.New(utils.Indirect(reflect.ValueOf(res.Value)).Type()).Interface()
 }
 
 // NewSlice initialize a slice of struct for the Resource
