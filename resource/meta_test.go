@@ -1,6 +1,7 @@
 package resource_test
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"reflect"
 	"testing"
@@ -29,13 +30,17 @@ func checkMeta(record interface{}, meta *resource.Meta, value interface{}, t *te
 	meta.PreInitialize()
 	meta.Initialize()
 
-	meta.Setter(record, metaValue, context)
-	if context.HasError() {
-		t.Errorf("No error should happen, but got %v", context.Errors)
-	}
+	if meta.Setter != nil {
+		meta.Setter(record, metaValue, context)
+		if context.HasError() {
+			t.Errorf("No error should happen, but got %v", context.Errors)
+		}
 
-	if result := meta.Valuer(record, context); format(result) != expectedValue {
-		t.Errorf("Wrong value, should be %v, but got %v", expectedValue, format(result))
+		if result := meta.Valuer(record, context); format(result) != expectedValue {
+			t.Errorf("Wrong value, should be %v, but got %v", expectedValue, format(result))
+		}
+	} else {
+		t.Errorf("No setter generated for meta %v", meta.Name)
 	}
 }
 
@@ -159,6 +164,33 @@ func TestBoolMetaValuerAndSetter(t *testing.T) {
 	}
 
 	checkMeta(&user, meta4, "f", t, "false")
+}
+
+type scanner struct {
+	Body string
+}
+
+func (s *scanner) Scan(value interface{}) {
+	s.Body = fmt.Sprint(value)
+}
+
+func (s *scanner) Value() (driver.Value, error) {
+	return s.Body, nil
+}
+
+func TestScannerMetaValuerAndSetter(t *testing.T) {
+	user := &struct {
+		Scanner scanner
+	}{}
+
+	res := resource.New(&user)
+
+	meta := &resource.Meta{
+		Name:         "Scanner",
+		BaseResource: res,
+	}
+
+	checkMeta(&user, meta, "scanner", t)
 }
 
 func TestSliceMetaValuerAndSetter(t *testing.T) {
