@@ -160,3 +160,44 @@ func TestBoolMetaValuerAndSetter(t *testing.T) {
 
 	checkMeta(&user, meta4, "f", t, "false")
 }
+
+func TestSliceMetaValuerAndSetter(t *testing.T) {
+	t.Skip()
+
+	user := &struct {
+		Names  []string
+		Names2 []*string
+		Names3 *[]string
+		Names4 []*string
+	}{}
+
+	res := resource.New(&user)
+
+	meta := &resource.Meta{
+		Name:         "Name",
+		BaseResource: res,
+	}
+
+	checkMeta(&user, meta, []string{"name1", "name2"}, t)
+
+	meta2 := &resource.Meta{
+		Name:         "Name2",
+		BaseResource: res,
+	}
+
+	checkMeta(&user, meta2, []string{"name1", "name2"}, t)
+
+	meta3 := &resource.Meta{
+		Name:         "Name3",
+		BaseResource: res,
+	}
+
+	checkMeta(&user, meta3, []string{"name1", "name2"}, t)
+
+	meta4 := &resource.Meta{
+		Name:         "Name4",
+		BaseResource: res,
+	}
+
+	checkMeta(&user, meta4, []string{"name1", "name2"}, t)
+}
