@@ -175,10 +175,8 @@ func (meta *Meta) PreInitialize() error {
 
 // Initialize initialize meta, will set valuer, setter if haven't configure it
 func (meta *Meta) Initialize() error {
-	var hasColumn = meta.FieldStruct != nil
-
 	// Set Valuer for Meta
-	if meta.Valuer == nil && hasColumn {
+	if meta.Valuer == nil {
 		setupValuer(meta, meta.FieldName, meta.GetBaseResource().NewStruct())
 	}
 
@@ -187,7 +185,7 @@ func (meta *Meta) Initialize() error {
 	}
 
 	// Set Setter for Meta
-	if meta.Setter == nil && hasColumn {
+	if meta.Setter == nil {
 		setupSetter(meta, meta.FieldName, meta.GetBaseResource().NewStruct())
 	}
 	return nil
@@ -208,26 +206,28 @@ func setupValuer(meta *Meta, fieldName string, record interface{}) {
 		return
 	}
 
-	meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
-		scope := context.GetDB().NewScope(value)
+	if meta.FieldStruct != nil {
+		meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
+			scope := context.GetDB().NewScope(value)
 
-		if f, ok := scope.FieldByName(fieldName); ok {
-			if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
-				if (relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0 {
-					context.GetDB().Model(value).Related(f.Field.Addr().Interface(), fieldName)
-				} else if (relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && context.GetDB().NewScope(f.Field.Interface()).PrimaryKeyZero() {
-					if f.Field.Kind() == reflect.Ptr && f.Field.IsNil() {
-						f.Field.Set(reflect.New(f.Field.Type().Elem()))
+			if f, ok := scope.FieldByName(fieldName); ok {
+				if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
+					if (relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0 {
+						context.GetDB().Model(value).Related(f.Field.Addr().Interface(), fieldName)
+					} else if (relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && context.GetDB().NewScope(f.Field.Interface()).PrimaryKeyZero() {
+						if f.Field.Kind() == reflect.Ptr && f.Field.IsNil() {
+							f.Field.Set(reflect.New(f.Field.Type().Elem()))
+						}
+
+						context.GetDB().Model(value).Related(f.Field.Addr().Interface(), fieldName)
 					}
-
-					context.GetDB().Model(value).Related(f.Field.Addr().Interface(), fieldName)
 				}
+
+				return f.Field.Interface()
 			}
 
-			return f.Field.Interface()
+			return ""
 		}
-
-		return ""
 	}
 }
 
@@ -281,45 +281,47 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 	}
 
 	// Setup belongs_to / many_to_many Setter
-	if relationship := meta.FieldStruct.Relationship; relationship != nil {
-		if relationship.Kind == "belongs_to" || relationship.Kind == "many_to_many" {
-			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
-				var (
-					scope         = context.GetDB().NewScope(record)
-					indirectValue = reflect.Indirect(reflect.ValueOf(record))
-					primaryKeys   = utils.ToArray(metaValue.Value)
-				)
+	if meta.FieldStruct != nil {
+		if relationship := meta.FieldStruct.Relationship; relationship != nil {
+			if relationship.Kind == "belongs_to" || relationship.Kind == "many_to_many" {
+				meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
+					var (
+						scope         = context.GetDB().NewScope(record)
+						indirectValue = reflect.Indirect(reflect.ValueOf(record))
+						primaryKeys   = utils.ToArray(metaValue.Value)
+					)
 
-				// associations not changed for belongs to
-				if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
-					oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
-					// if not changed
-					if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
-						return
+					// associations not changed for belongs to
+					if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
+						oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
+						// if not changed
+						if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
+							return
+						}
+
+						// if removed
+						if len(primaryKeys) == 0 {
+							field := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
+							field.Set(reflect.Zero(field.Type()))
+						}
 					}
 
-					// if removed
-					if len(primaryKeys) == 0 {
-						field := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
+					if len(primaryKeys) > 0 {
+						// set current field value to blank and replace it with new value
 						field.Set(reflect.Zero(field.Type()))
+						context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
 					}
-				}
 
-				if len(primaryKeys) > 0 {
-					// set current field value to blank and replace it with new value
-					field.Set(reflect.Zero(field.Type()))
-					context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
-				}
-
-				// Replace many 2 many relations
-				if relationship.Kind == "many_to_many" {
-					if !scope.PrimaryKeyZero() {
-						context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
-						field.Set(reflect.Zero(field.Type()))
+					// Replace many 2 many relations
+					if relationship.Kind == "many_to_many" {
+						if !scope.PrimaryKeyZero() {
+							context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
+							field.Set(reflect.Zero(field.Type()))
+						}
 					}
-				}
-			})
-			return
+				})
+				return
+			}
 		}
 	}
 
@@ -329,6 +331,10 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 			field.Set(utils.NewValue(field.Type().Elem()))
 		}
 		field = field.Elem()
+	}
+
+	if !field.IsValid() {
+		return
 	}
 
 	switch field.Kind() {
