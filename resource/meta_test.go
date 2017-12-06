@@ -36,7 +36,14 @@ func checkMeta(record interface{}, meta *resource.Meta, value interface{}, t *te
 			t.Errorf("No error should happen, but got %v", context.Errors)
 		}
 
-		if result := meta.Valuer(record, context); format(result) != expectedValue {
+		result := meta.Valuer(record, context)
+		if resultValuer, ok := result.(driver.Valuer); ok {
+			if v, err := resultValuer.Value(); err == nil {
+				result = v
+			}
+		}
+
+		if format(result) != expectedValue {
 			t.Errorf("Wrong value, should be %v, but got %v", expectedValue, format(result))
 		}
 	} else {
@@ -170,11 +177,12 @@ type scanner struct {
 	Body string
 }
 
-func (s *scanner) Scan(value interface{}) {
+func (s *scanner) Scan(value interface{}) error {
 	s.Body = fmt.Sprint(value)
+	return nil
 }
 
-func (s *scanner) Value() (driver.Value, error) {
+func (s scanner) Value() (driver.Value, error) {
 	return s.Body, nil
 }
 
