@@ -57,21 +57,21 @@ func TestStringMetaValuerAndSetter(t *testing.T) {
 		Name2 *string
 	}{}
 
-	res := resource.New(&user)
+	res := resource.New(user)
 
 	meta := &resource.Meta{
 		Name:         "Name",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta, "hello world", t)
+	checkMeta(user, meta, "hello world", t)
 
 	meta2 := &resource.Meta{
 		Name:         "Name2",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta2, "hello world2", t)
+	checkMeta(user, meta2, "hello world2", t)
 }
 
 func TestIntMetaValuerAndSetter(t *testing.T) {
@@ -82,35 +82,35 @@ func TestIntMetaValuerAndSetter(t *testing.T) {
 		Age4 *uint8
 	}{}
 
-	res := resource.New(&user)
+	res := resource.New(user)
 
 	meta := &resource.Meta{
 		Name:         "Age",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta, 18, t)
+	checkMeta(user, meta, 18, t)
 
 	meta2 := &resource.Meta{
 		Name:         "Age2",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta2, "28", t)
+	checkMeta(user, meta2, "28", t)
 
 	meta3 := &resource.Meta{
 		Name:         "Age3",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta3, 38, t)
+	checkMeta(user, meta3, 38, t)
 
 	meta4 := &resource.Meta{
 		Name:         "Age4",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta4, "48", t)
+	checkMeta(user, meta4, "48", t)
 }
 
 func TestFloatMetaValuerAndSetter(t *testing.T) {
@@ -119,21 +119,21 @@ func TestFloatMetaValuerAndSetter(t *testing.T) {
 		Age2 *float64
 	}{}
 
-	res := resource.New(&user)
+	res := resource.New(user)
 
 	meta := &resource.Meta{
 		Name:         "Age",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta, 18.5, t)
+	checkMeta(user, meta, 18.5, t)
 
 	meta2 := &resource.Meta{
 		Name:         "Age2",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta2, "28.5", t)
+	checkMeta(user, meta2, "28.5", t)
 }
 
 func TestBoolMetaValuerAndSetter(t *testing.T) {
@@ -142,35 +142,35 @@ func TestBoolMetaValuerAndSetter(t *testing.T) {
 		Actived2 *bool
 	}{}
 
-	res := resource.New(&user)
+	res := resource.New(user)
 
 	meta := &resource.Meta{
 		Name:         "Actived",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta, "true", t)
+	checkMeta(user, meta, "true", t)
 
 	meta2 := &resource.Meta{
 		Name:         "Actived2",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta2, "true", t)
+	checkMeta(user, meta2, "true", t)
 
 	meta3 := &resource.Meta{
 		Name:         "Actived",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta3, "", t, "false")
+	checkMeta(user, meta3, "", t, "false")
 
 	meta4 := &resource.Meta{
 		Name:         "Actived2",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta4, "f", t, "false")
+	checkMeta(user, meta4, "f", t, "false")
 }
 
 type scanner struct {
@@ -191,19 +191,17 @@ func TestScannerMetaValuerAndSetter(t *testing.T) {
 		Scanner scanner
 	}{}
 
-	res := resource.New(&user)
+	res := resource.New(user)
 
 	meta := &resource.Meta{
 		Name:         "Scanner",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta, "scanner", t)
+	checkMeta(user, meta, "scanner", t)
 }
 
 func TestSliceMetaValuerAndSetter(t *testing.T) {
-	t.Skip()
-
 	user := &struct {
 		Names  []string
 		Names2 []*string
@@ -211,33 +209,33 @@ func TestSliceMetaValuerAndSetter(t *testing.T) {
 		Names4 []*string
 	}{}
 
-	res := resource.New(&user)
+	res := resource.New(user)
 
 	meta := &resource.Meta{
-		Name:         "Name",
+		Name:         "Names",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta, []string{"name1", "name2"}, t)
+	checkMeta(user, meta, []string{"name1", "name2"}, t)
 
 	meta2 := &resource.Meta{
-		Name:         "Name2",
+		Name:         "Names2",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta2, []string{"name1", "name2"}, t)
+	checkMeta(user, meta2, []string{"name1", "name2"}, t)
 
 	meta3 := &resource.Meta{
-		Name:         "Name3",
+		Name:         "Names3",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta3, []string{"name1", "name2"}, t)
+	checkMeta(user, meta3, []string{"name1", "name2"}, t)
 
 	meta4 := &resource.Meta{
-		Name:         "Name4",
+		Name:         "Names4",
 		BaseResource: res,
 	}
 
-	checkMeta(&user, meta4, []string{"name1", "name2"}, t)
+	checkMeta(user, meta4, []string{"name1", "name2"}, t)
 }
