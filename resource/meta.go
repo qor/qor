@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -254,6 +255,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 
 			defer func() {
 				if r := recover(); r != nil {
+					debug.PrintStack()
 					context.AddError(validations.NewError(record, meta.Name, fmt.Sprintf("Failed to set Meta %v's value with %v, got %v", meta.Name, metaValue.Value, r)))
 				}
 			}()
