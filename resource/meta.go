@@ -308,9 +308,11 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						}
 					}
 
+					// set current field value to blank
+					field.Set(reflect.Zero(field.Type()))
+
 					if len(primaryKeys) > 0 {
-						// set current field value to blank and replace it with new value
-						field.Set(reflect.Zero(field.Type()))
+						// replace it with new value
 						context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
 					}
 
