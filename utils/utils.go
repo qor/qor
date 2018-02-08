@@ -11,9 +11,8 @@ import (
 	"regexp"
 	"runtime"
 	"runtime/debug"
+	"sort"
 	"time"
-
-	"go4.org/sort"
 
 	"github.com/gosimple/slug"
 	"github.com/jinzhu/gorm"
