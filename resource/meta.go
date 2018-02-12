@@ -290,8 +290,11 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 					var (
 						scope         = context.GetDB().NewScope(record)
 						indirectValue = reflect.Indirect(reflect.ValueOf(record))
-						primaryKeys   = utils.ToArray(metaValue.Value)
 					)
+					primaryKeys := utils.ToArray(metaValue.Value)
+					if metaValue.Value == nil {
+						primaryKeys = []string{}
+					}
 
 					// associations not changed for belongs to
 					if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
