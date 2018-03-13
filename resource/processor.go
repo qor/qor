@@ -20,13 +20,11 @@ type processor struct {
 	Context    *qor.Context
 	MetaValues *MetaValues
 	SkipLeft   bool
-	newRecord  bool
 }
 
 // DecodeToResource decode meta values to resource result
 func DecodeToResource(res Resourcer, result interface{}, metaValues *MetaValues, context *qor.Context) *processor {
-	scope := &gorm.Scope{Value: result}
-	return &processor{Resource: res, Result: result, Context: context, MetaValues: metaValues, newRecord: scope.PrimaryKeyZero()}
+	return &processor{Resource: res, Result: result, Context: context, MetaValues: metaValues}
 }
 
 func (processor *processor) checkSkipLeft(errs ...error) bool {
@@ -76,15 +74,25 @@ func (processor *processor) decode() (errs []error) {
 		return
 	}
 
+	newRecord := true
+	scope := &gorm.Scope{Value: processor.Result}
+	if primaryField := scope.PrimaryField(); primaryField != nil {
+		for _, metaValue := range processor.MetaValues.Values {
+			if metaValue.Meta != nil && metaValue.Meta.GetFieldName() == primaryField.Name {
+				newRecord = utils.ToString(metaValue.Value) == ""
+			}
+		}
+	}
+
 	for _, metaValue := range processor.MetaValues.Values {
 		meta := metaValue.Meta
 		if meta == nil {
 			continue
 		}
 
-		if processor.newRecord && !meta.HasPermission(roles.Create, processor.Context) {
+		if newRecord && !meta.HasPermission(roles.Create, processor.Context) {
 			continue
-		} else if !processor.newRecord && !meta.HasPermission(roles.Update, processor.Context) {
+		} else if !newRecord && !meta.HasPermission(roles.Update, processor.Context) {
 			continue
 		}
 
