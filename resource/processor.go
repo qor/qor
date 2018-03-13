@@ -79,7 +79,9 @@ func (processor *processor) decode() (errs []error) {
 	if primaryField := scope.PrimaryField(); primaryField != nil {
 		for _, metaValue := range processor.MetaValues.Values {
 			if metaValue.Meta != nil && metaValue.Meta.GetFieldName() == primaryField.Name {
-				newRecord = utils.ToString(metaValue.Value) == ""
+				if v := utils.ToString(metaValue.Value); v != "" && v != "0" {
+					newRecord = false
+				}
 			}
 		}
 	}
