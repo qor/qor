@@ -1,23 +1,23 @@
 'use strict';
 
-var gulp = require('gulp');
-var babel = require('gulp-babel');
-var eslint = require('gulp-eslint');
-var plugins = require('gulp-load-plugins')();
-var plumber = require('gulp-plumber');
+let gulp = require('gulp'),
+  babel = require('gulp-babel'),
+  eslint = require('gulp-eslint'),
+  plugins = require('gulp-load-plugins')(),
+  plumber = require('gulp-plumber'),
+  cleanCSS = require('gulp-clean-css'),
+  fs = require('fs'),
+  path = require('path'),
+  es = require('event-stream'),
+  rename = require('gulp-rename');
 
-var fs = require('fs');
-var path = require('path');
-var es = require('event-stream');
-var rename = require('gulp-rename');
-
-var moduleName = (function() {
-  var args = process.argv;
-  var length = args.length;
-  var i = 0;
-  var name;
-  var subName;
-  var useSubName;
+let moduleName = (function() {
+  let args = process.argv,
+    length = args.length,
+    i = 0,
+    name,
+    subName,
+    useSubName;
 
   while (i++ < length) {
     if (/^--+(\w+)/i.test(args[i])) {
@@ -41,10 +41,10 @@ var moduleName = (function() {
 // -----------------------------------------------------------------------------
 
 function adminTasks() {
-  var pathto = function(file) {
+  let pathto = function(file) {
     return '../admin/views/assets/' + file;
   };
-  var scripts = {
+  let scripts = {
     src: pathto('javascripts/app/*.js'),
     dest: pathto('javascripts'),
     qor: pathto('javascripts/qor/*.js'),
@@ -53,7 +53,7 @@ function adminTasks() {
     qorAdmin: [pathto('javascripts/qor.js'), pathto('javascripts/app.js')],
     all: ['gulpfile.js', pathto('javascripts/qor/*.js')]
   };
-  var styles = {
+  let styles = {
     src: pathto('stylesheets/scss/{app,qor}.scss'),
     dest: pathto('stylesheets'),
     vendors: pathto('stylesheets/vendors'),
@@ -96,7 +96,7 @@ function adminTasks() {
       )
       .pipe(
         babel({
-          presets: ['es2015']
+          presets: ['env']
         })
       )
       .pipe(eslint.format())
@@ -111,7 +111,7 @@ function adminTasks() {
       .pipe(plumber())
       .pipe(
         babel({
-          presets: ['es2015']
+          presets: ['env']
         })
       )
       .pipe(eslint.format())
@@ -121,7 +121,11 @@ function adminTasks() {
   });
 
   gulp.task('sass', function() {
-    return gulp.src(styles.src).pipe(plumber()).pipe(plugins.sass()).pipe(gulp.dest(styles.dest));
+    return gulp
+      .src(styles.src)
+      .pipe(plumber())
+      .pipe(plugins.sass().on('error', plugins.sass.logError))
+      .pipe(gulp.dest(styles.dest));
   });
 
   gulp.task('css', ['sass'], function() {
@@ -130,24 +134,30 @@ function adminTasks() {
       .pipe(plumber())
       .pipe(plugins.autoprefixer())
       .pipe(plugins.csscomb())
-      .pipe(plugins.minifyCss())
+      .pipe(cleanCSS())
       .pipe(gulp.dest(styles.dest));
   });
 
   gulp.task('release_js', function() {
-    return gulp.src(scripts.qorAdmin).pipe(plugins.concat('qor_admin_default.js')).pipe(gulp.dest(scripts.dest));
+    return gulp
+      .src(scripts.qorAdmin)
+      .pipe(plugins.concat('qor_admin_default.js'))
+      .pipe(gulp.dest(scripts.dest));
   });
 
   gulp.task('release_css', function() {
-    return gulp.src(styles.qorAdmin).pipe(plugins.concat('qor_admin_default.css')).pipe(gulp.dest(styles.dest));
+    return gulp
+      .src(styles.qorAdmin)
+      .pipe(plugins.concat('qor_admin_default.css'))
+      .pipe(gulp.dest(styles.dest));
   });
 
   gulp.task('release', ['qor+', 'js+', 'css', 'release_js', 'release_css']);
 
-  var watcher = gulp.task('watch', function() {
-    var watch_qor = gulp.watch(scripts.qor, ['qor+']);
-    var watch_js = gulp.watch(scripts.src, ['js+']);
-    var watch_css = gulp.watch(styles.scss, ['css']);
+  let watcher = gulp.task('watch', function() {
+    let watch_qor = gulp.watch(scripts.qor, ['qor+']),
+      watch_js = gulp.watch(scripts.src, ['js+']),
+      watch_css = gulp.watch(styles.scss, ['css']);
 
     gulp.watch(styles.qorAdmin, ['release_css']);
     gulp.watch(scripts.qorAdmin, ['release_js']);
@@ -195,11 +205,11 @@ function adminTasks() {
 // -----------------------------------------------------------------------------
 
 function moduleTasks(moduleNames) {
-  var moduleName = moduleNames.name;
-  var subModuleName = moduleNames.subName;
-  var useSubName = moduleNames.useSubName;
+  let moduleName = moduleNames.name,
+    subModuleName = moduleNames.subName,
+    useSubName = moduleNames.useSubName;
 
-  var pathto = function(file) {
+  let pathto = function(file) {
     if (moduleName && subModuleName) {
       if (subModuleName == 'admin') {
         return '../' + moduleName + '/views/assets/' + file;
@@ -214,11 +224,11 @@ function moduleTasks(moduleNames) {
     return '../' + moduleName + '/views/themes/' + moduleName + '/assets/' + file;
   };
 
-  var scripts = {
+  let scripts = {
     src: pathto('javascripts/'),
     watch: pathto('javascripts/**/*.js')
   };
-  var styles = {
+  let styles = {
     src: pathto('stylesheets/'),
     watch: pathto('stylesheets/**/*.scss')
   };
@@ -230,10 +240,10 @@ function moduleTasks(moduleNames) {
   }
 
   gulp.task('js', function() {
-    var scriptPath = scripts.src;
-    var folders = getFolders(scriptPath);
+    let scriptPath = scripts.src,
+      folders = getFolders(scriptPath);
 
-    var task = folders.map(function(folder) {
+    let task = folders.map(function(folder) {
       return gulp
         .src(path.join(scriptPath, folder, '/*.js'))
         .pipe(plumber())
@@ -244,16 +254,12 @@ function moduleTasks(moduleNames) {
         )
         .pipe(
           babel({
-            presets: ['es2015']
+            presets: ['env']
           })
         )
         .pipe(eslint.format())
         .pipe(plugins.concat(folder + '.js'))
-        .pipe(
-          plugins.uglify({
-            drop_debugger: false
-          })
-        )
+        .pipe(plugins.uglify())
         .pipe(gulp.dest(scriptPath));
     });
 
@@ -261,18 +267,21 @@ function moduleTasks(moduleNames) {
   });
 
   gulp.task('css', function() {
-    var stylePath = styles.src;
-    var folders = getFolders(stylePath);
-    var task = folders.map(function(folder) {
+    let stylePath = styles.src,
+      folders = getFolders(stylePath);
+
+    let task = folders.map(function(folder) {
       return gulp
         .src(path.join(stylePath, folder, '/*.scss'))
         .pipe(plumber())
         .pipe(
-          plugins.sass({
-            outputStyle: 'compressed'
-          })
+          plugins
+            .sass({
+              outputStyle: 'compressed'
+            })
+            .on('error', plugins.sass.logError)
         )
-        .pipe(plugins.minifyCss())
+        .pipe(cleanCSS())
         .pipe(rename(folder + '.css'))
         .pipe(gulp.dest(stylePath));
     });
@@ -281,7 +290,7 @@ function moduleTasks(moduleNames) {
   });
 
   gulp.task('watch', function() {
-    var moduleScript = gulp.watch(scripts.watch, { debounceDelay: 2000 }, ['js']);
+    let moduleScript = gulp.watch(scripts.watch, {debounceDelay: 2000}, ['js']);
     gulp.watch(styles.watch, ['css']);
 
     moduleScript.on('change', function(event) {
@@ -297,8 +306,8 @@ function moduleTasks(moduleNames) {
 // -----------------------------------------------------------------------------
 
 if (moduleName.name) {
-  var taskPath = moduleName.name + '/views/themes/' + moduleName.name + '/assets/';
-  var runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
+  let taskPath = moduleName.name + '/views/themes/' + moduleName.name + '/assets/',
+    runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
 
   if (moduleName.subName) {
     if (moduleName.subName == 'admin') {
