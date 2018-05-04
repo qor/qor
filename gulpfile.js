@@ -216,7 +216,11 @@ function moduleTasks(moduleNames) {
       } else if (subModuleName == 'enterprise') {
         return '../../../enterprise.getqor.com/' + moduleName + '/views/themes/' + moduleName + '/assets/' + file;
       } else if (useSubName) {
-        return '../' + moduleName + '/' + subModuleName + '/views/themes/' + subModuleName + '/assets/' + file;
+        if (useSubName == 'admin') {
+          return '../' + moduleName + '/' + subModuleName + '/views/assets/' + file;
+        } else {
+          return '../' + moduleName + '/' + subModuleName + '/views/themes/' + subModuleName + '/assets/' + file;
+        }
       } else {
         return '../' + moduleName + '/' + subModuleName + '/views/themes/' + moduleName + '/assets/' + file;
       }
@@ -317,7 +321,12 @@ if (moduleName.name) {
       taskPath = '../../../enterprise.getqor.com/' + moduleName.name + '/views/themes/' + moduleName.name + '/assets/';
       runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
     } else if (moduleName.useSubName) {
-      taskPath = moduleName.name + '/' + moduleName.subName + '/views/themes/' + moduleName.subName + '/assets/';
+      if (moduleName.useSubName == 'admin') {
+        taskPath = moduleName.name + '/' + moduleName.subName + '/views/assets/';
+      } else {
+        taskPath = moduleName.name + '/' + moduleName.subName + '/views/themes/' + moduleName.subName + '/assets/';
+      }
+
       runModuleName = 'Running "' + moduleName.name + ' > ' + moduleName.subName + '" module task in "' + taskPath + '"...';
     } else {
       taskPath = moduleName.name + '/' + moduleName.subName + '/views/themes/' + moduleName.name + '/assets/';
