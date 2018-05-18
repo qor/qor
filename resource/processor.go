@@ -77,10 +77,14 @@ func (processor *processor) decode() (errs []error) {
 	newRecord := true
 	scope := &gorm.Scope{Value: processor.Result}
 	if primaryField := scope.PrimaryField(); primaryField != nil {
-		for _, metaValue := range processor.MetaValues.Values {
-			if metaValue.Meta != nil && metaValue.Meta.GetFieldName() == primaryField.Name {
-				if v := utils.ToString(metaValue.Value); v != "" && v != "0" {
-					newRecord = false
+		if !primaryField.IsBlank {
+			newRecord = false
+		} else {
+			for _, metaValue := range processor.MetaValues.Values {
+				if metaValue.Meta != nil && metaValue.Meta.GetFieldName() == primaryField.Name {
+					if v := utils.ToString(metaValue.Value); v != "" && v != "0" {
+						newRecord = false
+					}
 				}
 			}
 		}
