@@ -152,3 +152,16 @@ func TestSortFormKeys(t *testing.T) {
 		t.Errorf("ordered form keys should be \n%v\n, but got\n%v", orderedKeys, keys)
 	}
 }
+
+func TestSafeJoin(t *testing.T) {
+	pth1, err := SafeJoin("hello", "world")
+	if err != nil || pth1 != "hello/world" {
+		t.Errorf("no error should happen")
+	}
+
+	// test possible vulnerability https://snyk.io/research/zip-slip-vulnerability#go
+	pth2, err := SafeJoin("hello", "../world")
+	if err == nil || pth2 != "" {
+		t.Errorf("no error should happen")
+	}
+}

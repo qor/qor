@@ -2,6 +2,7 @@ package utils
 
 import (
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -378,4 +379,15 @@ func SliceUniq(s []string) []string {
 		}
 	}
 	return s
+}
+
+// SafeJoin safe join https://snyk.io/research/zip-slip-vulnerability#go
+func SafeJoin(paths ...string) (string, error) {
+	result := path.Join(paths...)
+
+	// check filepath
+	if strings.HasPrefix(strings.TrimLeft(result, "/"), paths[0]) {
+		return result, nil
+	}
+	return "", errors.New("invalid filepath")
 }
