@@ -353,6 +353,9 @@ func GetAbsURL(req *http.Request) url.URL {
 	if domain := req.Header.Get("Origin"); domain != "" {
 		parseResult, _ := url.Parse(domain)
 		result = *parseResult
+	} else if referer := req.Header.Get("Referer"); referer != "" {
+		parseResult, _ := url.Parse(referer)
+		result = *parseResult
 	}
 
 	result.Parse(req.RequestURI)
