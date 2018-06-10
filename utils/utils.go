@@ -344,22 +344,23 @@ func SortFormKeys(strs []string) {
 
 // GetAbsURL get absolute URL from request, refer: https://stackoverflow.com/questions/6899069/why-are-request-url-host-and-scheme-blank-in-the-development-server
 func GetAbsURL(req *http.Request) url.URL {
-	var result url.URL
-
 	if req.URL.IsAbs() {
 		return *req.URL
 	}
 
+	var result *url.URL
 	if domain := req.Header.Get("Origin"); domain != "" {
-		parseResult, _ := url.Parse(domain)
-		result = *parseResult
-	} else if referer := req.Header.Get("Referer"); referer != "" {
-		parseResult, _ := url.Parse(referer)
-		result = *parseResult
+		result, _ = url.Parse(domain)
+	} else {
+		if req.TLS == nil {
+			result, _ = url.Parse("http://" + req.Host)
+		} else {
+			result, _ = url.Parse("https://" + req.Host)
+		}
 	}
 
 	result.Parse(req.RequestURI)
-	return result
+	return *result
 }
 
 // Indirect returns last value that v points to
