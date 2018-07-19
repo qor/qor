@@ -8,6 +8,7 @@ import (
 
 type CurrentUser interface {
 	DisplayName() string
+	GetId() string 
 }
 
 type Context struct {
