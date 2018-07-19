@@ -5,11 +5,10 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/qor/qor"
-	"github.com/qor/qor/responder"
+	"github.com/qor/qor/utils"
 )
 
 func convertMapToMetaValues(values map[string]interface{}, metaors []Metaor) (*MetaValues, error) {
@@ -22,17 +21,21 @@ func convertMapToMetaValues(values map[string]interface{}, metaors []Metaor) (*M
 	for key, value := range values {
 		var metaValue *MetaValue
 		metaor := metaorMap[key]
+		var childMeta []Metaor
+		if metaor != nil {
+			childMeta = metaor.GetMetas()
+		}
 
 		switch result := value.(type) {
 		case map[string]interface{}:
-			if children, err := convertMapToMetaValues(result, metaor.GetMetas()); err == nil {
+			if children, err := convertMapToMetaValues(result, childMeta); err == nil {
 				metaValue = &MetaValue{Name: key, Meta: metaor, MetaValues: children}
 			}
 		case []interface{}:
-			for _, r := range result {
+			for idx, r := range result {
 				if mr, ok := r.(map[string]interface{}); ok {
-					if children, err := convertMapToMetaValues(mr, metaor.GetMetas()); err == nil {
-						metaValue := &MetaValue{Name: key, Meta: metaor, MetaValues: children}
+					if children, err := convertMapToMetaValues(mr, childMeta); err == nil {
+						metaValue := &MetaValue{Name: key, Meta: metaor, MetaValues: children, Index: idx}
 						metaValues.Values = append(metaValues.Values, metaValue)
 					}
 				} else {
@@ -52,25 +55,31 @@ func convertMapToMetaValues(values map[string]interface{}, metaors []Metaor) (*M
 	return metaValues, nil
 }
 
+// ConvertJSONToMetaValues convert json to meta values
 func ConvertJSONToMetaValues(reader io.Reader, metaors []Metaor) (*MetaValues, error) {
-	decoder := json.NewDecoder(reader)
-	values := map[string]interface{}{}
-	if err := decoder.Decode(&values); err == nil {
+	var (
+		err     error
+		values  = map[string]interface{}{}
+		decoder = json.NewDecoder(reader)
+	)
+
+	if err = decoder.Decode(&values); err == nil {
 		return convertMapToMetaValues(values, metaors)
-	} else {
-		return nil, err
 	}
+	return nil, err
 }
 
 var (
 	isCurrentLevel = regexp.MustCompile("^[^.]+$")
-	isNextLevel    = regexp.MustCompile(`^(([^.\[\]]+)(\[\d+\])?)(?:\.([^.]+)+)$`)
+	isNextLevel    = regexp.MustCompile(`^(([^.\[\]]+)(\[\d+\])?)(?:(\.[^.]+)+)$`)
 )
 
+// ConvertFormToMetaValues convert form to meta values
 func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix string) (*MetaValues, error) {
 	metaValues := &MetaValues{}
 	metaorsMap := map[string]Metaor{}
 	convertedNextLevel := map[string]bool{}
+	nestedStructIndex := map[string]int{}
 	for _, metaor := range metaors {
 		metaorsMap[metaor.GetName()] = metaor
 	}
@@ -82,14 +91,38 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 
 			if matches := isCurrentLevel.FindStringSubmatch(key); len(matches) > 0 {
 				name := matches[0]
-				metaValue = &MetaValue{Name: name, Value: value, Meta: metaorsMap[name]}
+				metaValue = &MetaValue{Name: name, Meta: metaorsMap[name], Value: value}
 			} else if matches := isNextLevel.FindStringSubmatch(key); len(matches) > 0 {
 				name := matches[1]
 				if _, ok := convertedNextLevel[name]; !ok {
+					var metaors []Metaor
 					convertedNextLevel[name] = true
 					metaor := metaorsMap[matches[2]]
-					if children, err := ConvertFormToMetaValues(request, metaor.GetMetas(), prefix+name+"."); err == nil {
-						metaValue = &MetaValue{Name: matches[2], Meta: metaor, MetaValues: children}
+					if metaor != nil {
+						metaors = metaor.GetMetas()
+					}
+
+					if children, err := ConvertFormToMetaValues(request, metaors, prefix+name+"."); err == nil {
+						nestedName := prefix + matches[2]
+						if _, ok := nestedStructIndex[nestedName]; ok {
+							nestedStructIndex[nestedName]++
+						} else {
+							nestedStructIndex[nestedName] = 0
+						}
+
+						// is collection
+						if matches[3] != "" {
+							metaValue = &MetaValue{Name: matches[2], Meta: metaor, MetaValues: children, Index: nestedStructIndex[nestedName]}
+						} else {
+							// is nested and it is existing
+							if metaValue = metaValues.Get(matches[2]); metaValue == nil {
+								metaValue = &MetaValue{Name: matches[2], Meta: metaor, MetaValues: children, Index: nestedStructIndex[nestedName]}
+							} else {
+								metaValue.MetaValues = children
+								metaValue.Index = nestedStructIndex[nestedName]
+								metaValue = nil
+							}
+						}
 					}
 				}
 			}
@@ -104,7 +137,8 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 	for key := range request.Form {
 		sortedFormKeys = append(sortedFormKeys, key)
 	}
-	sort.Strings(sortedFormKeys)
+
+	utils.SortFormKeys(sortedFormKeys)
 
 	for _, key := range sortedFormKeys {
 		newMetaValue(key, request.Form[key])
@@ -115,7 +149,7 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 		for key := range request.MultipartForm.File {
 			sortedFormKeys = append(sortedFormKeys, key)
 		}
-		sort.Strings(sortedFormKeys)
+		utils.SortFormKeys(sortedFormKeys)
 
 		for _, key := range sortedFormKeys {
 			newMetaValue(key, request.MultipartForm.File[key])
@@ -124,18 +158,19 @@ func ConvertFormToMetaValues(request *http.Request, metaors []Metaor, prefix str
 	return metaValues, nil
 }
 
+// Decode decode context to result according to resource definition
 func Decode(context *qor.Context, result interface{}, res Resourcer) error {
 	var errors qor.Errors
 	var err error
 	var metaValues *MetaValues
 	metaors := res.GetMetas([]string{})
 
-	responder.With("html", func() {
-		metaValues, err = ConvertFormToMetaValues(context.Request, metaors, "QorResource.")
-	}).With("json", func() {
+	if strings.Contains(context.Request.Header.Get("Content-Type"), "json") {
 		metaValues, err = ConvertJSONToMetaValues(context.Request.Body, metaors)
 		context.Request.Body.Close()
-	}).Respond(nil, context.Request)
+	} else {
+		metaValues, err = ConvertFormToMetaValues(context.Request, metaors, "QorResource.")
+	}
 
 	errors.AddError(err)
 	errors.AddError(DecodeToResource(res, result, metaValues, context).Start())
