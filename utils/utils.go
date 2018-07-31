@@ -471,6 +471,9 @@ func FormattedDecimal(v interface{}) string {
 			return r
 		}
 	}
+	if value == 0 {
+		return fmt.Sprintf("%v", value)
+	}
 	return ""
 }
 
