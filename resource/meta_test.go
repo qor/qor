@@ -182,11 +182,6 @@ func (s *scanner) Scan(value interface{}) error {
 	return nil
 }
 
-func (s *scanner) FieldScan(field *reflect.StructField, value interface{}) error {
-	s.Body = fmt.Sprint(field.Name, value)
-	return nil
-}
-
 func (s scanner) Value() (driver.Value, error) {
 	return s.Body, nil
 }
