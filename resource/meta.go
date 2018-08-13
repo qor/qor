@@ -332,6 +332,12 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 		}
 	}
 
+	recordType := reflect.TypeOf(record)
+	for recordType.Kind() == reflect.Ptr {
+		recordType = recordType.Elem()
+	}
+
+	structField, _ := recordType.FieldByName(fieldName)
 	field := reflect.Indirect(reflect.ValueOf(record)).FieldByName(fieldName)
 	for field.Kind() == reflect.Ptr {
 		if field.IsNil() {
@@ -366,7 +372,21 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 			}
 		})
 	default:
-		if _, ok := field.Addr().Interface().(sql.Scanner); ok {
+		if _, ok := field.Addr().Interface().(FieldScanner); ok {
+			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
+				if scanner, ok := field.Addr().Interface().(FieldScanner); ok {
+					if metaValue.Value == nil && len(metaValue.MetaValues.Values) > 0 {
+						decodeMetaValuesToField(meta.Resource, field, metaValue, context)
+						return
+					}
+
+					if err := scanner.FieldScan(&structField, metaValue.Value); err != nil {
+						context.AddError(err)
+						return
+					}
+				}
+			})
+		} else if _, ok := field.Addr().Interface().(sql.Scanner); ok {
 			meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 				if scanner, ok := field.Addr().Interface().(sql.Scanner); ok {
 					if metaValue.Value == nil && len(metaValue.MetaValues.Values) > 0 {
