@@ -1,12 +1,5 @@
 
-
-
-
 # qor gulp-uglify打包流程
-
-标签（空格分隔）： gulp uglify
-
--------------
 ####gulpfile文件
 ```
  task: 一个task就是一个压缩任务【来源可以单个或者数组】
