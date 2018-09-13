@@ -3,6 +3,8 @@ package utils
 import (
 	"fmt"
 	"testing"
+
+	"github.com/theplant/testingutils"
 )
 
 func TestHumanizeString(t *testing.T) {
@@ -163,5 +165,34 @@ func TestSafeJoin(t *testing.T) {
 	pth2, err := SafeJoin("hello", "../world")
 	if err == nil || pth2 != "" {
 		t.Errorf("no error should happen")
+	}
+}
+
+func TestFormattedDecimal(t *testing.T) {
+	testCases := []struct {
+		Float    float64
+		Expected string
+	}{
+		{Float: 0.0, Expected: "0"},
+		{Float: 0.12345678, Expected: "0.12345678"},
+		{Float: 0.123456789, Expected: "0.12345678"},
+		{Float: 0.1234, Expected: "0.1234"},
+		{Float: 0.00001234, Expected: "0.00001234"},
+		{Float: 0.000012345, Expected: "0.00001234"},
+		{Float: 1.1234, Expected: "1.1234"},
+		{Float: 12345.1234, Expected: "12345.1234"},
+		{Float: 123456789.1234, Expected: "123456789.1234"},
+		{Float: 1234567890.1234, Expected: "1234567890"},
+		{Float: 123, Expected: "123"},
+		{Float: 1230000000, Expected: "1230000000"},
+		{Float: 12300000009, Expected: "12300000009"},
+		{Float: 123000000091, Expected: "123000000091"},
+		{Float: 0.000000005, Expected: "0.000000005"},
+	}
+
+	for _, testCase := range testCases {
+		if diff := testingutils.PrettyJsonDiff(testCase.Expected, FormattedDecimal(testCase.Float)); len(diff) > 0 {
+			t.Errorf(diff)
+		}
 	}
 }

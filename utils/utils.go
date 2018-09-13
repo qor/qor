@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"math/big"
 	"net/http"
 	"net/url"
 	"os"
@@ -390,4 +391,113 @@ func SafeJoin(paths ...string) (string, error) {
 		return result, nil
 	}
 	return "", errors.New("invalid filepath")
+}
+
+func ParseFloat(a interface{}) (f *big.Float, err error) {
+	if a == nil {
+		return nil, errors.New("interface is nil")
+	}
+	switch a.(type) {
+	case string:
+		b, ok := a.(string)
+		if !ok {
+			return nil, errors.New("interface to string error")
+		}
+		f, _, err = big.ParseFloat(strings.TrimSpace(b), 10, 50, big.ToNearestAway)
+		if err != nil {
+			return nil, err
+		}
+	case float64:
+		b, ok := a.(float64)
+		if !ok {
+			return nil, errors.New("interface to float64 error")
+		}
+		f = new(big.Float).SetPrec(50).SetFloat64(b)
+
+	case float32:
+		b, ok := a.(float32)
+		if !ok {
+			return nil, errors.New("interface to float32 error")
+		}
+		f = new(big.Float).SetPrec(50).SetFloat64(float64(b))
+	case int:
+		b, ok := a.(int)
+		if !ok {
+			return nil, errors.New("interface to int error")
+		}
+		f = new(big.Float).SetPrec(50).SetFloat64(float64(b))
+	case int8:
+		b, ok := a.(int8)
+		if !ok {
+			return nil, errors.New("interface to int8 error")
+		}
+		f = new(big.Float).SetPrec(50).SetFloat64(float64(b))
+	case int64:
+		b, ok := a.(int64)
+		if !ok {
+			return nil, errors.New("interface to int64 error")
+		}
+		f = new(big.Float).SetPrec(50).SetFloat64(float64(b))
+	case int32:
+		b, ok := a.(int32)
+		if !ok {
+			return nil, errors.New("interface to int32 error")
+		}
+		f = new(big.Float).SetPrec(50).SetFloat64(float64(b))
+	default:
+		return nil, errors.New("Real data types must be these types: float32,float64,int,int8,int32,int64,string")
+	}
+	return f, err
+}
+
+func FormattedDecimal(v interface{}) string {
+	var value float64
+	if vv, ok := v.(float32); ok {
+		value = float64(vv)
+	}
+	if vv, ok := v.(float64); ok {
+		value = vv
+	}
+	if vv, ok := v.(string); ok {
+		f, _ := ParseFloat(vv)
+		value, _ = f.Float64()
+	}
+	if value > 1000000000 {
+		return fmt.Sprintf("%v", int64(value))
+	}
+	for _, digital := range []int{8, 9, 10} {
+		r := formattedDecimal(value, digital)
+		if r != "0" {
+			return r
+		}
+	}
+	if value == 0 {
+		return fmt.Sprintf("%v", value)
+	}
+	return ""
+}
+
+func formattedDecimal(value float64, digital int) string {
+	f := fmt.Sprintf("%.9f", value)
+	if digital == 9 {
+		fmt.Sprintf("%.10f", value)
+	} else if digital == 10 {
+		fmt.Sprintf("%.11f", value)
+	}
+	ss := strings.Split(f, ".")
+	big := ss[0]
+	small := strings.TrimRight(ss[1], "0")
+	smallRune := []rune(small)
+	count := digital
+	if len(small) < digital {
+		count = len(small)
+	}
+	if count == 0 {
+		return fmt.Sprintf("%v", int64(value))
+	}
+	small = strings.TrimRight(string(smallRune[0:count]), "0")
+	if small == "" {
+		return fmt.Sprintf("%v", int64(value))
+	}
+	return strings.TrimSpace(fmt.Sprintf("%v.%v", big, small))
 }
