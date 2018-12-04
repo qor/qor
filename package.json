@@ -1,29 +1,33 @@
 {
-    "name": "qor",
-    "description": "An enterprise-level open source content management system.",
-    "version": "0.1.0",
-    "main": "admin/views/assets/javascripts/app.js",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/qor/qor.git"
-    },
-    "keywords": ["qor", "cms", "go"],
-    "devDependencies": {
-        "babel-core": "^6.26.3",
-        "babel-preset-env": "^1.6.1",
-        "event-stream": "^3.3.4",
-        "gulp": "^3.9.1",
-        "gulp-autoprefixer": "^5.0.0",
-        "gulp-babel": "^7.0.1",
-        "gulp-concat": "^2.6.0",
-        "gulp-csscomb": "^3.0.8",
-        "gulp-eslint": "^4.0.2",
-        "gulp-load-plugins": "^1.5.0",
-        "gulp-clean-css": "^3.9.3",
-        "gulp-plumber": "^1.1.0",
-        "gulp-rename": "^1.2.2",
-        "gulp-sass": "4.0.1",
-        "gulp-uglify": "^3.0.0"
-    }
+  "name": "qor",
+  "description": "An enterprise-level open source content management system.",
+  "version": "0.1.0",
+  "main": "admin/views/assets/javascripts/app.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qor/qor.git"
+  },
+  "keywords": [
+    "qor",
+    "cms",
+    "go"
+  ],
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.6.1",
+    "event-stream": "^4.0.1",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^5.0.0",
+    "gulp-babel": "^7.0.1",
+    "gulp-clean-css": "^3.9.3",
+    "gulp-concat": "^2.6.0",
+    "gulp-csscomb": "^3.0.8",
+    "gulp-eslint": "^4.0.2",
+    "gulp-load-plugins": "^1.5.0",
+    "gulp-plumber": "^1.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "4.0.1",
+    "gulp-uglify": "^3.0.0"
+  }
 }
