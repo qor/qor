@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"runtime"
@@ -384,10 +385,10 @@ func SliceUniq(s []string) []string {
 // SafeJoin safe join https://snyk.io/research/zip-slip-vulnerability#go
 func SafeJoin(paths ...string) (string, error) {
 	result := path.Join(paths...)
-
 	// check filepath
-	if strings.HasPrefix(strings.TrimLeft(result, "/"), paths[0]) {
-		return result, nil
+	if !strings.HasPrefix(result, filepath.Clean(paths[0])+string(os.PathSeparator)) {
+		return "", errors.New("invalid filepath")
 	}
-	return "", errors.New("invalid filepath")
+
+	return result, nil
 }
