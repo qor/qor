@@ -1,15 +1,18 @@
-'use strict';
+"use strict";
 
-let gulp = require('gulp'),
-  babel = require('gulp-babel'),
-  eslint = require('gulp-eslint'),
-  plugins = require('gulp-load-plugins')(),
-  plumber = require('gulp-plumber'),
-  cleanCSS = require('gulp-clean-css'),
-  fs = require('fs'),
-  path = require('path'),
-  es = require('event-stream'),
-  rename = require('gulp-rename');
+let gulp = require("gulp"),
+  babel = require("gulp-babel"),
+  eslint = require("gulp-eslint"),
+  plumber = require("gulp-plumber"),
+  cleanCSS = require("gulp-clean-css"),
+  concat = require("gulp-concat"),
+  sass = require("gulp-sass"),
+  uglify = require("gulp-uglify"),
+  autoprefixer = require("gulp-autoprefixer"),
+  fs = require("fs"),
+  path = require("path"),
+  es = require("event-stream"),
+  rename = require("gulp-rename");
 
 let moduleName = (function() {
   let args = process.argv,
@@ -21,9 +24,9 @@ let moduleName = (function() {
 
   while (i++ < length) {
     if (/^--+(\w+)/i.test(args[i])) {
-      name = args[i].split('--')[1];
-      subName = args[i].split('--')[2];
-      useSubName = args[i].split('--')[3];
+      name = args[i].split("--")[1];
+      subName = args[i].split("--")[2];
+      useSubName = args[i].split("--")[3];
       break;
     }
   }
@@ -42,138 +45,147 @@ let moduleName = (function() {
 
 function adminTasks() {
   let pathto = function(file) {
-    return '../admin/views/assets/' + file;
+    return "../admin/views/assets/" + file;
   };
   let scripts = {
-    src: pathto('javascripts/app/*.js'),
-    dest: pathto('javascripts'),
-    qor: pathto('javascripts/qor/*.js'),
-    qorInit: pathto('javascripts/qor/qor-config.js'),
-    qorCommon: pathto('javascripts/qor/qor-common.js'),
-    qorAdmin: [pathto('javascripts/qor.js'), pathto('javascripts/app.js')],
-    all: ['gulpfile.js', pathto('javascripts/qor/*.js')]
+    src: pathto("javascripts/app/*.js"),
+    dest: pathto("javascripts"),
+    qor: pathto("javascripts/qor/*.js"),
+    qorInit: pathto("javascripts/qor/qor-config.js"),
+    qorCommon: pathto("javascripts/qor/qor-common.js"),
+    qorAdmin: [pathto("javascripts/qor.js"), pathto("javascripts/app.js")],
+    all: ["gulpfile.js", pathto("javascripts/qor/*.js")]
   };
   let styles = {
-    src: pathto('stylesheets/scss/{app,qor}.scss'),
-    dest: pathto('stylesheets'),
-    vendors: pathto('stylesheets/vendors'),
-    main: pathto('stylesheets/{qor,app}.css'),
-    qorAdmin: [pathto('stylesheets/vendors.css'), pathto('stylesheets/qor.css'), pathto('stylesheets/app.css')],
-    scss: pathto('stylesheets/scss/**/*.scss')
+    src: pathto("stylesheets/scss/{app,qor}.scss"),
+    dest: pathto("stylesheets"),
+    vendors: pathto("stylesheets/vendors"),
+    main: pathto("stylesheets/{qor,app}.css"),
+    qorAdmin: [
+      pathto("stylesheets/vendors.css"),
+      pathto("stylesheets/qor.css"),
+      pathto("stylesheets/app.css")
+    ],
+    scss: pathto("stylesheets/scss/**/*.scss")
   };
 
-  gulp.task('qor', function() {
+  gulp.task("qor", function() {
     return gulp
       .src([scripts.qorInit, scripts.qorCommon, scripts.qor])
       .pipe(plumber())
-      .pipe(plugins.concat('qor.js'))
-      .pipe(plugins.uglify())
+      .pipe(concat("qor.js"))
+      .pipe(uglify())
       .pipe(gulp.dest(scripts.dest));
   });
 
-  gulp.task('js', ['qor'], function() {
+  gulp.task("js", ["qor"], function() {
     return gulp
       .src(scripts.src)
       .pipe(plumber())
       .pipe(
         eslint({
-          configFile: '.eslintrc'
+          configFile: ".eslintrc"
         })
       )
-      .pipe(plugins.concat('app.js'))
-      .pipe(plugins.uglify())
+      .pipe(concat("app.js"))
+      .pipe(uglify())
       .pipe(gulp.dest(scripts.dest));
   });
 
-  gulp.task('qor+', function() {
+  gulp.task("qor+", function() {
     return gulp
       .src([scripts.qorInit, scripts.qorCommon, scripts.qor])
       .pipe(plumber())
       .pipe(
         eslint({
-          configFile: '.eslintrc'
+          configFile: ".eslintrc"
         })
       )
       .pipe(
         babel({
-          presets: ['env']
+          presets: ["@babel/preset-env"]
         })
       )
       .pipe(eslint.format())
-      .pipe(plugins.concat('qor.js'))
-      .pipe(plugins.uglify())
+      .pipe(concat("qor.js"))
+      .pipe(uglify())
       .pipe(gulp.dest(scripts.dest));
   });
 
-  gulp.task('js+', function() {
+  gulp.task("js+", function() {
     return gulp
       .src(scripts.src)
       .pipe(plumber())
       .pipe(
         babel({
-          presets: ['env']
+          presets: ["@babel/preset-env"]
         })
       )
       .pipe(eslint.format())
-      .pipe(plugins.concat('app.js'))
-      .pipe(plugins.uglify())
+      .pipe(concat("app.js"))
+      .pipe(uglify())
       .pipe(gulp.dest(scripts.dest));
   });
 
-  gulp.task('sass', function() {
+  gulp.task("sass", function() {
     return gulp
       .src(styles.src)
       .pipe(plumber())
-      .pipe(plugins.sass().on('error', plugins.sass.logError))
+      .pipe(sass().on("error", sass.logError))
       .pipe(gulp.dest(styles.dest));
   });
 
-  gulp.task('css', ['sass'], function() {
+  gulp.task("css", ["sass"], function() {
     return gulp
       .src(styles.main)
       .pipe(plumber())
-      .pipe(plugins.autoprefixer())
-      .pipe(plugins.csscomb())
+      .pipe(autoprefixer())
       .pipe(cleanCSS())
       .pipe(gulp.dest(styles.dest));
   });
 
-  gulp.task('release_js', function() {
+  gulp.task("release_js", function() {
     return gulp
       .src(scripts.qorAdmin)
-      .pipe(plugins.concat('qor_admin_default.js'))
+      .pipe(concat("qor_admin_default.js"))
       .pipe(gulp.dest(scripts.dest));
   });
 
-  gulp.task('release_css', function() {
+  gulp.task("release_css", function() {
     return gulp
       .src(styles.qorAdmin)
-      .pipe(plugins.concat('qor_admin_default.css'))
+      .pipe(concat("qor_admin_default.css"))
       .pipe(gulp.dest(styles.dest));
   });
 
-  gulp.task('release', ['qor+', 'js+', 'css', 'release_js', 'release_css']);
+  gulp.task("release", ["qor+", "js+", "css", "release_js", "release_css"]);
 
-  let watcher = gulp.task('watch', function() {
-    let watch_qor = gulp.watch(scripts.qor, ['qor+']),
-      watch_js = gulp.watch(scripts.src, ['js+']),
-      watch_css = gulp.watch(styles.scss, ['css']);
+  let watcher = gulp.task("watch", function() {
+    let watch_qor = gulp.watch(scripts.qor, ["qor+"]),
+      watch_js = gulp.watch(scripts.src, ["js+"]),
+      watch_css = gulp.watch(styles.scss, ["css"]);
 
-    gulp.watch(styles.qorAdmin, ['release_css']);
-    gulp.watch(scripts.qorAdmin, ['release_js']);
+    gulp.watch(styles.qorAdmin, ["release_css"]);
+    gulp.watch(scripts.qorAdmin, ["release_js"]);
 
-    watch_qor.on('change', function(event) {
-      console.log(':==> File ' + event.path + ' was ' + event.type + ', running tasks...');
+    watch_qor.on("change", function(event) {
+      console.log(
+        ":==> File " + event.path + " was " + event.type + ", running tasks..."
+      );
     });
-    watch_js.on('change', function(event) {
-      console.log(':==> File ' + event.path + ' was ' + event.type + ', running tasks...');
+    watch_js.on("change", function(event) {
+      console.log(
+        ":==> File " + event.path + " was " + event.type + ", running tasks..."
+      );
     });
-    watch_css.on('change', function(event) {
-      console.log(':==> File ' + event.path + ' was ' + event.type + ', running tasks...');
+    watch_css.on("change", function(event) {
+      console.log(
+        ":==> File " + event.path + " was " + event.type + ", running tasks..."
+      );
     });
   });
 
-  gulp.task('default', ['watch']);
+  gulp.task("default", ["watch"]);
 }
 
 // -----------------------------------------------------------------------------
@@ -211,30 +223,59 @@ function moduleTasks(moduleNames) {
 
   let pathto = function(file) {
     if (moduleName && subModuleName) {
-      if (subModuleName == 'admin') {
-        return '../' + moduleName + '/views/assets/' + file;
-      } else if (subModuleName == 'enterprise') {
-        return '../../../enterprise.getqor.com/' + moduleName + '/views/themes/' + moduleName + '/assets/' + file;
+      if (subModuleName == "admin") {
+        return "../" + moduleName + "/views/assets/" + file;
+      } else if (subModuleName == "enterprise") {
+        return (
+          "../../../enterprise.getqor.com/" +
+          moduleName +
+          "/views/themes/" +
+          moduleName +
+          "/assets/" +
+          file
+        );
       } else if (useSubName) {
-        if (useSubName == 'admin') {
-          return '../' + moduleName + '/' + subModuleName + '/views/assets/' + file;
+        if (useSubName == "admin") {
+          return (
+            "../" + moduleName + "/" + subModuleName + "/views/assets/" + file
+          );
         } else {
-          return '../' + moduleName + '/' + subModuleName + '/views/themes/' + subModuleName + '/assets/' + file;
+          return (
+            "../" +
+            moduleName +
+            "/" +
+            subModuleName +
+            "/views/themes/" +
+            subModuleName +
+            "/assets/" +
+            file
+          );
         }
       } else {
-        return '../' + moduleName + '/' + subModuleName + '/views/themes/' + moduleName + '/assets/' + file;
+        return (
+          "../" +
+          moduleName +
+          "/" +
+          subModuleName +
+          "/views/themes/" +
+          moduleName +
+          "/assets/" +
+          file
+        );
       }
     }
-    return '../' + moduleName + '/views/themes/' + moduleName + '/assets/' + file;
+    return (
+      "../" + moduleName + "/views/themes/" + moduleName + "/assets/" + file
+    );
   };
 
   let scripts = {
-    src: pathto('javascripts/'),
-    watch: pathto('javascripts/**/*.js')
+    src: pathto("javascripts/"),
+    watch: pathto("javascripts/**/*.js")
   };
   let styles = {
-    src: pathto('stylesheets/'),
-    watch: pathto('stylesheets/**/*.scss')
+    src: pathto("stylesheets/"),
+    watch: pathto("stylesheets/**/*.scss")
   };
 
   function getFolders(dir) {
@@ -243,94 +284,142 @@ function moduleTasks(moduleNames) {
     });
   }
 
-  gulp.task('js', function() {
+  gulp.task("js", function() {
     let scriptPath = scripts.src,
       folders = getFolders(scriptPath);
 
     let task = folders.map(function(folder) {
       return gulp
-        .src(path.join(scriptPath, folder, '/*.js'))
+        .src(path.join(scriptPath, folder, "/*.js"))
         .pipe(plumber())
         .pipe(
           eslint({
-            configFile: '.eslintrc'
+            configFile: ".eslintrc"
           })
         )
         .pipe(
           babel({
-            presets: ['env']
+            presets: ["@babel/preset-env"]
           })
         )
         .pipe(eslint.format())
-        .pipe(plugins.concat(folder + '.js'))
-        .pipe(plugins.uglify())
+        .pipe(concat(folder + ".js"))
+        .pipe(uglify())
         .pipe(gulp.dest(scriptPath));
     });
 
     return es.concat.apply(null, task);
   });
 
-  gulp.task('css', function() {
+  gulp.task("css", function() {
     let stylePath = styles.src,
       folders = getFolders(stylePath);
 
     let task = folders.map(function(folder) {
       return gulp
-        .src(path.join(stylePath, folder, '/*.scss'))
+        .src(path.join(stylePath, folder, "/*.scss"))
         .pipe(plumber())
         .pipe(
           plugins
             .sass({
-              outputStyle: 'compressed'
+              outputStyle: "compressed"
             })
-            .on('error', plugins.sass.logError)
+            .on("error", sass.logError)
         )
         .pipe(cleanCSS())
-        .pipe(rename(folder + '.css'))
+        .pipe(rename(folder + ".css"))
         .pipe(gulp.dest(stylePath));
     });
 
     return es.concat.apply(null, task);
   });
 
-  gulp.task('watch', function() {
-    let moduleScript = gulp.watch(scripts.watch, {debounceDelay: 2000}, ['js']);
-    gulp.watch(styles.watch, ['css']);
+  gulp.task("watch", function() {
+    let moduleScript = gulp.watch(scripts.watch, { debounceDelay: 2000 }, [
+      "js"
+    ]);
+    gulp.watch(styles.watch, ["css"]);
 
-    moduleScript.on('change', function(event) {
-      console.log(':==> File ' + event.path + ' was ' + event.type + ', running tasks...');
+    moduleScript.on("change", function(event) {
+      console.log(
+        ":==> File " + event.path + " was " + event.type + ", running tasks..."
+      );
     });
   });
 
-  gulp.task('default', ['watch']);
-  gulp.task('release', ['js', 'css']);
+  gulp.task("default", ["watch"]);
+  gulp.task("release", ["js", "css"]);
 }
 
 // Init
 // -----------------------------------------------------------------------------
 
 if (moduleName.name) {
-  let taskPath = moduleName.name + '/views/themes/' + moduleName.name + '/assets/',
-    runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
+  let taskPath =
+      moduleName.name + "/views/themes/" + moduleName.name + "/assets/",
+    runModuleName =
+      'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
 
   if (moduleName.subName) {
-    if (moduleName.subName == 'admin') {
-      taskPath = moduleName.name + '/views/assets/';
-      runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
-    } else if (moduleName.subName == 'enterprise') {
-      taskPath = '../../../enterprise.getqor.com/' + moduleName.name + '/views/themes/' + moduleName.name + '/assets/';
-      runModuleName = 'Running "' + moduleName.name + '" module task in "' + taskPath + '"...';
+    if (moduleName.subName == "admin") {
+      taskPath = moduleName.name + "/views/assets/";
+      runModuleName =
+        'Running "' +
+        moduleName.name +
+        '" module task in "' +
+        taskPath +
+        '"...';
+    } else if (moduleName.subName == "enterprise") {
+      taskPath =
+        "../../../enterprise.getqor.com/" +
+        moduleName.name +
+        "/views/themes/" +
+        moduleName.name +
+        "/assets/";
+      runModuleName =
+        'Running "' +
+        moduleName.name +
+        '" module task in "' +
+        taskPath +
+        '"...';
     } else if (moduleName.useSubName) {
-      if (moduleName.useSubName == 'admin') {
-        taskPath = moduleName.name + '/' + moduleName.subName + '/views/assets/';
+      if (moduleName.useSubName == "admin") {
+        taskPath =
+          moduleName.name + "/" + moduleName.subName + "/views/assets/";
       } else {
-        taskPath = moduleName.name + '/' + moduleName.subName + '/views/themes/' + moduleName.subName + '/assets/';
+        taskPath =
+          moduleName.name +
+          "/" +
+          moduleName.subName +
+          "/views/themes/" +
+          moduleName.subName +
+          "/assets/";
       }
 
-      runModuleName = 'Running "' + moduleName.name + ' > ' + moduleName.subName + '" module task in "' + taskPath + '"...';
+      runModuleName =
+        'Running "' +
+        moduleName.name +
+        " > " +
+        moduleName.subName +
+        '" module task in "' +
+        taskPath +
+        '"...';
     } else {
-      taskPath = moduleName.name + '/' + moduleName.subName + '/views/themes/' + moduleName.name + '/assets/';
-      runModuleName = 'Running "' + moduleName.name + ' > ' + moduleName.subName + '" module task in "' + taskPath + '"...';
+      taskPath =
+        moduleName.name +
+        "/" +
+        moduleName.subName +
+        "/views/themes/" +
+        moduleName.name +
+        "/assets/";
+      runModuleName =
+        'Running "' +
+        moduleName.name +
+        " > " +
+        moduleName.subName +
+        '" module task in "' +
+        taskPath +
+        '"...';
     }
   }
   console.log(runModuleName);
@@ -341,16 +430,19 @@ if (moduleName.name) {
 }
 
 // Task for compress js and css vendor assets
-gulp.task('combineJavaScriptVendor', function() {
+gulp.task("combineJavaScriptVendor", function() {
   return gulp
-    .src(['!../admin/views/assets/javascripts/vendors/jquery.min.js', '../admin/views/assets/javascripts/vendors/*.js'])
-    .pipe(plugins.concat('vendors.js'))
-    .pipe(gulp.dest('../admin/views/assets/javascripts'));
+    .src([
+      "!../admin/views/assets/javascripts/vendors/jquery.min.js",
+      "../admin/views/assets/javascripts/vendors/*.js"
+    ])
+    .pipe(concat("vendors.js"))
+    .pipe(gulp.dest("../admin/views/assets/javascripts"));
 });
 
-gulp.task('compressCSSVendor', function() {
+gulp.task("compressCSSVendor", function() {
   return gulp
-    .src('../admin/views/assets/stylesheets/vendors/*.css')
-    .pipe(plugins.concat('vendors.css'))
-    .pipe(gulp.dest('../admin/views/assets/stylesheets'));
+    .src("../admin/views/assets/stylesheets/vendors/*.css")
+    .pipe(concat("vendors.css"))
+    .pipe(gulp.dest("../admin/views/assets/stylesheets"));
 });
