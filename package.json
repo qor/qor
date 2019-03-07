@@ -19,7 +19,7 @@
     "event-stream": "4.0.1",
     "gulp": "^4.0.0",
     "gulp-autoprefixer": "^5.0.0",
-    "gulp-babel": "^7.0.1",
+    "gulp-babel": "8.0.0",
     "gulp-clean-css": "^4.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-eslint": "^5.0.0",
@@ -27,5 +27,8 @@
     "gulp-rename": "^1.4.0",
     "gulp-sass": "4.0.2",
     "gulp-uglify": "^3.0.2"
+  },
+  "dependencies": {
+    "gulp-cli": "^2.0.1"
   }
 }

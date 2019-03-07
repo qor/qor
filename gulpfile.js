@@ -78,19 +78,22 @@ function adminTasks() {
       .pipe(gulp.dest(scripts.dest));
   });
 
-  gulp.task("js", ["qor"], function() {
-    return gulp
-      .src(scripts.src)
-      .pipe(plumber())
-      .pipe(
-        eslint({
-          configFile: ".eslintrc"
-        })
-      )
-      .pipe(concat("app.js"))
-      .pipe(uglify())
-      .pipe(gulp.dest(scripts.dest));
-  });
+  gulp.task(
+    "js",
+    gulp.series("qor", function() {
+      return gulp
+        .src(scripts.src)
+        .pipe(plumber())
+        .pipe(
+          eslint({
+            configFile: ".eslintrc"
+          })
+        )
+        .pipe(concat("app.js"))
+        .pipe(uglify())
+        .pipe(gulp.dest(scripts.dest));
+    })
+  );
 
   gulp.task("qor+", function() {
     return gulp
@@ -103,7 +106,7 @@ function adminTasks() {
       )
       .pipe(
         babel({
-          presets: ["@babel/preset-env"]
+          presets: ["@babel/env"]
         })
       )
       .pipe(eslint.format())
@@ -118,7 +121,7 @@ function adminTasks() {
       .pipe(plumber())
       .pipe(
         babel({
-          presets: ["@babel/preset-env"]
+          presets: ["@babel/env"]
         })
       )
       .pipe(eslint.format())
@@ -135,14 +138,17 @@ function adminTasks() {
       .pipe(gulp.dest(styles.dest));
   });
 
-  gulp.task("css", ["sass"], function() {
-    return gulp
-      .src(styles.main)
-      .pipe(plumber())
-      .pipe(autoprefixer())
-      .pipe(cleanCSS())
-      .pipe(gulp.dest(styles.dest));
-  });
+  gulp.task(
+    "css",
+    gulp.series("sass", function() {
+      return gulp
+        .src(styles.main)
+        .pipe(plumber())
+        .pipe(autoprefixer())
+        .pipe(cleanCSS())
+        .pipe(gulp.dest(styles.dest));
+    })
+  );
 
   gulp.task("release_js", function() {
     return gulp
@@ -158,15 +164,18 @@ function adminTasks() {
       .pipe(gulp.dest(styles.dest));
   });
 
-  gulp.task("release", ["qor+", "js+", "css", "release_js", "release_css"]);
+  gulp.task(
+    "release",
+    gulp.series("qor+", "js+", "css", "release_js", "release_css")
+  );
 
   let watcher = gulp.task("watch", function() {
-    let watch_qor = gulp.watch(scripts.qor, ["qor+"]),
-      watch_js = gulp.watch(scripts.src, ["js+"]),
-      watch_css = gulp.watch(styles.scss, ["css"]);
+    let watch_qor = gulp.watch(scripts.qor, gulp.series("qor+")),
+      watch_js = gulp.watch(scripts.src, gulp.series("js+")),
+      watch_css = gulp.watch(styles.scss, gulp.series("css"));
 
-    gulp.watch(styles.qorAdmin, ["release_css"]);
-    gulp.watch(scripts.qorAdmin, ["release_js"]);
+    gulp.watch(styles.qorAdmin, gulp.series("release_css"));
+    gulp.watch(scripts.qorAdmin, gulp.series("release_js"));
 
     watch_qor.on("change", function(event) {
       console.log(
@@ -185,7 +194,7 @@ function adminTasks() {
     });
   });
 
-  gulp.task("default", ["watch"]);
+  gulp.task("default", gulp.series("watch"));
 }
 
 // -----------------------------------------------------------------------------
@@ -299,7 +308,7 @@ function moduleTasks(moduleNames) {
         )
         .pipe(
           babel({
-            presets: ["@babel/preset-env"]
+            presets: ["@babel/env"]
           })
         )
         .pipe(eslint.format())
@@ -445,4 +454,32 @@ gulp.task("compressCSSVendor", function() {
     .src("../admin/views/assets/stylesheets/vendors/*.css")
     .pipe(concat("vendors.css"))
     .pipe(gulp.dest("../admin/views/assets/stylesheets"));
+});
+
+gulp.task("combineDatetimePicker", function() {
+  return gulp
+    .src([
+      "../admin/views/assets/javascripts/qor/qor-config.js",
+      "../admin/views/assets/javascripts/qor/qor-common.js",
+      "../admin/views/assets/javascripts/qor/qor-material.js",
+      "../admin/views/assets/javascripts/qor/qor-modal.js",
+      "../admin/views/assets/javascripts/qor/datepicker.js",
+      "../admin/views/assets/javascripts/qor/qor-datepicker.js",
+      "../admin/views/assets/javascripts/qor/qor-timepicker.js"
+    ])
+    .pipe(plumber())
+    .pipe(
+      eslint({
+        configFile: ".eslintrc"
+      })
+    )
+    .pipe(
+      babel({
+        presets: ["@babel/env"]
+      })
+    )
+
+    .pipe(concat("datetimepicker.js"))
+    .pipe(uglify())
+    .pipe(gulp.dest("../admin/views/assets/javascripts"));
 });
