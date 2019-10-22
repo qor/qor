@@ -33,7 +33,7 @@ let moduleName = (function() {
   return {
     name: name,
     subName: subName,
-    useSubName: useSubName
+    useSubName: useSubName,
   };
 })();
 
@@ -54,7 +54,7 @@ function adminTasks() {
     qorInit: pathto("javascripts/qor/qor-config.js"),
     qorCommon: pathto("javascripts/qor/qor-common.js"),
     qorAdmin: [pathto("javascripts/qor.js"), pathto("javascripts/app.js")],
-    all: ["gulpfile.js", pathto("javascripts/qor/*.js")]
+    all: ["gulpfile.js", pathto("javascripts/qor/*.js")],
   };
   let styles = {
     src: pathto("stylesheets/scss/{app,qor}.scss"),
@@ -64,9 +64,9 @@ function adminTasks() {
     qorAdmin: [
       pathto("stylesheets/vendors.css"),
       pathto("stylesheets/qor.css"),
-      pathto("stylesheets/app.css")
+      pathto("stylesheets/app.css"),
     ],
-    scss: pathto("stylesheets/scss/**/*.scss")
+    scss: pathto("stylesheets/scss/**/*.scss"),
   };
 
   gulp.task("qor", function() {
@@ -86,7 +86,7 @@ function adminTasks() {
         .pipe(plumber())
         .pipe(
           eslint({
-            configFile: ".eslintrc"
+            configFile: ".eslintrc",
           })
         )
         .pipe(concat("app.js"))
@@ -101,12 +101,12 @@ function adminTasks() {
       .pipe(plumber())
       .pipe(
         eslint({
-          configFile: ".eslintrc"
+          configFile: ".eslintrc",
         })
       )
       .pipe(
         babel({
-          presets: ["@babel/env"]
+          presets: ["@babel/env"],
         })
       )
       .pipe(eslint.format())
@@ -121,7 +121,7 @@ function adminTasks() {
       .pipe(plumber())
       .pipe(
         babel({
-          presets: ["@babel/env"]
+          presets: ["@babel/env"],
         })
       )
       .pipe(eslint.format())
@@ -177,20 +177,14 @@ function adminTasks() {
     gulp.watch(styles.qorAdmin, gulp.series("release_css"));
     gulp.watch(scripts.qorAdmin, gulp.series("release_js"));
 
-    watch_qor.on("change", function(event) {
-      console.log(
-        ":==> File " + event.path + " was " + event.type + ", running tasks..."
-      );
+    watch_qor.on("change", function(path, stats) {
+      console.log(":==> File " + path + " was changed, running tasks...");
     });
-    watch_js.on("change", function(event) {
-      console.log(
-        ":==> File " + event.path + " was " + event.type + ", running tasks..."
-      );
+    watch_js.on("change", function(path, stats) {
+      console.log(":==> File " + path + " was changed, running tasks...");
     });
-    watch_css.on("change", function(event) {
-      console.log(
-        ":==> File " + event.path + " was " + event.type + ", running tasks..."
-      );
+    watch_css.on("change", function(path, stats) {
+      console.log(":==> File " + path + " was changed, running tasks...");
     });
   });
 
@@ -280,11 +274,11 @@ function moduleTasks(moduleNames) {
 
   let scripts = {
     src: pathto("javascripts/"),
-    watch: pathto("javascripts/**/*.js")
+    watch: pathto("javascripts/**/*.js"),
   };
   let styles = {
     src: pathto("stylesheets/"),
-    watch: pathto("stylesheets/**/*.scss")
+    watch: pathto("stylesheets/**/*.scss"),
   };
 
   function getFolders(dir) {
@@ -303,12 +297,12 @@ function moduleTasks(moduleNames) {
         .pipe(plumber())
         .pipe(
           eslint({
-            configFile: ".eslintrc"
+            configFile: ".eslintrc",
           })
         )
         .pipe(
           babel({
-            presets: ["@babel/env"]
+            presets: ["@babel/env"],
           })
         )
         .pipe(eslint.format())
@@ -331,7 +325,7 @@ function moduleTasks(moduleNames) {
         .pipe(
           plugins
             .sass({
-              outputStyle: "compressed"
+              outputStyle: "compressed",
             })
             .on("error", sass.logError)
         )
@@ -344,10 +338,12 @@ function moduleTasks(moduleNames) {
   });
 
   gulp.task("watch", function() {
-    let moduleScript = gulp.watch(scripts.watch, { debounceDelay: 2000 }, [
-      "js"
-    ]);
-    gulp.watch(styles.watch, ["css"]);
+    let moduleScript = gulp.watch(
+      scripts.watch,
+      { debounceDelay: 2000 },
+      gulp.series("js")
+    );
+    gulp.watch(styles.watch, gulp.series("css"));
 
     moduleScript.on("change", function(event) {
       console.log(
@@ -356,8 +352,8 @@ function moduleTasks(moduleNames) {
     });
   });
 
-  gulp.task("default", ["watch"]);
-  gulp.task("release", ["js", "css"]);
+  gulp.task("default", gulp.series("watch"));
+  gulp.task("release", gulp.series("js", "css"));
 }
 
 // Init
@@ -443,7 +439,7 @@ gulp.task("combineJavaScriptVendor", function() {
   return gulp
     .src([
       "!../admin/views/assets/javascripts/vendors/jquery.min.js",
-      "../admin/views/assets/javascripts/vendors/*.js"
+      "../admin/views/assets/javascripts/vendors/*.js",
     ])
     .pipe(concat("vendors.js"))
     .pipe(gulp.dest("../admin/views/assets/javascripts"));
@@ -460,22 +456,21 @@ gulp.task("combineDatetimePicker", function() {
   return gulp
     .src([
       "../admin/views/assets/javascripts/qor/qor-config.js",
-      "../admin/views/assets/javascripts/qor/qor-common.js",
       "../admin/views/assets/javascripts/qor/qor-material.js",
       "../admin/views/assets/javascripts/qor/qor-modal.js",
       "../admin/views/assets/javascripts/qor/datepicker.js",
       "../admin/views/assets/javascripts/qor/qor-datepicker.js",
-      "../admin/views/assets/javascripts/qor/qor-timepicker.js"
+      "../admin/views/assets/javascripts/qor/qor-timepicker.js",
     ])
     .pipe(plumber())
     .pipe(
       eslint({
-        configFile: ".eslintrc"
+        configFile: ".eslintrc",
       })
     )
     .pipe(
       babel({
-        presets: ["@babel/env"]
+        presets: ["@babel/env"],
       })
     )
 
