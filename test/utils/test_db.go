@@ -13,7 +13,7 @@ import (
 func TestDB() *gorm.DB {
 	var db *gorm.DB
 	var err error
-	var dbuser, dbpwd, dbname = "qor", "qor", "qor_test"
+	var dbuser, dbpwd, dbname, dbhost = "qor", "qor", "qor_test", "localhost"
 
 	if os.Getenv("DB_USER") != "" {
 		dbuser = os.Getenv("DB_USER")
@@ -23,8 +23,16 @@ func TestDB() *gorm.DB {
 		dbpwd = os.Getenv("DB_PWD")
 	}
 
+	if os.Getenv("DB_NAME") != "" {
+		dbname = os.Getenv("DB_NAME")
+	}
+
+	if os.Getenv("DB_HOST") != "" {
+		dbhost = os.Getenv("DB_HOST")
+	}
+
 	if os.Getenv("TEST_DB") == "postgres" {
-		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@localhost/%s?sslmode=disable", dbuser, dbpwd, dbname))
+		db, err = gorm.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", dbuser, dbpwd, dbhost, dbname))
 	} else {
 		// CREATE USER 'qor'@'localhost' IDENTIFIED BY 'qor';
 		// CREATE DATABASE qor_test;
