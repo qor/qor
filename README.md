@@ -4,7 +4,7 @@ English Chat Room: [![Join the chat at https://gitter.im/qor/qor](https://badges
 
 中文聊天室： [![加入中国Qor聊天室 https://gitter.im/qor/qor/china](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/qor/qor/china)
 
-[![Build Status](https://semaphoreci.com/api/v1/theplant/qor/branches/master/badge.svg)](https://semaphoreci.com/theplant/qor)
+[![Build Status](https://travis-ci.com/qor/qor.svg?branch=master)](https://travis-ci.com/qor/qor)
 
 **For security issues, please send us an email to security@getqor.com and give us time to respond BEFORE posting as an issue or reporting on public forums.**
 
