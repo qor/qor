@@ -6,10 +6,14 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/jinzhu/gorm"
+	"github.com/qor/admin"
+	"github.com/qor/publish2"
 	"github.com/qor/qor"
 	"github.com/qor/qor/resource"
 	testutils "github.com/qor/qor/test/utils"
 	"github.com/qor/qor/utils"
+	"github.com/qor/sorting"
 )
 
 func format(value interface{}) string {
@@ -240,4 +244,84 @@ func TestSliceMetaValuerAndSetter(t *testing.T) {
 	}
 
 	checkMeta(user, meta4, []string{"name1", "name2"}, t)
+}
+
+type Collection struct {
+	gorm.Model
+
+	publish2.Version
+	publish2.Schedule
+
+	Name string
+
+	Products       []Product `gorm:"many2many:collection_products;association_autoupdate:false"`
+	ProductsSorter sorting.SortableCollection
+}
+
+type Product struct {
+	gorm.Model
+
+	publish2.Schedule
+	publish2.Version
+
+	Name string
+}
+
+func TestMany2ManyRelation(t *testing.T) {
+	db := testutils.TestDB()
+	testutils.ResetDBTables(db, &Collection{}, &Product{})
+
+	// type Meta struct {
+	// 	Name            string
+	// 	FieldName       string
+	// 	FieldStruct     *gorm.StructField
+	// 	Setter          func(resource interface{}, metaValue *MetaValue, context *qor.Context)
+	// 	Valuer          func(interface{}, *qor.Context) interface{}
+	// 	FormattedValuer func(interface{}, *qor.Context) interface{}
+	// 	Config          MetaConfigInterface
+	// 	BaseResource    Resourcer
+	// 	Resource        Resourcer
+	// 	Permission      *roles.Permission
+	// }
+	adm := admin.New(&qor.Config{DB: db})
+	c := adm.AddResource(&Collection{})
+
+	productsMeta := resource.Meta{
+		Name:         "Products",
+		FieldName:    "Products",
+		BaseResource: c,
+		Config: &admin.SelectManyConfig{
+			Collection: func(value interface{}, ctx *qor.Context) (results [][]string) {
+				if c, ok := value.(*Collection); ok {
+					var products []Product
+					ctx.GetDB().Model(c).Related(&products, "Products")
+
+					for _, product := range products {
+						results = append(results, []string{fmt.Sprintf("%v", product.ID), product.Name})
+					}
+				}
+				return
+			},
+		},
+	}
+
+	var scope = &gorm.Scope{Value: c.Value}
+	var getField = func(fields []*gorm.StructField, name string) *gorm.StructField {
+		for _, field := range fields {
+			if field.Name == name || field.DBName == name {
+				return field
+			}
+		}
+		return nil
+	}
+
+	productsMeta.FieldStruct = getField(scope.GetStructFields(), productsMeta.FieldName)
+
+	if err := productsMeta.Initialize(); err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Println("\n======================")
+	fmt.Printf("%+v\n", productsMeta)
+	fmt.Println("======================")
 }
