@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/qor/admin"
@@ -267,23 +268,54 @@ type Product struct {
 	Name string
 }
 
+func WithoutVersion(db *gorm.DB) *gorm.DB {
+	return db.Set(admin.DisableCompositePrimaryKeyMode, "on").Set(publish2.VersionMode, publish2.VersionMultipleMode).Set(publish2.ScheduleMode, publish2.ModeOff)
+}
+
+func updateVersionPriority() func(scope *gorm.Scope) {
+	return func(scope *gorm.Scope) {
+		if field, ok := scope.FieldByName("VersionPriority"); ok {
+			createdAtField, _ := scope.FieldByName("CreatedAt")
+			createdAt := createdAtField.Field.Interface().(time.Time)
+
+			versionNameField, _ := scope.FieldByName("VersionName")
+			versionName := versionNameField.Field.Interface().(string)
+
+			versionPriority := fmt.Sprintf("%v_%v", createdAt.UTC().Format(time.RFC3339), versionName)
+			field.Set(versionPriority)
+		}
+	}
+}
+func updateCallback(scope *gorm.Scope) {
+	return
+}
 func TestMany2ManyRelation(t *testing.T) {
 	db := testutils.TestDB()
+	db.Callback().Create().Before("gorm:begin_transaction").Register("publish2:versions", func(scope *gorm.Scope) {
+		if field, ok := scope.FieldByName("VersionName"); ok {
+			if !field.IsBlank {
+				return
+			}
+
+			name := time.Now().Format("2006-01-02")
+
+			idField, _ := scope.FieldByName("ID")
+			id := idField.Field.Interface().(uint)
+
+			var count int
+			scope.DB().Table(scope.TableName()).Unscoped().Scopes(WithoutVersion).Where("id = ? AND version_name like ?", id, name+"%").Count(&count)
+
+			versionName := fmt.Sprintf("%s-v%v", name, count+1)
+			field.Set(versionName)
+		}
+	})
+
+	db.Callback().Create().After("gorm:begin_transaction").Register("publish2:version_priority", updateVersionPriority())
+	db.Callback().Update().Before("gorm:begin_transaction").Register("publish:versions", updateCallback)
+	publish2.RegisterCallbacks(db)
 	testutils.ResetDBTables(db, &Collection{}, &Product{})
 
-	// type Meta struct {
-	// 	Name            string
-	// 	FieldName       string
-	// 	FieldStruct     *gorm.StructField
-	// 	Setter          func(resource interface{}, metaValue *MetaValue, context *qor.Context)
-	// 	Valuer          func(interface{}, *qor.Context) interface{}
-	// 	FormattedValuer func(interface{}, *qor.Context) interface{}
-	// 	Config          MetaConfigInterface
-	// 	BaseResource    Resourcer
-	// 	Resource        Resourcer
-	// 	Permission      *roles.Permission
-	// }
-	adm := admin.New(&qor.Config{DB: db})
+	adm := admin.New(&qor.Config{DB: db.Set(publish2.ScheduleMode, publish2.ModeOff)})
 	c := adm.AddResource(&Collection{})
 
 	productsMeta := resource.Meta{
@@ -321,7 +353,20 @@ func TestMany2ManyRelation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Println("\n======================")
-	fmt.Printf("%+v\n", productsMeta)
-	fmt.Println("======================")
+	p1 := Product{Name: "p1"}
+	p2 := Product{Name: "p2"}
+	testutils.AssertNoErr(t, db.Save(&p1).Error)
+	testutils.AssertNoErr(t, db.Save(&p2).Error)
+
+	record := Collection{Name: "test"}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+	ctx := &qor.Context{DB: db}
+	metaValue := &resource.MetaValue{Name: productsMeta.Name, Value: []string{fmt.Sprintf("%d", p1.ID), fmt.Sprintf("%d", p2.ID)}}
+
+	productsMeta.Setter(&record, metaValue, ctx)
+
+	testutils.AssertNoErr(t, db.Preload("Products").Find(&record).Error)
+	if len(record.Products) != 2 {
+		t.Error("products not set to collection")
+	}
 }
