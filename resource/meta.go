@@ -356,7 +356,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 
 						if len(primaryKeys) > 0 {
 							// replace it with new value
-							context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
+							context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
 						}
 
 						// Replace many 2 many relations
