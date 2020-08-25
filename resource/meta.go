@@ -291,42 +291,84 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						scope         = context.GetDB().NewScope(record)
 						indirectValue = reflect.Indirect(reflect.ValueOf(record))
 					)
-					primaryKeys := utils.ToArray(metaValue.Value)
-					if metaValue.Value == nil {
-						primaryKeys = []string{}
-					}
 
-					// associations not changed for belongs to
-					if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
-						oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
-						// if not changed
-						if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
-							return
-						}
-
-						// if removed
-						if len(primaryKeys) == 0 {
-							field := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
-							field.Set(reflect.Zero(field.Type()))
+					var fieldHasVersion bool
+					// If the field struct has version, we expect the metaValue.Value to be []map[string]string
+					// If it is not, print warning in the console.
+					underlyingType := field.Type().Elem()
+					for i := 0; i < underlyingType.NumField(); i++ {
+						if underlyingType.Field(i).Name == "Version" && underlyingType.Field(i).Type.String() == "publish2.Version" {
+							fieldHasVersion = true
 						}
 					}
 
-					// set current field value to blank
-					field.Set(reflect.Zero(field.Type()))
+					// If field is a struct with version and metaValue is []map[string]string we construct the query separately
+					if fieldHasVersion && metaValue.Value != nil && reflect.TypeOf(metaValue.Value).Elem().Kind() == reflect.Map {
+						primaryKeys := metaValue.Value.([]map[string]string)
 
-					if len(primaryKeys) > 0 {
-						// replace it with new value
-						context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
-					}
+						// set current field value to blank
+						field.Set(reflect.Zero(field.Type()))
 
-					// Replace many 2 many relations
-					if relationship.Kind == "many_to_many" {
-						if !scope.PrimaryKeyZero() {
-							context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
-							field.Set(reflect.Zero(field.Type()))
+						if len(primaryKeys) > 0 {
+							// eliminate potential version_name condition on the main object, we don't need it when querying associated records
+							// it usually added by qor/publish2.
+							db := context.GetDB().Set("publish:version:name", "")
+							for _, keyPair := range primaryKeys {
+								db = db.Or("id = ? AND version_name = ?", keyPair["id"], keyPair["version_name"])
+							}
+							db.Find(field.Addr().Interface())
+						}
+
+						// Replace many 2 many relations
+						if relationship.Kind == "many_to_many" {
+							if !scope.PrimaryKeyZero() {
+								context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
+								field.Set(reflect.Zero(field.Type()))
+							}
+						}
+					} else {
+						if fieldHasVersion && metaValue.Value != nil && reflect.TypeOf(metaValue.Value).Elem().Kind() != reflect.Map {
+							fmt.Println("given meta value contains no version name, this might cause the association is incorrect")
+						}
+
+						primaryKeys := utils.ToArray(metaValue.Value)
+						if metaValue.Value == nil {
+							primaryKeys = []string{}
+						}
+
+						// associations not changed for belongs to
+						if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
+							oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
+							// if not changed
+							if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
+								return
+							}
+
+							// if removed
+							if len(primaryKeys) == 0 {
+								field := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
+								field.Set(reflect.Zero(field.Type()))
+							}
+						}
+
+						// set current field value to blank
+						field.Set(reflect.Zero(field.Type()))
+
+						if len(primaryKeys) > 0 {
+							// replace it with new value
+							context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+						}
+
+						// Replace many 2 many relations
+						if relationship.Kind == "many_to_many" {
+							if !scope.PrimaryKeyZero() {
+								context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
+								field.Set(reflect.Zero(field.Type()))
+							}
 						}
 					}
 				})
+
 				return
 			}
 		}
