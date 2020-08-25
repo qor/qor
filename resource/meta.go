@@ -305,9 +305,6 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 					// If field is a struct with version and metaValue is []map[string]string we construct the query separately
 					if fieldHasVersion && metaValue.Value != nil && reflect.TypeOf(metaValue.Value).Elem().Kind() == reflect.Map {
 						primaryKeys := metaValue.Value.([]map[string]string)
-						if metaValue.Value == nil {
-							primaryKeys = []map[string]string{}
-						}
 
 						// set current field value to blank
 						field.Set(reflect.Zero(field.Type()))
