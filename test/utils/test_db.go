@@ -43,7 +43,7 @@ func TestDB() *gorm.DB {
 	if err != nil {
 		panic(err)
 	}
-
+	db.LogMode(true)
 	if os.Getenv("DEBUG") != "" {
 		db.LogMode(true)
 	}
