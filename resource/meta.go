@@ -310,8 +310,9 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						field.Set(reflect.Zero(field.Type()))
 
 						if len(primaryKeys) > 0 {
-							// replace it with new value
-							db := context.GetDB()
+							// eliminate potential version_name condition on the main object, we don't need it when querying associated records
+							// it usually added by qor/publish2.
+							db := context.GetDB().Set("publish:version:name", "")
 							for _, keyPair := range primaryKeys {
 								db = db.Or("id = ? AND version_name = ?", keyPair["id"], keyPair["version_name"])
 							}
