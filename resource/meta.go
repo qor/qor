@@ -216,7 +216,7 @@ func setupValuer(meta *Meta, fieldName string, record interface{}) {
 			if f, ok := scope.FieldByName(fieldName); ok {
 				if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
 					if (relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0 {
-						context.GetDB().Model(value).Related(f.Field.Addr().Interface(), fieldName)
+						context.GetDB().Set("publish:version:name", "").Model(value).Related(f.Field.Addr().Interface(), fieldName)
 					} else if (relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && context.GetDB().NewScope(f.Field.Interface()).PrimaryKeyZero() {
 						if f.Field.Kind() == reflect.Ptr && f.Field.IsNil() {
 							f.Field.Set(reflect.New(f.Field.Type().Elem()))
