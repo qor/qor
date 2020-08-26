@@ -419,9 +419,8 @@ func TestManyToManyRelation_WithVersion(t *testing.T) {
 	record := CollectionWithVersion{Name: "test"}
 	testutils.AssertNoErr(t, db.Save(&record).Error)
 	ctx := &qor.Context{DB: db}
-	metaValue := &resource.MetaValue{Name: productsMeta.Name, Value: []map[string]string{
-		{"id": fmt.Sprintf("%d", p1.ID), "version_name": p1.GetVersionName()},
-		{"id": fmt.Sprintf("%d", p2_v2.ID), "version_name": p2_v2.GetVersionName()},
+	metaValue := &resource.MetaValue{Name: productsMeta.Name, Value: []string{
+		fmt.Sprintf("[{\"id\":%d,\"version_name\":%q},{\"id\":%d,\"version_name\":%q}]", p1.ID, p1.GetVersionName(), p2_v2.ID, p2_v2.GetVersionName()),
 	}}
 
 	productsMeta.Setter(&record, metaValue, ctx)
