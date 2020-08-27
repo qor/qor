@@ -2,6 +2,8 @@ package resource
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"runtime/debug"
@@ -214,7 +216,7 @@ func setupValuer(meta *Meta, fieldName string, record interface{}) {
 			if f, ok := scope.FieldByName(fieldName); ok {
 				if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
 					if (relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0 {
-						context.GetDB().Model(value).Related(f.Field.Addr().Interface(), fieldName)
+						context.GetDB().Set("publish:version:name", "").Model(value).Related(f.Field.Addr().Interface(), fieldName)
 					} else if (relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && context.GetDB().NewScope(f.Field.Interface()).PrimaryKeyZero() {
 						if f.Field.Kind() == reflect.Ptr && f.Field.IsNil() {
 							f.Field.Set(reflect.New(f.Field.Type().Elem()))
@@ -292,45 +294,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						indirectValue = reflect.Indirect(reflect.ValueOf(record))
 					)
 
-					var fieldHasVersion bool
-					// If the field struct has version, we expect the metaValue.Value to be []map[string]string
-					// If it is not, print warning in the console.
-					underlyingType := field.Type().Elem()
-					for i := 0; i < underlyingType.NumField(); i++ {
-						if underlyingType.Field(i).Name == "Version" && underlyingType.Field(i).Type.String() == "publish2.Version" {
-							fieldHasVersion = true
-						}
-					}
-
-					// If field is a struct with version and metaValue is []map[string]string we construct the query separately
-					if fieldHasVersion && metaValue.Value != nil && reflect.TypeOf(metaValue.Value).Elem().Kind() == reflect.Map {
-						primaryKeys := metaValue.Value.([]map[string]string)
-
-						// set current field value to blank
-						field.Set(reflect.Zero(field.Type()))
-
-						if len(primaryKeys) > 0 {
-							// eliminate potential version_name condition on the main object, we don't need it when querying associated records
-							// it usually added by qor/publish2.
-							db := context.GetDB().Set("publish:version:name", "")
-							for _, keyPair := range primaryKeys {
-								db = db.Or("id = ? AND version_name = ?", keyPair["id"], keyPair["version_name"])
-							}
-							db.Find(field.Addr().Interface())
-						}
-
-						// Replace many 2 many relations
-						if relationship.Kind == "many_to_many" {
-							if !scope.PrimaryKeyZero() {
-								context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
-								field.Set(reflect.Zero(field.Type()))
-							}
-						}
-					} else {
-						if fieldHasVersion && metaValue.Value != nil && reflect.TypeOf(metaValue.Value).Elem().Kind() != reflect.Map {
-							fmt.Println("given meta value contains no version name, this might cause the association is incorrect")
-						}
-
+					if relationship.Kind == "belongs_to" {
 						primaryKeys := utils.ToArray(metaValue.Value)
 						if metaValue.Value == nil {
 							primaryKeys = []string{}
@@ -339,32 +303,88 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						// associations not changed for belongs to
 						if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
 							oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
+
 							// if not changed
 							if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
 								return
 							}
 
 							// if removed
+							foreignKeyField := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
 							if len(primaryKeys) == 0 {
-								field := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
-								field.Set(reflect.Zero(field.Type()))
+								foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
+							} else {
+								context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+							}
+						}
+					}
+
+					if relationship.Kind == "many_to_many" {
+						var fieldHasVersion bool
+						// If the field struct has version, we expect the metaValue.Value to be []map[string]string
+						// If it is not, print warning in the console.
+						if field.Type().Kind() == reflect.Slice {
+							underlyingType := field.Type().Elem()
+							for i := 0; i < underlyingType.NumField(); i++ {
+								if underlyingType.Field(i).Name == "Version" && underlyingType.Field(i).Type.String() == "publish2.Version" {
+									fieldHasVersion = true
+								}
 							}
 						}
 
-						// set current field value to blank
-						field.Set(reflect.Zero(field.Type()))
-
-						if len(primaryKeys) > 0 {
-							// replace it with new value
-							context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+						type compositePrimaryKey struct {
+							ID          uint   `json:"id"`
+							VersionName string `json:"version_name"`
 						}
 
-						// Replace many 2 many relations
-						if relationship.Kind == "many_to_many" {
-							if !scope.PrimaryKeyZero() {
-								context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
-								field.Set(reflect.Zero(field.Type()))
+						metaValueForCompositePrimaryKeys, ok := metaValue.Value.([]string)
+						compositePKeys := []compositePrimaryKey{}
+						compositePKeyConvertErr := errors.New("metaValue is not for composite primary key")
+						if ok {
+							compositePKeyConvertErr = json.Unmarshal([]byte(metaValueForCompositePrimaryKeys[0]), &compositePKeys)
+						}
+
+						// If field is a struct with version and metaValue is []map[string]string we construct the query separately
+						if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr == nil {
+							// set current field value to blank
+							field.Set(reflect.Zero(field.Type()))
+
+							if len(compositePKeys) > 0 {
+								// eliminate potential version_name condition on the main object, we don't need it when querying associated records
+								// it usually added by qor/publish2.
+								db := context.GetDB().Set("publish:version:name", "")
+								for i, compositePKey := range compositePKeys {
+									if i == 0 {
+										db = db.Where("id = ? AND version_name = ?", compositePKey.ID, compositePKey.VersionName)
+									} else {
+										db = db.Or("id = ? AND version_name = ?", compositePKey.ID, compositePKey.VersionName)
+									}
+
+								}
+								db.Find(field.Addr().Interface())
 							}
+						} else {
+							if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr != nil {
+								fmt.Println("given meta value contains no version name, this might cause the association is incorrect")
+							}
+
+							primaryKeys := utils.ToArray(metaValue.Value)
+							if metaValue.Value == nil {
+								primaryKeys = []string{}
+							}
+
+							// set current field value to blank
+							field.Set(reflect.Zero(field.Type()))
+
+							if len(primaryKeys) > 0 {
+								// replace it with new value
+								context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+							}
+						}
+
+						if !scope.PrimaryKeyZero() {
+							context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
+							field.Set(reflect.Zero(field.Type()))
 						}
 					}
 				})

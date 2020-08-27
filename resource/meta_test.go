@@ -254,6 +254,15 @@ type Collection struct {
 
 	Products       []Product `gorm:"many2many:collection_products;association_autoupdate:false"`
 	ProductsSorter sorting.SortableCollection
+
+	TagID uint
+	Tag   Tag
+}
+
+type Tag struct {
+	gorm.Model
+
+	Name string
 }
 
 type CollectionWithVersion struct {
@@ -419,9 +428,8 @@ func TestManyToManyRelation_WithVersion(t *testing.T) {
 	record := CollectionWithVersion{Name: "test"}
 	testutils.AssertNoErr(t, db.Save(&record).Error)
 	ctx := &qor.Context{DB: db}
-	metaValue := &resource.MetaValue{Name: productsMeta.Name, Value: []map[string]string{
-		{"id": fmt.Sprintf("%d", p1.ID), "version_name": p1.GetVersionName()},
-		{"id": fmt.Sprintf("%d", p2_v2.ID), "version_name": p2_v2.GetVersionName()},
+	metaValue := &resource.MetaValue{Name: productsMeta.Name, Value: []string{
+		fmt.Sprintf("[{\"id\":%d,\"version_name\":%q},{\"id\":%d,\"version_name\":%q}]", p1.ID, p1.GetVersionName(), p2_v2.ID, p2_v2.GetVersionName()),
 	}}
 
 	productsMeta.Setter(&record, metaValue, ctx)
@@ -440,6 +448,50 @@ func TestManyToManyRelation_WithVersion(t *testing.T) {
 
 	if !hasCorrectVersion {
 		t.Error("p2 is not associated with collection with correct version")
+	}
+}
+
+func TestBelongsToRelation(t *testing.T) {
+	db := testutils.TestDB()
+	testutils.ResetDBTables(db, &Collection{}, &Product{}, &Tag{}, "collection_products")
+
+	adm := admin.New(&qor.Config{DB: db.Set(publish2.ScheduleMode, publish2.ModeOff)})
+	c := adm.AddResource(&Collection{})
+
+	tagMeta := resource.Meta{
+		Name:         "Tag",
+		FieldName:    "Tag",
+		BaseResource: c,
+	}
+
+	var scope = &gorm.Scope{Value: c.Value}
+	var getField = func(fields []*gorm.StructField, name string) *gorm.StructField {
+		for _, field := range fields {
+			if field.Name == name || field.DBName == name {
+				return field
+			}
+		}
+		return nil
+	}
+
+	tagMeta.FieldStruct = getField(scope.GetStructFields(), tagMeta.FieldName)
+
+	if err := tagMeta.Initialize(); err != nil {
+		t.Fatal(err)
+	}
+
+	t1 := Tag{Name: "t1"}
+	testutils.AssertNoErr(t, db.Save(&t1).Error)
+
+	record := Collection{Name: "test"}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+	ctx := &qor.Context{DB: db}
+	metaValue := &resource.MetaValue{Name: tagMeta.Name, Value: []string{fmt.Sprintf("%d", t1.ID)}}
+
+	tagMeta.Setter(&record, metaValue, ctx)
+
+	if record.Tag.ID != t1.ID {
+		t.Error("tag not set to collection")
 	}
 }
 
