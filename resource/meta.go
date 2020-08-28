@@ -2,11 +2,11 @@ package resource
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 
@@ -16,6 +16,9 @@ import (
 	"github.com/qor/roles"
 	"github.com/qor/validations"
 )
+
+// CompositePrimaryKeySeparator to separate composite primary keys like ID and version_name
+const CompositePrimaryKeySeparator = "^|^"
 
 // Metaor interface
 type Metaor interface {
@@ -321,8 +324,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 
 					if relationship.Kind == "many_to_many" {
 						var fieldHasVersion bool
-						// If the field struct has version, we expect the metaValue.Value to be []map[string]string
-						// If it is not, print warning in the console.
+						// If the field struct has version
 						if field.Type().Kind() == reflect.Slice {
 							underlyingType := field.Type().Elem()
 							for i := 0; i < underlyingType.NumField(); i++ {
@@ -339,9 +341,27 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 
 						metaValueForCompositePrimaryKeys, ok := metaValue.Value.([]string)
 						compositePKeys := []compositePrimaryKey{}
-						compositePKeyConvertErr := errors.New("metaValue is not for composite primary key")
+						var compositePKeyConvertErr error
 						if ok {
-							compositePKeyConvertErr = json.Unmarshal([]byte(metaValueForCompositePrimaryKeys[0]), &compositePKeys)
+							for _, rawCpk := range metaValueForCompositePrimaryKeys {
+								pks := strings.Split(rawCpk, CompositePrimaryKeySeparator)
+								if len(pks) != 2 {
+									compositePKeyConvertErr = errors.New("metaValue is not for composite primary key")
+									break
+								}
+
+								id, convErr := strconv.ParseUint(pks[0], 10, 32)
+								if convErr != nil {
+									compositePKeyConvertErr = fmt.Errorf("composite primary key has incorrect id %s", pks[0])
+								}
+
+								cpk := compositePrimaryKey{
+									ID:          uint(id),
+									VersionName: pks[1],
+								}
+
+								compositePKeys = append(compositePKeys, cpk)
+							}
 						}
 
 						// If field is a struct with version and metaValue is []map[string]string we construct the query separately
