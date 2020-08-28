@@ -344,6 +344,11 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						var compositePKeyConvertErr error
 						if ok {
 							for _, rawCpk := range metaValueForCompositePrimaryKeys {
+								// Skip blank string when it is not the only element
+								if len(rawCpk) == 0 && len(metaValueForCompositePrimaryKeys) > 1 {
+									continue
+								}
+
 								pks := strings.Split(rawCpk, CompositePrimaryKeySeparator)
 								if len(pks) != 2 {
 									compositePKeyConvertErr = errors.New("metaValue is not for composite primary key")
