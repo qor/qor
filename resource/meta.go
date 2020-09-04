@@ -20,6 +20,19 @@ import (
 // CompositePrimaryKeySeparator to separate composite primary keys like ID and version_name
 const CompositePrimaryKeySeparator = "^|^"
 
+// CompositePrimaryKey the string that represents the composite primary key
+const CompositePrimaryKey = "CompositePrimaryKeyField"
+
+// CompositePrimaryKeyField to embed into the struct that requires composite primary key in select many
+type CompositePrimaryKeyField struct {
+	CompositePrimaryKey string `gorm:"-"`
+}
+
+// GenCompositePrimaryKey generates composite primary key in a specific format
+func GenCompositePrimaryKey(id uint, versionName string) string {
+	return fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName)
+}
+
 // Metaor interface
 type Metaor interface {
 	GetName() string
@@ -220,6 +233,18 @@ func setupValuer(meta *Meta, fieldName string, record interface{}) {
 				if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
 					if (relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0 {
 						context.GetDB().Set("publish:version:name", "").Model(value).Related(f.Field.Addr().Interface(), fieldName)
+						// if the association has CompositePrimaryKey integrated, generates value for it by our conventional format
+						// the PrimaryKeyOf will return this composite primary key instead of ID, so that frontend could find correct version
+						for i := 0; i < f.Field.Len(); i++ {
+							associatedRecord := reflect.Indirect(f.Field.Index(i))
+							for i := 0; i < associatedRecord.Type().NumField(); i++ {
+								if associatedRecord.Type().Field(i).Name == CompositePrimaryKey {
+									id := associatedRecord.FieldByName("ID").Uint()
+									versionName := associatedRecord.FieldByName("VersionName").String()
+									associatedRecord.Field(i).FieldByName("CompositePrimaryKey").SetString(fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName))
+								}
+							}
+						}
 					} else if (relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && context.GetDB().NewScope(f.Field.Interface()).PrimaryKeyZero() {
 						if f.Field.Kind() == reflect.Ptr && f.Field.IsNil() {
 							f.Field.Set(reflect.New(f.Field.Type().Elem()))

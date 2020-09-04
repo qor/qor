@@ -283,6 +283,8 @@ type ProductWithVersion struct {
 	publish2.Schedule
 	publish2.Version
 
+	resource.CompositePrimaryKeyField
+
 	Name string
 }
 
@@ -315,6 +317,27 @@ func updateCallback(scope *gorm.Scope) {
 }
 func TestMany2ManyRelation(t *testing.T) {
 	db := testutils.TestDB()
+	productsMeta := setupProductsMeta(t, db)
+
+	p1 := Product{Name: "p1"}
+	p2 := Product{Name: "p2"}
+	testutils.AssertNoErr(t, db.Save(&p1).Error)
+	testutils.AssertNoErr(t, db.Save(&p2).Error)
+
+	record := Collection{Name: "test"}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+	ctx := &qor.Context{DB: db}
+	metaValue := &resource.MetaValue{Name: productsMeta.Name, Value: []string{fmt.Sprintf("%d", p1.ID), fmt.Sprintf("%d", p2.ID)}}
+
+	productsMeta.Setter(&record, metaValue, ctx)
+
+	testutils.AssertNoErr(t, db.Preload("Products").Find(&record).Error)
+	if len(record.Products) != 2 {
+		t.Error("products not set to collection")
+	}
+}
+
+func setupProductsMeta(t *testing.T, db *gorm.DB) resource.Meta {
 	testutils.ResetDBTables(db, &Collection{}, &Product{}, "collection_products")
 
 	adm := admin.New(&qor.Config{DB: db.Set(publish2.ScheduleMode, publish2.ModeOff)})
@@ -355,29 +378,32 @@ func TestMany2ManyRelation(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	return productsMeta
+}
+
+func TestValuer(t *testing.T) {
+	db := testutils.TestDB()
+	productsMeta := setupProductsMeta(t, db)
+
 	p1 := Product{Name: "p1"}
 	p2 := Product{Name: "p2"}
 	testutils.AssertNoErr(t, db.Save(&p1).Error)
 	testutils.AssertNoErr(t, db.Save(&p2).Error)
 
 	record := Collection{Name: "test"}
+	record.Products = []Product{p1, p2}
 	testutils.AssertNoErr(t, db.Save(&record).Error)
 	ctx := &qor.Context{DB: db}
-	metaValue := &resource.MetaValue{Name: productsMeta.Name, Value: []string{fmt.Sprintf("%d", p1.ID), fmt.Sprintf("%d", p2.ID)}}
-
-	productsMeta.Setter(&record, metaValue, ctx)
-
-	testutils.AssertNoErr(t, db.Preload("Products").Find(&record).Error)
-	if len(record.Products) != 2 {
-		t.Error("products not set to collection")
+	result := productsMeta.Valuer(&record, ctx)
+	if len(result.([]Product)) != 2 {
+		t.Error("valuer doesn't return correct value")
 	}
 }
 
-func TestManyToManyRelation_WithVersion(t *testing.T) {
-	db := testutils.TestDB()
+func setupProductWithVersionMeta(t *testing.T, db *gorm.DB) resource.Meta {
 	registerVersionNameCallback(db)
 	publish2.RegisterCallbacks(db)
-	testutils.ResetDBTables(db, &CollectionWithVersion{}, &ProductWithVersion{}, "collection_with_versions_product_with_versions")
+	testutils.ResetDBTables(db, &CollectionWithVersion{}, &ProductWithVersion{}, "collection_with_version_product_with_versions")
 
 	adm := admin.New(&qor.Config{DB: db.Set(publish2.ScheduleMode, publish2.ModeOff)})
 	c := adm.AddResource(&CollectionWithVersion{})
@@ -386,19 +412,6 @@ func TestManyToManyRelation_WithVersion(t *testing.T) {
 		Name:         "Products",
 		FieldName:    "Products",
 		BaseResource: c,
-		Config: &admin.SelectManyConfig{
-			Collection: func(value interface{}, ctx *qor.Context) (results [][]string) {
-				if c, ok := value.(*CollectionWithVersion); ok {
-					var products []ProductWithVersion
-					ctx.GetDB().Model(c).Related(&products, "Products")
-
-					for _, product := range products {
-						results = append(results, []string{fmt.Sprintf("%v", product.ID), product.Name})
-					}
-				}
-				return
-			},
-		},
 	}
 
 	var scope = &gorm.Scope{Value: c.Value}
@@ -416,6 +429,115 @@ func TestManyToManyRelation_WithVersion(t *testing.T) {
 	if err := productsMeta.Initialize(); err != nil {
 		t.Fatal(err)
 	}
+
+	return productsMeta
+}
+
+func TestValuer_WithVersion(t *testing.T) {
+	db := testutils.TestDB()
+	productsMeta := setupProductWithVersionMeta(t, db)
+
+	p1 := ProductWithVersion{Name: "p1"}
+	p2_v1 := ProductWithVersion{Name: "p2"}
+	testutils.AssertNoErr(t, db.Save(&p1).Error)
+	testutils.AssertNoErr(t, db.Save(&p2_v1).Error)
+	p2_v2 := ProductWithVersion{Name: "p2"}
+	p2_v2.ID = p2_v1.ID
+	testutils.AssertNoErr(t, db.Save(&p2_v2).Error)
+
+	record := CollectionWithVersion{Name: "test"}
+	record.Products = []ProductWithVersion{p1, p2_v2}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+	ctx := &qor.Context{DB: db}
+
+	coll := CollectionWithVersion{}
+	testutils.AssertNoErr(t, db.Find(&coll).Error)
+	result := productsMeta.Valuer(&coll, ctx)
+
+	associatedProducts := result.([]ProductWithVersion)
+	if len(associatedProducts) != 2 {
+		t.Error("valuer doesn't return correct value")
+	}
+
+	i := 0
+	for _, p := range associatedProducts {
+		if p.ID == p1.ID && p.CompositePrimaryKey == fmt.Sprintf("%d%s%s", p1.ID, resource.CompositePrimaryKeySeparator, p1.GetVersionName()) {
+			i += 1
+		}
+
+		if p.ID == p2_v2.ID && p.GetVersionName() == p2_v2.GetVersionName() && p.CompositePrimaryKey == fmt.Sprintf("%d%s%s", p2_v2.ID, resource.CompositePrimaryKeySeparator, p2_v2.GetVersionName()) {
+			i += 1
+		}
+	}
+
+	if i != 2 {
+		t.Error("valuer doesn't return correct version of products")
+	}
+}
+
+// By default, qor publish2 select records by MAX(version_priority). to make it work with older version user need to define its own valuer
+func TestValuer_WithVersionWithNotMaxVersionPriority(t *testing.T) {
+	db := testutils.TestDB()
+	productsMeta := setupProductWithVersionMeta(t, db)
+	productsMeta.Valuer = func(value interface{}, ctx *qor.Context) interface{} {
+		coll := value.(*CollectionWithVersion)
+		if err := ctx.GetDB().Set("publish:version:mode", "multiple").Preload("Products").Find(coll).Error; err == nil {
+			prods := []ProductWithVersion{}
+			for _, p := range coll.Products {
+				p.CompositePrimaryKeyField.CompositePrimaryKey = resource.GenCompositePrimaryKey(p.ID, p.GetVersionName())
+				prods = append(prods, p)
+			}
+			return prods
+		}
+
+		return ""
+	}
+
+	p1 := ProductWithVersion{Name: "p1"}
+	p2_v1 := ProductWithVersion{Name: "p2"}
+	testutils.AssertNoErr(t, db.Save(&p1).Error)
+	testutils.AssertNoErr(t, db.Save(&p2_v1).Error)
+	p2_v2 := ProductWithVersion{Name: "p2"}
+	p2_v2.ID = p2_v1.ID
+	testutils.AssertNoErr(t, db.Save(&p2_v2).Error)
+	// Here v3 has the MAX version_priority but the collection is linked with v2
+	p2_v3 := ProductWithVersion{Name: "p3"}
+	p2_v3.ID = p2_v1.ID
+	testutils.AssertNoErr(t, db.Save(&p2_v3).Error)
+
+	record := CollectionWithVersion{Name: "test"}
+	record.Products = []ProductWithVersion{p1, p2_v2}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+	ctx := &qor.Context{DB: db}
+
+	coll := CollectionWithVersion{}
+	testutils.AssertNoErr(t, db.Find(&coll).Error)
+	result := productsMeta.Valuer(&coll, ctx)
+
+	associatedProducts := result.([]ProductWithVersion)
+	if len(associatedProducts) != 2 {
+		t.Error("valuer doesn't return correct value")
+	}
+
+	i := 0
+	for _, p := range associatedProducts {
+		if p.ID == p1.ID && p.CompositePrimaryKey == fmt.Sprintf("%d%s%s", p1.ID, resource.CompositePrimaryKeySeparator, p1.GetVersionName()) {
+			i += 1
+		}
+
+		if p.ID == p2_v2.ID && p.GetVersionName() == p2_v2.GetVersionName() && p.CompositePrimaryKey == fmt.Sprintf("%d%s%s", p2_v2.ID, resource.CompositePrimaryKeySeparator, p2_v2.GetVersionName()) {
+			i += 1
+		}
+	}
+
+	if i != 2 {
+		t.Error("valuer doesn't return correct version of products")
+	}
+}
+
+func TestManyToManyRelation_WithVersion(t *testing.T) {
+	db := testutils.TestDB()
+	productsMeta := setupProductWithVersionMeta(t, db)
 
 	p1 := ProductWithVersion{Name: "p1"}
 	p2_v1 := ProductWithVersion{Name: "p2"}
