@@ -250,7 +250,7 @@ func setupValuer(meta *Meta, fieldName string, record interface{}) {
 							f.Field.Set(reflect.New(f.Field.Type().Elem()))
 						}
 
-						context.GetDB().Model(value).Related(f.Field.Addr().Interface(), fieldName)
+						context.GetDB().Set("publish:version:name", "").Model(value).Related(f.Field.Addr().Interface(), fieldName)
 					}
 				}
 
