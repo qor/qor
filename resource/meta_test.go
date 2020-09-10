@@ -265,6 +265,14 @@ type Tag struct {
 	Name string
 }
 
+type Manager struct {
+	gorm.Model
+
+	Name string
+
+	publish2.Version
+}
+
 type CollectionWithVersion struct {
 	gorm.Model
 
@@ -275,6 +283,10 @@ type CollectionWithVersion struct {
 
 	Products       []ProductWithVersion `gorm:"many2many:collection_with_version_product_with_versions;association_autoupdate:false"`
 	ProductsSorter sorting.SortableCollection
+
+	ManagerID          uint
+	ManagerVersionName string
+	Manager            Manager
 }
 
 type ProductWithVersion struct {
@@ -612,9 +624,56 @@ func TestBelongsToRelation(t *testing.T) {
 	metaValue := &resource.MetaValue{Name: tagMeta.Name, Value: []string{fmt.Sprintf("%d", t1.ID)}}
 
 	tagMeta.Setter(&record, metaValue, ctx)
+	testutils.AssertNoErr(t, db.Save(&record).Error)
 
 	if record.Tag.ID != t1.ID {
 		t.Error("tag not set to collection")
+	}
+}
+
+func TestBelongsToWithVersionRelation(t *testing.T) {
+	db := testutils.TestDB()
+	registerVersionNameCallback(db)
+	testutils.ResetDBTables(db, &CollectionWithVersion{}, &ProductWithVersion{}, &Manager{})
+
+	adm := admin.New(&qor.Config{DB: db.Set(publish2.ScheduleMode, publish2.ModeOff)})
+	c := adm.AddResource(&CollectionWithVersion{})
+
+	managerMeta := resource.Meta{
+		Name:         "Manager",
+		FieldName:    "Manager",
+		BaseResource: c,
+	}
+
+	var scope = &gorm.Scope{Value: c.Value}
+	var getField = func(fields []*gorm.StructField, name string) *gorm.StructField {
+		for _, field := range fields {
+			if field.Name == name || field.DBName == name {
+				return field
+			}
+		}
+		return nil
+	}
+
+	managerMeta.FieldStruct = getField(scope.GetStructFields(), managerMeta.FieldName)
+	if err := managerMeta.Initialize(); err != nil {
+		t.Fatal(err)
+	}
+
+	m1 := Manager{Name: "Manager1"}
+	testutils.AssertNoErr(t, db.Save(&m1).Error)
+
+	record := CollectionWithVersion{Name: "test"}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+	ctx := &qor.Context{DB: db}
+	metaValue := &resource.MetaValue{Name: managerMeta.Name, Value: []string{resource.GenCompositePrimaryKey(m1.ID, m1.GetVersionName())}}
+
+	managerMeta.Setter(&record, metaValue, ctx)
+	// Setter only sets Manager to record, we need save it explicitly in the test.
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+
+	if record.ManagerID != m1.ID || record.ManagerVersionName != m1.GetVersionName() {
+		t.Error("manager not set to collection")
 	}
 }
 

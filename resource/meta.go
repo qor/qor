@@ -29,7 +29,7 @@ type CompositePrimaryKeyField struct {
 }
 
 // GenCompositePrimaryKey generates composite primary key in a specific format
-func GenCompositePrimaryKey(id uint, versionName string) string {
+func GenCompositePrimaryKey(id interface{}, versionName string) string {
 	return fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName)
 }
 
@@ -322,14 +322,29 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						indirectValue = reflect.Indirect(reflect.ValueOf(record))
 					)
 
+					var fieldHasVersion bool
+					// If the field struct has version
+					if field.Type().Kind() == reflect.Slice || field.Type().Kind() == reflect.Struct {
+						underlyingType := field.Type()
+						if field.Type().Kind() == reflect.Slice {
+							underlyingType = underlyingType.Elem()
+						}
+
+						for i := 0; i < underlyingType.NumField(); i++ {
+							if underlyingType.Field(i).Name == "Version" && underlyingType.Field(i).Type.String() == "publish2.Version" {
+								fieldHasVersion = true
+							}
+						}
+					}
+
 					if relationship.Kind == "belongs_to" {
 						primaryKeys := utils.ToArray(metaValue.Value)
 						if metaValue.Value == nil {
 							primaryKeys = []string{}
 						}
 
-						// associations not changed for belongs to
-						if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
+						// For normal association
+						if len(relationship.ForeignFieldNames) == 1 {
 							oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
 
 							// if not changed
@@ -345,20 +360,47 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 								context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
 							}
 						}
-					}
 
-					if relationship.Kind == "many_to_many" {
-						var fieldHasVersion bool
-						// If the field struct has version
-						if field.Type().Kind() == reflect.Slice {
-							underlyingType := field.Type().Elem()
-							for i := 0; i < underlyingType.NumField(); i++ {
-								if underlyingType.Field(i).Name == "Version" && underlyingType.Field(i).Type.String() == "publish2.Version" {
-									fieldHasVersion = true
+						// For versioning association
+						if len(relationship.ForeignFieldNames) == 2 {
+							foreignKeyName := relationship.ForeignFieldNames[0]
+							foreignVersionName := strings.Replace(foreignKeyName, "ID", "VersionName", -1)
+
+							foreignKeyField := indirectValue.FieldByName(foreignKeyName)
+							foreignVersionField := indirectValue.FieldByName(foreignVersionName)
+
+							oldPrimaryKeys := utils.ToArray(foreignKeyField.Interface())
+							// If field struct has version
+							// ManagerID convert to ManagerVersionName. and get field value of it.
+							// then construct ID+VersionName and compare with primarykey
+							if fieldHasVersion && len(oldPrimaryKeys) != 0 {
+								oldPrimaryKeys[0] = GenCompositePrimaryKey(oldPrimaryKeys[0], foreignVersionField.String())
+							}
+
+							// if not changed
+							if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
+								return
+							}
+
+							// if removed
+							if len(primaryKeys) == 0 {
+								foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
+								if fieldHasVersion {
+									foreignKeyField.Set(reflect.Zero(foreignVersionField.Type()))
+								}
+							} else {
+								compositePKeys := strings.Split(primaryKeys[0], CompositePrimaryKeySeparator)
+								// If primaryKeys doesn't include version name, process it as an ID
+								if len(compositePKeys) == 1 {
+									context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+								} else {
+									context.GetDB().Set("publish:version:name", "").Where("id = ? AND version_name = ?", compositePKeys[0], compositePKeys[1]).Find(field.Addr().Interface())
 								}
 							}
 						}
+					}
 
+					if relationship.Kind == "many_to_many" {
 						type compositePrimaryKey struct {
 							ID          uint   `json:"id"`
 							VersionName string `json:"version_name"`
