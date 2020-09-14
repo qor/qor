@@ -370,10 +370,9 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 							foreignVersionField := indirectValue.FieldByName(foreignVersionName)
 
 							oldPrimaryKeys := utils.ToArray(foreignKeyField.Interface())
-							// If field struct has version
-							// ManagerID convert to ManagerVersionName. and get field value of it.
-							// then construct ID+VersionName and compare with primarykey
-							if fieldHasVersion && len(oldPrimaryKeys) != 0 {
+							// If field struct has version and it defined XXVersionName foreignKey field
+							// then construct ID+VersionName and compare with composite primarykey
+							if fieldHasVersion && len(oldPrimaryKeys) != 0 && foreignVersionField.IsValid() {
 								oldPrimaryKeys[0] = GenCompositePrimaryKey(oldPrimaryKeys[0], foreignVersionField.String())
 							}
 
