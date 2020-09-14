@@ -409,6 +409,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						compositePKeys := []compositePrimaryKey{}
 						var compositePKeyConvertErr error
 						if ok {
+							// To convert []string{"1^|^2020-09-14-v1", "2^|^2020-09-14-v3"} to []compositePrimaryKey
 							for _, rawCpk := range metaValueForCompositePrimaryKeys {
 								// Skip blank string when it is not the only element
 								if len(rawCpk) == 0 && len(metaValueForCompositePrimaryKeys) > 1 {
