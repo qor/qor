@@ -3,6 +3,7 @@ package resource
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -106,7 +107,12 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 					}
 				}
 			}
-			return context.GetDB().First(result, append([]interface{}{primaryQuerySQL}, primaryParams...)...).Error
+
+			err := context.GetDB().First(result, append([]interface{}{primaryQuerySQL}, primaryParams...)...).Error
+			if err != nil {
+				debug.PrintStack()
+			}
+			return err
 		}
 
 		return errors.New("failed to find")
