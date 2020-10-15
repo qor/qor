@@ -3,6 +3,7 @@ package resource
 import (
 	"errors"
 	"fmt"
+	"log"
 	"runtime/debug"
 	"strings"
 
@@ -110,6 +111,10 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 
 			err := context.GetDB().First(result, append([]interface{}{primaryQuerySQL}, primaryParams...)...).Error
 			if err != nil {
+				log.Println("====== QOR DEBUG ========")
+				log.Println(err.Error())
+				log.Printf("db errors : %+v", context.GetDB().GetErrors())
+				log.Println("==============")
 				debug.PrintStack()
 			}
 			return err
