@@ -99,7 +99,7 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 			primaryQuerySQL, primaryParams = res.ToPrimaryQueryParamsFromMetaValue(metaValues, context)
 		}
 
-		log.Printf("primaryQuerySQL: %+v, primaryParams : %+v", primaryQuerySQL, primaryParams)
+		log.Printf("metaValues: %+v, primaryQuerySQL: %+v, primaryParams : %+v", metaValues, primaryQuerySQL, primaryParams)
 
 		if primaryQuerySQL != "" {
 			if metaValues != nil {
@@ -118,6 +118,7 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 			}
 			return err
 		}
+
 		log.Println("====== reach failed to find ========")
 		return errors.New("failed to find")
 	}
