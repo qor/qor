@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"runtime/debug"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -87,6 +86,7 @@ func (res *Resource) ToPrimaryQueryParamsFromMetaValue(metaValues *MetaValues, c
 }
 
 func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, context *qor.Context) error {
+	log.Println("====== QOR DEBUG  findOneHandler ========")
 	if res.HasPermission(roles.Read, context) {
 		var (
 			primaryQuerySQL string
@@ -98,6 +98,8 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 		} else {
 			primaryQuerySQL, primaryParams = res.ToPrimaryQueryParamsFromMetaValue(metaValues, context)
 		}
+
+		log.Printf("primaryQuerySQL: %+v, primaryParams : %+v", primaryQuerySQL, primaryParams)
 
 		if primaryQuerySQL != "" {
 			if metaValues != nil {
@@ -111,17 +113,16 @@ func (res *Resource) findOneHandler(result interface{}, metaValues *MetaValues, 
 
 			err := context.GetDB().First(result, append([]interface{}{primaryQuerySQL}, primaryParams...)...).Error
 			if err != nil {
-				log.Println("====== QOR DEBUG ========")
-				log.Println(err.Error())
+				log.Printf("finding error : ", err.Error())
 				log.Printf("db errors : %+v", context.GetDB().GetErrors())
-				log.Println("==============")
-				debug.PrintStack()
 			}
 			return err
 		}
-
+		log.Println("====== reach failed to find ========")
 		return errors.New("failed to find")
 	}
+
+	log.Println("====== reach permission denied ========")
 	return roles.ErrPermissionDenied
 }
 
