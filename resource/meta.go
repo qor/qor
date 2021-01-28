@@ -2,9 +2,11 @@ package resource
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,6 +16,22 @@ import (
 	"github.com/qor/roles"
 	"github.com/qor/validations"
 )
+
+// CompositePrimaryKeySeparator to separate composite primary keys like ID and version_name
+const CompositePrimaryKeySeparator = "^|^"
+
+// CompositePrimaryKey the string that represents the composite primary key
+const CompositePrimaryKey = "CompositePrimaryKeyField"
+
+// CompositePrimaryKeyField to embed into the struct that requires composite primary key in select many
+type CompositePrimaryKeyField struct {
+	CompositePrimaryKey string `gorm:"-"`
+}
+
+// GenCompositePrimaryKey generates composite primary key in a specific format
+func GenCompositePrimaryKey(id interface{}, versionName string) string {
+	return fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName)
+}
 
 // Metaor interface
 type Metaor interface {
@@ -214,13 +232,25 @@ func setupValuer(meta *Meta, fieldName string, record interface{}) {
 			if f, ok := scope.FieldByName(fieldName); ok {
 				if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
 					if (relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0 {
-						context.GetDB().Model(value).Related(f.Field.Addr().Interface(), fieldName)
+						context.GetDB().Set("publish:version:name", "").Model(value).Related(f.Field.Addr().Interface(), fieldName)
+						// if the association has CompositePrimaryKey integrated, generates value for it by our conventional format
+						// the PrimaryKeyOf will return this composite primary key instead of ID, so that frontend could find correct version
+						for i := 0; i < f.Field.Len(); i++ {
+							associatedRecord := reflect.Indirect(f.Field.Index(i))
+							for i := 0; i < associatedRecord.Type().NumField(); i++ {
+								if associatedRecord.Type().Field(i).Name == CompositePrimaryKey {
+									id := associatedRecord.FieldByName("ID").Uint()
+									versionName := associatedRecord.FieldByName("VersionName").String()
+									associatedRecord.Field(i).FieldByName("CompositePrimaryKey").SetString(fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName))
+								}
+							}
+						}
 					} else if (relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && context.GetDB().NewScope(f.Field.Interface()).PrimaryKeyZero() {
 						if f.Field.Kind() == reflect.Ptr && f.Field.IsNil() {
 							f.Field.Set(reflect.New(f.Field.Type().Elem()))
 						}
 
-						context.GetDB().Model(value).Related(f.Field.Addr().Interface(), fieldName)
+						context.GetDB().Set("publish:version:name", "").Model(value).Related(f.Field.Addr().Interface(), fieldName)
 					}
 				}
 
@@ -291,42 +321,166 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						scope         = context.GetDB().NewScope(record)
 						indirectValue = reflect.Indirect(reflect.ValueOf(record))
 					)
-					primaryKeys := utils.ToArray(metaValue.Value)
-					if metaValue.Value == nil {
-						primaryKeys = []string{}
-					}
 
-					// associations not changed for belongs to
-					if relationship.Kind == "belongs_to" && len(relationship.ForeignFieldNames) == 1 {
-						oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
-						// if not changed
-						if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
-							return
+					var fieldHasVersion bool
+					// If the field struct has version
+					if field.Type().Kind() == reflect.Slice || field.Type().Kind() == reflect.Struct {
+						underlyingType := field.Type()
+						if field.Type().Kind() == reflect.Slice {
+							underlyingType = underlyingType.Elem()
 						}
 
-						// if removed
-						if len(primaryKeys) == 0 {
-							field := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
-							field.Set(reflect.Zero(field.Type()))
+						for i := 0; i < underlyingType.NumField(); i++ {
+							if underlyingType.Field(i).Name == "Version" && underlyingType.Field(i).Type.String() == "publish2.Version" {
+								fieldHasVersion = true
+							}
 						}
 					}
 
-					// set current field value to blank
-					field.Set(reflect.Zero(field.Type()))
+					if relationship.Kind == "belongs_to" {
+						primaryKeys := utils.ToArray(metaValue.Value)
+						if metaValue.Value == nil {
+							primaryKeys = []string{}
+						}
 
-					if len(primaryKeys) > 0 {
-						// replace it with new value
-						context.GetDB().Where(primaryKeys).Find(field.Addr().Interface())
+						// For normal association
+						if len(relationship.ForeignFieldNames) == 1 {
+							oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
+
+							// if not changed
+							if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
+								return
+							}
+
+							// if removed
+							foreignKeyField := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
+							if len(primaryKeys) == 0 {
+								foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
+							} else {
+								context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+							}
+						}
+
+						// For versioning association
+						if len(relationship.ForeignFieldNames) == 2 {
+							foreignKeyName := relationship.ForeignFieldNames[0]
+							foreignVersionName := strings.Replace(foreignKeyName, "ID", "VersionName", -1)
+
+							foreignKeyField := indirectValue.FieldByName(foreignKeyName)
+							foreignVersionField := indirectValue.FieldByName(foreignVersionName)
+
+							oldPrimaryKeys := utils.ToArray(foreignKeyField.Interface())
+							// If field struct has version and it defined XXVersionName foreignKey field
+							// then construct ID+VersionName and compare with composite primarykey
+							if fieldHasVersion && len(oldPrimaryKeys) != 0 && foreignVersionField.IsValid() {
+								oldPrimaryKeys[0] = GenCompositePrimaryKey(oldPrimaryKeys[0], foreignVersionField.String())
+							}
+
+							// if not changed
+							if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
+								return
+							}
+
+							// if removed
+							if len(primaryKeys) == 0 {
+								foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
+								if fieldHasVersion {
+									foreignKeyField.Set(reflect.Zero(foreignVersionField.Type()))
+								}
+							} else {
+								compositePKeys := strings.Split(primaryKeys[0], CompositePrimaryKeySeparator)
+								// If primaryKeys doesn't include version name, process it as an ID
+								if len(compositePKeys) == 1 {
+									context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+								} else {
+									context.GetDB().Set("publish:version:name", "").Where("id = ? AND version_name = ?", compositePKeys[0], compositePKeys[1]).Find(field.Addr().Interface())
+								}
+							}
+						}
 					}
 
-					// Replace many 2 many relations
 					if relationship.Kind == "many_to_many" {
+						type compositePrimaryKey struct {
+							ID          uint   `json:"id"`
+							VersionName string `json:"version_name"`
+						}
+
+						metaValueForCompositePrimaryKeys, ok := metaValue.Value.([]string)
+						compositePKeys := []compositePrimaryKey{}
+						var compositePKeyConvertErr error
+						if ok {
+							// To convert []string{"1^|^2020-09-14-v1", "2^|^2020-09-14-v3"} to []compositePrimaryKey
+							for _, rawCpk := range metaValueForCompositePrimaryKeys {
+								// Skip blank string when it is not the only element
+								if len(rawCpk) == 0 && len(metaValueForCompositePrimaryKeys) > 1 {
+									continue
+								}
+
+								pks := strings.Split(rawCpk, CompositePrimaryKeySeparator)
+								if len(pks) != 2 {
+									compositePKeyConvertErr = errors.New("metaValue is not for composite primary key")
+									break
+								}
+
+								id, convErr := strconv.ParseUint(pks[0], 10, 32)
+								if convErr != nil {
+									compositePKeyConvertErr = fmt.Errorf("composite primary key has incorrect id %s", pks[0])
+								}
+
+								cpk := compositePrimaryKey{
+									ID:          uint(id),
+									VersionName: pks[1],
+								}
+
+								compositePKeys = append(compositePKeys, cpk)
+							}
+						}
+
+						// If field is a struct with version and metaValue is []map[string]string we construct the query separately
+						if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr == nil {
+							// set current field value to blank
+							field.Set(reflect.Zero(field.Type()))
+
+							if len(compositePKeys) > 0 {
+								// eliminate potential version_name condition on the main object, we don't need it when querying associated records
+								// it usually added by qor/publish2.
+								db := context.GetDB().Set("publish:version:name", "")
+								for i, compositePKey := range compositePKeys {
+									if i == 0 {
+										db = db.Where("id = ? AND version_name = ?", compositePKey.ID, compositePKey.VersionName)
+									} else {
+										db = db.Or("id = ? AND version_name = ?", compositePKey.ID, compositePKey.VersionName)
+									}
+
+								}
+								db.Find(field.Addr().Interface())
+							}
+						} else {
+							if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr != nil {
+								fmt.Println("given meta value contains no version name, this might cause the association is incorrect")
+							}
+
+							primaryKeys := utils.ToArray(metaValue.Value)
+							if metaValue.Value == nil {
+								primaryKeys = []string{}
+							}
+
+							// set current field value to blank
+							field.Set(reflect.Zero(field.Type()))
+
+							if len(primaryKeys) > 0 {
+								// replace it with new value
+								context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+							}
+						}
+
 						if !scope.PrimaryKeyZero() {
 							context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
 							field.Set(reflect.Zero(field.Type()))
 						}
 					}
 				})
+
 				return
 			}
 		}
