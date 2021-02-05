@@ -384,8 +384,10 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 							// if removed
 							if len(primaryKeys) == 0 {
 								foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
+								// if field has version, we have to set both the id and version_name to zero value.
 								if fieldHasVersion {
-									foreignKeyField.Set(reflect.Zero(foreignVersionField.Type()))
+									foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
+									foreignVersionField.Set(reflect.Zero(foreignVersionField.Type()))
 								}
 							} else {
 								compositePKeys := strings.Split(primaryKeys[0], CompositePrimaryKeySeparator)
