@@ -255,6 +255,9 @@ type Collection struct {
 	Products       []Product `gorm:"many2many:collection_products;association_autoupdate:false"`
 	ProductsSorter sorting.SortableCollection
 
+	LunchProducts       []*Product `gorm:"many2many:collection_lunch_products;association_autoupdate:false"`
+	LunchProductsSorter sorting.SortableCollection
+
 	TagID uint
 	Tag   Tag
 }
@@ -329,35 +332,50 @@ func updateCallback(scope *gorm.Scope) {
 }
 func TestMany2ManyRelation(t *testing.T) {
 	db := testutils.TestDB()
-	productsMeta := setupProductsMeta(t, db)
+	productsMeta := setupProductsMeta(t, db, "Products")
+	// lunchProduct is to cover the pointer association like []*Product
+	lunchProductsMeta := setupProductsMeta(t, db, "LunchProducts")
 
 	p1 := Product{Name: "p1"}
 	p2 := Product{Name: "p2"}
+	p3 := Product{Name: "p3"}
+	p4 := Product{Name: "p4"}
 	testutils.AssertNoErr(t, db.Save(&p1).Error)
 	testutils.AssertNoErr(t, db.Save(&p2).Error)
+	testutils.AssertNoErr(t, db.Save(&p3).Error)
+	testutils.AssertNoErr(t, db.Save(&p4).Error)
 
 	record := Collection{Name: "test"}
 	testutils.AssertNoErr(t, db.Save(&record).Error)
+	if len(record.Products) != 0 {
+		t.Fatal("smoke test")
+	}
 	ctx := &qor.Context{DB: db}
+
 	metaValue := &resource.MetaValue{Name: productsMeta.Name, Value: []string{fmt.Sprintf("%d", p1.ID), fmt.Sprintf("%d", p2.ID)}}
+	lunchProductMetaValue := &resource.MetaValue{Name: lunchProductsMeta.Name, Value: []string{fmt.Sprintf("%d", p1.ID), fmt.Sprintf("%d", p2.ID)}}
 
 	productsMeta.Setter(&record, metaValue, ctx)
+	lunchProductsMeta.Setter(&record, lunchProductMetaValue, ctx)
 
-	testutils.AssertNoErr(t, db.Preload("Products").Find(&record).Error)
+	testutils.AssertNoErr(t, db.Preload("Products").Preload("LunchProducts").Find(&record).Error)
 	if len(record.Products) != 2 {
+		t.Error("products not set to collection")
+	}
+	if len(record.LunchProducts) != 2 {
 		t.Error("products not set to collection")
 	}
 }
 
-func setupProductsMeta(t *testing.T, db *gorm.DB) resource.Meta {
-	testutils.ResetDBTables(db, &Collection{}, &Product{}, "collection_products")
+func setupProductsMeta(t *testing.T, db *gorm.DB, metaName string) resource.Meta {
+	testutils.ResetDBTables(db, &Collection{}, &Product{})
 
 	adm := admin.New(&qor.Config{DB: db.Set(publish2.ScheduleMode, publish2.ModeOff)})
 	c := adm.AddResource(&Collection{})
 
 	productsMeta := resource.Meta{
-		Name:         "Products",
-		FieldName:    "Products",
+		Name:         metaName,
+		FieldName:    metaName,
 		BaseResource: c,
 		Config: &admin.SelectManyConfig{
 			Collection: func(value interface{}, ctx *qor.Context) (results [][]string) {
@@ -395,7 +413,7 @@ func setupProductsMeta(t *testing.T, db *gorm.DB) resource.Meta {
 
 func TestValuer(t *testing.T) {
 	db := testutils.TestDB()
-	productsMeta := setupProductsMeta(t, db)
+	productsMeta := setupProductsMeta(t, db, "Products")
 
 	p1 := Product{Name: "p1"}
 	p2 := Product{Name: "p2"}
@@ -415,7 +433,7 @@ func TestValuer(t *testing.T) {
 func setupProductWithVersionMeta(t *testing.T, db *gorm.DB) resource.Meta {
 	registerVersionNameCallback(db)
 	publish2.RegisterCallbacks(db)
-	testutils.ResetDBTables(db, &CollectionWithVersion{}, &ProductWithVersion{}, "collection_with_version_product_with_versions")
+	testutils.ResetDBTables(db, &CollectionWithVersion{}, &ProductWithVersion{})
 
 	adm := admin.New(&qor.Config{DB: db.Set(publish2.ScheduleMode, publish2.ModeOff)})
 	c := adm.AddResource(&CollectionWithVersion{})
@@ -588,7 +606,7 @@ func TestManyToManyRelation_WithVersion(t *testing.T) {
 
 func TestBelongsToRelation(t *testing.T) {
 	db := testutils.TestDB()
-	testutils.ResetDBTables(db, &Collection{}, &Product{}, &Tag{}, "collection_products")
+	testutils.ResetDBTables(db, &Collection{}, &Product{}, &Tag{})
 
 	adm := admin.New(&qor.Config{DB: db.Set(publish2.ScheduleMode, publish2.ModeOff)})
 	c := adm.AddResource(&Collection{})
