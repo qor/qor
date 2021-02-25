@@ -326,8 +326,13 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 					// If the field struct has version
 					if field.Type().Kind() == reflect.Slice || field.Type().Kind() == reflect.Struct {
 						underlyingType := field.Type()
+						// If the field is a slice of struct, we retrive one element(struct) as a sample to determine whether it has version
+						// e.g. []User -> User
 						if field.Type().Kind() == reflect.Slice {
 							underlyingType = underlyingType.Elem()
+							if underlyingType.Kind() == reflect.Ptr {
+								underlyingType = underlyingType.Elem()
+							}
 						}
 
 						for i := 0; i < underlyingType.NumField(); i++ {
