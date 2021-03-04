@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
 	"runtime/debug"
 	"strconv"
@@ -262,6 +263,58 @@ func setupValuer(meta *Meta, fieldName string, record interface{}) {
 	}
 }
 
+// switchRecordToNewVersionIfNeeded is for switching to new version of the record when creating a new version.
+// The given record must has function 'AssignVersionName' defined, with *Pointer* receiver to create associations on new version
+// Otherwise, the operation would be omitted
+// e.g. the user is creating a new version based on version "2021-3-3-v1". which would be "2021-3-3-v2".
+//      the associations added during the creation should be associated with "2021-3-3-v2" rather than "2021-3-3-v1"
+func switchRecordToNewVersionIfNeeded(context *qor.Context, record interface{}) interface{} {
+	if context.Request == nil {
+		return record
+	}
+
+	currentVersionName := context.Request.Form.Get("QorResource.VersionName")
+	recordValue := reflect.ValueOf(record)
+	if recordValue.Kind() == reflect.Ptr {
+		recordValue = recordValue.Elem()
+	}
+
+	// if currentVersionName is blank, we consider it is creating a new version
+	if recordValue.FieldByName("ID").Interface().(uint) != 0 && currentVersionName == "" {
+		arguments := []reflect.Value{reflect.ValueOf(context.GetDB())}
+
+		// Handle the situation when record is NOT a pointer
+		if reflect.ValueOf(record).Kind() != reflect.Ptr {
+			// We create a new pointer to be able to invoke the AssignVersionName method on Pointer receiver
+			recordPtr := reflect.New(reflect.TypeOf(record))
+			recordPtr.Elem().Set(reflect.ValueOf(record))
+			fn := recordPtr.MethodByName("AssignVersionName")
+
+			if !fn.IsValid() {
+				log.Printf("Struct %v must has function 'AssignVersionName' defined, with *Pointer* receiver to create associations on new version", reflect.TypeOf(record).Name())
+				return record
+			}
+			fn.Call(arguments)
+
+			// Since it is a new pointer, we have to return the new record
+			return recordPtr.Elem().Interface()
+		}
+
+		// When the record is a pointer
+		fn := reflect.ValueOf(record).MethodByName("AssignVersionName")
+		if !fn.IsValid() {
+			log.Printf("Struct %v must has function 'AssignVersionName' defined, with *Pointer* receiver to create associations on new version", reflect.TypeOf(record).Name())
+			return record
+		}
+
+		// AssignVersionName set the record's version name as the new version, so when execute the SQL, we can find correct object to apply the association
+		fn.Call(arguments)
+		return record
+	}
+
+	return record
+}
+
 func setupSetter(meta *Meta, fieldName string, record interface{}) {
 	nestedField := strings.Contains(fieldName, ".")
 
@@ -321,6 +374,8 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						scope         = context.GetDB().NewScope(record)
 						indirectValue = reflect.Indirect(reflect.ValueOf(record))
 					)
+
+					switchRecordToNewVersionIfNeeded(context, record)
 
 					var fieldHasVersion bool
 					// If the field struct has version
