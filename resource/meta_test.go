@@ -3,6 +3,7 @@ package resource_test
 import (
 	"database/sql/driver"
 	"fmt"
+	"net/http"
 	"reflect"
 	"testing"
 	"time"
@@ -290,6 +291,13 @@ type CollectionWithVersion struct {
 	ManagerID          uint
 	ManagerVersionName string
 	Manager            Manager
+}
+
+func (coll *CollectionWithVersion) AssignVersionName(db *gorm.DB) {
+	var count int
+	name := time.Now().Format("2006-01-02")
+	db.Model(&CollectionWithVersion{}).Where("id = ? AND version_name like ?", coll.ID, name+"%").Count(&count)
+	coll.VersionName = fmt.Sprintf("%s-v%v", name, count+1)
 }
 
 type ProductWithVersion struct {
@@ -716,4 +724,115 @@ func registerVersionNameCallback(db *gorm.DB) {
 	})
 
 	db.Callback().Create().After("gorm:begin_transaction").Register("publish2:version_priority", updateVersionPriority())
+}
+
+//  Test assigning associations when creating new version. the associations should assign to correct version after save
+func TestAssigningAssociationsOnNewVersion(t *testing.T) {
+	db := testutils.TestDB()
+	productsMeta := setupProductWithVersionMeta(t, db)
+
+	p1 := ProductWithVersion{Name: "p1"}
+	p2_v1 := ProductWithVersion{Name: "p2"}
+	testutils.AssertNoErr(t, db.Save(&p1).Error)
+	testutils.AssertNoErr(t, db.Save(&p2_v1).Error)
+	p2_v2 := ProductWithVersion{Name: "p2"}
+	p2_v2.ID = p2_v1.ID
+	testutils.AssertNoErr(t, db.Save(&p2_v2).Error)
+
+	record := CollectionWithVersion{Name: "test"}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+
+	newVersionCollection := CollectionWithVersion{Name: "test-v2"}
+	newVersionCollection.ID = record.ID
+
+	formValues := map[string][]string{"QorResource.VersionName": {}}
+	ctx := &qor.Context{DB: db, Request: &http.Request{Form: formValues}}
+	metaValue := &resource.MetaValue{Name: productsMeta.Name, Value: []string{
+		fmt.Sprintf("%d%s%s", p1.ID, resource.CompositePrimaryKeySeparator, p1.GetVersionName()),
+		fmt.Sprintf("%d%s%s", p2_v2.ID, resource.CompositePrimaryKeySeparator, p2_v2.GetVersionName()),
+	}}
+
+	productsMeta.Setter(&newVersionCollection, metaValue, ctx)
+	// For new version, the object will not be saved inside setter, so we have to call save explicitly
+	testutils.AssertNoErr(t, db.Save(&newVersionCollection).Error)
+
+	testutils.AssertNoErr(t, db.Preload("Products").Find(&newVersionCollection).Error)
+	if len(newVersionCollection.Products) != 2 {
+		t.Error("products not set to collection")
+	}
+
+	hasCorrectVersion := false
+	for _, p := range newVersionCollection.Products {
+		if p.ID == p2_v2.ID && p.GetVersionName() == p2_v2.VersionName {
+			hasCorrectVersion = true
+		}
+	}
+
+	if !hasCorrectVersion {
+		t.Error("p2 is not associated with collection with correct version")
+	}
+}
+func TestSwitchRecordToNewVersionIfNeeded(t *testing.T) {
+	db := testutils.TestDB()
+	testutils.ResetDBTables(db, &CollectionWithVersion{})
+	registerVersionNameCallback(db)
+
+	record := CollectionWithVersion{Name: "test"}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+	oldVersionName := record.VersionName
+
+	formValues := map[string][]string{"QorResource.VersionName": {}}
+	ctx := &qor.Context{DB: db, Request: &http.Request{Form: formValues}}
+
+	newRecord := resource.SwitchRecordToNewVersionIfNeeded(ctx, record)
+
+	if newRecord.(CollectionWithVersion).VersionName == oldVersionName {
+		t.Error("new version name is not assigned to record")
+	}
+}
+func TestSwitchRecordToNewVersionIfNeeded_EditExistingVersion(t *testing.T) {
+	db := testutils.TestDB()
+	testutils.ResetDBTables(db, &CollectionWithVersion{})
+	registerVersionNameCallback(db)
+
+	record := CollectionWithVersion{Name: "test"}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+	oldVersionName := record.VersionName
+
+	formValues := map[string][]string{"QorResource.VersionName": []string{oldVersionName}}
+	ctx := &qor.Context{DB: db, Request: &http.Request{Form: formValues}}
+
+	newRecord := resource.SwitchRecordToNewVersionIfNeeded(ctx, record)
+
+	if newRecord.(CollectionWithVersion).VersionName != oldVersionName {
+		t.Error("new version name is assigned to record when it shouldn't ")
+	}
+}
+
+type Athlete struct {
+	gorm.Model
+
+	publish2.Version
+	publish2.Schedule
+
+	Name string
+}
+
+func TestSwitchRecordToNewVersionIfNeeded_WithNoAssignVersionMethod(t *testing.T) {
+	db := testutils.TestDB()
+	testutils.ResetDBTables(db, &Athlete{})
+	registerVersionNameCallback(db)
+
+	record := Athlete{Name: "test"}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+	oldVersionName := record.VersionName
+
+	formValues := map[string][]string{"QorResource.VersionName": {}}
+	ctx := &qor.Context{DB: db, Request: &http.Request{Form: formValues}}
+
+	newRecord := resource.SwitchRecordToNewVersionIfNeeded(ctx, record)
+
+	if newRecord.(Athlete).VersionName != oldVersionName {
+		t.Error("new version name is assigned to record")
+	}
 }
