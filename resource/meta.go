@@ -233,7 +233,7 @@ func setupValuer(meta *Meta, fieldName string, record interface{}) {
 			if f, ok := scope.FieldByName(fieldName); ok {
 				if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
 					if (relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0 {
-						context.GetDB().Set("publish:version:name", "").Model(value).Related(f.Field.Addr().Interface(), fieldName)
+						context.GetDB().Set("publish:version:mode", "multiple").Model(value).Related(f.Field.Addr().Interface(), fieldName)
 						// if the association has CompositePrimaryKey integrated, generates value for it by our conventional format
 						// the PrimaryKeyOf will return this composite primary key instead of ID, so that frontend could find correct version
 						for i := 0; i < f.Field.Len(); i++ {
@@ -251,7 +251,7 @@ func setupValuer(meta *Meta, fieldName string, record interface{}) {
 							f.Field.Set(reflect.New(f.Field.Type().Elem()))
 						}
 
-						context.GetDB().Set("publish:version:name", "").Model(value).Related(f.Field.Addr().Interface(), fieldName)
+						context.GetDB().Set("publish:version:mode", "multiple").Model(value).Related(f.Field.Addr().Interface(), fieldName)
 					}
 				}
 
@@ -417,7 +417,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 							if len(primaryKeys) == 0 {
 								foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
 							} else {
-								context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+								context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
 							}
 						}
 
@@ -453,9 +453,9 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 								compositePKeys := strings.Split(primaryKeys[0], CompositePrimaryKeySeparator)
 								// If primaryKeys doesn't include version name, process it as an ID
 								if len(compositePKeys) == 1 {
-									context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+									context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
 								} else {
-									context.GetDB().Set("publish:version:name", "").Where("id = ? AND version_name = ?", compositePKeys[0], compositePKeys[1]).Find(field.Addr().Interface())
+									context.GetDB().Set("publish:version:mode", "multiple").Where("id = ? AND version_name = ?", compositePKeys[0], compositePKeys[1]).Find(field.Addr().Interface())
 								}
 							}
 						}
@@ -506,7 +506,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 							if len(compositePKeys) > 0 {
 								// eliminate potential version_name condition on the main object, we don't need it when querying associated records
 								// it usually added by qor/publish2.
-								db := context.GetDB().Set("publish:version:name", "")
+								db := context.GetDB().Set("publish:version:mode", "multiple")
 								for i, compositePKey := range compositePKeys {
 									if i == 0 {
 										db = db.Where("id = ? AND version_name = ?", compositePKey.ID, compositePKey.VersionName)
@@ -532,7 +532,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 
 							if len(primaryKeys) > 0 {
 								// replace it with new value
-								context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+								context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
 							}
 						}
 
