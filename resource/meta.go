@@ -211,6 +211,21 @@ func (meta *Meta) Initialize() error {
 	return nil
 }
 
+// setCompositePrimaryKey if the association has CompositePrimaryKey integrated, generates value for it by our conventional format
+// the PrimaryKeyOf function will return the value from CompositePrimaryKey instead of ID, so that frontend could find correct version
+func setCompositePrimaryKey(f *gorm.Field) {
+	for i := 0; i < f.Field.Len(); i++ {
+		associatedRecord := reflect.Indirect(f.Field.Index(i))
+		for i := 0; i < associatedRecord.Type().NumField(); i++ {
+			if associatedRecord.Type().Field(i).Name == CompositePrimaryKey {
+				id := associatedRecord.FieldByName("ID").Uint()
+				versionName := associatedRecord.FieldByName("VersionName").String()
+				associatedRecord.Field(i).FieldByName("CompositePrimaryKey").SetString(fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName))
+			}
+		}
+	}
+}
+
 func setupValuer(meta *Meta, fieldName string, record interface{}) {
 	nestedField := strings.Contains(fieldName, ".")
 
@@ -228,24 +243,19 @@ func setupValuer(meta *Meta, fieldName string, record interface{}) {
 
 	if meta.FieldStruct != nil {
 		meta.Valuer = func(value interface{}, context *qor.Context) interface{} {
+			// get scope of current record. like Collection, then iterate its fields
 			scope := context.GetDB().NewScope(value)
 
 			if f, ok := scope.FieldByName(fieldName); ok {
 				if relationship := f.Relationship; relationship != nil && f.Field.CanAddr() && !scope.PrimaryKeyZero() {
+					// Iterate each field see if it is an relationship field like
+					// Factories []factory.Factory
+					// If so, set the CompositePrimaryKey value for PrimaryKeyOf to read
 					if (relationship.Kind == "has_many" || relationship.Kind == "many_to_many") && f.Field.Len() == 0 {
+						// Retrieve the associated records from db
 						context.GetDB().Set("publish:version:mode", "multiple").Model(value).Related(f.Field.Addr().Interface(), fieldName)
-						// if the association has CompositePrimaryKey integrated, generates value for it by our conventional format
-						// the PrimaryKeyOf will return this composite primary key instead of ID, so that frontend could find correct version
-						for i := 0; i < f.Field.Len(); i++ {
-							associatedRecord := reflect.Indirect(f.Field.Index(i))
-							for i := 0; i < associatedRecord.Type().NumField(); i++ {
-								if associatedRecord.Type().Field(i).Name == CompositePrimaryKey {
-									id := associatedRecord.FieldByName("ID").Uint()
-									versionName := associatedRecord.FieldByName("VersionName").String()
-									associatedRecord.Field(i).FieldByName("CompositePrimaryKey").SetString(fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName))
-								}
-							}
-						}
+
+						setCompositePrimaryKey(f)
 					} else if (relationship.Kind == "has_one" || relationship.Kind == "belongs_to") && context.GetDB().NewScope(f.Field.Interface()).PrimaryKeyZero() {
 						if f.Field.Kind() == reflect.Ptr && f.Field.IsNil() {
 							f.Field.Set(reflect.New(f.Field.Type().Elem()))

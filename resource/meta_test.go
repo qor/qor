@@ -24,7 +24,7 @@ func format(value interface{}) string {
 
 func checkMeta(record interface{}, meta *resource.Meta, value interface{}, t *testing.T, expectedValues ...string) {
 	var (
-		context       = &qor.Context{DB: testutils.TestDB()}
+		context       = &qor.Context{DB: testutils.GetTestDB()}
 		metaValue     = &resource.MetaValue{Name: meta.Name, Value: value}
 		expectedValue = fmt.Sprint(value)
 	)
@@ -339,7 +339,7 @@ func updateCallback(scope *gorm.Scope) {
 	return
 }
 func TestMany2ManyRelation(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	productsMeta := setupProductsMeta(t, db, "Products")
 	// lunchProduct is to cover the pointer association like []*Product
 	lunchProductsMeta := setupProductsMeta(t, db, "LunchProducts")
@@ -420,7 +420,7 @@ func setupProductsMeta(t *testing.T, db *gorm.DB, metaName string) resource.Meta
 }
 
 func TestValuer(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	productsMeta := setupProductsMeta(t, db, "Products")
 
 	p1 := Product{Name: "p1"}
@@ -472,7 +472,7 @@ func setupProductWithVersionMeta(t *testing.T, db *gorm.DB) resource.Meta {
 }
 
 func TestValuer_WithVersion(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	productsMeta := setupProductWithVersionMeta(t, db)
 
 	p1 := ProductWithVersion{Name: "p1"}
@@ -513,9 +513,31 @@ func TestValuer_WithVersion(t *testing.T) {
 	}
 }
 
+func TestSetCompositePrimaryKey(t *testing.T) {
+	db := testutils.GetTestDB()
+
+	p1 := ProductWithVersion{Name: "p1"}
+	p1.SetVersionName("v1")
+	testutils.AssertNoErr(t, db.Save(&p1).Error)
+
+	record := CollectionWithVersion{Name: "test"}
+	record.SetVersionName("v1")
+	record.Products = []ProductWithVersion{p1}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+
+	scope := db.NewScope(record)
+
+	f, _ := scope.FieldByName("Products")
+	resource.SetCompositePrimaryKey(f)
+
+	if record.Products[0].CompositePrimaryKey != fmt.Sprintf("%d%s%s", p1.ID, resource.CompositePrimaryKeySeparator, p1.GetVersionName()) {
+		t.Error("composite primary key not set to the 'has_many' record")
+	}
+}
+
 // By default, qor publish2 select records by MAX(version_priority). to make it work with older version user need to define its own valuer
 func TestValuer_WithVersionWithNotMaxVersionPriority(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	productsMeta := setupProductWithVersionMeta(t, db)
 	productsMeta.Valuer = func(value interface{}, ctx *qor.Context) interface{} {
 		coll := value.(*CollectionWithVersion)
@@ -574,7 +596,7 @@ func TestValuer_WithVersionWithNotMaxVersionPriority(t *testing.T) {
 }
 
 func TestManyToManyRelation_WithVersion(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	productsMeta := setupProductWithVersionMeta(t, db)
 
 	p1 := ProductWithVersion{Name: "p1"}
@@ -613,7 +635,7 @@ func TestManyToManyRelation_WithVersion(t *testing.T) {
 }
 
 func TestBelongsToRelation(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	testutils.ResetDBTables(db, &Collection{}, &Product{}, &Tag{})
 
 	adm := admin.New(&qor.Config{DB: db.Set(publish2.ScheduleMode, publish2.ModeOff)})
@@ -658,7 +680,7 @@ func TestBelongsToRelation(t *testing.T) {
 }
 
 func TestBelongsToWithVersionRelation(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	registerVersionNameCallback(db)
 	testutils.ResetDBTables(db, &CollectionWithVersion{}, &ProductWithVersion{}, &Manager{})
 
@@ -728,7 +750,7 @@ func registerVersionNameCallback(db *gorm.DB) {
 
 //  Test assigning associations when creating new version. the associations should assign to correct version after save
 func TestAssigningAssociationsOnNewVersion(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	productsMeta := setupProductWithVersionMeta(t, db)
 
 	p1 := ProductWithVersion{Name: "p1"}
@@ -773,7 +795,7 @@ func TestAssigningAssociationsOnNewVersion(t *testing.T) {
 	}
 }
 func TestSwitchRecordToNewVersionIfNeeded(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	testutils.ResetDBTables(db, &CollectionWithVersion{})
 	registerVersionNameCallback(db)
 
@@ -791,7 +813,7 @@ func TestSwitchRecordToNewVersionIfNeeded(t *testing.T) {
 	}
 }
 func TestSwitchRecordToNewVersionIfNeeded_EditExistingVersion(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	testutils.ResetDBTables(db, &CollectionWithVersion{})
 	registerVersionNameCallback(db)
 
@@ -819,7 +841,7 @@ type Athlete struct {
 }
 
 func TestSwitchRecordToNewVersionIfNeeded_WithNoAssignVersionMethod(t *testing.T) {
-	db := testutils.TestDB()
+	db := testutils.GetTestDB()
 	testutils.ResetDBTables(db, &Athlete{})
 	registerVersionNameCallback(db)
 
