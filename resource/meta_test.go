@@ -535,6 +535,24 @@ func TestSetCompositePrimaryKey(t *testing.T) {
 	}
 }
 
+func TestFieldIsStructAndHasVersion(t *testing.T) {
+	record := CollectionWithVersion{Name: "test"}
+
+	field := utils.Indirect(reflect.ValueOf(record)).FieldByName("Products")
+
+	if hasVersion := resource.FieldIsStructAndHasVersion(field); !hasVersion {
+		t.Error("field has version but not detected")
+	}
+
+	recordWithNoVersion := Collection{Name: "test"}
+
+	fieldWithNoVersion := utils.Indirect(reflect.ValueOf(recordWithNoVersion)).FieldByName("Products")
+
+	if hasVersion := resource.FieldIsStructAndHasVersion(fieldWithNoVersion); hasVersion {
+		t.Error("field has no version but detected")
+	}
+}
+
 // By default, qor publish2 select records by MAX(version_priority). to make it work with older version user need to define its own valuer
 func TestValuer_WithVersionWithNotMaxVersionPriority(t *testing.T) {
 	db := testutils.GetTestDB()

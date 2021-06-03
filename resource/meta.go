@@ -388,24 +388,9 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 					switchRecordToNewVersionIfNeeded(context, record)
 
 					var fieldHasVersion bool
-					// If the field struct has version
-					if field.Type().Kind() == reflect.Slice || field.Type().Kind() == reflect.Struct {
-						underlyingType := field.Type()
-						// If the field is a slice of struct, we retrive one element(struct) as a sample to determine whether it has version
-						// e.g. []User -> User
-						if field.Type().Kind() == reflect.Slice {
-							underlyingType = underlyingType.Elem()
-							if underlyingType.Kind() == reflect.Ptr {
-								underlyingType = underlyingType.Elem()
-							}
-						}
 
-						for i := 0; i < underlyingType.NumField(); i++ {
-							if underlyingType.Field(i).Name == "Version" && underlyingType.Field(i).Type.String() == "publish2.Version" {
-								fieldHasVersion = true
-							}
-						}
-					}
+					// If the field struct has version
+					fieldHasVersion = fieldIsStructAndHasVersion(field)
 
 					if relationship.Kind == "belongs_to" {
 						primaryKeys := utils.ToArray(metaValue.Value)
@@ -653,4 +638,29 @@ func getNestedModel(value interface{}, fieldName string, context *qor.Context) i
 		return model.Addr().Interface()
 	}
 	return nil
+}
+
+// fieldStructHasVersion determine if the given field is a struct
+// if so, detect if it has publish2.Version integrated
+func fieldIsStructAndHasVersion(field reflect.Value) bool {
+	// If the field struct has version
+	if field.Type().Kind() == reflect.Slice || field.Type().Kind() == reflect.Struct {
+		underlyingType := field.Type()
+		// If the field is a slice of struct, we retrive one element(struct) as a sample to determine whether it has version
+		// e.g. []User -> User
+		if field.Type().Kind() == reflect.Slice {
+			underlyingType = underlyingType.Elem()
+			if underlyingType.Kind() == reflect.Ptr {
+				underlyingType = underlyingType.Elem()
+			}
+		}
+
+		for i := 0; i < underlyingType.NumField(); i++ {
+			if underlyingType.Field(i).Name == "Version" && underlyingType.Field(i).Type.String() == "publish2.Version" {
+				return true
+			}
+		}
+	}
+
+	return false
 }
