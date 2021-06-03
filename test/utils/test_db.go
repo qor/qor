@@ -51,6 +51,27 @@ func TestDB() *gorm.DB {
 	return db
 }
 
+var db *gorm.DB
+
+func GetTestDB() *gorm.DB {
+	if db != nil {
+		return db
+	}
+
+	db = TestDB()
+
+	return db
+}
+
+// PrepareDBAndTables prepare given tables cleanly and return a test database instance
+func PrepareDBAndTables(tables ...interface{}) *gorm.DB {
+	db := GetTestDB()
+
+	ResetDBTables(db, tables...)
+
+	return db
+}
+
 // ResetDBTables reset given tables.
 func ResetDBTables(db *gorm.DB, tables ...interface{}) {
 	Truncate(db, tables...)
