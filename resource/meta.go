@@ -384,13 +384,10 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 						scope         = context.GetDB().NewScope(record)
 						indirectValue = reflect.Indirect(reflect.ValueOf(record))
 					)
-
 					switchRecordToNewVersionIfNeeded(context, record)
 
-					var fieldHasVersion bool
-
 					// If the field struct has version
-					fieldHasVersion = fieldIsStructAndHasVersion(field)
+					fieldHasVersion := fieldIsStructAndHasVersion(field)
 
 					if relationship.Kind == "belongs_to" {
 						primaryKeys := utils.ToArray(metaValue.Value)
@@ -400,19 +397,24 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 
 						// For normal association
 						if len(relationship.ForeignFieldNames) == 1 {
+							// Read value from foreign key field. e.g.  TagID => 1
 							oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
-
 							// if not changed
 							if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
 								return
 							}
 
-							// if removed
 							foreignKeyField := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
 							if len(primaryKeys) == 0 {
+								// if foreign key removed
 								foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
 							} else {
-								context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
+								// if foreign key changed. We need to make sure the field is a blank object
+								// Suppose this is a Collection belongs to Tag association
+								// non-blank field will perform a query like `SELECT * FROM "tags"  WHERE "tags"."deleted_at" IS NULL AND "tags"."id" = 1 AND (("tags"."id" IN ('2')))`
+								// Usually this won't happen, cause the Tag field of Collection will be blank by default. it is a double assurance.
+								field.FieldByName("ID").SetUint(0)
+								context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
 							}
 						}
 

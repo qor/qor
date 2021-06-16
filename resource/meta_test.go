@@ -665,34 +665,32 @@ func TestBelongsToRelation(t *testing.T) {
 		BaseResource: c,
 	}
 
-	var scope = &gorm.Scope{Value: c.Value}
-	var getField = func(fields []*gorm.StructField, name string) *gorm.StructField {
-		for _, field := range fields {
-			if field.Name == name || field.DBName == name {
-				return field
-			}
-		}
-		return nil
-	}
-
-	tagMeta.FieldStruct = getField(scope.GetStructFields(), tagMeta.FieldName)
-
-	if err := tagMeta.Initialize(); err != nil {
-		t.Fatal(err)
-	}
+	testutils.AssertNoErr(t, tagMeta.PreInitialize())
+	testutils.AssertNoErr(t, tagMeta.Initialize())
 
 	t1 := Tag{Name: "t1"}
+	t2 := Tag{Name: "t2"}
 	testutils.AssertNoErr(t, db.Save(&t1).Error)
+	testutils.AssertNoErr(t, db.Save(&t2).Error)
 
 	record := Collection{Name: "test"}
 	testutils.AssertNoErr(t, db.Save(&record).Error)
+	// resource.SetupSetter(&tagMeta, "Tag", record)
 	ctx := &qor.Context{DB: db}
 	metaValue := &resource.MetaValue{Name: tagMeta.Name, Value: []string{fmt.Sprintf("%d", t1.ID)}}
 
 	tagMeta.Setter(&record, metaValue, ctx)
 	testutils.AssertNoErr(t, db.Save(&record).Error)
 
-	if record.Tag.ID != t1.ID {
+	if record.TagID != t1.ID {
+		t.Error("tag not set to collection")
+	}
+
+	metaValue1 := &resource.MetaValue{Name: tagMeta.Name, Value: []string{fmt.Sprintf("%d", t2.ID)}}
+	tagMeta.Setter(&record, metaValue1, ctx)
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+
+	if record.TagID != t2.ID {
 		t.Error("tag not set to collection")
 	}
 }
