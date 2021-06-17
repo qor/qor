@@ -335,9 +335,7 @@ func updateVersionPriority() func(scope *gorm.Scope) {
 		}
 	}
 }
-func updateCallback(scope *gorm.Scope) {
-	return
-}
+
 func TestMany2ManyRelation(t *testing.T) {
 	db := testutils.GetTestDB()
 	productsMeta := setupProductsMeta(t, db, "Products")
@@ -652,6 +650,50 @@ func TestManyToManyRelation_WithVersion(t *testing.T) {
 	}
 }
 
+func TestHandleBelongsTo(t *testing.T) {
+	db := testutils.GetTestDB()
+	testutils.ResetDBTables(db, &Collection{}, &Product{}, &Tag{})
+
+	ctx := &qor.Context{DB: db}
+	var scope = &gorm.Scope{Value: &Collection{}}
+	fieldStruct := getField(scope.GetStructFields(), "Tag")
+	relationship := fieldStruct.Relationship
+
+	t1 := Tag{Name: "t1"}
+	t2 := Tag{Name: "t2"}
+	testutils.AssertNoErr(t, db.Save(&t1).Error)
+	testutils.AssertNoErr(t, db.Save(&t2).Error)
+	c := Collection{Name: "test", TagID: t2.ID}
+
+	record := reflect.ValueOf(&c).Elem()
+	field := reflect.ValueOf(&t1).Elem()
+
+	// belongs_to object not changed
+	samePrimaryKeys := []string{fmt.Sprintf("%d", t1.ID)}
+	resource.HandleBelongsTo(ctx, record, field, relationship, samePrimaryKeys)
+	// The function only set value to field, not the record.
+	if field.Interface().(Tag).ID != t1.ID {
+		t.Error("tag id changed")
+	}
+
+	// Set belongs_to to nil
+	emptyPrimaryKeys := []string{}
+	resource.HandleBelongsTo(ctx, record, field, relationship, emptyPrimaryKeys)
+	// The function would set TagID instead of Tag object during emptyPrimaryKeys.
+	// So use TagID as the check condition
+	if record.Interface().(Collection).TagID != 0 {
+		t.Error("tag id not set to 0")
+	}
+
+	// Set belongs_to to a new tag
+	primaryKeys := []string{fmt.Sprintf("%d", t2.ID)}
+	resource.HandleBelongsTo(ctx, record, field, relationship, primaryKeys)
+
+	if field.Interface().(Tag).ID != t2.ID {
+		t.Error("new tag id not set")
+	}
+}
+
 func TestBelongsToRelation(t *testing.T) {
 	db := testutils.GetTestDB()
 	testutils.ResetDBTables(db, &Collection{}, &Product{}, &Tag{})
@@ -695,6 +737,16 @@ func TestBelongsToRelation(t *testing.T) {
 	}
 }
 
+func getField(fields []*gorm.StructField, name string) *gorm.StructField {
+	for _, field := range fields {
+		if field.Name == name || field.DBName == name {
+			return field
+		}
+	}
+
+	return nil
+}
+
 func TestBelongsToWithVersionRelation(t *testing.T) {
 	db := testutils.GetTestDB()
 	registerVersionNameCallback(db)
@@ -710,14 +762,6 @@ func TestBelongsToWithVersionRelation(t *testing.T) {
 	}
 
 	var scope = &gorm.Scope{Value: c.Value}
-	var getField = func(fields []*gorm.StructField, name string) *gorm.StructField {
-		for _, field := range fields {
-			if field.Name == name || field.DBName == name {
-				return field
-			}
-		}
-		return nil
-	}
 
 	managerMeta.FieldStruct = getField(scope.GetStructFields(), managerMeta.FieldName)
 	if err := managerMeta.Initialize(); err != nil {

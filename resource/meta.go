@@ -325,6 +325,28 @@ func switchRecordToNewVersionIfNeeded(context *qor.Context, record interface{}) 
 	return record
 }
 
+func HandleBelongsTo(context *qor.Context, record reflect.Value, field reflect.Value, relationship *gorm.Relationship, primaryKeys []string) {
+	// Read value from foreign key field. e.g.  TagID => 1
+	oldPrimaryKeys := utils.ToArray(record.FieldByName(relationship.ForeignFieldNames[0]).Interface())
+	// if not changed, return immediately
+	if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
+		return
+	}
+
+	foreignKeyField := record.FieldByName(relationship.ForeignFieldNames[0])
+	if len(primaryKeys) == 0 {
+		// if foreign key removed
+		foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
+	} else {
+		// if foreign key changed. We need to make sure the field is a blank object
+		// Suppose this is a Collection belongs to Tag association
+		// non-blank field will perform a query like `SELECT * FROM "tags"  WHERE "tags"."deleted_at" IS NULL AND "tags"."id" = 1 AND (("tags"."id" IN ('2')))`
+		// Usually this won't happen, cause the Tag field of Collection will be blank by default. it is a double assurance.
+		field.FieldByName("ID").SetUint(0)
+		context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+	}
+}
+
 func setupSetter(meta *Meta, fieldName string, record interface{}) {
 	nestedField := strings.Contains(fieldName, ".")
 
@@ -382,7 +404,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 				meta.Setter = commonSetter(func(field reflect.Value, metaValue *MetaValue, context *qor.Context, record interface{}) {
 					var (
 						scope         = context.GetDB().NewScope(record)
-						indirectValue = reflect.Indirect(reflect.ValueOf(record))
+						recordAsValue = reflect.Indirect(reflect.ValueOf(record))
 					)
 					switchRecordToNewVersionIfNeeded(context, record)
 
@@ -395,27 +417,9 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 							primaryKeys = []string{}
 						}
 
-						// For normal association
+						// For normal belongs_to association
 						if len(relationship.ForeignFieldNames) == 1 {
-							// Read value from foreign key field. e.g.  TagID => 1
-							oldPrimaryKeys := utils.ToArray(indirectValue.FieldByName(relationship.ForeignFieldNames[0]).Interface())
-							// if not changed
-							if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
-								return
-							}
-
-							foreignKeyField := indirectValue.FieldByName(relationship.ForeignFieldNames[0])
-							if len(primaryKeys) == 0 {
-								// if foreign key removed
-								foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
-							} else {
-								// if foreign key changed. We need to make sure the field is a blank object
-								// Suppose this is a Collection belongs to Tag association
-								// non-blank field will perform a query like `SELECT * FROM "tags"  WHERE "tags"."deleted_at" IS NULL AND "tags"."id" = 1 AND (("tags"."id" IN ('2')))`
-								// Usually this won't happen, cause the Tag field of Collection will be blank by default. it is a double assurance.
-								field.FieldByName("ID").SetUint(0)
-								context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
-							}
+							HandleBelongsTo(context, recordAsValue, field, relationship, primaryKeys)
 						}
 
 						// For versioning association
@@ -423,8 +427,8 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 							foreignKeyName := relationship.ForeignFieldNames[0]
 							foreignVersionName := strings.Replace(foreignKeyName, "ID", "VersionName", -1)
 
-							foreignKeyField := indirectValue.FieldByName(foreignKeyName)
-							foreignVersionField := indirectValue.FieldByName(foreignVersionName)
+							foreignKeyField := recordAsValue.FieldByName(foreignKeyName)
+							foreignVersionField := recordAsValue.FieldByName(foreignVersionName)
 
 							oldPrimaryKeys := utils.ToArray(foreignKeyField.Interface())
 							// If field struct has version and it defined XXVersionName foreignKey field
