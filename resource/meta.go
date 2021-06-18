@@ -343,7 +343,53 @@ func HandleBelongsTo(context *qor.Context, record reflect.Value, field reflect.V
 		// non-blank field will perform a query like `SELECT * FROM "tags"  WHERE "tags"."deleted_at" IS NULL AND "tags"."id" = 1 AND (("tags"."id" IN ('2')))`
 		// Usually this won't happen, cause the Tag field of Collection will be blank by default. it is a double assurance.
 		field.FieldByName("ID").SetUint(0)
-		context.GetDB().Set("publish:version:name", "").Where(primaryKeys).Find(field.Addr().Interface())
+		context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
+	}
+}
+
+func HandleVersioningBelongsTo(context *qor.Context, record reflect.Value, field reflect.Value, relationship *gorm.Relationship, primaryKeys []string, fieldHasVersion bool) {
+	foreignKeyName := relationship.ForeignFieldNames[0]
+	// Construct version name foreign key. e.g.  ManagerID -> ManagerVersionName
+	foreignVersionName := strings.Replace(foreignKeyName, "ID", "VersionName", -1)
+
+	foreignKeyField := record.FieldByName(foreignKeyName)
+	foreignVersionField := record.FieldByName(foreignVersionName)
+
+	oldPrimaryKeys := utils.ToArray(foreignKeyField.Interface())
+	// If field struct has version and it defined XXVersionName foreignKey field
+	// then construct ID+VersionName and compare with composite primarykey
+	if fieldHasVersion && len(oldPrimaryKeys) != 0 && foreignVersionField.IsValid() {
+		oldPrimaryKeys[0] = GenCompositePrimaryKey(oldPrimaryKeys[0], foreignVersionField.String())
+	}
+
+	// if not changed
+	if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
+		return
+	}
+
+	// foreignkey removed
+	if len(primaryKeys) == 0 {
+		foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
+		// if field has version, we have to set both the id and version_name to zero value.
+		if fieldHasVersion {
+			foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
+			foreignVersionField.Set(reflect.Zero(foreignVersionField.Type()))
+		}
+		// foreignkey updated
+	} else {
+		// if foreign key changed. We need to make sure the field is a blank object
+		// Suppose this is a Collection belongs to Tag association
+		// non-blank field will perform a query like `SELECT * FROM "tags"  WHERE "tags"."deleted_at" IS NULL AND "tags"."id" = 1 AND (("tags"."id" IN ('2')))`
+		// Usually this won't happen, cause the Tag field of Collection will be blank by default. it is a double assurance.
+		field.FieldByName("ID").SetUint(0)
+
+		compositePKeys := strings.Split(primaryKeys[0], CompositePrimaryKeySeparator)
+		// If primaryKeys doesn't include version name, process it as an ID
+		if len(compositePKeys) == 1 {
+			context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
+		} else {
+			context.GetDB().Set("publish:version:mode", "multiple").Where("id = ? AND version_name = ?", compositePKeys[0], compositePKeys[1]).Find(field.Addr().Interface())
+		}
 	}
 }
 
@@ -424,41 +470,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 
 						// For versioning association
 						if len(relationship.ForeignFieldNames) == 2 {
-							foreignKeyName := relationship.ForeignFieldNames[0]
-							foreignVersionName := strings.Replace(foreignKeyName, "ID", "VersionName", -1)
-
-							foreignKeyField := recordAsValue.FieldByName(foreignKeyName)
-							foreignVersionField := recordAsValue.FieldByName(foreignVersionName)
-
-							oldPrimaryKeys := utils.ToArray(foreignKeyField.Interface())
-							// If field struct has version and it defined XXVersionName foreignKey field
-							// then construct ID+VersionName and compare with composite primarykey
-							if fieldHasVersion && len(oldPrimaryKeys) != 0 && foreignVersionField.IsValid() {
-								oldPrimaryKeys[0] = GenCompositePrimaryKey(oldPrimaryKeys[0], foreignVersionField.String())
-							}
-
-							// if not changed
-							if fmt.Sprint(primaryKeys) == fmt.Sprint(oldPrimaryKeys) {
-								return
-							}
-
-							// if removed
-							if len(primaryKeys) == 0 {
-								foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
-								// if field has version, we have to set both the id and version_name to zero value.
-								if fieldHasVersion {
-									foreignKeyField.Set(reflect.Zero(foreignKeyField.Type()))
-									foreignVersionField.Set(reflect.Zero(foreignVersionField.Type()))
-								}
-							} else {
-								compositePKeys := strings.Split(primaryKeys[0], CompositePrimaryKeySeparator)
-								// If primaryKeys doesn't include version name, process it as an ID
-								if len(compositePKeys) == 1 {
-									context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
-								} else {
-									context.GetDB().Set("publish:version:mode", "multiple").Where("id = ? AND version_name = ?", compositePKeys[0], compositePKeys[1]).Find(field.Addr().Interface())
-								}
-							}
+							HandleVersioningBelongsTo(context, recordAsValue, field, relationship, primaryKeys, fieldHasVersion)
 						}
 					}
 

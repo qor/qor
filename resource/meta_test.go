@@ -652,7 +652,7 @@ func TestManyToManyRelation_WithVersion(t *testing.T) {
 
 func TestHandleBelongsTo(t *testing.T) {
 	db := testutils.GetTestDB()
-	testutils.ResetDBTables(db, &Collection{}, &Product{}, &Tag{})
+	testutils.ResetDBTables(db, &Collection{}, &Tag{})
 
 	ctx := &qor.Context{DB: db}
 	var scope = &gorm.Scope{Value: &Collection{}}
@@ -691,6 +691,70 @@ func TestHandleBelongsTo(t *testing.T) {
 
 	if field.Interface().(Tag).ID != t2.ID {
 		t.Error("new tag id not set")
+	}
+}
+
+func TestHandleVersioningBelongsTo(t *testing.T) {
+	db := testutils.GetTestDB()
+	registerVersionNameCallback(db)
+	testutils.ResetDBTables(db, &CollectionWithVersion{}, &Manager{})
+
+	ctx := &qor.Context{DB: db}
+	var scope = &gorm.Scope{Value: &CollectionWithVersion{}}
+	fieldStruct := getField(scope.GetStructFields(), "Manager")
+	relationship := fieldStruct.Relationship
+
+	m1 := Manager{Name: "m1"}
+	m2 := Manager{Name: "m2"}
+	testutils.AssertNoErr(t, db.Save(&m1).Error)
+	m1_v2 := m1
+	m1_v2.SetVersionName("v2")
+	testutils.AssertNoErr(t, db.Save(&m1_v2).Error)
+	testutils.AssertNoErr(t, db.Save(&m2).Error)
+	c := CollectionWithVersion{Name: "test", ManagerID: m1.ID, ManagerVersionName: m1.GetVersionName()}
+
+	record := reflect.ValueOf(&c).Elem()
+	field := reflect.ValueOf(&m1).Elem()
+
+	// Not changed
+	samePrimaryKeys := []string{resource.GenCompositePrimaryKey(m1.ID, m1.GetVersionName())}
+	resource.HandleVersioningBelongsTo(ctx, record, field, relationship, samePrimaryKeys, true)
+	// The function only set value to field, not the record.
+	if field.Interface().(Manager).ID != m1.ID {
+		t.Error("product id changed")
+	}
+
+	// Set belongs_to to nil
+	emptyPrimaryKeys := []string{}
+	resource.HandleVersioningBelongsTo(ctx, record, field, relationship, emptyPrimaryKeys, true)
+	// The function would set TagID instead of Tag object during emptyPrimaryKeys.
+	// So use TagID as the check condition
+	if r := record.Interface().(CollectionWithVersion); r.ManagerID != 0 || r.ManagerVersionName != "" {
+		t.Error("manager not set to zero value")
+	}
+
+	// Set belongs_to to a new version of the same manager
+	primaryKeysOfDiffVersion := []string{resource.GenCompositePrimaryKey(m1_v2.ID, m1_v2.GetVersionName())}
+	resource.HandleVersioningBelongsTo(ctx, record, field, relationship, primaryKeysOfDiffVersion, true)
+	if f := field.Interface().(Manager); f.ID != m1_v2.ID || f.GetVersionName() != m1_v2.GetVersionName() {
+		t.Error("new version manager not set")
+	}
+
+	// Set belongs_to to a new manager
+	primaryKeys := []string{resource.GenCompositePrimaryKey(m2.ID, m2.GetVersionName())}
+	resource.HandleVersioningBelongsTo(ctx, record, field, relationship, primaryKeys, true)
+	if f := field.Interface().(Manager); f.ID != m2.ID || f.GetVersionName() != m2.GetVersionName() {
+		t.Error("new manager not set")
+	}
+
+	// Set belongs_to to a new manager, but the application doesn't implement the composite primary key
+	// so we treat it as a normal belongs_to which means only process an ID as the foreign key
+	singlePrimaryKeys := []string{fmt.Sprintf("%d", m1.ID)}
+	resource.HandleVersioningBelongsTo(ctx, record, field, relationship, singlePrimaryKeys, true)
+	// since we can't predict which version of record the SQL would return with a single ID(no version_name)
+	// so just to detect the ID is correct here
+	if f := field.Interface().(Manager); f.ID != m1.ID {
+		t.Error("new manager not set")
 	}
 }
 
