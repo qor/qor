@@ -22,7 +22,7 @@ import (
 const CompositePrimaryKeySeparator = "^|^"
 
 // CompositePrimaryKey the string that represents the composite primary key
-const CompositePrimaryKey = "CompositePrimaryKeyField"
+const CompositePrimaryKeyFieldName = "CompositePrimaryKeyField"
 
 // CompositePrimaryKeyField to embed into the struct that requires composite primary key in select many
 type CompositePrimaryKeyField struct {
@@ -217,7 +217,7 @@ func setCompositePrimaryKey(f *gorm.Field) {
 	for i := 0; i < f.Field.Len(); i++ {
 		associatedRecord := reflect.Indirect(f.Field.Index(i))
 		for i := 0; i < associatedRecord.Type().NumField(); i++ {
-			if associatedRecord.Type().Field(i).Name == CompositePrimaryKey {
+			if associatedRecord.Type().Field(i).Name == CompositePrimaryKeyFieldName {
 				id := associatedRecord.FieldByName("ID").Uint()
 				versionName := associatedRecord.FieldByName("VersionName").String()
 				associatedRecord.Field(i).FieldByName("CompositePrimaryKey").SetString(fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName))

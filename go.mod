@@ -9,7 +9,7 @@ require (
 	github.com/jinzhu/now v1.1.1
 	github.com/lib/pq v1.8.0
 	github.com/microcosm-cc/bluemonday v1.0.3
-	github.com/qor/admin v0.0.0-20200910082021-31378ac3f27c
+	github.com/qor/admin v0.0.0-20210618081816-6df954b69f20
 	github.com/qor/publish2 v0.0.0-20200729081509-d97fdb5620a5
 	github.com/qor/roles v0.0.0-20171127035124-d6375609fe3e
 	github.com/qor/sorting v0.0.0-20200724034229-cdba739ba535
