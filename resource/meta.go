@@ -29,6 +29,12 @@ type CompositePrimaryKeyField struct {
 	CompositePrimaryKey string `gorm:"-"`
 }
 
+// CompositePrimaryKeyStruct container for store id & version combination temporarily
+type CompositePrimaryKeyStruct struct {
+	ID          uint   `json:"id"`
+	VersionName string `json:"version_name"`
+}
+
 // GenCompositePrimaryKey generates composite primary key in a specific format
 func GenCompositePrimaryKey(id interface{}, versionName string) string {
 	return fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName)
@@ -393,6 +399,37 @@ func HandleVersioningBelongsTo(context *qor.Context, record reflect.Value, field
 	}
 }
 
+func CollectPrimaryKeys(metaValueForCompositePrimaryKeys []string) (compositePKeys []CompositePrimaryKeyStruct, compositePKeyConvertErr error) {
+	// To convert []string{"1^|^2020-09-14-v1", "2^|^2020-09-14-v3"} to []compositePrimaryKey
+	for _, rawCpk := range metaValueForCompositePrimaryKeys {
+		// Skip blank string when it is not the only element
+		if len(rawCpk) == 0 && len(metaValueForCompositePrimaryKeys) > 1 {
+			continue
+		}
+
+		pks := strings.Split(rawCpk, CompositePrimaryKeySeparator)
+		if len(pks) != 2 {
+			compositePKeyConvertErr = errors.New("metaValue is not for composite primary key")
+			break
+		}
+
+		id, convErr := strconv.ParseUint(pks[0], 10, 32)
+		if convErr != nil {
+			compositePKeyConvertErr = fmt.Errorf("composite primary key has incorrect id %s", pks[0])
+			break
+		}
+
+		cpk := CompositePrimaryKeyStruct{
+			ID:          uint(id),
+			VersionName: pks[1],
+		}
+
+		compositePKeys = append(compositePKeys, cpk)
+	}
+
+	return
+}
+
 func setupSetter(meta *Meta, fieldName string, record interface{}) {
 	nestedField := strings.Contains(fieldName, ".")
 
@@ -475,40 +512,12 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 					}
 
 					if relationship.Kind == "many_to_many" {
-						type compositePrimaryKey struct {
-							ID          uint   `json:"id"`
-							VersionName string `json:"version_name"`
-						}
-
 						metaValueForCompositePrimaryKeys, ok := metaValue.Value.([]string)
-						compositePKeys := []compositePrimaryKey{}
+						compositePKeys := []CompositePrimaryKeyStruct{}
 						var compositePKeyConvertErr error
+
 						if ok {
-							// To convert []string{"1^|^2020-09-14-v1", "2^|^2020-09-14-v3"} to []compositePrimaryKey
-							for _, rawCpk := range metaValueForCompositePrimaryKeys {
-								// Skip blank string when it is not the only element
-								if len(rawCpk) == 0 && len(metaValueForCompositePrimaryKeys) > 1 {
-									continue
-								}
-
-								pks := strings.Split(rawCpk, CompositePrimaryKeySeparator)
-								if len(pks) != 2 {
-									compositePKeyConvertErr = errors.New("metaValue is not for composite primary key")
-									break
-								}
-
-								id, convErr := strconv.ParseUint(pks[0], 10, 32)
-								if convErr != nil {
-									compositePKeyConvertErr = fmt.Errorf("composite primary key has incorrect id %s", pks[0])
-								}
-
-								cpk := compositePrimaryKey{
-									ID:          uint(id),
-									VersionName: pks[1],
-								}
-
-								compositePKeys = append(compositePKeys, cpk)
-							}
+							compositePKeys, compositePKeyConvertErr = CollectPrimaryKeys(metaValueForCompositePrimaryKeys)
 						}
 
 						// If field is a struct with version and metaValue is []map[string]string we construct the query separately

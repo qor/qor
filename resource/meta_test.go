@@ -982,3 +982,41 @@ func TestSwitchRecordToNewVersionIfNeeded_WithNoAssignVersionMethod(t *testing.T
 		t.Error("new version name is assigned to record")
 	}
 }
+
+func TestCollectPrimaryKeys(t *testing.T) {
+	r1 := []resource.CompositePrimaryKeyStruct{{
+		ID:          1,
+		VersionName: "2020-09-14-v1",
+	}, {
+		ID:          2,
+		VersionName: "2020-09-14-v3",
+	}}
+
+	cases := []struct {
+		desc       string
+		input      []string
+		output     []resource.CompositePrimaryKeyStruct
+		errContent string
+	}{
+		{"standard operation", []string{"1^|^2020-09-14-v1", "2^|^2020-09-14-v3"}, r1, ""},
+		{"incorrect composite key format", []string{"1^|2020-09-14-v1", "2^|^2020-09-14-v3"}, []resource.CompositePrimaryKeyStruct{}, "metaValue is not for composite primary key"},
+		{"incorrect id format", []string{"x^|^2020-09-14-v1", "2^|^2020-09-14-v3"}, []resource.CompositePrimaryKeyStruct{}, "composite primary key has incorrect id x"},
+	}
+	for _, c := range cases {
+		t.Run(c.desc, func(t *testing.T) {
+			result, err := resource.CollectPrimaryKeys(c.input)
+			errStr := ""
+			if err != nil {
+				errStr = err.Error()
+			}
+
+			if errStr != c.errContent {
+				t.Fatal("error expected to be nil but not get nil")
+			}
+
+			if got, want := result, c.output; len(want) != len(got) {
+				t.Errorf("expect to have %v but got %v", want, got)
+			}
+		})
+	}
+}
