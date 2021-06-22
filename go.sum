@@ -78,6 +78,8 @@ github.com/qor/admin v0.0.0-20210618081816-6df954b69f20 h1:HGfZhrQhc5kFckNqymAag
 github.com/qor/admin v0.0.0-20210618081816-6df954b69f20/go.mod h1:VhWvTKxb2tdmu1GkVc6U5Oak0r7NyskTSj3ZPDQOrTI=
 github.com/qor/admin v0.0.0-20210618091300-d1a7240ca216 h1:Rbo2+mbPylh1HpurC/swoo+l6GJOq4cKb/my1UL5sJk=
 github.com/qor/admin v0.0.0-20210618091300-d1a7240ca216/go.mod h1:Yz4adpkVO2JUS9cK9Pk1HP5L58LYXbaLJcFiqIjKGwU=
+github.com/qor/admin v0.0.0-20210622020116-b031b9cba8be h1:saxcbbv+piwlDcu3du3mm4ln0AdUeh1J0Jg+sxFbIdc=
+github.com/qor/admin v0.0.0-20210622020116-b031b9cba8be/go.mod h1:Yz4adpkVO2JUS9cK9Pk1HP5L58LYXbaLJcFiqIjKGwU=
 github.com/qor/assetfs v0.0.0-20170713023933-ff57fdc13a14 h1:JRpyNNSRAkwNHd4WgyPcalTAhxOCh3eFNMoQkxWhjSw=
 github.com/qor/assetfs v0.0.0-20170713023933-ff57fdc13a14/go.mod h1:GZSCP3jIneuPsav3pXmpmJwz9ES+Fuq4ZPOUC3wwckQ=
 github.com/qor/audited v0.0.0-20171228121055-b52c9c2f0571 h1:87fy9oxrDUTN77K9VwHkmyNynRYl+Kn7HkX2HZbQYrE=
