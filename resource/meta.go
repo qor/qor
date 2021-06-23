@@ -444,27 +444,33 @@ func HandleManyToMany(context *qor.Context, scope *gorm.Scope, meta *Meta, recor
 	if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr == nil && len(compositePKeys) > 0 {
 		HandleVersionedManyToMany(context, field, compositePKeys)
 	} else {
-		if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr != nil {
-			fmt.Println("given meta value contains no version name, this might cause the association is incorrect")
-		}
-
-		primaryKeys := utils.ToArray(metaValue.Value)
-		if metaValue.Value == nil {
-			primaryKeys = []string{}
-		}
-
-		// set current field value to blank
-		field.Set(reflect.Zero(field.Type()))
-
-		if len(primaryKeys) > 0 {
-			// replace it with new value
-			context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
-		}
+		HandleNormalManyToMany(context, field, metaValue, fieldHasVersion, compositePKeyConvertErr)
 	}
 
 	if !scope.PrimaryKeyZero() {
 		context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
 		field.Set(reflect.Zero(field.Type()))
+	}
+}
+
+// HandleNormalManyToMany not only handle normal many_to_many relationship, it also handled the situation that user set the association to blank
+func HandleNormalManyToMany(context *qor.Context, field reflect.Value, metaValue *MetaValue, fieldHasVersion bool, compositePKeyConvertErr error) {
+	if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr != nil {
+		fmt.Println("given meta value contains no version name, this might cause the association is incorrect")
+	}
+
+	primaryKeys := utils.ToArray(metaValue.Value)
+	if metaValue.Value == nil {
+		primaryKeys = []string{}
+	}
+
+	// set current field value to blank. This line responsible for set field to blank value when metaValue is nil
+	// which means user removed all associations
+	field.Set(reflect.Zero(field.Type()))
+
+	if len(primaryKeys) > 0 {
+		// replace it with new value
+		context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
 	}
 }
 
