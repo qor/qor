@@ -1020,3 +1020,43 @@ func TestCollectPrimaryKeys(t *testing.T) {
 		})
 	}
 }
+
+func TestHandleVersionedManyToMany(t *testing.T) {
+	db := testutils.GetTestDB()
+	registerVersionNameCallback(db)
+	testutils.ResetDBTables(db, &CollectionWithVersion{}, &ProductWithVersion{})
+	ctx := &qor.Context{DB: db}
+
+	record := CollectionWithVersion{Name: "test"}
+	record.SetVersionName("v1")
+	p1 := ProductWithVersion{Name: "p1"}
+	p2_v1 := ProductWithVersion{Name: "p2"}
+	p3_v1 := ProductWithVersion{Name: "p3"}
+	testutils.AssertNoErr(t, db.Save(&p1).Error)
+	testutils.AssertNoErr(t, db.Save(&p2_v1).Error)
+	testutils.AssertNoErr(t, db.Save(&p3_v1).Error)
+
+	record.Products = []ProductWithVersion{p1}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+
+	field := utils.Indirect(reflect.ValueOf(&record)).FieldByName("Products")
+
+	r1 := []resource.CompositePrimaryKeyStruct{{
+		ID:          p2_v1.ID,
+		VersionName: p2_v1.GetVersionName(),
+	}, {
+		ID:          p3_v1.ID,
+		VersionName: p3_v1.GetVersionName(),
+	}}
+
+	resource.HandleVersionedManyToMany(ctx, field, r1)
+
+	result := field.Interface().([]ProductWithVersion)
+	if len(result) != 2 {
+		t.Error("products not set to field")
+	}
+
+	if result[0].ID != p3_v1.ID || result[0].GetVersionName() != p3_v1.GetVersionName() || result[1].ID != p2_v1.ID || result[1].GetVersionName() != p2_v1.GetVersionName() {
+		t.Error("products not set to field correctly")
+	}
+}

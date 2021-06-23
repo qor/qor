@@ -430,6 +430,64 @@ func CollectPrimaryKeys(metaValueForCompositePrimaryKeys []string) (compositePKe
 	return
 }
 
+func HandleManyToMany(context *qor.Context, scope *gorm.Scope, meta *Meta, record interface{}, metaValue *MetaValue, field reflect.Value, fieldHasVersion bool) {
+	metaValueForCompositePrimaryKeys, ok := metaValue.Value.([]string)
+	compositePKeys := []CompositePrimaryKeyStruct{}
+	var compositePKeyConvertErr error
+
+	if ok {
+		compositePKeys, compositePKeyConvertErr = CollectPrimaryKeys(metaValueForCompositePrimaryKeys)
+	}
+
+	// If the field is a struct with version and metaValue is present and we can collect id + version_name combination
+	// It means we can make the query by specific condition
+	if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr == nil && len(compositePKeys) > 0 {
+		HandleVersionedManyToMany(context, field, compositePKeys)
+	} else {
+		if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr != nil {
+			fmt.Println("given meta value contains no version name, this might cause the association is incorrect")
+		}
+
+		primaryKeys := utils.ToArray(metaValue.Value)
+		if metaValue.Value == nil {
+			primaryKeys = []string{}
+		}
+
+		// set current field value to blank
+		field.Set(reflect.Zero(field.Type()))
+
+		if len(primaryKeys) > 0 {
+			// replace it with new value
+			context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
+		}
+	}
+
+	if !scope.PrimaryKeyZero() {
+		context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
+		field.Set(reflect.Zero(field.Type()))
+	}
+}
+
+// HandleVersionedManyToMany handle id+version_name composite primary key, query and set the correct result to the "Many" field
+// e.g. Collection.Products
+func HandleVersionedManyToMany(context *qor.Context, field reflect.Value, compositePKeys []CompositePrimaryKeyStruct) {
+	// set current field value to blank
+	field.Set(reflect.Zero(field.Type()))
+
+	// eliminate potential version_name condition on the main object, we don't need it when querying associated records
+	// it usually added by qor/publish2.
+	db := context.GetDB().Set("publish:version:mode", "multiple")
+	for i, compositePKey := range compositePKeys {
+		if i == 0 {
+			db = db.Where("id = ? AND version_name = ?", compositePKey.ID, compositePKey.VersionName)
+		} else {
+			db = db.Or("id = ? AND version_name = ?", compositePKey.ID, compositePKey.VersionName)
+		}
+	}
+
+	db.Find(field.Addr().Interface())
+}
+
 func setupSetter(meta *Meta, fieldName string, record interface{}) {
 	nestedField := strings.Contains(fieldName, ".")
 
@@ -453,6 +511,7 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 
 			defer func() {
 				if r := recover(); r != nil {
+					fmt.Println(r)
 					debug.PrintStack()
 					context.AddError(validations.NewError(record, meta.Name, fmt.Sprintf("Failed to set Meta %v's value with %v, got %v", meta.Name, metaValue.Value, r)))
 				}
@@ -512,56 +571,9 @@ func setupSetter(meta *Meta, fieldName string, record interface{}) {
 					}
 
 					if relationship.Kind == "many_to_many" {
-						metaValueForCompositePrimaryKeys, ok := metaValue.Value.([]string)
-						compositePKeys := []CompositePrimaryKeyStruct{}
-						var compositePKeyConvertErr error
-
-						if ok {
-							compositePKeys, compositePKeyConvertErr = CollectPrimaryKeys(metaValueForCompositePrimaryKeys)
-						}
-
-						// If field is a struct with version and metaValue is []map[string]string we construct the query separately
-						if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr == nil {
-							// set current field value to blank
-							field.Set(reflect.Zero(field.Type()))
-
-							if len(compositePKeys) > 0 {
-								// eliminate potential version_name condition on the main object, we don't need it when querying associated records
-								// it usually added by qor/publish2.
-								db := context.GetDB().Set("publish:version:mode", "multiple")
-								for i, compositePKey := range compositePKeys {
-									if i == 0 {
-										db = db.Where("id = ? AND version_name = ?", compositePKey.ID, compositePKey.VersionName)
-									} else {
-										db = db.Or("id = ? AND version_name = ?", compositePKey.ID, compositePKey.VersionName)
-									}
-
-								}
-								db.Find(field.Addr().Interface())
-							}
-						} else {
-							if fieldHasVersion && metaValue.Value != nil && compositePKeyConvertErr != nil {
-								fmt.Println("given meta value contains no version name, this might cause the association is incorrect")
-							}
-
-							primaryKeys := utils.ToArray(metaValue.Value)
-							if metaValue.Value == nil {
-								primaryKeys = []string{}
-							}
-
-							// set current field value to blank
-							field.Set(reflect.Zero(field.Type()))
-
-							if len(primaryKeys) > 0 {
-								// replace it with new value
-								context.GetDB().Set("publish:version:mode", "multiple").Where(primaryKeys).Find(field.Addr().Interface())
-							}
-						}
-
-						if !scope.PrimaryKeyZero() {
-							context.GetDB().Model(record).Association(meta.FieldName).Replace(field.Interface())
-							field.Set(reflect.Zero(field.Type()))
-						}
+						// The reason why we use `record` as an interface{} here rather than `recordAsValue` is
+						// we need make query by record, it must be a pointer, but belongs_to make query based on field, no need to be pointer.
+						HandleManyToMany(context, scope, meta, record, metaValue, field, fieldHasVersion)
 					}
 				})
 
