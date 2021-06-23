@@ -648,6 +648,14 @@ func TestManyToManyRelation_WithVersion(t *testing.T) {
 	if !hasCorrectVersion {
 		t.Error("p2 is not associated with collection with correct version")
 	}
+
+	metaValue1 := &resource.MetaValue{Name: productsMeta.Name, Value: []string{}}
+	productsMeta.Setter(&record, metaValue1, ctx)
+
+	testutils.AssertNoErr(t, db.Preload("Products").Find(&record).Error)
+	if len(record.Products) != 0 {
+		t.Error("products not set to 0")
+	}
 }
 
 func TestHandleBelongsTo(t *testing.T) {

@@ -470,6 +470,7 @@ func HandleManyToMany(context *qor.Context, scope *gorm.Scope, meta *Meta, recor
 
 // HandleVersionedManyToMany handle id+version_name composite primary key, query and set the correct result to the "Many" field
 // e.g. Collection.Products
+// This doesn't handle compositePKeys is blank logic, if it is, this function should not be invoked
 func HandleVersionedManyToMany(context *qor.Context, field reflect.Value, compositePKeys []CompositePrimaryKeyStruct) {
 	// set current field value to blank
 	field.Set(reflect.Zero(field.Type()))
