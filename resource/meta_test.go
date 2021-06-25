@@ -1064,9 +1064,31 @@ func TestHandleVersionedManyToMany(t *testing.T) {
 		t.Error("products not set to field")
 	}
 
-	if result[0].ID != p3_v1.ID || result[0].GetVersionName() != p3_v1.GetVersionName() || result[1].ID != p2_v1.ID || result[1].GetVersionName() != p2_v1.GetVersionName() {
+	if !IncludeGivenObj(result, p3_v1.ID) || !IncludeGivenObj(result, p3_v1.GetVersionName()) || !IncludeGivenObj(result, p2_v1.ID) || !IncludeGivenObj(result, p2_v1.GetVersionName()) {
 		t.Error("products not set to field correctly")
 	}
+}
+
+func IncludeGivenObj(result []ProductWithVersion, target interface{}) bool {
+	flag := false
+
+	for _, v := range result {
+		if id, ok := target.(uint); ok {
+			if v.ID == id {
+				flag = true
+				break
+			}
+		}
+
+		if versionName, ok := target.(string); ok {
+			if v.GetVersionName() == versionName {
+				flag = true
+				break
+			}
+		}
+	}
+
+	return flag
 }
 
 func TestHandleNormalManyToMany(t *testing.T) {
