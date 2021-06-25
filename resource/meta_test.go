@@ -1068,3 +1068,43 @@ func TestHandleVersionedManyToMany(t *testing.T) {
 		t.Error("products not set to field correctly")
 	}
 }
+
+func TestHandleNormalManyToMany(t *testing.T) {
+	db := testutils.GetTestDB()
+	registerVersionNameCallback(db)
+	testutils.ResetDBTables(db, &Collection{}, &Product{})
+	ctx := &qor.Context{DB: db}
+
+	record := Collection{Name: "test"}
+	p1 := Product{Name: "p1"}
+	p2 := Product{Name: "p2"}
+	p3 := Product{Name: "p3"}
+	testutils.AssertNoErr(t, db.Save(&p1).Error)
+	testutils.AssertNoErr(t, db.Save(&p2).Error)
+	testutils.AssertNoErr(t, db.Save(&p3).Error)
+
+	record.Products = []Product{p1}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+
+	field := utils.Indirect(reflect.ValueOf(&record)).FieldByName("Products")
+
+	metaValue := &resource.MetaValue{Name: "Products", Value: []string{fmt.Sprintf("%d", p2.ID), fmt.Sprintf("%d", p3.ID)}}
+
+	resource.HandleNormalManyToMany(ctx, field, metaValue, false, nil)
+
+	result := field.Interface().([]Product)
+	if len(result) != 2 {
+		t.Error("products not set to field")
+	}
+
+	if result[0].ID != p2.ID || result[1].ID != p3.ID {
+		t.Error("products not set to field correctly")
+	}
+
+	zeroMetaValue := &resource.MetaValue{Name: "Products", Value: []string{}}
+	resource.HandleNormalManyToMany(ctx, field, zeroMetaValue, false, nil)
+	result1 := field.Interface().([]Product)
+	if len(result1) != 0 {
+		t.Error("product not set to blank")
+	}
+}
