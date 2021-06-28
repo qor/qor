@@ -222,12 +222,10 @@ func (meta *Meta) Initialize() error {
 func setCompositePrimaryKey(f *gorm.Field) {
 	for i := 0; i < f.Field.Len(); i++ {
 		associatedRecord := reflect.Indirect(f.Field.Index(i))
-		for i := 0; i < associatedRecord.Type().NumField(); i++ {
-			if associatedRecord.Type().Field(i).Name == CompositePrimaryKeyFieldName {
-				id := associatedRecord.FieldByName("ID").Uint()
-				versionName := associatedRecord.FieldByName("VersionName").String()
-				associatedRecord.Field(i).FieldByName("CompositePrimaryKey").SetString(fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName))
-			}
+		if v := associatedRecord.FieldByName(CompositePrimaryKeyFieldName); v.IsValid() {
+			id := associatedRecord.FieldByName("ID").Uint()
+			versionName := associatedRecord.FieldByName("VersionName").String()
+			associatedRecord.FieldByName("CompositePrimaryKey").SetString(fmt.Sprintf("%d%s%s", id, CompositePrimaryKeySeparator, versionName))
 		}
 	}
 }
