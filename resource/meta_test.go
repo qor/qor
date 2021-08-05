@@ -293,10 +293,36 @@ type CollectionWithVersion struct {
 	Manager            Manager
 }
 
+type CollectionWithVersionAndUint64PrimaryKey struct {
+	ID        uint64 `gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
+
+	publish2.Version
+	publish2.Schedule
+
+	Name string
+
+	Products       []ProductWithVersion `gorm:"many2many:collection_with_version_product_with_versions;association_autoupdate:false"`
+	ProductsSorter sorting.SortableCollection
+
+	ManagerID          uint
+	ManagerVersionName string
+	Manager            Manager
+}
+
 func (coll *CollectionWithVersion) AssignVersionName(db *gorm.DB) {
 	var count int
 	name := time.Now().Format("2006-01-02")
 	db.Model(&CollectionWithVersion{}).Where("id = ? AND version_name like ?", coll.ID, name+"%").Count(&count)
+	coll.VersionName = fmt.Sprintf("%s-v%v", name, count+1)
+}
+
+func (coll *CollectionWithVersionAndUint64PrimaryKey) AssignVersionName(db *gorm.DB) {
+	var count int
+	name := time.Now().Format("2006-01-02")
+	db.Model(&CollectionWithVersionAndUint64PrimaryKey{}).Where("id = ? AND version_name like ?", coll.ID, name+"%").Count(&count)
 	coll.VersionName = fmt.Sprintf("%s-v%v", name, count+1)
 }
 
@@ -867,7 +893,17 @@ func registerVersionNameCallback(db *gorm.DB) {
 			name := time.Now().Format("2006-01-02")
 
 			idField, _ := scope.FieldByName("ID")
-			id := idField.Field.Interface().(uint)
+			var id uint64
+			idUint, ok := idField.Field.Interface().(uint)
+			if !ok {
+				id64, ok := idField.Field.Interface().(uint64)
+				if !ok {
+					panic("ID filed must be uint or uint64")
+				}
+				id = id64
+			} else {
+				id = uint64(idUint)
+			}
 
 			var count int
 			scope.DB().Table(scope.TableName()).Unscoped().Scopes(WithoutVersion).Where("id = ? AND version_name like ?", id, name+"%").Count(&count)
@@ -941,6 +977,24 @@ func TestSwitchRecordToNewVersionIfNeeded(t *testing.T) {
 	newRecord := resource.SwitchRecordToNewVersionIfNeeded(ctx, record)
 
 	if newRecord.(CollectionWithVersion).VersionName == oldVersionName {
+		t.Error("new version name is not assigned to record")
+	}
+}
+
+func TestSwitchRecordToNewVersionIfNeeded_Uint64ID(t *testing.T) {
+	db := testutils.GetTestDB()
+	testutils.ResetDBTables(db, &CollectionWithVersionAndUint64PrimaryKey{})
+	registerVersionNameCallback(db)
+
+	record := CollectionWithVersionAndUint64PrimaryKey{Name: "test"}
+	testutils.AssertNoErr(t, db.Save(&record).Error)
+	oldVersionName := record.VersionName
+
+	formValues := map[string][]string{"QorResource.VersionName": {}}
+	ctx := &qor.Context{DB: db, Request: &http.Request{Form: formValues}}
+
+	newRecord := resource.SwitchRecordToNewVersionIfNeeded(ctx, record)
+	if newRecord.(CollectionWithVersionAndUint64PrimaryKey).VersionName == oldVersionName {
 		t.Error("new version name is not assigned to record")
 	}
 }
