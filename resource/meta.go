@@ -293,8 +293,21 @@ func switchRecordToNewVersionIfNeeded(context *qor.Context, record interface{}) 
 		recordValue = recordValue.Elem()
 	}
 
+	// Handle situation when the primary key is a uint64 not general uint
+	var id uint64
+	idUint, ok := recordValue.FieldByName("ID").Interface().(uint)
+	if !ok {
+		id64, ok := recordValue.FieldByName("ID").Interface().(uint64)
+		if !ok {
+			panic("ID filed must be uint or uint64")
+		}
+		id = id64
+	} else {
+		id = uint64(idUint)
+	}
+
 	// if currentVersionName is blank, we consider it is creating a new version
-	if recordValue.FieldByName("ID").Interface().(uint) != 0 && currentVersionName == "" {
+	if id != 0 && currentVersionName == "" {
 		arguments := []reflect.Value{reflect.ValueOf(context.GetDB())}
 
 		// Handle the situation when record is NOT a pointer
