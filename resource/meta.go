@@ -296,6 +296,9 @@ func switchRecordToNewVersionIfNeeded(context *qor.Context, record interface{}) 
 	// Handle situation when the primary key is a uint64 not general uint
 	var id uint64
 	field := recordValue.FieldByName("ID")
+	if !field.IsValid() {
+		return record
+	}
 	idUint, ok := field.Interface().(uint)
 	if !ok {
 		id64, ok := field.Interface().(uint64)
