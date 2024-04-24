@@ -2,13 +2,11 @@
 
 let gulp = require("gulp"),
   babel = require("gulp-babel"),
-  eslint = require("gulp-eslint"),
   plumber = require("gulp-plumber"),
   cleanCSS = require("gulp-clean-css"),
   concat = require("gulp-concat"),
   sass = require("gulp-sass"),
   uglify = require("gulp-uglify"),
-  autoprefixer = require("gulp-autoprefixer"),
   fs = require("fs"),
   path = require("path"),
   es = require("event-stream"),
@@ -84,11 +82,6 @@ function adminTasks() {
       return gulp
         .src(scripts.src)
         .pipe(plumber())
-        .pipe(
-          eslint({
-            configFile: ".eslintrc",
-          })
-        )
         .pipe(concat("app.js"))
         .pipe(uglify())
         .pipe(gulp.dest(scripts.dest));
@@ -100,16 +93,10 @@ function adminTasks() {
       .src([scripts.qorInit, scripts.qorCommon, scripts.qor])
       .pipe(plumber())
       .pipe(
-        eslint({
-          configFile: ".eslintrc",
-        })
-      )
-      .pipe(
         babel({
           presets: ["@babel/env"],
         })
       )
-      .pipe(eslint.format())
       .pipe(concat("qor.js"))
       .pipe(uglify())
       .pipe(gulp.dest(scripts.dest));
@@ -124,7 +111,6 @@ function adminTasks() {
           presets: ["@babel/env"],
         })
       )
-      .pipe(eslint.format())
       .pipe(concat("app.js"))
       .pipe(uglify())
       .pipe(gulp.dest(scripts.dest));
@@ -144,7 +130,6 @@ function adminTasks() {
       return gulp
         .src(styles.main)
         .pipe(plumber())
-        .pipe(autoprefixer())
         .pipe(cleanCSS())
         .pipe(gulp.dest(styles.dest));
     })
@@ -296,16 +281,10 @@ function moduleTasks(moduleNames) {
         .src(path.join(scriptPath, folder, "/*.js"))
         .pipe(plumber())
         .pipe(
-          eslint({
-            configFile: ".eslintrc",
-          })
-        )
-        .pipe(
           babel({
             presets: ["@babel/env"],
           })
         )
-        .pipe(eslint.format())
         .pipe(concat(folder + ".js"))
         .pipe(uglify())
         .pipe(gulp.dest(scriptPath));
@@ -463,11 +442,6 @@ gulp.task("combineDatetimePicker", function() {
       "../admin/views/assets/javascripts/qor/qor-timepicker.js",
     ])
     .pipe(plumber())
-    .pipe(
-      eslint({
-        configFile: ".eslintrc",
-      })
-    )
     .pipe(
       babel({
         presets: ["@babel/env"],
