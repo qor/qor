@@ -3,6 +3,7 @@ package resource
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -52,7 +53,14 @@ func (res *Resource) ToPrimaryQueryParams(primaryValue string, context *qor.Cont
 
 		// fallback to first configured primary field
 		if len(res.PrimaryFields) > 0 {
-			return fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(res.PrimaryFields[0].DBName)), []interface{}{primaryValue}
+			dbName := res.PrimaryFields[0].DBName
+			if scope.HasColumn("uid") {
+				if _, err := strconv.ParseUint(primaryValue, 10, 64); err != nil {
+					dbName = "uid"
+				}
+			}
+
+			return fmt.Sprintf("%v.%v = ?", scope.QuotedTableName(), scope.Quote(dbName)), []interface{}{primaryValue}
 		}
 
 		// if no configured primary fields found
