@@ -207,6 +207,33 @@ func TestScannerMetaValuerAndSetter(t *testing.T) {
 	checkMeta(user, meta, "scanner", t)
 }
 
+type fieldscanner struct {
+	Body string
+}
+
+func (s *fieldscanner) FieldScan(field *reflect.StructField, value interface{}) error {
+	s.Body = field.Name
+	return nil
+}
+
+func TestFieldScannerMetaValuerAndSetter(t *testing.T) {
+	user := &struct {
+		ScannerField fieldscanner
+	}{}
+
+	res := resource.New(user)
+
+	meta := &resource.Meta{
+		Name:         "ScannerField",
+		BaseResource: res,
+		Valuer: func(user interface{}, context *qor.Context) interface{} {
+			return user.(*struct{ ScannerField fieldscanner }).ScannerField.Body
+		},
+	}
+
+	checkMeta(user, meta, "ScannerField", t)
+}
+
 func TestSliceMetaValuerAndSetter(t *testing.T) {
 	t.Skip()
 
