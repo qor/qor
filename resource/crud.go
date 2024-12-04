@@ -54,9 +54,10 @@ func (res *Resource) ToPrimaryQueryParams(primaryValue string, context *qor.Cont
 		// fallback to first configured primary field
 		if len(res.PrimaryFields) > 0 {
 			dbName := res.PrimaryFields[0].DBName
-			if scope.HasColumn("uid") {
-				if _, err := strconv.ParseUint(primaryValue, 10, 64); err != nil {
-					dbName = "uid"
+
+			if scope.HasColumn("cid") {
+				if !isNumeric(primaryValue) {
+					dbName = "cid"
 				}
 			}
 
@@ -153,4 +154,11 @@ func (res *Resource) deleteHandler(result interface{}, context *qor.Context) err
 		return gorm.ErrRecordNotFound
 	}
 	return roles.ErrPermissionDenied
+}
+
+// Helper function
+func isNumeric(s string) bool {
+	_, err := strconv.ParseUint(s, 10, 64)
+
+	return err == nil
 }
