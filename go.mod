@@ -1,6 +1,6 @@
 module github.com/qor/qor
 
-go 1.25
+go 1.25.0
 
 require (
 	github.com/go-sql-driver/mysql v1.5.0
@@ -36,6 +36,6 @@ require (
 	github.com/qor/worker v0.0.0-20190805090529-35a245417f70 // indirect
 	github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be // indirect
 	github.com/theplant/cldr v0.0.0-20190423050709-9f76f7ce4ee8 // indirect
-	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 )
