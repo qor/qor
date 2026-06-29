@@ -153,13 +153,20 @@ func (res *Resource) GetMetas([]string) []Metaor {
 
 // HasPermission check permission of resource
 func (res *Resource) HasPermission(mode roles.PermissionMode, context *qor.Context) bool {
-	if res == nil || res.Permission == nil {
+	if res == nil {
 		return true
 	}
 
-	var roles = []interface{}{}
-	for _, role := range context.Roles {
-		roles = append(roles, role)
+	if res.Permission != nil {
+		var roles = []interface{}{}
+		for _, role := range context.Roles {
+			roles = append(roles, role)
+		}
+		return res.Permission.HasPermission(mode, roles...)
+	} else if context.Config != nil && context.Config.GroupPermissionEnabled {
+		// When group permission is enabled, resource with no Permission will no longer return true. But return group permission result instead.
+		return context.Config.GroupPermissionResult
+	} else {
+		return true
 	}
-	return res.Permission.HasPermission(mode, roles...)
 }
