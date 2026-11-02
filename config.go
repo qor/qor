@@ -4,5 +4,7 @@ import "github.com/jinzhu/gorm"
 
 // Config qor config struct
 type Config struct {
-	DB *gorm.DB
+	DB                     *gorm.DB
+	GroupPermissionEnabled bool
+	GroupPermissionResult  bool
 }
